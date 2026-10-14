@@ -99,9 +99,37 @@ _SENSOR_WORDS = re.compile(
 _GROUP_WORDS = re.compile(r"\b(?:sensor\s+groups?|groups?\s+of\s+sensors|which\s+sensors)\b", _I)
 _FAILURE_WORDS = re.compile(r"\b(?:fail\w*|yield|associated|important|matter\w*|signific\w*)\b", _I)
 _CAUSE_WORDS = re.compile(
-    r"\b(?:caus\w*|why|mechanism\w*|origins?|reasons?|sources?|explain\w*|lead\s+to|comes?\s+from)\b",
+    r"\b(?:caus\w*|why|mechanism\w*|origins?|reasons?|sources?|explain\w*|lead\s+to|"
+    r"leads\s+to|comes?\s+from|behind|responsible|underlying|attribut\w*|"
+    r"produc(?:e|es|ed|ing)|creat(?:e|es|ed|ing)|generat(?:e|es|ed|ing)|form(?:s|ed|ation)|"
+    r"trigger(?:s|ed|ing)?|result\w*\s+(?:in|from)|"
+    r"root[\s-]+causes?|gives?\s+rise|contribut\w*\s+to)\b",
     _I,
 )
+_DOMAIN_WORDS = re.compile(
+    r"\b(?:units?|wafers?|lots?|dies?|sensors?|alarms?|risk\w*|yield\w*|fail\w*|fab|plant|"
+    r"lines?|process\w*|tools?|chambers?|equipment|semiconductor\w*|defects?|patterns?|maps?|"
+    r"secom|wm-?811k|t2|t²|spe|fdc|ewma|cusum|control|charts?|statistic\w*|shap|models?|"
+    r"predict\w*|investigat\w*|work\s+orders?|reports?|evidence|data\w*|measure\w*|"
+    r"health\w*|calibrat\w*|maintenance|anomal\w*|excursion\w*|literature|papers?|"
+    r"stud(?:y|ies)|research|etch\w*|lithograph\w*|deposit\w*|polish\w*|cmp|"
+    r"temperature|pressure|flow|sample\w*|batch\w*)\b",
+    _I,
+)
+"""Words of the product's scope: the plant's data, wafer maps and the defect literature."""
+_OFF_TOPIC = re.compile(
+    # creative writing and entertainment
+    r"\b(?:poems?|poetry|haikus?|limericks?|sonnets?|lyrics|songs?|stor(?:y|ies)|jokes?|"
+    r"riddles?|puns?|essays?|fiction|novels?|movies?|films?|tv\s+shows?|games?|"
+    # general knowledge, news and everyday help
+    r"capital\s+of|presidents?|prime\s+ministers?|kings?|queens?|celebrit\w*|weather|"
+    r"forecast|recipes?|cook\w*|restaurants?|travel\w*|vacation|hotels?|flights?|sports?|"
+    r"football|soccer|basketball|baseball|cricket|olympic\w*|world\s+cup|elections?|"
+    r"politic\w*|horoscopes?|zodiac|stock\s+prices?|crypto\w*|bitcoin|translate|"
+    r"translation|dating|relationship\w*|homework|history\s+of\s+(?:rome|france|the\s+world))\b",
+    _I,
+)
+"""Requests a general assistant would answer; with no word of the scope they are refused."""
 _LITERATURE_WORDS = re.compile(
     r"\b(?:papers?|literature|stud(?:y|ies)|publications?|references?|articles?|sources?|"
     r"research)\b",
@@ -305,6 +333,16 @@ def planned_calls(
     return tuple(calls)
 
 
+def is_off_topic(question: str, entities: Entities) -> bool:
+    """A request of a kind outside the product (a poem, trivia, the weather...) that names
+    nothing in its scope: no unit, alarm, sensor, wafer or lot, and no word of the plant's data.
+    Pattern names are not counted: "random", "center" or "local" are everyday words too."""
+    named = replace(entities, patterns=(), statuses=())
+    if named.as_json() or _DOMAIN_WORDS.search(question):
+        return False
+    return bool(_OFF_TOPIC.search(question))
+
+
 def route_by_rules(question: str, context: ChatContext | None = None) -> Route | None:
     """The route the rules decide, or None when only a model can classify the question."""
     entities = extract_entities(question)
@@ -312,6 +350,8 @@ def route_by_rules(question: str, context: ChatContext | None = None) -> Route |
         return Route("out_of_scope", "deterministic", entities, reason=INJECTION_REFUSAL)
     if _ACTION.search(question):
         return Route("action_request", "deterministic", entities, reason=ACTION_REFUSAL)
+    if is_off_topic(question, entities):
+        return Route("out_of_scope", "deterministic", entities, reason=SCOPE_REFUSAL)
     entities = with_context(question, entities, context)
     decided = _rule_intent(question, entities)
     if decided is None:

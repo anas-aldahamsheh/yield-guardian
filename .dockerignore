@@ -9,11 +9,13 @@
 !packages/
 !services/api/
 !data/secom/
+!data/manifest.json
 !deploy/fetch_artifacts.py
 !deploy/artifacts.lock.json
 !deploy/docker/api-migrate.sh
 !artifacts/*/v*/
 !docs/knowledge/
+!docs/recorded/
 
 # Secrets, never in an image
 **/.env
