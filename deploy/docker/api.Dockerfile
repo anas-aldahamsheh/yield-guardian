@@ -79,6 +79,8 @@ COPY services/api/scripts/ /app/services/api/scripts/
 COPY data/secom/ATTRIBUTION.md data/secom/secom.data data/secom/secom_labels.data \
      data/secom/secom.names /app/data/secom/
 COPY --from=artifacts /artifacts/ /app/artifacts/
+# Curated literature for the knowledge search (agent/wiring.py reads /app/docs/knowledge).
+COPY docs/knowledge/ /app/docs/knowledge/
 COPY --chmod=0755 deploy/docker/api-migrate.sh /usr/local/bin/yg-migrate
 
 ARG GIT_COMMIT=""

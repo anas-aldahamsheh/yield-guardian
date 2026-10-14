@@ -13,6 +13,7 @@
 !deploy/artifacts.lock.json
 !deploy/docker/api-migrate.sh
 !artifacts/*/v*/
+!docs/knowledge/
 
 # Secrets, never in an image
 **/.env
