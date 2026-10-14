@@ -163,7 +163,7 @@ export function SensorSeriesChart({
             </>
           ) : null}
           {model.jumps.map((jx, i) => (
-            <line key={i} x1={jx} x2={jx} y1={M.top} y2={HEIGHT - M.bottom} stroke="var(--fail)" strokeWidth={1} opacity={0.7} />
+            <line key={i} x1={jx} x2={jx} y1={M.top} y2={HEIGHT - M.bottom} stroke="var(--fail)" strokeWidth={1} opacity={0.3} />
           ))}
           <path d={model.d} fill="none" stroke="var(--ink-2)" strokeWidth={1} strokeLinejoin="round" />
           {model.outside.map((o, i) =>

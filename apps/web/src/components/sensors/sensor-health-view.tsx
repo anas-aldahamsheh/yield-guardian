@@ -108,7 +108,7 @@ export function SensorHealthView() {
                 ) : (
                   <>
                     <p className="tnum mx-4 mb-3 text-[13px] leading-5 text-ink-2 sm:mx-5">
-                      {formatInt(g.significant_groups)} significant {plural(g.significant_groups, "group")} holding {formatInt(g.sensors_in_significant_groups)} of{" "}
+                      {plural(g.significant_groups, "significant group")} holding {formatInt(g.sensors_in_significant_groups)} of{" "}
                       {formatInt(g.sensors_total)} sensors.
                     </p>
                     <SensorGroupsTable data={g} selectedSensor={selected} onSelectSensor={setSensor} />
@@ -259,7 +259,9 @@ function WeeklyMissing({ health, windows }: { health: SensorHealth; windows: Hea
                   />
                 ) : null}
               </div>
-              <span className="tnum mt-0.5 block truncate text-center text-[10px] leading-3 text-ink-3">{date}</span>
+              <span aria-hidden="true" className={cn("tnum mt-0.5 block text-[10px] leading-3 whitespace-nowrap text-ink-3", i % 2 === 1 && "invisible")}>
+                {date}
+              </span>
               <span className="sr-only">
                 Week from {w.start.slice(0, 10)}: {v == null ? "no units" : `${formatPercent(v)} missing`}
                 {flat ? ", flat line" : ""}.
@@ -295,7 +297,7 @@ function AttentionTable({
   return (
     <Panel
       title={visible.size === ALL.size ? "Sensors with a status other than OK" : `Sensors: ${HEALTH_STATUS_ORDER.filter((s) => visible.has(s)).map((s) => HEALTH_STATUS[s]).join(", ")}`}
-      description={`${formatInt(rows.length)} ${plural(rows.length, "sensor")}, worst status first.`}
+      description={`${plural(rows.length, "sensor")}, worst status first.`}
       bodyClassName="px-0 sm:px-0"
     >
       {rows.length === 0 ? (

@@ -76,7 +76,10 @@ export const INVESTIGATION_EVENT_TYPES = [
 ] as const;
 
 /** A part of a written text: plain, or a number the report lists with its evidence. */
-export type Segment = { text: string; number?: number };
+export type Segment = { text: string; number?: number; unverified?: true };
+
+/** What the verifier writes in place of a value it could not trace to evidence. */
+export const UNVERIFIED_MARK = "[unverified]";
 
 /**
  * Splits text at the numbers the report lists (`NumberRef.as_written`), so each number can link
@@ -92,6 +95,13 @@ export function segmentNumbers(text: string, numbers: NumberRef[]): Segment[] {
   let i = 0;
   let plain = "";
   while (i < text.length) {
+    if (text.startsWith(UNVERIFIED_MARK, i)) {
+      if (plain) segments.push({ text: plain });
+      plain = "";
+      segments.push({ text: UNVERIFIED_MARK, unverified: true });
+      i += UNVERIFIED_MARK.length;
+      continue;
+    }
     const hit = order.find((n) => {
       if (!text.startsWith(n.written, i)) return false;
       // Do not match inside a longer number: "1.5" in "21.5" or "8" in "18.4".

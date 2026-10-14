@@ -165,7 +165,11 @@ function RunDescription({ investigation }: { investigation: Investigation }) {
     <span className="tnum">
       {models}
       {u
-        ? `. ${plural(u.requests, "model call")}, ${formatInt(u.tokens_in + u.tokens_out + u.tokens_reasoning)} tokens, ${formatNumber(u.points, 5)} points.`
+        ? `. ${plural(u.requests, "model call")}, ${formatInt(u.tokens_in + u.tokens_out + u.tokens_reasoning)} tokens, ${formatNumber(u.points, 5)} points${
+            u.requests_without_usage > 0
+              ? `; ${formatInt(u.requests_without_usage)} ${u.requests_without_usage === 1 ? "call" : "calls"} did not report usage and ${u.requests_without_usage === 1 ? "is" : "are"} not in these sums`
+              : ""
+          }.`
         : "."}
     </span>
   );

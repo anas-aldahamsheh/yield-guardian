@@ -2,7 +2,7 @@
 
 import type { InvestigationStep } from "@yield-guardian/contracts";
 
-import { formatDuration, formatInt, formatNumber } from "@/lib/format";
+import { formatDuration, formatInt, formatNumber, formatReported } from "@/lib/format";
 import { ROLE_NAMES, STEP_NODE, TOOL_NAME } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -56,8 +56,15 @@ export function Steps({
               {step.llm.map((call, k) => (
                 <p key={k} className="tnum mt-1.5 text-[12px] leading-4 text-ink-3">
                   {ROLE_NAMES[call.role] ?? call.role}: <span className="text-ink-2">{call.model_id}</span>,{" "}
-                  {formatInt(call.tokens_in)} in, {formatInt(call.tokens_out)} out
-                  {call.tokens_reasoning ? `, ${formatInt(call.tokens_reasoning)} reasoning` : ""}, {formatNumber(call.points, 5)} points,{" "}
+                  {call.tokens_in == null && call.tokens_out == null ? (
+                    "tokens not reported"
+                  ) : (
+                    <>
+                      {formatReported(call.tokens_in)} in, {formatReported(call.tokens_out)} out
+                    </>
+                  )}
+                  {call.tokens_reasoning ? `, ${formatInt(call.tokens_reasoning)} reasoning` : ""},{" "}
+                  {call.points == null ? "points not reported" : `${formatNumber(call.points, 5)} points`},{" "}
                   {formatDuration(call.latency_ms)}
                   {call.cached ? ", from cache" : ""}
                 </p>

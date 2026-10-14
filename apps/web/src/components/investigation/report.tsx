@@ -143,6 +143,7 @@ function WrittenText({ text, numbers, issues, selection, onSelect }: { text: str
   return (
     <>
       {segmentNumbers(text, numbers).map((segment, i) => {
+        if (segment.unverified) return <UnverifiedMark key={i} />;
         if (segment.number == null) return <Fragment key={i}>{segment.text}</Fragment>;
         const ref = numbers[segment.number]!;
         const flagged = issues.get(`numbers[${segment.number}]`);
@@ -173,6 +174,24 @@ function WrittenText({ text, numbers, issues, selection, onSelect }: { text: str
         );
       })}
     </>
+  );
+}
+
+/** Where the verifier hid a value it could not trace to evidence. */
+export function UnverifiedMark() {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          tabIndex={0}
+          className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded-[2px] border border-dashed border-fail px-1 align-baseline text-[11px] leading-4 font-medium tracking-[0.02em] text-fail"
+          aria-label="Value hidden: the verifier could not trace it to the evidence."
+        >
+          unverified
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[280px] font-sans">The verifier hid a value here because it could not trace it to the evidence.</TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -108,3 +108,12 @@ describe("issues and pointers", () => {
     expect(readPointer(data, "/missing/x")).toBeUndefined();
   });
 });
+
+describe("unverified marker", () => {
+  it("splits [unverified] out as its own segment", () => {
+    const segs = segmentNumbers("Yield fell to [unverified] after 18.4%.", [{ as_written: "18.4%" } as never]);
+    expect(segs.map((s) => s.text)).toEqual(["Yield fell to ", "[unverified]", " after ", "18.4%", "."]);
+    expect(segs[1]!.unverified).toBe(true);
+    expect(segs[3]!.number).toBe(0);
+  });
+});

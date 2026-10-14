@@ -147,3 +147,8 @@ export function formatCompact(value: number | null | undefined): string {
 export function plural(count: number, one: string, many = `${one}s`): string {
   return `${formatInt(count)} ${count === 1 ? one : many}`;
 }
+
+/** A count the model endpoint may not report: null reads "not reported", never 0. */
+export function formatReported(value: number | null | undefined, format: (v: number) => string = formatInt): string {
+  return value == null ? "not reported" : format(value);
+}
