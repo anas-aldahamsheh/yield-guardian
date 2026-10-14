@@ -1,0 +1,65 @@
+# Build context for deploy/docker/*.Dockerfile (context: the repository root).
+# Allowlist: nothing enters the context unless it is listed here.
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!.npmrc
+!apps/
+!packages/
+!services/api/
+!data/secom/
+!deploy/fetch_artifacts.py
+!deploy/artifacts.lock.json
+!deploy/docker/api-migrate.sh
+
+# Secrets, never in an image
+**/.env
+**/.env.*
+**/.kaggle
+**/*.pem
+**/*.key
+**/.git
+**/.claude
+
+# Dependencies, caches and build output (rebuilt inside the image)
+**/node_modules
+**/.next
+**/.turbo
+apps/*/out
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.hypothesis
+**/.coverage
+services/api/htmlcov
+apps/*/coverage
+packages/*/coverage
+**/playwright-report
+**/test-results
+**/*.tsbuildinfo
+**/next-env.d.ts
+**/.DS_Store
+
+# Raw data, training and local artifacts/ stay out through the allowlist above: model bundles
+# come only from deploy/artifacts.lock.json, verified during the build.
+
+# Development fixtures, mocks, tests and dev-only pages never reach an image
+packages/contracts/fixtures
+packages/contracts/scripts
+apps/web/src/mocks
+apps/web/public/mockServiceWorker.js
+apps/web/e2e
+apps/web/scripts
+apps/web/**/*.dev.tsx
+apps/web/vitest.config.*
+apps/web/vitest.setup.*
+apps/web/playwright.config.*
+**/__tests__
+**/__mocks__
+**/*.test.*
+**/*.spec.*
+services/api/tests

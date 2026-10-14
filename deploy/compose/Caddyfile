@@ -1,0 +1,38 @@
+# Yield Guardian gateway: the single entry point of the compose stack.
+#
+# SITE_ADDRESS is ":80" (plain HTTP, the default) or the value of DOMAIN, in which case Caddy
+# obtains a certificate and serves HTTPS on 443 with a redirect from 80.
+# No request limits of any kind (decision D-009): no rate limiting, no body size cap.
+{
+	admin off
+	servers {
+		# Proxies in front of this gateway whose X-Forwarded-* headers are trusted.
+		trusted_proxies static {$TRUSTED_PROXIES}
+	}
+}
+
+{$SITE_ADDRESS} {
+	header -Server
+
+	# API, server-sent events and the live-line WebSocket: streamed straight through.
+	@api path /api/* /ws/*
+	handle @api {
+		reverse_proxy api:8000 {
+			flush_interval -1
+		}
+	}
+
+	# Everything else is the web app (streamed server rendering).
+	handle {
+		encode zstd gzip
+		reverse_proxy web:3000 {
+			flush_interval -1
+		}
+	}
+}
+
+# Container healthcheck, on the loopback interface only.
+:8081 {
+	bind 127.0.0.1
+	respond "ok" 200
+}
