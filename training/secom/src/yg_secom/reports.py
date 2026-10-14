@@ -995,8 +995,9 @@ def model_card(
         "- Root cause on the development period: TreeSHAP, Spearman sensor groups "
         "(|rho| >= 0.8, average linkage), stability selection, label-permutation test with "
         "Benjamini-Hochberg, Mann-Whitney screen.",
-        "- FDC: PCA on robust-scaled reference data, Hotelling T² (F limit) and SPE "
-        "(Jackson-Mudholkar), contributions, EWMA and CUSUM on leading groups.",
+        "- FDC: PCA on autoscaled reference data, Hotelling T² (F limit) and SPE "
+        f"({metrics['fdc']['model']['spe_limit_method']}), contributions, EWMA and CUSUM on "
+        "leading groups.",
         "- Sensor health: written, label-free rules per sensor and calendar week; the jump "
         "threshold is calibrated on the reference period.",
         "",

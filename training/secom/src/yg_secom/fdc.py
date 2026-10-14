@@ -25,7 +25,11 @@ Statistics and limits (for new observations)
     Hotelling T^2 = sum_a t_a^2 / lambda_a over the kept components, with the Phase II limit
     A (n^2 - 1) / (n (n - A)) F(1 - alpha; A, n - A) (Tracy, Young and Mason, 1992).
     SPE (Q) = squared norm of the residual, with the Jackson-Mudholkar (1979) limit from the
-    discarded eigenvalues. Both at alpha = 0.01 and 0.001.
+    discarded eigenvalues when the reference has more rows than features; otherwise the
+    in-sample residual eigenvalues miss every direction the reference does not span (a
+    first run gave a 100% false-alarm rate on held-out data), so the limit is Box's
+    g chi-square(h) matched to the moments of leave-one-out reference SPE values (Nomikos
+    and MacGregor, 1995). Both at alpha = 0.01 and 0.001.
 
 Contributions
     SPE: squared residual per feature (they sum to SPE). T^2: the complete decomposition
@@ -101,6 +105,38 @@ def spe_limit(residual_eigenvalues: FloatArray, alpha: float) -> tuple[float, st
     c = float(stats.norm.ppf(1.0 - alpha))
     inner = c * math.sqrt(2.0 * th2 * h0 * h0) / th1 + 1.0 + th2 * h0 * (h0 - 1.0) / (th1 * th1)
     return float(th1 * inner ** (1.0 / h0)), "Jackson-Mudholkar"
+
+
+def leave_one_out_spe(filled: FloatArray, n_components: int) -> FloatArray:
+    """SPE of each reference row under a model (centre, scale, PCA) fitted without that row.
+
+    With fewer reference rows than features the in-sample residual eigenvalues omit every
+    direction the reference never spans, so an eigenvalue-based SPE limit is far too low
+    for new observations; leave-one-out residuals measure what a new in-control row sees.
+    """
+    n = filled.shape[0]
+    out = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        rest = np.delete(filled, i, axis=0)
+        centre = rest.mean(axis=0)
+        scale = rest.std(axis=0, ddof=1)
+        scale = np.where(scale > 0, scale, 1.0)
+        Zr = (rest - centre) / scale
+        _, _, vt = np.linalg.svd(Zr, full_matrices=False)
+        P = vt[:n_components]
+        z = (filled[i] - centre) / scale
+        r = z - P.T @ (P @ z)
+        out[i] = float(r @ r)
+    return out
+
+
+def moment_spe_limit(spe_values: FloatArray, alpha: float) -> float:
+    """Box's g chi-square(h) limit with g and h matched to the mean and variance of SPE values
+    (Nomikos and MacGregor, 1995): g = var / (2 mean), h = 2 mean^2 / var."""
+    m = float(np.mean(spe_values))
+    v = float(np.var(spe_values, ddof=1))
+    g, h = v / (2.0 * m), 2.0 * m * m / v
+    return float(g * stats.chi2.ppf(1.0 - alpha, h))
 
 
 def parallel_analysis(
@@ -227,9 +263,17 @@ def fit_fdc(
         explained_variance=float(cumulative[n_components - 1]),
     )
     methods = set()
+    loo = leave_one_out_spe(filled, n_components) if n <= len(features) else None
     for alpha in alphas:
         model.t2_limits[alpha] = t2_limit(n_components, n, alpha)
-        limit, method = spe_limit(eigenvalues[n_components:], alpha)
+        if loo is not None:
+            limit = moment_spe_limit(loo, alpha)
+            method = (
+                "Box chi-square approximation matched to the mean and variance of "
+                "leave-one-out reference SPE (reference rows <= features)"
+            )
+        else:
+            limit, method = spe_limit(eigenvalues[n_components:], alpha)
         model.spe_limits[alpha] = limit
         methods.add(method)
     model.spe_limit_method = ", ".join(sorted(methods))

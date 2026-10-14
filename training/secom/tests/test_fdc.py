@@ -16,6 +16,8 @@ from yg_secom.fdc import (
     ewma_arl,
     ewma_chart,
     fit_fdc,
+    leave_one_out_spe,
+    moment_spe_limit,
     parallel_analysis,
     select_reference,
     spe_limit,
@@ -66,6 +68,33 @@ def test_spe_limit_matches_jackson_mudholkar_by_hand_and_by_simulation() -> None
     for alpha in (0.01, 0.001):
         limit, _ = spe_limit(many, alpha)
         assert limit == pytest.approx(float(np.quantile(simulated, 1 - alpha)), rel=0.03)
+
+
+def test_moment_spe_limit_recovers_a_scaled_chi_square() -> None:
+    rng = np.random.default_rng(5)
+    values = 3.0 * rng.chisquare(7.0, size=200_000)
+    for alpha in (0.01, 0.001):
+        expected = 3.0 * stats.chi2.ppf(1 - alpha, 7.0)
+        assert moment_spe_limit(values, alpha) == pytest.approx(expected, rel=0.02)
+
+
+def test_spe_limit_holds_for_new_rows_when_reference_is_narrower_than_features() -> None:
+    """n < p: the leave-one-out limit keeps the new-row false-alarm rate near nominal."""
+    rng = np.random.default_rng(6)
+    n, p = 60, 120
+    mix = rng.normal(size=(p, p)) * 0.3 + np.eye(p)
+    ref = pd.DataFrame(
+        rng.normal(size=(n, p)) @ mix, columns=[f"S{i:03d}" for i in range(1, p + 1)]
+    )
+    model = fit_fdc(ref, np.arange(n), max_missing=0.5, variance_target=0.5, alphas=(0.01, 0.001))
+    assert "leave-one-out" in model.spe_limit_method
+    loo = leave_one_out_spe(ref.to_numpy(), model.n_components)
+    assert loo.shape == (n,)
+    new = pd.DataFrame(rng.normal(size=(4000, p)) @ mix, columns=ref.columns)
+    rate = float(np.mean(model.score(new)["spe"] > model.spe_limits[0.01]))
+    assert rate == pytest.approx(0.01, abs=0.01)  # simulated: 1.15%
+    in_sample, _ = spe_limit(model.eigenvalues[model.n_components :], 0.01)
+    assert float(np.mean(model.score(new)["spe"] > in_sample)) > 0.3  # what it replaces
 
 
 def test_contributions_add_up_and_missing_readings_are_imputed() -> None:
