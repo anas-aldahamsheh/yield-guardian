@@ -1,9 +1,10 @@
 """Full-text search over the knowledge chunks.
 
-:class:`FullTextIndex` is the protocol; :class:`InMemoryFullTextIndex` ranks with Okapi BM25
-(k1 1.2, b 0.75) over lower-cased word stems. The corpus is small (curated open-access sources),
-so an in-memory index answers in microseconds; a PostgreSQL ``tsvector`` index can implement the
-same protocol later without changing any caller.
+:class:`SearchIndex` is what the knowledge service searches. :class:`InMemoryFullTextIndex`
+ranks with Okapi BM25 (k1 1.2, b 0.75) over lower-cased word stems and serves when there is no
+database; with DATABASE_URL, :class:`~yield_guardian.knowledge.postgres.PostgresFullTextIndex`
+(PostgreSQL ``tsvector``, GIN index) serves the same protocol. :class:`FullTextIndex` is what
+ingestion adds chunks to.
 """
 
 from __future__ import annotations
@@ -99,6 +100,19 @@ def terms(text: str) -> list[str]:
     return words
 
 
+class SearchIndex(Protocol):
+    async def search_hits(self, query: str, *, limit: int = 5) -> list[KnowledgeHit]: ...
+
+    @property
+    def method(self) -> str: ...
+
+
+def query_words(query: str) -> list[str]:
+    """The query's words without stop words, lower-cased, in order, each once."""
+    words = [w for w in re.findall(r"[a-z0-9]+", query.lower()) if w not in _STOP and len(w) > 1]
+    return list(dict.fromkeys(words))
+
+
 class FullTextIndex(Protocol):
     def add(self, source: KnowledgeSource, chunks: Iterable[Chunk]) -> int: ...
 
@@ -171,6 +185,9 @@ class InMemoryFullTextIndex:
             self._df.update(counts.keys())
             added += 1
         return added
+
+    async def search_hits(self, query: str, *, limit: int = 5) -> list[KnowledgeHit]:
+        return self.search(query, limit=limit)
 
     def search(self, query: str, *, limit: int = 5) -> list[KnowledgeHit]:
         wanted = list(dict.fromkeys(terms(query)))

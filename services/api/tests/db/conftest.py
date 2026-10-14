@@ -25,7 +25,8 @@ ADMIN_PASSWORD = "correct horse battery staple, synthetic test value"
 
 TABLES = (
     "sessions, investigations, investigation_events, investigation_jobs, work_orders, "
-    "audit_entries, alarm_states"
+    "audit_entries, alarm_states, llm_calls, llm_response_cache, llm_role_assignments, "
+    "chat_routes, llm_evaluations, knowledge_chunks"
 )
 
 
