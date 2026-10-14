@@ -48,7 +48,10 @@ def create_app(
     settings: Settings | None = None, registry: ServiceRegistry | None = None
 ) -> FastAPI:
     settings = settings or get_settings()
-    registry = registry or ServiceRegistry(settings=settings)
+    if registry is None:
+        from yield_guardian.bootstrap import build_registry
+
+        registry = build_registry(settings)
     configure_logging(settings.log_level, json=settings.log_json)
 
     @asynccontextmanager

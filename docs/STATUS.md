@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 08:41 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 08:53 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -17,7 +17,7 @@
 
 | | |
 |---|---|
-| Done | 9 of 86 |
+| Done | 18 of 86 |
 | Current focus | SECOM pipeline (worker 2), wafer-map training setup (worker 3 on the PC), AI layer (worker 4), interface (worker 5), CI (lead) |
 | Blocked | Nothing |
 | Waiting on you | Put the Token Factory key in `.env` on your PC when asked |
@@ -33,11 +33,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | False alarms per 100 units at that point | not measured yet | | | |
 | Sensors to inspect per investigation (median) | not measured yet | | | |
 | FDC false-alarm rate on held-out reference | not measured yet | | | |
-| WM-811K macro-F1, official split | not measured yet | | | |
-| WM-811K macro-F1, lot-grouped split | not measured yet | | | |
+| WM-811K macro-F1, official split | 0.604 (mean of 3 seeds, sd 0.043) | seed 0: 0.621 [0.605, 0.634] | 118,595 test wafers; test lots are shifted from training | Reported by worker 3; metrics_official.json not pushed yet |
+| WM-811K macro-F1, lot-grouped split | 0.900 (mean of 3 seeds, sd 0.006) | seed 0: 0.905 [0.893, 0.916] | 25,954 test wafers, 1,608 lots | [metrics_lot.json](../training/wafermap/reports/metrics_lot.json) |
 | Unknown-pattern AUROC (leave-one-class-out, mean) | not measured yet | | | |
 | Similar-wafer precision@10 | not measured yet | | | |
-| Share auto-classified at precision ≥ target | not measured yet | | | |
+| Share auto-classified at precision ≥ target | 95.8% at precision 0.992 (target 0.99, seed 0) | [95.4%, 96.1%] | Lot-grouped test | Reported by worker 3 |
 | Points per full investigation (Token Factory) | not measured yet | | | |
 
 ## Work items
@@ -82,11 +82,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| W1 | Preprocessing: label parsing, nearest-neighbour resize, one-hot | Cloud + PC | 🟡 | Conversion and preprocessing code written (f50e461); worker 3 |
-| W2 | Official and lot-grouped splits | PC | 🟡 | Lot-grouped split written ([splits.json](../training/wafermap/reports/splits.json)); worker 3 |
-| W3 | Residual CNN, focal loss, dihedral augmentations | Cloud | 🟡 | Residual CNN and training loop written (f50e461); worker 3 |
-| W4 | Training on the RTX 3060 (3 seeds, MLflow) | PC | ⏳ | Final training location to be decided (D-003) |
-| W5 | Evaluation: macro-F1, per-class, confusion matrix, CIs, temperature scaling | PC | ⏳ | |
+| W1 | Preprocessing: label parsing, nearest-neighbour resize, one-hot | Cloud + PC | ✅ | Nearest-neighbour 64×64 maps for all 811,457 wafers (worker 3) |
+| W2 | Official and lot-grouped splits | PC | ✅ | Official split (train 46,190 / val 8,165 / test 118,595) and lot-grouped split (121,049 / 25,947 / 25,954); 0 lots shared between any two parts ([splits.json](../training/wafermap/reports/splits.json)) |
+| W3 | Residual CNN, focal loss, dihedral augmentations | Cloud | ✅ | Residual CNN 2.83M parameters, focal loss with class-balanced weights, dihedral augmentation; 16 unit tests pass |
+| W4 | Training on the RTX 3060 (3 seeds, MLflow) | PC | ✅ | 3 seeds per split on the RTX 3060, MLflow runs with git commit and data SHA-256 |
+| W5 | Evaluation: macro-F1, per-class, confusion matrix, CIs, temperature scaling | PC | ✅ | Lot-grouped test macro-F1 0.900 (sd 0.006 over 3 seeds), baseline 0.699; temperature scaling ECE 0.050 to 0.0045 ([metrics_lot.json](../training/wafermap/reports/metrics_lot.json)). Official split 0.604 (sd 0.043): shifted test lots, reported as a limitation |
 | W6 | Embeddings and unknown-pattern score, leave-one-class-out test | PC | ⏳ | |
 | W7 | Similar-wafer search, precision@10 | PC | ⏳ | |
 | W8 | Lot excursion tests, stacked maps, join-count tests | Cloud + PC | ⏳ | |
@@ -105,15 +105,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | 🟡 | App factory, settings, structured logs, problem+json errors, health and readiness (37e271d); resources start and stop with the app (a99afd3); ASGI entry (581c6dd); bundle loading pending |
-| A2 | Database schema and Alembic migrations | Cloud | 🟡 | Lead's helper: SQLAlchemy models and Alembic migrations, tested on PostgreSQL with pgvector |
+| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ✅ | App factory, settings, logs, problem+json, health and readiness (37e271d); resources start and stop with the app (a99afd3); at startup the newest verified bundle is loaded and /ready names any reason it could not be (f224cec) |
+| A2 | Database schema and Alembic migrations | Cloud | ✅ | SQLAlchemy models and Alembic migration 0001, applied at startup and tested on PostgreSQL 16 with pgvector; CI runs them on pgvector/pg17 (b8ae0b3) |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
-| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ⏳ | |
-| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ⏳ | |
+| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | 🟡 | Plant clock, alarm rules, line state, alarm pages and the /ws/line stream written and tested (5e9e5ca); waits for the real SECOM bundle and the database alarm states |
+| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | 🟡 | SECOM service written and tested (5e9e5ca): bundle verified file by file, timeline checked against secom_labels.data, explanations add up to the raw score; waits for worker 2's bundle |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ⏳ | |
 | A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes declared on the service interfaces (37e271d); services pending (A5, A6) |
-| A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | 🟡 | Lead's helper: guest and admin sessions, scrypt, CSRF (no request limits, D-009) |
-| A9 | Work orders and audit log | Cloud | 🟡 | Lead's helper: work orders, audit log, investigation store with a PostgreSQL job queue |
+| A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ✅ | Guest and admin sessions (only token hashes stored), scrypt admin hash, CSRF, logout; failed logins never lock the account (D-009); tested through the routes (b8ae0b3) |
+| A9 | Work orders and audit log | Cloud | ✅ | Work orders, audit log with filters and pages, alarm states, investigation store with a PostgreSQL job queue; tested (b8ae0b3) |
 
 ### L: AI layer
 
@@ -193,7 +193,10 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 08:51 | Database, sessions, work orders and audit merged and tested on PostgreSQL (A2, A8, A9 done). The API now loads the newest verified SECOM bundle at startup and /ready says why when it can't (A1 done) |
+| 2026-10-14 08:47 | W1 to W5 done on the PC: wafer-map CNN trained (3 seeds per split); lot-grouped test macro-F1 0.900 against 0.699 for the baseline; official split 0.604 because its test lots are shifted. OOD, leave-one-class-out, similarity, ONNX and the bundle running next |
 | 2026-10-14 08:41 | Two helpers started under the lead: database, sessions, work orders and audit (A2, A8, A9); Docker images, compose and artifact verification (P1 to P3). P7 assigned to worker 5. SECOM bundle format aligned with the API (019dd80) |
+| 2026-10-14 08:36 | Line replay and SECOM service written with 33 tests (109 API tests pass); they run on the real bundle as soon as worker 2 delivers it |
 | 2026-10-14 08:27 | F4 done: CI green on main (run 3) |
 | 2026-10-14 08:20 | CI workflow pushed (F4 in progress); A8 wording corrected to match D-009 (no request limits) |
 | 2026-10-14 08:09 | Fixtures rebuilt from real SECOM records (unit IDs, times, pass/fail, readings, missing values, block counts, sensor health); model outputs stay placeholders until the bundles exist. F4 started |
