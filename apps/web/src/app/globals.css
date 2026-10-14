@@ -1,1 +1,310 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Yellow Room tokens (work item U2). docs/DESIGN.md explains every role.
+ *
+ * Each token is written once with light-dark(inspection light, yellow room). The theme is
+ * chosen by color-scheme: next-themes sets data-theme on <html>, and any subtree can opt into
+ * the yellow room with data-theme="dark" (the home hero always does, because it depicts the bay).
+ * Hex values are computed from OKLCH in docs/DESIGN.md; the safelight is computed in
+ * src/lib/optics/safelight.ts and pinned by a unit test.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces: the room, its panels (dies) and raised panels. */
+  --room: light-dark(#eef0f2, #13120c);
+  --die: light-dark(#fcfdfe, #1b1913);
+  --die-2: light-dark(#ffffff, #24221b);
+  --hairline: light-dark(#d6d9dc, #37352e);
+  --hairline-strong: light-dark(#b9bdc2, #4f4c43);
+
+  /* Ink: readings and text. */
+  --ink: light-dark(#1a1e24, #eceade);
+  --ink-2: light-dark(#4e5359, #bdbbaf);
+  --ink-3: light-dark(#686c72, #96948a);
+
+  /* Light. Marks attention only: focus, selection, the active step, the exposure field. */
+  --safelight: light-dark(#a27900, #f5d326);
+  --safelight-lamp: #f5d326;
+  --safelight-wash: light-dark(
+    color-mix(in oklab, #f5d326 30%, transparent),
+    color-mix(in oklab, #f5d326 13%, transparent)
+  );
+  --safelight-wash-strong: light-dark(
+    color-mix(in oklab, #f5d326 48%, transparent),
+    color-mix(in oklab, #f5d326 22%, transparent)
+  );
+
+  /* Results. Validated as a colour-blind-safe pair in both themes (docs/DESIGN.md). */
+  --pass: light-dark(#0f76a2, #3fa0c9);
+  --fail: light-dark(#c62b44, #eb556e);
+  --pass-wash: light-dark(
+    color-mix(in oklab, #0f76a2 12%, transparent),
+    color-mix(in oklab, #3fa0c9 16%, transparent)
+  );
+  --fail-wash: light-dark(
+    color-mix(in oklab, #c62b44 11%, transparent),
+    color-mix(in oklab, #eb556e 16%, transparent)
+  );
+  /* Concern between none and fail: a lighter step of the fail hue (always with icon and label). */
+  --concern: light-dark(#d9768a, #a5495a);
+
+  /* Context marks in charts (baselines, reference periods), always direct-labelled. */
+  --mark-muted: light-dark(#9ba1a8, #6c6a61);
+
+  /* Motion. */
+  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-component: 220ms;
+  --dur-panel: 420ms;
+
+  /* Layout. Panels are dies; the gap between them is a street. */
+  --street: 8px;
+  --gutter: clamp(16px, 3.2vw, 32px);
+  --bar-height: 56px;
+
+  /* shadcn/ui roles mapped onto the tokens above. */
+  --radius: 4px;
+  --background: var(--room);
+  --foreground: var(--ink);
+  --card: var(--die);
+  --card-foreground: var(--ink);
+  --popover: var(--die-2);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--room);
+  --secondary: var(--die-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--die-2);
+  --muted-foreground: var(--ink-2);
+  --accent: light-dark(#eef0f2, #2c2a22);
+  --accent-foreground: var(--ink);
+  --destructive: var(--fail);
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--safelight);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --font-sans: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-written), ui-serif, Georgia, serif;
+  --font-mono: var(--font-reading), ui-monospace, monospace;
+
+  --color-room: var(--room);
+  --color-die: var(--die);
+  --color-die-2: var(--die-2);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-safelight: var(--safelight);
+  --color-safelight-lamp: var(--safelight-lamp);
+  --color-safelight-wash: var(--safelight-wash);
+  --color-safelight-wash-strong: var(--safelight-wash-strong);
+  --color-pass: var(--pass);
+  --color-fail: var(--fail);
+  --color-pass-wash: var(--pass-wash);
+  --color-fail-wash: var(--fail-wash);
+  --color-concern: var(--concern);
+  --color-mark-muted: var(--mark-muted);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-panel: 2px;
+  --radius-control: 4px;
+
+  /* Type scale: Bringhurst's classic sizes. Size / line height. */
+  --text-micro: 12px;
+  --text-micro--line-height: 16px;
+  --text-ui: 14px;
+  --text-ui--line-height: 20px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-written: 18px;
+  --text-written--line-height: 29px;
+  --text-h4: 18px;
+  --text-h4--line-height: 24px;
+  --text-h3: 21px;
+  --text-h3--line-height: 28px;
+  --text-h2: 24px;
+  --text-h2--line-height: 30px;
+  --text-h1: 36px;
+  --text-h1--line-height: 40px;
+  --text-h1--letter-spacing: -0.02em;
+  --text-display: 52px;
+  --text-display--line-height: 54px;
+  --text-display--letter-spacing: -0.025em;
+  --text-display-lg: 72px;
+  --text-display-lg--line-height: 72px;
+  --text-display-lg--letter-spacing: -0.03em;
+
+  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --spacing-street: var(--street);
+  --spacing-gutter: var(--gutter);
+  --spacing-bar: var(--bar-height);
+}
+
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
+
+  html {
+    background: var(--room);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--bar-height) + 16px);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--room);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--safelight-wash-strong);
+    color: var(--ink);
+  }
+
+  /* Focus is light: a solid 2px safelight outline, at least 3:1 against both themes' panels. */
+  :focus-visible {
+    outline: 2px solid var(--safelight);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* A panel is a die: flat, square-cornered, no shadow. Streets separate panels. */
+  .panel {
+    background: var(--die);
+    border-radius: var(--radius-panel);
+  }
+
+  /* Readings: tabular figures so columns align. Atkinson's zero is slashed by design. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Text a language model wrote. Serif means: check its evidence links. */
+  .written {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-size: 18px;
+    line-height: 29px;
+    letter-spacing: 0.002em;
+    font-variant-numeric: proportional-nums oldstyle-nums;
+  }
+
+  /* Lit state: something is selected or running. The safelight falls on it. */
+  .lit {
+    background: var(--safelight-wash);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--safelight) 55%, transparent);
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    z-index: 100;
+    padding: 8px 12px;
+    background: var(--die-2);
+    color: var(--ink);
+    border-radius: var(--radius-control);
+  }
+
+  .skip-link:focus-visible {
+    top: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+  .lit {
+    outline: 2px solid Highlight;
+  }
+}
