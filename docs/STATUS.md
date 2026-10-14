@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 08:27 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 09:02 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -105,15 +105,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | 🟡 | App factory, settings, structured logs, problem+json errors, health and readiness (37e271d); bundle loading at startup pending |
-| A2 | Database schema and Alembic migrations | Cloud | ⏳ | |
+| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | 🟡 | App factory, settings, structured logs, problem+json errors, health and readiness (37e271d); resources start and stop with the app (a99afd3); ASGI entry (581c6dd); bundle loading pending |
+| A2 | Database schema and Alembic migrations | Cloud | 🟡 | Lead's helper: SQLAlchemy models and Alembic migrations, tested on PostgreSQL with pgvector |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
-| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ⏳ | |
-| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ⏳ | |
+| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | 🟡 | Plant clock, alarm rules, line state, alarm pages and the /ws/line stream written and tested (5e9e5ca); waits for the real SECOM bundle and the database alarm states |
+| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | 🟡 | SECOM service written and tested (5e9e5ca): bundle verified file by file, timeline checked against secom_labels.data, explanations add up to the raw score; waits for worker 2's bundle |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ⏳ | |
 | A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes declared on the service interfaces (37e271d); services pending (A5, A6) |
-| A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ⏳ | |
-| A9 | Work orders and audit log | Cloud | ⏳ | |
+| A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | 🟡 | Lead's helper: guest and admin sessions, scrypt, CSRF (no request limits, D-009) |
+| A9 | Work orders and audit log | Cloud | 🟡 | Lead's helper: work orders, audit log, investigation store with a PostgreSQL job queue |
 
 ### L: AI layer
 
@@ -154,13 +154,13 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | ⏳ | |
-| P2 | Standalone compose with optional Caddy profile | Cloud | ⏳ | |
-| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | ⏳ | |
+| P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | 🟡 | Lead's helper: API and web images, non-root, healthchecks, built in CI |
+| P2 | Standalone compose with optional Caddy profile | Cloud | 🟡 | Lead's helper: compose with PostgreSQL, migrations, API, web and a Caddy gateway (automatic HTTPS when a domain is set) |
+| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Lead's helper: artifact download with SHA-256 and manifest verification at image build; release published when the bundles exist |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ⏳ | Back up `compose.yaml` first |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ⏳ | |
 | P6 | Live at `yield-guardian.anaslabs.com` | PC | ⏳ | |
-| P7 | Security headers and CSP | Cloud | ⏳ | |
+| P7 | Security headers and CSP | Cloud | 🟡 | Worker 5: CSP with per-request nonce and security headers set by the web app itself |
 
 ### Q: Quality
 
@@ -193,6 +193,8 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 09:02 | Line replay and SECOM service written with 33 tests (109 API tests pass); they run on the real bundle as soon as worker 2 delivers it |
+| 2026-10-14 08:41 | Two helpers started under the lead: database, sessions, work orders and audit (A2, A8, A9); Docker images, compose and artifact verification (P1 to P3). P7 assigned to worker 5. SECOM bundle format aligned with the API (019dd80) |
 | 2026-10-14 08:27 | F4 done: CI green on main (run 3) |
 | 2026-10-14 08:20 | CI workflow pushed (F4 in progress); A8 wording corrected to match D-009 (no request limits) |
 | 2026-10-14 08:09 | Fixtures rebuilt from real SECOM records (unit IDs, times, pass/fail, readings, missing values, block counts, sensor health); model outputs stay placeholders until the bundles exist. F4 started |
