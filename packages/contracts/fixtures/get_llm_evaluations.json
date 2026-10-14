@@ -12,7 +12,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 24,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "violations": 1,
       "latency_ms_p50": 2300.0,
@@ -33,7 +33,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 24,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "violations": 3,
       "latency_ms_p50": 3900.0,
@@ -54,7 +54,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 12,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "violations": 1,
       "latency_ms_p50": 4100.0,

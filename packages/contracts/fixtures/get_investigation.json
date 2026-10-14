@@ -200,7 +200,7 @@
           },
           "above_threshold": true,
           "calibration": "platt",
-          "note": null
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
         },
         "sensors_measured": 570,
         "sensors_missing": 20,
