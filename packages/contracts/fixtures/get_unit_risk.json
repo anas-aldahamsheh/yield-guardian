@@ -1,0 +1,15 @@
+{
+  "unit_id": 443,
+  "block": "validation",
+  "risk": 0.184,
+  "risk_source": "validation",
+  "risk_band": "high",
+  "operating_point": {
+    "id": "fpr_0.05",
+    "label": "5% false-alarm rate",
+    "threshold": 0.15
+  },
+  "above_threshold": true,
+  "calibration": "platt",
+  "note": null
+}

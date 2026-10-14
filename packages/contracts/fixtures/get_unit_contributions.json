@@ -1,0 +1,54 @@
+{
+  "unit_id": 443,
+  "statistic": "t2",
+  "value": 35.8,
+  "limit_99": 26.2,
+  "limit_999": 32.9,
+  "alarm": "alarm",
+  "contributions": [
+    {
+      "sensor": "S060",
+      "contribution": 9.1,
+      "share": 0.254,
+      "value": 37.698,
+      "reference_median": 55.298
+    },
+    {
+      "sensor": "S061",
+      "contribution": 6.3,
+      "share": 0.176,
+      "value": 41.246,
+      "reference_median": 57.202
+    },
+    {
+      "sensor": "S104",
+      "contribution": 4.0,
+      "share": 0.112,
+      "value": 45.887,
+      "reference_median": 51.069
+    },
+    {
+      "sensor": "S026",
+      "contribution": 2.9,
+      "share": 0.081,
+      "value": 51.632,
+      "reference_median": 43.022
+    },
+    {
+      "sensor": "S348",
+      "contribution": 2.2,
+      "share": 0.061,
+      "value": 47.03,
+      "reference_median": 50.992
+    },
+    {
+      "sensor": "S211",
+      "contribution": 1.6,
+      "share": 0.045,
+      "value": 43.037,
+      "reference_median": 52.235
+    }
+  ],
+  "other_share": 0.271,
+  "method": "Per-sensor contributions to Hotelling T\u00b2 of a PCA model fit on the reference period"
+}

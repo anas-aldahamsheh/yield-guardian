@@ -1,0 +1,78 @@
+{
+  "items": [
+    {
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "title": "Unit 443: T\u00b2 beyond the 99.9% limit",
+      "status": "awaiting_decision",
+      "trigger": {
+        "kind": "alarm",
+        "ref": "AL-443-t2",
+        "question": null
+      },
+      "created_at": "2026-10-13T23:39:00Z",
+      "updated_at": "2026-10-13T23:39:22Z",
+      "recorded": true,
+      "models": [
+        {
+          "role": "investigator",
+          "model_id": "DeepSeek-V4.1-Flash"
+        },
+        {
+          "role": "writer",
+          "model_id": "MiMo-V2.6-Flash"
+        },
+        {
+          "role": "verifier",
+          "model_id": "GLM-5.3-Flash"
+        }
+      ],
+      "usage": {
+        "requests": 3,
+        "tokens_in": 14760,
+        "tokens_out": 1500,
+        "tokens_reasoning": 380,
+        "points": 0.00264,
+        "cache_hits": 0
+      },
+      "work_order_id": null
+    },
+    {
+      "investigation_id": "inv_01jae2kq0c4w6f8h1j3m5n7p9r",
+      "title": "Lot lot47542: Edge-Ring above the expected rate",
+      "status": "approved",
+      "trigger": {
+        "kind": "lot",
+        "ref": "lot47542",
+        "question": null
+      },
+      "created_at": "2026-10-13T22:39:00Z",
+      "updated_at": "2026-10-13T22:42:20Z",
+      "recorded": true,
+      "models": [
+        {
+          "role": "investigator",
+          "model_id": "DeepSeek-V4.1-Flash"
+        },
+        {
+          "role": "writer",
+          "model_id": "MiMo-V2.6-Flash"
+        },
+        {
+          "role": "verifier",
+          "model_id": "GLM-5.3-Flash"
+        }
+      ],
+      "usage": {
+        "requests": 3,
+        "tokens_in": 14760,
+        "tokens_out": 1500,
+        "tokens_reasoning": 380,
+        "points": 0.00264,
+        "cache_hits": 0
+      },
+      "work_order_id": "WO-000011"
+    }
+  ],
+  "next_cursor": null,
+  "total": 2
+}

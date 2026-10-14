@@ -1,0 +1,133 @@
+{
+  "results": [
+    {
+      "id": "secom_pr_auc",
+      "label": "SECOM PR-AUC (test block)",
+      "estimate": {
+        "value": 0.21,
+        "ci_low": 0.12,
+        "ci_high": 0.3,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 307,
+        "note": null
+      },
+      "format": "ratio",
+      "data": "SECOM test block, held out and used once",
+      "source": "artifacts/secom/v1/metrics.json"
+    },
+    {
+      "id": "secom_recall_at_fpr_0.05",
+      "label": "Failures caught at a 5% false-alarm rate",
+      "estimate": {
+        "value": 0.42,
+        "ci_low": 0.21,
+        "ci_high": 0.63,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 19,
+        "note": null
+      },
+      "format": "percent",
+      "data": "SECOM test block",
+      "source": "artifacts/secom/v1/operating_points.json"
+    },
+    {
+      "id": "secom_false_alarms_per_100",
+      "label": "False alarms per 100 units at that rate",
+      "estimate": {
+        "value": 5.7,
+        "ci_low": 3.3,
+        "ci_high": 8.1,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 307,
+        "note": null
+      },
+      "format": "number",
+      "data": "SECOM test block",
+      "source": "artifacts/secom/v1/operating_points.json"
+    },
+    {
+      "id": "secom_sensors_to_inspect",
+      "label": "Sensors to inspect per investigation (median), of 590",
+      "estimate": null,
+      "format": "count",
+      "data": "SECOM",
+      "source": "artifacts/secom/v1/groups.json"
+    },
+    {
+      "id": "fdc_false_alarm_rate",
+      "label": "FDC false-alarm rate on held-out reference",
+      "estimate": {
+        "value": 0.013,
+        "ci_low": 0.0,
+        "ci_high": 0.026,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 75,
+        "note": null
+      },
+      "format": "percent",
+      "data": "SECOM reference period, held-out half",
+      "source": "artifacts/secom/v1/metrics.json"
+    },
+    {
+      "id": "wafer_macro_f1_official",
+      "label": "Wafer-map macro-F1, official split",
+      "estimate": {
+        "value": 0.86,
+        "ci_low": 0.85,
+        "ci_high": 0.87,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": null
+      },
+      "format": "ratio",
+      "data": "WM-811K official test split",
+      "source": "artifacts/wafermap/v1/metrics.json"
+    },
+    {
+      "id": "wafer_macro_f1_lot_grouped",
+      "label": "Wafer-map macro-F1, lot-grouped split",
+      "estimate": null,
+      "format": "ratio",
+      "data": "WM-811K lot-grouped test split",
+      "source": "artifacts/wafermap/v1/metrics.json"
+    },
+    {
+      "id": "unknown_auroc_loco",
+      "label": "Unknown-pattern AUROC (leave-one-class-out, mean)",
+      "estimate": null,
+      "format": "ratio",
+      "data": "WM-811K",
+      "source": "artifacts/wafermap/v1/metrics.json"
+    },
+    {
+      "id": "similar_precision_at_10",
+      "label": "Similar-wafer precision@10",
+      "estimate": null,
+      "format": "percent",
+      "data": "WM-811K labelled test maps",
+      "source": "artifacts/wafermap/v1/metrics.json"
+    },
+    {
+      "id": "auto_classified_share",
+      "label": "Wafer maps classified automatically at 95% precision",
+      "estimate": null,
+      "format": "percent",
+      "data": "WM-811K test split",
+      "source": "artifacts/wafermap/v1/metrics.json"
+    },
+    {
+      "id": "points_per_investigation",
+      "label": "Points per full investigation (Token Factory)",
+      "estimate": null,
+      "format": "number",
+      "data": "Recorded investigations",
+      "source": "database: llm_calls"
+    }
+  ],
+  "updated_at": "2026-10-13T23:48:00Z"
+}
