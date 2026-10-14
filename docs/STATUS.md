@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:01 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:07 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 48 of 86 done (56%), 17 in progress, 21 not started
+## Progress: 59 of 86 done (69%), 8 in progress, 19 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -12,9 +12,9 @@
 | D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
-| K: Knowledge base | 0 of 3 | 2 | 1 |
-| A: API | 7 of 9 | 1 | 1 |
-| L: AI layer | 0 of 11 | 9 | 2 |
+| K: Knowledge base | 1 of 3 | 2 | 0 |
+| A: API | 8 of 9 | 0 | 1 |
+| L: AI layer | 9 of 11 | 1 | 1 |
 | U: Interface | 4 of 14 | 1 | 9 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 0 of 5 | 2 | 3 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 48 of 86 |
+| Done | 59 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -116,7 +116,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
-| K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ⏳ | Costs points; run once |
+| K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ✅ | Chunking with page and section, BM25 search, MinerU ingestion for open-access files (not run); merged (578712c) |
 | K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
 
 ### A: API
@@ -129,7 +129,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ✅ | Wafer service on the real bundle: ONNX on CPU (parity 0.9986 top-label agreement with the training run), Mahalanobis unknown score, cosine similar-wafer search, lots, measured metrics; 31 tests (merged 5f5c5dd) |
-| A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes served; SECOM and wafer routes answer from real bundles; investigation, chat and knowledge routes wait for the AI layer merge |
+| A7 | REST endpoints for every screen | Cloud | ✅ | All 47 routes answer from real services: SECOM, wafer, investigations, chat, knowledge, model admin (578712c) |
 | A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ✅ | Guest and admin sessions (only token hashes stored), scrypt admin hash, CSRF, logout; failed logins never lock the account (D-009); tested through the routes (b8ae0b3) |
 | A9 | Work orders and audit log | Cloud | ✅ | Work orders, audit log with filters and pages, alarm states, investigation store with a PostgreSQL job queue; tested (b8ae0b3) |
 
@@ -137,16 +137,16 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| L1 | Token Factory client with capability profiles and catalog sync | Cloud | 🟡 | Client, capability profiles, request builder (on branch w4/ai, tests pass, merge pending) |
-| L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | 🟡 | Retries, cache, usage records; every limiter removed per D-009 (on branch w4/ai, tests pass, merge pending) |
-| L3 | Model registry: role to model, admin API, validation | Cloud | 🟡 | Role to model registry (on branch w4/ai, tests pass, merge pending) |
-| L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | 🟡 | Investigator graph: code-only triage, up to 8 tool calls, 2 revisions, pause for the engineer's decision, resume; 11 read-only tools (on branch w4/ai, tests pass, merge pending, cb12237) |
-| L5 | Report writer with strict schema | Cloud | 🟡 | Writer with strict JSON schema (on branch w4/ai, tests pass, merge pending) |
-| L6 | Verifier: number check, citation check, wording check, model check | Cloud | 🟡 | Verifier: number, citation, identifier and causal-wording checks in code, then a model from another family (on branch w4/ai, tests pass, merge pending) |
-| L7 | Router: deterministic intents first | Cloud | 🟡 | Worker 4 writing the router |
-| L8 | Engineer chat, grounded and scoped | Cloud | 🟡 | Worker 4 writing the engineer chat |
-| L9 | Recorded fixtures for tests; one manual smoke script | Cloud | 🟡 | Test fixtures and one manual smoke script (on branch w4/ai, tests pass, merge pending) |
-| L10 | Model evaluation harness per role, with cost estimate | Cloud | ⏳ | Costs points; run once |
+| L1 | Token Factory client with capability profiles and catalog sync | Cloud | ✅ | Token Factory client, capability profiles, request builder; merged (578712c) |
+| L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | ✅ | Retries with jitter and a 120 s Retry-After bound, response cache, usage records; every limiter removed (D-009); merged (578712c) |
+| L3 | Model registry: role to model, admin API, validation | Cloud | ✅ | Role-to-model registry with admin API and validation; merged (578712c) |
+| L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | ✅ | Investigator graph: code-only triage, up to 8 tool calls, 2 revisions, pause for the decision, resume after restart (PostgreSQL checkpointer tested); merged (578712c) |
+| L5 | Report writer with strict schema | Cloud | ✅ | Writer with strict JSON schema on MiMo, validated JSON on the fallback; merged (578712c) |
+| L6 | Verifier: number check, citation check, wording check, model check | Cloud | ✅ | Verifier: numbers, citations, identifiers and causal wording checked in code, then a model from another family; failed values shown as [unverified]; merged (578712c) |
+| L7 | Router: deterministic intents first | Cloud | ✅ | Router: rules first, model fallback with a closed intent set; injection and out-of-scope questions refused; merged (578712c) |
+| L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
+| L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
+| L10 | Model evaluation harness per role, with cost estimate | Cloud | 🟡 | Evaluation harness written (router 28 tasks, verifier 10, Wilson intervals, cost bound printed first: ≤0.02 points in total); live run waits for the owner's go-ahead |
 | L11 | Recorded demo investigations | Cloud | ⏳ | Costs points; run once |
 
 ### U: Interface
@@ -211,6 +211,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:07 | AI layer merged: investigator, writer, verifier, router, chat, knowledge search (L1 to L9, K2, A7 done). README written with measured results |
 | 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
 | 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |
 | 2026-10-14 10:49 | Live on anaslabs-hosting: API at yield-guardian.anaslabs.com, hub card added (P4, P5). Web app merged to main (U2 to U5, P7 done) |
