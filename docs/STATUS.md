@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:29 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:31 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -170,7 +170,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | 🟡 | Helper: API and web images built and healthy locally (read-only, no capabilities); migrate path being fixed (w1/packaging) |
 | P2 | Standalone compose with optional Caddy profile | Cloud | 🟡 | Helper: compose with PostgreSQL, migrate, API, web, Caddy; all healthy locally (w1/packaging) |
 | P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Lead's helper: artifact download with SHA-256 and manifest verification at image build; release published when the bundles exist |
-| P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ⏳ | Back up `compose.yaml` first |
+| P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | 🟡 | Worker 3: compose.yaml backed up (byte-identical); Traefik, Sablier and the Cloudflare wildcard checked read-only; the domain already reaches Traefik. Services are added once the images pass CI |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ⏳ | |
 | P6 | Live at `yield-guardian.anaslabs.com` | PC | ⏳ | |
 | P7 | Security headers and CSP | Cloud | 🟡 | Worker 5: CSP with per-request nonce and security headers set by the web app itself |
