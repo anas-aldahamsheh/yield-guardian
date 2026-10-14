@@ -22,7 +22,7 @@ const SPLIT_NAME: Record<SplitResult["split"], string> = {
   lot_grouped: "Lot-grouped split",
 };
 
-/** "0.860 ± 0.004 over 3 seeds", or "single fit" when the API gives no seed spread. */
+/** "<mean> ± <sd> over <n> seeds", or "single fit" when the API gives no seed spread. */
 export function seedText(s: SplitResult): string {
   if (s.seed_mean == null || s.seed_sd == null) return "single fit";
   return `${formatNumber(s.seed_mean, 3)} ± ${formatNumber(s.seed_sd, 3)} over ${s.seeds.length} ${s.seeds.length === 1 ? "seed" : "seeds"}`;
