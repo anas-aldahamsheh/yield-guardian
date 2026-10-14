@@ -1103,7 +1103,8 @@ export interface components {
     };
     /**
      * CallUsage
-     * @description One model call.
+     * @description One model call. Token counts and points are null when the endpoint did not report
+     *     usage (never shown as zero).
      */
     CallUsage: {
       /** Cached */
@@ -1113,7 +1114,7 @@ export interface components {
       /** Model Id */
       model_id: string;
       /** Points */
-      points: number;
+      points: number | null;
       /**
        * Role
        * @enum {string}
@@ -1127,11 +1128,11 @@ export interface components {
         | "ocr"
         | "vision";
       /** Tokens In */
-      tokens_in: number;
+      tokens_in: number | null;
       /** Tokens Out */
-      tokens_out: number;
+      tokens_out: number | null;
       /** Tokens Reasoning */
-      tokens_reasoning: number;
+      tokens_reasoning: number | null;
     };
     /**
      * CatalogModel
@@ -2397,7 +2398,7 @@ export interface components {
       /** Model Id */
       model_id: string;
       /** Points */
-      points: number;
+      points: number | null;
       /**
        * Role
        * @enum {string}
@@ -2415,12 +2416,15 @@ export interface components {
        * @enum {string}
        */
       status: "ok" | "cached" | "error" | "refused";
-      /** Tokens In */
-      tokens_in: number;
+      /**
+       * Tokens In
+       * @description Null when the endpoint did not report usage.
+       */
+      tokens_in: number | null;
       /** Tokens Out */
-      tokens_out: number;
+      tokens_out: number | null;
       /** Tokens Reasoning */
-      tokens_reasoning: number;
+      tokens_reasoning: number | null;
     };
     /** LoginRequest */
     LoginRequest: {
@@ -3774,7 +3778,11 @@ export interface components {
        */
       threshold_set_on: "validation";
     };
-    /** Usage */
+    /**
+     * Usage
+     * @description Totals over model calls. Token counts and points add up the calls whose usage the
+     *     endpoint reported; `requests_without_usage` counts the others (their usage is unknown).
+     */
     Usage: {
       /** Cache Hits */
       cache_hits: number;
@@ -3782,6 +3790,11 @@ export interface components {
       points: number;
       /** Requests */
       requests: number;
+      /**
+       * Requests Without Usage
+       * @description Requests the endpoint answered without reporting usage; not in the sums.
+       */
+      requests_without_usage: number;
       /** Tokens In */
       tokens_in: number;
       /** Tokens Out */

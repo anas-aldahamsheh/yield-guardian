@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "GET /v1/models in the OpenAI list shape (an undocumented model listed, Gemma-4-31B-IT not listed, one smaller context), then GET /v1/usage?include_recent=true.",
+    "source": "docs/vendor/token-factory.md documents that /v1/models returns pricing, context length and capability flags, and that /v1/usage returns quota, used, remaining, reset time, RPM limit and recent requests, but not the field names. Only 'id' is relied on in the catalog; the usage field names here are assumptions that the parser looks for, and the raw payload is kept for inspection."
+  },
+  "interactions": [
+    {
+      "request": {"method": "GET", "path": "/models"},
+      "response": {
+        "status": 200,
+        "json_body": {
+          "object": "list",
+          "data": [
+            {"id": "DeepSeek-V4-Flash", "object": "model", "owned_by": "fixture", "context_length": 1048576},
+            {"id": "DeepSeek-V4.1-Flash", "object": "model", "owned_by": "fixture", "context_length": 1048576},
+            {"id": "DeepSeek-V4-Flash-Vision-Exp", "object": "model", "owned_by": "fixture"},
+            {"id": "MiMo-V2.6-Flash", "object": "model", "owned_by": "fixture"},
+            {"id": "GLM-5.3-Flash", "object": "model", "owned_by": "fixture", "context_length": 131072},
+            {"id": "Qwen3.8-Flash-Next", "object": "model", "owned_by": "fixture"},
+            {"id": "Qwen3.8-27B", "object": "model", "owned_by": "fixture"},
+            {"id": "MiniCPM5-2B", "object": "model", "owned_by": "fixture"},
+            {"id": "MinerU2.5-Pro", "object": "model", "owned_by": "fixture"},
+            {"id": "MiniCPM-V-4.7-1B", "object": "model", "owned_by": "fixture", "context_length": "65536"}
+          ]
+        }
+      }
+    },
+    {
+      "request": {"method": "GET", "path": "/usage"},
+      "response": {
+        "status": 200,
+        "headers": {"x-ratelimit-limit-requests": "20"},
+        "json_body": {
+          "quota": 1.0,
+          "used": 0.25,
+          "remaining": 0.75,
+          "reset_at": "2026-10-14T11:00:00Z",
+          "rpm_limit": 20,
+          "recent": [{"model": "DeepSeek-V4-Flash", "used": 0.5, "remaining": 0.1}]
+        }
+      }
+    }
+  ]
+}
