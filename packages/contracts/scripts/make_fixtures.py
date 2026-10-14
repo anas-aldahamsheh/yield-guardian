@@ -90,7 +90,6 @@ from yield_guardian.contracts.methods import (
     ModelCardRef,
 )
 from yield_guardian.contracts.models import (
-    BudgetGuard,
     CallUsage,
     CatalogModel,
     EvaluationResult,
@@ -2020,7 +2019,6 @@ write(
             source="usage_endpoint",
             checked_at=NOW,
         ),
-        guard=BudgetGuard(active=False, threshold=0.3, reason=None),
         deterministic_answers=9,
         model_answers=2,
         recent=[

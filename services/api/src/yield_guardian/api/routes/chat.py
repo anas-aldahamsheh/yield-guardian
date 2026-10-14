@@ -22,7 +22,7 @@ SSE_RESPONSE: dict[int | str, dict[str, Any]] = {
     "/chat",
     operation_id="chat",
     response_model=None,
-    responses={**SSE_RESPONSE, **problem_responses(401, 403, 429, 503)},
+    responses={**SSE_RESPONSE, **problem_responses(401, 403, 503)},
 )
 async def chat(session: EngineerSession, body: ChatRequest, responder: Chat) -> EventSourceResponse:
     """Ask about the plant data. Answers cite evidence; numbers are checked against it."""

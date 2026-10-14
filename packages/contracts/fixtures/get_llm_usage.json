@@ -87,11 +87,6 @@
     "source": "usage_endpoint",
     "checked_at": "2026-10-13T23:48:00Z"
   },
-  "guard": {
-    "active": false,
-    "threshold": 0.3,
-    "reason": null
-  },
   "deterministic_answers": 9,
   "model_answers": 2,
   "recent": [

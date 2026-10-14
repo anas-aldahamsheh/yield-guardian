@@ -29,9 +29,7 @@ async def get_session(session: CurrentSession) -> SessionInfo:
     return session.info()
 
 
-@router.post(
-    "/session/guest", operation_id="start_guest_session", responses=problem_responses(429, 503)
-)
+@router.post("/session/guest", operation_id="start_guest_session", responses=problem_responses(503))
 async def start_guest_session(
     body: GuestSessionCreate,
     request: Request,
@@ -45,7 +43,7 @@ async def start_guest_session(
     return session.info()
 
 
-@router.post("/session/login", operation_id="login", responses=problem_responses(401, 429, 503))
+@router.post("/session/login", operation_id="login", responses=problem_responses(401, 503))
 async def login(
     body: LoginRequest, request: Request, response: Response, sessions: Sessions, registry: Registry
 ) -> SessionInfo:
