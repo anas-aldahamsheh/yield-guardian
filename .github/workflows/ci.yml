@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
     paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
     paths-ignore: ["docs/**", "**/*.md"]
@@ -25,6 +25,20 @@ jobs:
     name: API (lint, types, tests, contract staleness)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: yg
+          POSTGRES_PASSWORD: yg-ci-only
+          POSTGRES_DB: yg_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U yg -d yg_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      # Database tests run against this throwaway service; they skip only when the variable is unset.
+      TEST_DATABASE_URL: postgresql+asyncpg://yg:yg-ci-only@localhost:5432/yg_test
     defaults:
       run:
         working-directory: services/api
