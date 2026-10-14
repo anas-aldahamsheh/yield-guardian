@@ -1,6 +1,6 @@
 import type { Estimate } from "@yield-guardian/contracts";
 
-import { ciLabel, formatInterval, formatMetric, type MetricFormat } from "@/lib/format";
+import { ciLabel, formatInterval, formatMetric, formatNumber, type MetricFormat } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -39,12 +39,28 @@ export function IntervalMark({
   );
 }
 
-/** "0.88, 95% CI 0.76–1.00 (n = 24)" as text. */
-export function EstimateText({ estimate, format = "ratio", showN = false }: { estimate: Estimate; format?: MetricFormat; showN?: boolean }) {
-  const interval = formatInterval(estimate, format);
+/** "0.88, 95% CI 0.76–1.00 (n = 24)" as text. `digits` overrides the format for small values (Brier, ECE). */
+export function EstimateText({
+  estimate,
+  format = "ratio",
+  digits,
+  showN = false,
+}: {
+  estimate: Estimate;
+  format?: MetricFormat;
+  digits?: number;
+  showN?: boolean;
+}) {
+  const fmt = (v: number) => (digits != null ? formatNumber(v, digits) : formatMetric(v, format));
+  const interval =
+    digits != null
+      ? estimate.ci_low != null && estimate.ci_high != null
+        ? `${fmt(estimate.ci_low)}–${fmt(estimate.ci_high)}`
+        : null
+      : formatInterval(estimate, format);
   return (
     <span className="tnum">
-      <span className="text-ink">{estimate.value == null ? "Not measured yet" : formatMetric(estimate.value, format)}</span>
+      <span className="text-ink">{estimate.value == null ? "Not measured yet" : fmt(estimate.value)}</span>
       {interval ? (
         <span className="text-ink-3">
           {" "}
