@@ -20,11 +20,11 @@ Paused at 2026-10-14 08:55 UTC to save the usage quota. Nothing half done is on 
 | Who | Branch | State at pause | Next step |
 |---|---|---|---|
 | Lead | main | API core done: registry built at startup from the newest verified bundle (f224cec), database, sessions, work orders, audit (b8ae0b3); 167 tests pass with PostgreSQL | Unit to investigation links from the investigations table; declare 400 responses on investigation, work order and cursor routes and regenerate contracts; wafer service (A6) from worker 3's bundle; methods service |
-| Worker 2 | w2/secom | Pipeline, bundle export, schemas, root cause, FDC, sensor health committed (538983d) | See handback below |
+| Worker 2 | w2/secom | Pipeline, bundle export, schemas, root cause, FDC, sensor health; WIP pushed | Was changing the stuck-value rule to use each sensor's own reference repeat rate, plus a synchronised-run diagnostic; then build the bundle with the ARTIFACTS.md fields |
 | Worker 3 | w3/pc (your PC) | Wafer-map CNN trained; official-split evaluation and model card pushed (c9fc4f2); OOD, similarity, ONNX, lots and bundle were running | Let the running process finish; push the bundle; then the lead wires A6 |
-| Worker 4 | w4/ai | Token Factory smoke script and agent foundations (number scanner, wording, tools, prompts, writer, verifier) committed (fb4fa65) | See handback below |
-| Worker 5 | w5/web | Home page and the 3D wafer committed (c2dea39) | See handback below |
-| Helper | w1/packaging | API and web images, verified artifact fetch, compose with Caddy (2bcb1e2) | Merge main; add ADMIN_USERNAME, ADMIN_PASSWORD_HASH, SESSION_TTL_MINUTES, MIGRATE_ON_START to .env.example; check the migrate path in the image; CI green, then the lead merges |
+| Worker 4 | w4/ai | Agent foundations and the investigator graph (triage, plan, evidence, write, verify, decision) pushed (cb12237) | Graph tests; then merge main and wire runner, chat, llm and knowledge in bootstrap.py |
+| Worker 5 | w5/web | Shell, API client, P7 headers, theme fix, 3D wafer, home page (c2dea39, 151 tests); Line screen half done (bbc8cec) | Finish Line: KPIs, open alarms, recent units, line-view and page; delete stray export in line-charts.tsx; then U6 to U14. Drop upgrade-insecure-requests from the CSP on plain HTTP |
+| Helper | w1/packaging | Images, verified artifact fetch (34 tests), compose with Caddy, all healthy locally; main merged, WIP 19b0ba8 | Fix api-migrate.sh to use /app/services/api/alembic.ini and fail if missing; MIGRATE_ON_START=false in compose; finish .env.example; rebuild, CI green. Lead: env_ignore_empty=True in settings |
 
 ## Summary
 
