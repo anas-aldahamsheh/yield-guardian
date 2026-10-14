@@ -136,9 +136,12 @@ def to_catalog_model(profile: ModelProfile, availability: Availability) -> Catal
     kind: ContractModelKind = (
         "ocr" if profile.kind is ModelKind.OCR else "vlm" if profile.accepts_images else "llm"
     )
-    rule = _SYSTEM_RULE_TEXT[profile.system_rule]
-    if profile.developer_role is DeveloperRole.MAP_TO_SYSTEM and profile.is_chat:
-        rule += "; developer messages are sent as system"
+    if profile.is_chat:
+        rule = _SYSTEM_RULE_TEXT[profile.system_rule]
+        if profile.developer_role is DeveloperRole.MAP_TO_SYSTEM:
+            rule += "; developer messages are sent as system"
+    else:
+        rule = "not applicable (document OCR, no messages)"
     order: tuple[InputType, ...] = ("text", "image", "audio", "document")
     pricing = profile.pricing
     return CatalogModel(
