@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | Stopped by the owner (16:23), then restarted for one attempt at 16:50 on the owner\'s "يلا بسرعة". Three live attempts reached 7 evidence records each, then failed at the writer: MiMo too slow (~5 tok/s), DeepSeek 504 from AMD's upstream. Writer chain is now Qwen3.8-Flash-Next, DeepSeek-V4.1-Flash, MiMo with a 240 s deadline and a 30-min run bound (b2cecce + this merge); not yet tried live |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Stopped by the owner (16:23), then restarted for one attempt at 16:50 on the owner's "يلا بسرعة". Three live attempts reached 7 evidence records each, then failed at the writer: MiMo too slow (~5 tok/s), DeepSeek 504 from AMD's upstream. Writer chain is now Qwen3.8-Flash-Next, DeepSeek-V4.1-Flash, MiMo with a 240 s deadline and a 30-min run bound (b2cecce + this merge); not yet tried live |
 
 ### U: Interface
 
