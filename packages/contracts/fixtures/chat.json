@@ -9,7 +9,7 @@
     "type": "tool",
     "tool": "get_risk",
     "arguments": {
-      "unit_id": 443
+      "unit_id": 1062
     }
   },
   {
@@ -19,10 +19,10 @@
       "investigation_id": null,
       "tool": "get_risk",
       "arguments": {
-        "unit_id": 443
+        "unit_id": 1062
       },
       "data": {
-        "unit_id": 443,
+        "unit_id": 1062,
         "block": "validation",
         "risk": 0.184,
         "risk_source": "validation",
@@ -36,12 +36,12 @@
         "calibration": "platt",
         "note": null
       },
-      "summary": "Unit 443: risk 18.4% (high).",
-      "created_at": "2026-10-13T23:48:00Z",
+      "summary": "Unit 1062: risk 18.4% (high).",
+      "created_at": "2026-10-14T11:17:24Z",
       "source": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       }
     }
@@ -52,7 +52,7 @@
   },
   {
     "type": "token",
-    "text": "443 "
+    "text": "1062 "
   },
   {
     "type": "token",

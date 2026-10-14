@@ -3,12 +3,12 @@
   "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
   "tool": "get_contributions",
   "arguments": {
-    "unit_id": 443,
+    "unit_id": 1062,
     "statistic": "t2",
     "top_k": 6
   },
   "data": {
-    "unit_id": 443,
+    "unit_id": 1062,
     "statistic": "t2",
     "value": 35.8,
     "limit_99": 26.2,
@@ -19,54 +19,54 @@
         "sensor": "S060",
         "contribution": 9.1,
         "share": 0.254,
-        "value": 37.698,
-        "reference_median": 55.298
+        "value": 1.0027,
+        "reference_median": 17.3018
       },
       {
         "sensor": "S061",
         "contribution": 6.3,
         "share": 0.176,
-        "value": 41.246,
-        "reference_median": 57.202
+        "value": 352.6027,
+        "reference_median": 357.25
       },
       {
         "sensor": "S104",
         "contribution": 4.0,
         "share": 0.112,
-        "value": 45.887,
-        "reference_median": 51.069
+        "value": -0.0139,
+        "reference_median": -0.006
       },
       {
         "sensor": "S026",
         "contribution": 2.9,
         "share": 0.081,
-        "value": 51.632,
-        "reference_median": 43.022
+        "value": 1.3185,
+        "reference_median": 1.2577
       },
       {
         "sensor": "S348",
         "contribution": 2.2,
         "share": 0.061,
-        "value": 47.03,
-        "reference_median": 50.992
+        "value": 0.0,
+        "reference_median": 0.0
       },
       {
         "sensor": "S211",
         "contribution": 1.6,
         "share": 0.045,
-        "value": 43.037,
-        "reference_median": 52.235
+        "value": 0.0706,
+        "reference_median": 0.0951
       }
     ],
     "other_share": 0.271,
     "method": "Per-sensor contributions to Hotelling T\u00b2 of a PCA model fit on the reference period"
   },
   "summary": "Top T\u00b2 contributors: S060, S061, S104.",
-  "created_at": "2026-10-13T23:39:07Z",
+  "created_at": "2026-10-14T11:08:31Z",
   "source": {
     "name": "secom",
     "version": "v1",
-    "created_at": "2026-10-13T23:48:00Z",
+    "created_at": "2026-10-14T11:17:24Z",
     "git_commit": "0000000000000000000000000000000000000000"
   }
 }

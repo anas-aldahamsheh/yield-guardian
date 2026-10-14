@@ -19,7 +19,7 @@
       "tokens_in": 81000,
       "tokens_out": 6900,
       "points": 0.0133,
-      "run_at": "2026-10-13T21:39:00Z"
+      "run_at": "2026-10-14T09:08:24Z"
     },
     {
       "role": "investigator",
@@ -40,7 +40,7 @@
       "tokens_in": 80400,
       "tokens_out": 9100,
       "points": 0.0166,
-      "run_at": "2026-10-13T21:40:40Z"
+      "run_at": "2026-10-14T09:10:04Z"
     },
     {
       "role": "writer",
@@ -61,8 +61,8 @@
       "tokens_in": 73000,
       "tokens_out": 9700,
       "points": 0.0129,
-      "run_at": "2026-10-13T21:42:20Z"
+      "run_at": "2026-10-14T09:11:44Z"
     }
   ],
-  "note": "Synthetic fixture for interface development; not a measured result."
+  "note": "Placeholder model output for interface development; replaced by the real bundle."
 }

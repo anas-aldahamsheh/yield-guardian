@@ -175,14 +175,30 @@ from yield_guardian.contracts.wafer import (
 from yield_guardian.contracts.workorders import AuditEntry, AuditPage, WorkOrder, WorkOrderPage
 
 OUT = Path(__file__).resolve().parents[1] / "fixtures"
-SYNTHETIC = "Synthetic fixture for interface development; not a measured result."
+DATA = Path(__file__).resolve().parents[3] / "data" / "secom"
+SYNTHETIC = "Placeholder model output for interface development; replaced by the real bundle."
 rng = np.random.default_rng(20261014)
 
-N_UNITS = 600
-POSITION = 480
+
+def load_secom() -> tuple[np.ndarray, list[datetime], np.ndarray]:
+    """Real SECOM rows: readings [units, 590] with NaN, timestamps (UTC) and labels (1 = fail)."""
+    readings = np.loadtxt(DATA / "secom.data")
+    stamps: list[datetime] = []
+    labels: list[int] = []
+    for line in (DATA / "secom_labels.data").read_text(encoding="ascii").splitlines():
+        label, stamp = line.split(" ", 1)
+        labels.append(int(label))
+        stamps.append(datetime.strptime(stamp.strip('"'), "%d/%m/%Y %H:%M:%S").replace(tzinfo=UTC))
+    return readings, stamps, np.array(labels)
+
+
+READINGS, ROW_TIMES, ROW_LABELS = load_secom()
+ORDER = np.array(sorted(range(len(ROW_TIMES)), key=lambda r: (ROW_TIMES[r], r)))
+N_UNITS = len(ORDER)
+POSITION = 1100
 SECONDS_PER_UNIT = 6.0
 LAG = 25
-CYCLE = 47
+CYCLE = 22
 EPOCH = datetime(2026, 10, 12, tzinfo=UTC)
 NOW = EPOCH + timedelta(seconds=(CYCLE * N_UNITS + POSITION) * SECONDS_PER_UNIT)
 T0 = datetime(2008, 7, 19, 11, 55, tzinfo=UTC)
@@ -191,7 +207,14 @@ SECOM_BUNDLE = BundleRef(name="secom", version="v1", created_at=NOW, git_commit=
 WAFER_BUNDLE = BundleRef(name="wafermap", version="v1", created_at=NOW, git_commit=COMMIT)
 LIMITS = FdcLimits(t2_99=26.2, t2_999=32.9, spe_99=41.0, spe_999=55.3)
 OP = OperatingPointRef(id="fpr_0.05", label="5% false-alarm rate", threshold=0.15)
-FOCUS_SEQ = 471
+FOCUS_SEQ = max(s for s in range(POSITION - LAG - 10) if ROW_LABELS[ORDER[s]] == 1)
+TRAIN_END = round(0.6 * N_UNITS)  # provisional 60/20/20 by time; worker 2 sets the real blocks
+VAL_END = round(0.8 * N_UNITS)
+
+
+def reading(unit_id: int, sensor: str) -> float | None:
+    value = float(READINGS[unit_id, int(sensor[1:]) - 1])
+    return None if math.isnan(value) else round(value, 6)
 
 
 def est(
@@ -227,11 +250,14 @@ def write(name: str, value: BaseModel | Sequence[BaseModel]) -> None:
 
 # ---------------------------------------------------------------- SECOM timeline (synthetic)
 
-gaps = rng.exponential(80.0, N_UNITS)
-times = [T0 + timedelta(minutes=float(m)) for m in np.cumsum(gaps)]
+times = [ROW_TIMES[r] for r in ORDER]  # real
+unit_ids = ORDER  # real row indices
+fail = ROW_LABELS[ORDER] == 1  # real final-test results
+# Placeholders for model outputs until the SECOM bundle exists: T², SPE, risk.
 t2 = rng.chisquare(12, N_UNITS) * 1.1
 spe = rng.chisquare(20, N_UNITS) * 1.4
-drift = slice(400, 445)
+DRIFT_START = POSITION - 80
+drift = slice(DRIFT_START, DRIFT_START + 45)
 t2[drift] += np.linspace(0, 14, 45)
 spe[drift] += np.linspace(0, 20, 45)
 t2[FOCUS_SEQ] = 35.8
@@ -239,14 +265,10 @@ spe[FOCUS_SEQ] = 47.6
 risk = np.clip(rng.beta(1.2, 14, N_UNITS), 0.001, 0.99)
 risk[drift] += np.linspace(0.0, 0.12, 45)
 risk[FOCUS_SEQ] = 0.184
-fail = rng.random(N_UNITS) < risk
-fail[FOCUS_SEQ] = True
-unit_ids = rng.permutation(N_UNITS)  # synthetic row order differs from time order, as in the data
-unit_ids[FOCUS_SEQ], unit_ids[np.where(unit_ids == 1043 % N_UNITS)[0][0]] = 443, unit_ids[FOCUS_SEQ]
 
 
 def block(seq: int) -> str:
-    return "train" if seq < 360 else "validation" if seq < 480 else "test"
+    return "train" if seq < TRAIN_END else "validation" if seq < VAL_END else "test"
 
 
 def unit(seq: int, position: int = POSITION) -> UnitSummary:
@@ -278,8 +300,8 @@ def unit(seq: int, position: int = POSITION) -> UnitSummary:
         spe=round(float(spe[seq]), 3),
         fdc_alarm=level,  # type: ignore[arg-type]
         fdc_period="reference" if seq < 150 else "monitoring",
-        ewma_alarm=bool(415 <= seq <= 445),
-        cusum_alarm=bool(420 <= seq <= 445),
+        ewma_alarm=bool(DRIFT_START + 15 <= seq < DRIFT_START + 45),
+        cusum_alarm=bool(DRIFT_START + 20 <= seq < DRIFT_START + 45),
         final_test=("fail" if fail[seq] else "pass") if seq <= position - LAG else None,
     )
 
@@ -359,7 +381,7 @@ def alarms_for(u: UnitSummary) -> list[Alarm]:
             lim,
             f"SPE {u.spe:.1f} is beyond the {'99.9' if sev == 'alarm' else '99'}% limit {lim:.1f}.",
         )
-    if u.sequence == 415:
+    if u.sequence == DRIFT_START + 15:
         add(
             "ewma",
             "warning",
@@ -367,7 +389,7 @@ def alarms_for(u: UnitSummary) -> list[Alarm]:
             None,
             "EWMA of the leading sensor groups left its control band.",
         )
-    if u.sequence == 420:
+    if u.sequence == DRIFT_START + 20:
         add(
             "cusum",
             "warning",
@@ -440,6 +462,19 @@ write(
 
 # ---------------------------------------------------------------- unit detail, SHAP, FDC
 
+REF_SEQS = np.array([q for q in range(150) if not fail[q]])  # passing units in the first 150
+
+
+def reference_values(sensor: str) -> np.ndarray:
+    values = READINGS[ORDER[REF_SEQS], int(sensor[1:]) - 1]
+    return values[~np.isnan(values)]
+
+
+def reference_median(sensor: str) -> float | None:
+    values = reference_values(sensor)
+    return round(float(np.median(values)), 6) if values.size else None
+
+
 focus_risk = UnitRisk(
     unit_id=FOCUS.unit_id,
     block=FOCUS.block,
@@ -454,8 +489,8 @@ focus_alarms = [a for a in all_alarms if a.unit_id == FOCUS.unit_id]
 unit_detail = UnitDetail(
     **FOCUS.model_dump(),
     risk_detail=focus_risk,
-    sensors_measured=561,
-    sensors_missing=29,
+    sensors_measured=int(np.isfinite(READINGS[FOCUS.unit_id]).sum()),
+    sensors_missing=int(np.isnan(READINGS[FOCUS.unit_id]).sum()),
     explanation_available=True,
     alarms=focus_alarms,
     investigation_ids=["inv_01jae5x9k3m2q7r8s0t1v2w3x4"],
@@ -510,7 +545,7 @@ contribs = [
         feature=s if i != 6 else f"{s}__missing",
         sensor=s,
         kind="reading" if i != 6 else "missing_indicator",
-        value=round(float(rng.normal(100, 30)), 3) if i != 6 else 1.0,
+        value=reading(FOCUS.unit_id, s) if i != 6 else float(reading(FOCUS.unit_id, s) is None),
         shap=v,
         group_id=groups_of.get(s),
     )
@@ -541,8 +576,8 @@ fdc_contribs = [
         sensor=s,
         contribution=c,
         share=sh,
-        value=round(float(rng.normal(50, 10)), 3),
-        reference_median=round(float(rng.normal(50, 5)), 3),
+        value=reading(FOCUS.unit_id, s),
+        reference_median=reference_median(s),
     )
     for s, c, sh in [
         ("S060", 9.1, 0.254),
@@ -567,10 +602,10 @@ contributions = FdcContributions(
 write("get_unit_contributions", contributions)
 
 reference = ReferencePeriod(
-    start=times[0],
-    end=times[149],
-    units=150,
-    stationarity="ADF on the first two principal scores, p < 0.01 for both (synthetic)",
+    start=times[int(REF_SEQS[0])],
+    end=times[int(REF_SEQS[-1])],
+    units=len(REF_SEQS),
+    stationarity="Placeholder: worker 2 reports the stationarity test of the real reference period.",
 )
 fdc_series = FdcSeries(
     limits=LIMITS,
@@ -649,90 +684,198 @@ sensor_groups = SensorGroups(
 )
 write("get_sensor_groups", sensor_groups)
 
+# Sensor health computed from the real readings with the rules of PLAN 6.4, applied provisionally
+# here; worker 2's health.json replaces these values when the SECOM bundle exists.
+WEEK0 = times[0].replace(hour=0, minute=0, second=0)
+window_of = np.array([(t - WEEK0).days // 7 for t in times])
+n_windows = int(window_of.max()) + 1
 windows = [
     HealthWindow(
         window_id=w,
-        start=times[0] + timedelta(days=7 * w),
-        end=times[0] + timedelta(days=7 * (w + 1)),
-        units=int(rng.integers(90, 140)),
+        start=WEEK0 + timedelta(days=7 * w),
+        end=WEEK0 + timedelta(days=7 * (w + 1)),
+        units=int((window_of == w).sum()),
     )
-    for w in range(12)
+    for w in range(n_windows)
 ]
-statuses = ["ok"] * 480 + ["watch"] * 50 + ["maintenance"] * 20 + ["dead"] * 40
-rng.shuffle(statuses)
-health_rows = []
-for i, status in enumerate(statuses):
-    sid = f"S{i + 1:03d}"
-    miss = 1.0 if status == "dead" and i % 2 else float(round(rng.beta(1, 60), 4))
-    reasons = {
-        "ok": [],
-        "watch": ["Missing rate above 5% in at least one week"],
-        "maintenance": [
-            "Flat line in two consecutive weeks",
-            "Readings outside the reference range in 12% of units",
-        ],
-        "dead": ["Never measured" if miss == 1.0 else "Constant over the whole period"],
-    }[status]
-    health_rows.append(
-        SensorHealth(
-            sensor=sid,
-            status=status,  # type: ignore[arg-type]
-            reasons=reasons,
-            missing_rate=miss,
-            missing_by_window=[
-                miss if status == "dead" else round(float(rng.beta(1, 40)), 4) for _ in windows
-            ],
-            flatline_windows=[3, 4] if status == "maintenance" else [],
-            stuck_value=0.0 if status == "dead" and miss < 1.0 else None,
-            jump_unit_ids=[int(unit_ids[200]), int(unit_ids[201])]
-            if status == "maintenance" and i % 3 == 0
-            else [],
-            out_of_reference_rate=None if status == "dead" else round(float(rng.beta(1, 50)), 4),
-            missing_vs_failure=None
-            if status == "dead"
-            else MissingnessTest(
-                odds_ratio=round(float(rng.lognormal(0, 0.3)), 3),
-                p_value=round(float(rng.uniform(0.01, 1)), 4),
-                q_value=round(float(rng.uniform(0.2, 1)), 4),
-            ),
-        )
+X = READINGS[ORDER]
+
+
+def _log_choose(n: int, k: int) -> float:
+    return math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
+
+
+def fisher_two_sided(a: int, b: int, c: int, d: int) -> float:
+    """Exact two-sided p-value of the 2x2 table [[a, b], [c, d]] (sum of tables as likely or less)."""
+    row1, col1, n = a + b, a + c, a + b + c + d
+    lo, hi = max(0, row1 + col1 - n), min(row1, col1)
+    base = _log_choose(n, col1)
+
+    def logp(x: int) -> float:
+        return _log_choose(row1, x) + _log_choose(n - row1, col1 - x) - base
+
+    observed = logp(a)
+    total = sum(math.exp(logp(x)) for x in range(lo, hi + 1) if logp(x) <= observed + 1e-9)
+    return min(1.0, total)
+
+
+def bh(pvalues: list[float]) -> list[float]:
+    order = sorted(range(len(pvalues)), key=lambda i: pvalues[i])
+    q = [0.0] * len(pvalues)
+    running = 1.0
+    for rank in range(len(order), 0, -1):
+        i = order[rank - 1]
+        running = min(running, pvalues[i] * len(pvalues) / rank)
+        q[i] = running
+    return q
+
+
+rows: list[dict[str, Any]] = []
+for j in range(X.shape[1]):
+    sid = f"S{j + 1:03d}"
+    col = X[:, j]
+    missing = np.isnan(col)
+    present = col[~missing]
+    never = present.size == 0
+    constant = not never and float(present.max()) == float(present.min())
+    by_window = [
+        round(float(missing[window_of == w].mean()), 4) if (window_of == w).any() else None
+        for w in range(n_windows)
+    ]
+    flat = [
+        w
+        for w in range(n_windows)
+        if (vals := col[(window_of == w) & ~missing]).size >= 2 and float(np.ptp(vals)) == 0.0
+    ]
+    jumps: list[int] = []
+    oor: float | None = None
+    if not never and not constant:
+        idx = np.where(~missing)[0]
+        diffs = np.diff(col[idx])
+        med = float(np.median(diffs))
+        mad = float(np.median(np.abs(diffs - med))) * 1.4826
+        if mad > 0:
+            jumps = [int(ORDER[idx[k + 1]]) for k in np.where(np.abs(diffs - med) / mad > 6)[0]]
+        ref = reference_values(sid)
+        if ref.size >= 10 and float(np.ptp(ref)) > 0:
+            q01, q99 = np.quantile(ref, [0.01, 0.99])
+            oor = round(float(((present < q01) | (present > q99)).mean()), 4)
+    test = None
+    if 0 < int(missing.sum()) < len(col):
+        a = int((missing & fail).sum())
+        b = int((missing & ~fail).sum())
+        c = int((~missing & fail).sum())
+        d = int((~missing & ~fail).sum())
+        odds = (a * d) / (b * c) if b * c > 0 else None
+        test = (odds, fisher_two_sided(a, b, c, d))
+    reasons: list[str] = []
+    if never:
+        status, reasons = "dead", ["Never measured"]
+    elif constant:
+        status, reasons = "dead", ["Constant over the whole period"]
+    else:
+        if len(flat) >= 2:
+            reasons.append(f"Flat line in {len(flat)} weeks")
+        if oor is not None and oor > 0.10:
+            reasons.append(f"{oor:.0%} of readings outside the reference range")
+        status = "maintenance" if reasons else "ok"
+        if status == "ok":
+            if any(m is not None and m > 0.05 for m in by_window):
+                reasons.append("Missing rate above 5% in at least one week")
+            if jumps:
+                reasons.append(f"{len(jumps)} sudden jumps (robust z above 6)")
+            status = "watch" if reasons else "ok"
+    rows.append(
+        {
+            "sensor": sid,
+            "status": status,
+            "reasons": reasons,
+            "missing_rate": round(float(missing.mean()), 4),
+            "missing_by_window": by_window,
+            "flatline_windows": flat,
+            "stuck_value": round(float(present[0]), 6) if constant else None,
+            "jump_unit_ids": jumps[:20],
+            "out_of_reference_rate": oor,
+            "test": test,
+        }
     )
+tested = [r for r in rows if r["test"] is not None]
+for r, q in zip(tested, bh([r["test"][1] for r in tested]), strict=True):
+    r["q"] = q
+health_rows = [
+    SensorHealth(
+        sensor=r["sensor"],
+        status=r["status"],
+        reasons=r["reasons"],
+        missing_rate=r["missing_rate"],
+        missing_by_window=r["missing_by_window"],
+        flatline_windows=r["flatline_windows"],
+        stuck_value=r["stuck_value"],
+        jump_unit_ids=r["jump_unit_ids"],
+        out_of_reference_rate=r["out_of_reference_rate"],
+        missing_vs_failure=None
+        if r["test"] is None
+        else MissingnessTest(
+            odds_ratio=None if r["test"][0] is None else round(r["test"][0], 4),
+            p_value=round(r["test"][1], 6),
+            q_value=round(r["q"], 6),
+        ),
+    )
+    for r in rows
+]
+counts = {k: sum(r["status"] == k for r in rows) for k in ("ok", "watch", "maintenance", "dead")}
 write(
     "get_sensor_health",
     SensorHealthReport(
         windows=windows,
         sensors=health_rows,
-        counts=HealthCounts(ok=480, watch=50, maintenance=20, dead=40),
+        counts=HealthCounts(**counts),
         rules=[
-            "dead: constant over the whole period or never measured",
-            "maintenance: flat line in two or more windows, or more than 10% of readings outside the reference range",
-            "watch: missing rate above 5% in a window, or a jump with robust z above 6",
+            "dead: never measured, or constant over the whole period",
+            "maintenance: flat line in two or more weeks, or more than 10% of readings outside the 1st to 99th percentile of the reference period",
+            "watch: missing rate above 5% in a week, or a jump with robust z above 6 in the first difference",
             "ok: none of the above",
+            "Provisional rules applied to the real readings for interface development; the SECOM bundle's health.json replaces them.",
         ],
     ),
 )
-series_values = rng.normal(100, 12, len(units))
-series_values[drift] += np.linspace(0, 40, 45)[: len(series_values[drift])]
+SERIES_SENSOR = "S060"
+series_ref = reference_values(SERIES_SENSOR)
 write(
     "get_sensor_series",
     SensorSeries(
-        sensor="S060",
-        status="ok",
+        sensor=SERIES_SENSOR,
+        status=next(r["status"] for r in rows if r["sensor"] == SERIES_SENSOR),
         group_id="G01",
-        reference=SensorReference(median=99.6, q01=72.1, q99=127.4),
+        reference=SensorReference(
+            median=round(float(np.median(series_ref)), 6),
+            q01=round(float(np.quantile(series_ref, 0.01)), 6),
+            q99=round(float(np.quantile(series_ref, 0.99)), 6),
+        ),
         points=[
             SensorPoint(
                 unit_id=u.unit_id,
                 sequence=u.sequence,
                 timestamp=u.timestamp,
-                value=None if i % 37 == 5 else round(float(series_values[i]), 3),
+                value=reading(u.unit_id, SERIES_SENSOR),
             )
-            for i, u in enumerate(units)
+            for u in units
         ],
     ),
 )
 
 # ---------------------------------------------------------------- operating points and metrics
+
+TEST_FAILURES = int(fail[VAL_END:].sum())  # real count in the provisional test block
+TEST_PASSES = N_UNITS - VAL_END - TEST_FAILURES
+
+
+def confusion(recall: float, fpr: float) -> dict[str, int]:
+    """Placeholder rates turned into counts that add up to the real test-block totals."""
+    tp = round(recall * TEST_FAILURES)
+    fp = round(fpr * TEST_PASSES)
+    return {"tp": tp, "fn": TEST_FAILURES - tp, "fp": fp, "tn": TEST_PASSES - fp}
+
 
 curve = []
 for thr in np.linspace(0.01, 0.6, 40):
@@ -757,10 +900,7 @@ points = [
         recall=prob_est(0.42, 0.21, 19),
         precision=prob_est(0.31, 0.15, 26),
         false_alarms_per_100=est(5.7, 2.4, 307),
-        tp=8,
-        fp=18,
-        tn=270,
-        fn=11,
+        **confusion(0.42, 0.061),
     ),
     OperatingPoint(
         id="fpr_0.10",
@@ -771,10 +911,7 @@ points = [
         recall=prob_est(0.58, 0.21, 19),
         precision=prob_est(0.26, 0.11, 42),
         false_alarms_per_100=est(10.1, 3.3, 307),
-        tp=11,
-        fp=31,
-        tn=257,
-        fn=8,
+        **confusion(0.58, 0.108),
     ),
 ]
 write(
@@ -782,9 +919,9 @@ write(
     OperatingPoints(
         block="test",
         default="fpr_0.05",
-        units=307,
-        failures=19,
-        prevalence=0.0619,
+        units=N_UNITS - VAL_END,
+        failures=TEST_FAILURES,
+        prevalence=round(TEST_FAILURES / (N_UNITS - VAL_END), 4),
         points=points,
         curve=curve,
     ),
@@ -811,9 +948,18 @@ write(
     SecomMetrics(
         bundle=SECOM_BUNDLE,
         blocks=[
-            BlockInfo(block="train", start=times[0], end=times[359], units=360, failures=24),
-            BlockInfo(block="validation", start=times[360], end=times[479], units=120, failures=9),
-            BlockInfo(block="test", start=times[480], end=times[599], units=120, failures=8),
+            BlockInfo(
+                block=name,  # type: ignore[arg-type]
+                start=times[lo],
+                end=times[hi - 1],
+                units=hi - lo,
+                failures=int(fail[lo:hi].sum()),
+            )
+            for name, lo, hi in (
+                ("train", 0, TRAIN_END),
+                ("validation", TRAIN_END, VAL_END),
+                ("test", VAL_END, N_UNITS),
+            )
         ],
         models=[
             model_result("lightgbm", "LightGBM (class weights, Optuna)", True, 0.21, 0.74, 0.055),
