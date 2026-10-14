@@ -226,9 +226,17 @@ class InvestigationRunner(Protocol):
     """The investigator graph (triage, plan, evidence, write, verify, human decision)."""
 
     async def run(
-        self, investigation_id: str, trigger: InvestigationTrigger, sink: InvestigationSink
+        self,
+        investigation_id: str,
+        trigger: InvestigationTrigger,
+        sink: InvestigationSink,
+        *,
+        as_of: int | None = None,
     ) -> None:
         """Run until the graph waits for the human decision (status `awaiting_decision`).
+
+        `as_of` (recorded runs only, set by the server, never by a request) is the line position
+        the tools read the data as of; None follows the replay clock.
 
         Model or tool failures are reported through `sink.error` and status `failed`, not raised.
         """

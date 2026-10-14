@@ -90,14 +90,21 @@ class FakeRunner:
     def __init__(self, behaviour: Behaviour = "report") -> None:
         self.behaviour: Behaviour = behaviour
         self.runs: list[str] = []
+        self.as_of: list[int | None] = []
         self.resumes: list[tuple[str, Decision]] = []
         self.release = asyncio.Event()
         self.started = asyncio.Event()
 
     async def run(
-        self, investigation_id: str, trigger: InvestigationTrigger, sink: InvestigationSink
+        self,
+        investigation_id: str,
+        trigger: InvestigationTrigger,
+        sink: InvestigationSink,
+        *,
+        as_of: int | None = None,
     ) -> None:
         self.runs.append(investigation_id)
+        self.as_of.append(as_of)
         self.started.set()
         await sink.status("running")
         if self.behaviour == "block":
