@@ -233,13 +233,15 @@ def model_card(m: dict, deployed: str) -> str:
             f"{e['mahalanobis']['unseen_flagged_at_threshold']:.3f} |"
         )
     lines.append(
-        f"| **Mean** | | {loco['mean_auroc_energy']:.3f} | {loco['mean_auroc_mahalanobis']:.3f} | | |"
+        f"| **Mean** | | {loco['mean_auroc_energy']:.3f} | "
+        f"{loco['mean_auroc_mahalanobis']:.3f} | | |"
     )
     lines += [
         "",
         f"**Finding.** The energy score barely separates unseen classes (mean AUROC "
         f"{loco['mean_auroc_energy']:.3f}; below 0.5 for Edge-Ring and Near-full, whose unseen "
-        "wafers get more confident logits than in-distribution ones). Mahalanobis distance on the embeddings does "
+        "wafers get more confident logits than in-distribution ones). Mahalanobis distance on "
+        "the embeddings does "
         f"(mean AUROC {loco['mean_auroc_mahalanobis']:.3f}). Energy remains in this bundle "
         "because `ood.json` v1 fixes it as the method; Mahalanobis parameters ship in "
         "`ood_mahalanobis.npz` and should be the primary unknown score. This recommendation is "
