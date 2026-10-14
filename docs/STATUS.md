@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 12:58 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 13:00 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 74 of 82 done (90%), 6 in progress, 2 not started
+## Progress: 75 of 81 done (93%), 4 in progress, 2 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -16,9 +16,9 @@
 | A: API | 8 of 9 | 1 | 0 |
 | L: AI layer | 10 of 11 | 1 | 0 |
 | U: Interface | 12 of 14 | 2 | 0 |
-| P: Packaging and deployment | 6 of 7 | 1 | 0 |
+| P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 3 of 5 | 0 | 2 |
-| X: Submission | 1 of 2 | 1 | 0 |
+| X: Submission | 2 of 2 | 0 | 0 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 74 of 82 |
+| Done | 75 of 81 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -174,7 +174,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|---|---|
 | P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | ✅ | API and web images, non-root, read-only, healthchecks; CI builds them and runs the stack ([run](https://github.com/anas-aldahamsheh/yield-guardian/actions/runs/38549871531), merged da8e318) |
 | P2 | Standalone compose with optional Caddy profile | Cloud | ✅ | Compose with PostgreSQL, migrate, API, web and Caddy; migrations apply 0001 and /ready reports the database ok in CI (merged da8e318) |
-| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
+| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | ✂️ | Replaced: a GitHub Release could not be created from this environment (HTTP 403), so the bundles are committed and verified file by file against MANIFEST.json at image build and again at API start (same guarantee) |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ✅ | Worker 3: yield-guardian-api and -web in anaslabs compose (Pino Yard pattern, Sablier group, hardened), own always-on PostgreSQL with pgvector; compose.yaml and .env backed up first; secrets generated without printing |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ✅ | Hub card in apps.js and <noscript> (anaslabs-src 4fcfb48); hub rebuilt, Sablier restarted |
 | P6 | Live at `yield-guardian.anaslabs.com` | PC | ✅ | Live at https://yield-guardian.anaslabs.com from main 005a8ee: /api/v1/ready answers ready true (SECOM bundle, wafer bundle, database); cold wake about 20 s through Sablier; Token Factory key read from the server's .env without printing it |
@@ -194,7 +194,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
+| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | ✅ | [README.md](../README.md): what it does (every screen), measured results with intervals, AMD Token Factory roles, run anywhere, limitations, licences and citations |
 | X2 | Demo video script and shot list | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
 | X3 | Slide deck | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
 | X4 | Cover image | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 13:00 | README finished (X1 done). P3 replaced by committed bundles verified at build and start (a Release was not possible from here) |
 | 2026-10-14 12:58 | Mobile overflow fixed on /line, /methods and the home results table. Recorder reads data as of the alarm. Chat answers "what can you do?" from code instead of refusing (8329e4d) |
 | 2026-10-14 12:50 | Owner cut the submission material: video (X2), slides (X3), cover (X4) and the lablab submission (X6). Cut items no longer count toward the total. Recorder bug found on the live server (tools read the live cursor, not the alarm time); 0 points spent, fix in progress |
 | 2026-10-14 12:31 | New visual design merged: 3D wafer hero with a step-and-scan exposure, live chart motion, investigation report layout, attribution shown as one citation line (af225fe) |
