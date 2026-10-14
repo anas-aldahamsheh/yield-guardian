@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 08:53 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 08:56 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -12,6 +12,19 @@
 | ✂️ | Cut (reason given) |
 
 **Where:** Cloud = this session writes and tests it. PC = runs on the owner's PC. You = needs the owner.
+
+## Paused: resume from here
+
+Paused at 2026-10-14 08:55 UTC to save the usage quota. Nothing half done is on main; each worker's work is on its own branch. To resume, say "continue" in the lead's thread.
+
+| Who | Branch | State at pause | Next step |
+|---|---|---|---|
+| Lead | main | API core done: registry built at startup from the newest verified bundle (f224cec), database, sessions, work orders, audit (b8ae0b3); 167 tests pass with PostgreSQL | Unit to investigation links from the investigations table; declare 400 responses on investigation, work order and cursor routes and regenerate contracts; wafer service (A6) from worker 3's bundle; methods service |
+| Worker 2 | w2/secom | Pipeline, bundle export, schemas, root cause, FDC, sensor health committed (538983d) | See handback below |
+| Worker 3 | w3/pc (your PC) | Wafer-map CNN trained; official-split evaluation and model card pushed (c9fc4f2); OOD, similarity, ONNX, lots and bundle were running | Let the running process finish; push the bundle; then the lead wires A6 |
+| Worker 4 | w4/ai | Token Factory smoke script and agent foundations (number scanner, wording, tools, prompts, writer, verifier) committed (fb4fa65) | See handback below |
+| Worker 5 | w5/web | Home page and the 3D wafer committed (c2dea39) | See handback below |
+| Helper | w1/packaging | API and web images, verified artifact fetch, compose with Caddy (2bcb1e2) | Merge main; add ADMIN_USERNAME, ADMIN_PASSWORD_HASH, SESSION_TTL_MINUTES, MIGRATE_ON_START to .env.example; check the migrate path in the image; CI green, then the lead merges |
 
 ## Summary
 
