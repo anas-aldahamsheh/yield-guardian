@@ -83,7 +83,7 @@ flowchart LR
   end
   subgraph Offline
     TR[training/<br/>SECOM, WM-811K]
-    R[GitHub Release<br/>artifacts + SHA-256]
+    R[Committed bundles<br/>artifacts/ + MANIFEST SHA-256]
   end
   B --> P --> W
   P --> A
@@ -178,7 +178,7 @@ yield-guardian/
 ### 6.6 Unknown patterns and similar wafers
 
 - **Embeddings:** L2-normalised penultimate-layer features, stored in pgvector (HNSW, cosine).
-- **Unknown-pattern score:** energy score, cross-checked with Mahalanobis distance on embeddings; threshold set at 95% in-distribution recall on validation.
+- **Unknown-pattern score:** Mahalanobis distance on L2-normalised embeddings (shared Ledoit-Wolf covariance), with the energy score as a cross-check; threshold set at 95% in-distribution recall on validation. Energy was planned first but scored 0.545 leave-one-class-out AUROC against 0.922 for Mahalanobis (W6), so the method was switched; the choice used those results, which is disclosed.
 - **Honest test:** leave-one-class-out. For each defect class, a model trained without it must flag it as unknown; we report AUROC per held-out class.
 - **Similarity:** precision@10 on labelled test maps.
 
@@ -321,7 +321,7 @@ Lithography bays in real fabs are lit amber, because photoresist reacts to blue 
 
 | Area | Choice |
 |---|---|
-| Web | Next.js 16.4, React 19.3, TypeScript 5.9 (TS 7 is too new for the tooling), Tailwind CSS 4.3, shadcn/ui, Motion 14, GSAP 3.15, Lenis 1.3, three 0.186, React Three Fiber 9.8, drei 10.7, TanStack Query 5, Zustand 5, D3 7, Vercel AI SDK 7 |
+| Web | Next.js 16.4, React 19.3, TypeScript 5.9 (TS 7 is too new for the tooling), Tailwind CSS 4.3, shadcn/ui, Motion 14, GSAP 3.15 three 0.186, React Three Fiber 9.8, drei 10.7, TanStack Query 5, D3 7 |
 | API | Python 3.13, FastAPI 0.143, Pydantic 2.14, SQLAlchemy 2.1 (async), Alembic 1.20, asyncpg, pgvector, structlog, httpx |
 | AI | LangGraph 1.2 with PostgreSQL checkpointer, langchain-openai 1.7, openai 3.31 |
 | ML | LightGBM 4.7, SHAP 0.53, scikit-learn 1.9, SciPy 1.18, statsmodels 0.15, Optuna 5.0, PyTorch 2.14, ONNX Runtime 1.31, MLflow 3.17, pandera |
@@ -365,7 +365,7 @@ Lithography bays in real fabs are lit amber, because photoresist reacts to blue 
 
 ### 12.3 Artifacts
 
-Trained models, the PCA reference model and the demo data bundle are published as a GitHub Release with SHA-256 checksums. Image builds download and verify them, so a build from GitHub alone is complete.
+Trained models, the PCA reference model and the demo data bundle are committed under `artifacts/<name>/<version>/` with a MANIFEST.json of SHA-256 checksums. A GitHub Release was planned but could not be created from the build environment (P3). Image builds verify every file against the manifest, and the API verifies them again at startup, so a build from GitHub alone is complete.
 
 ## 13. Quality gates
 

@@ -65,8 +65,8 @@
     },
     {
       "path": "model_card.md",
-      "bytes": 9449,
-      "sha256": "1680a65fc3b4939ff8524b2945d18ec6851dbe1fe757ddd8ee8ba85b744b5896"
+      "bytes": 9771,
+      "sha256": "3fc1c0ad70d3390c3881a8b43ebe96ccd48896545d58c0a987b5a75eee5e390e"
     },
     {
       "path": "ood.json",
