@@ -10161,22 +10161,40 @@
             ]
           },
           "mann_whitney_p": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Mann Whitney P"
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mann Whitney P",
+            "description": "Null when the test was not run."
           },
           "q_value": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Q Value"
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q Value",
+            "description": "Null when the test was not run."
           },
           "direction": {
             "type": "string",
             "enum": [
               "higher_in_failures",
-              "lower_in_failures"
+              "lower_in_failures",
+              "no_difference",
+              "not_tested"
             ],
             "title": "Direction"
           }
