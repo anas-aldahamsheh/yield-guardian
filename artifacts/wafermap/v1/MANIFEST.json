@@ -1,8 +1,8 @@
 {
   "name": "wafermap",
   "version": "v1",
-  "created_at": "2026-10-14T10:26:29Z",
-  "git_commit": "5c9b7581685ca32824c6a375dd883b867f307920",
+  "created_at": "2026-10-14T10:27:43Z",
+  "git_commit": "58516138c00c364b783ae7936d65713b533904d9",
   "data": [
     {
       "path": "data/raw/wm811k/LSWMD.pkl",
@@ -35,8 +35,8 @@
     },
     {
       "path": "demo/ATTRIBUTION.md",
-      "bytes": 1127,
-      "sha256": "d745c13dc8cacd6847a1e9217b2e2cd6477932cd9d995c3a4df128d94c0c1944"
+      "bytes": 1111,
+      "sha256": "a4ba565cc78bc30a8b0da96f307ad10d8e916a4418fb44b3e402c980bd55ac7d"
     },
     {
       "path": "demo/lots.json",
@@ -50,13 +50,13 @@
     },
     {
       "path": "labels.json",
-      "bytes": 125,
-      "sha256": "012611325ca495c76c69a399d472c0b10f9172f257be8f7d2aaf4d64d34909af"
+      "bytes": 114,
+      "sha256": "73661ea262b9f01877375a8ce40c0bc44583f8033666e5b127a7f1aff4c87029"
     },
     {
       "path": "metrics.json",
-      "bytes": 206303,
-      "sha256": "45859c6c1e6958a2228e5ea929033b15160498475391c38bdedb9e58f617b8ef"
+      "bytes": 200118,
+      "sha256": "27b460f21c3ac15f5a03db0ebb98145b841d3558fa110b85eb0a524af8b4fd52"
     },
     {
       "path": "model.onnx",
@@ -65,13 +65,13 @@
     },
     {
       "path": "model_card.md",
-      "bytes": 9570,
-      "sha256": "ac6e666a0bf1cdb677b7224fee50e56487192e1a6fab0173514cfa8ce054f681"
+      "bytes": 9449,
+      "sha256": "1680a65fc3b4939ff8524b2945d18ec6851dbe1fe757ddd8ee8ba85b744b5896"
     },
     {
       "path": "ood.json",
-      "bytes": 2856,
-      "sha256": "af759d78761fa53639cb0f21a397c05c1a02bb0f001b69ebe3c5ae58f39f4fe9"
+      "bytes": 2779,
+      "sha256": "45b20f06c0b70db4733663b1ed329969521ae6052fd312327180eb7e39b345db"
     },
     {
       "path": "ood_mahalanobis.npz",
@@ -80,8 +80,8 @@
     },
     {
       "path": "preprocess.json",
-      "bytes": 303,
-      "sha256": "a9944be49995ab44611d330721021d0f4ee24ebf6f5edfc7e27f31c7cfd7866d"
+      "bytes": 288,
+      "sha256": "dba490dfcefed705d461cdf415395c9068eec2c956474973e26b3a0df835ad76"
     }
   ]
 }
