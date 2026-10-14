@@ -139,7 +139,7 @@ Thresholds are chosen on the validation block and reported on the test block. `l
 | `labels.json` | Class names in output order. |
 | `preprocess.json` | `{"size": 64, "resize": "nearest", "channels": ["no_die", "pass", "fail"], "source_values": {"no_die": 0, "pass": 1, "fail": 2}}` |
 | `calibration.json` | `{"method": "temperature", "temperature": float}` |
-| `ood.json` | `{"method": "energy", "threshold": float, "in_distribution_recall": float}` plus the Mahalanobis cross-check summary |
+| `ood.json` | `{"method": "energy", "threshold": float, "in_distribution_recall": float}` plus the Mahalanobis section. The API uses the Mahalanobis section (`threshold`, `score`, `parameters`) as the unknown-pattern score (lead decision: leave-one-class-out mean AUROC 0.922 versus 0.545 for energy); energy is reported only as a cross-check |
 | `ood_mahalanobis.npz` | `class_means` [9, 128], `precision` [128, 128] |
 | `metrics.json` | Every metric with CIs for both splits and each seed, the baseline, the leave-one-class-out results and similarity precision@10 |
 | `demo/wafers.parquet` | Derived demo subset: `wafer_id` (string `"<lot>-<index>"`), `lot`, `wafer_index`, `die_size`, `label` (nullable), `official_split`, `height`, `width`, `map` (uint8 bytes, row-major, values 0, 1, 2) |

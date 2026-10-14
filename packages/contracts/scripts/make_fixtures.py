@@ -1134,7 +1134,7 @@ def probabilities(top: WaferLabel, p: float) -> list[ClassProbability]:
 
 
 def prediction(wafer_id: str, top: WaferLabel, p: float, unknown: bool = False) -> WaferPrediction:
-    score = -3.1 if unknown else -8.7
+    score = 410.0 if unknown else 120.0
     return WaferPrediction(
         wafer_id=wafer_id,
         top_label=top,
@@ -1143,11 +1143,10 @@ def prediction(wafer_id: str, top: WaferLabel, p: float, unknown: bool = False) 
         temperature=1.42,
         unknown=UnknownScore(
             score=score,
-            threshold=-4.6,
+            threshold=270.0,
             is_unknown=unknown,
             in_distribution_recall=0.95,
-            mahalanobis_distance=41.0 if unknown else 12.3,
-            mahalanobis_flag=unknown,
+            energy_score=-3.1 if unknown else -8.7,
         ),
         model=WAFER_BUNDLE,
     )
@@ -1315,22 +1314,26 @@ write(
             ece_after=prob_est(0.014, 0.004, 25519),
         ),
         ood=OodMetrics(
-            threshold=-4.6,
+            threshold=270.0,
             in_distribution_recall=0.95,
+            in_distribution_recall_test=0.94,
             leave_one_class_out=[
                 LeaveOneClassOut(held_out=lab, auroc=prob_est(0.7 + 0.03 * i, 0.04, 2000))
                 for i, lab in enumerate(LABELS[:-1])
             ],
             mean_auroc=prob_est(0.8, 0.03, 8),
-            mahalanobis_mean_auroc=prob_est(0.77, 0.03, 8),
+            energy_mean_auroc=prob_est(0.77, 0.03, 8),
+            note=SYNTHETIC,
         ),
         similarity_precision_at_10=prob_est(0.88, 0.02, 25519),
-        auto_classification=AutoClassification(
-            precision_target=0.95,
-            confidence_threshold=0.9,
-            share=prob_est(0.72, 0.01, 25519),
-            precision=prob_est(0.951, 0.004, 18374),
-        ),
+        auto_classification=[
+            AutoClassification(
+                precision_target=0.95,
+                confidence_threshold=0.9,
+                share=prob_est(0.72, 0.01, 25519),
+                precision=prob_est(0.951, 0.004, 18374),
+            )
+        ],
         published=[
             PublishedResult(
                 source="Synthetic fixture source", metric="accuracy", value=0.9, note=SYNTHETIC
