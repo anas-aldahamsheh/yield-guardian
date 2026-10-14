@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 13:07 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 13:23 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 75 of 82 done (91%), 5 in progress, 2 not started
+## Progress: 77 of 82 done (94%), 4 in progress, 1 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -15,9 +15,9 @@
 | K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 1 | 0 |
 | L: AI layer | 10 of 11 | 1 | 0 |
-| U: Interface | 12 of 15 | 3 | 0 |
+| U: Interface | 13 of 15 | 2 | 0 |
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
-| Q: Quality | 3 of 5 | 0 | 2 |
+| Q: Quality | 4 of 5 | 0 | 1 |
 | X: Submission | 2 of 2 | 0 | 0 |
 <!-- progress:end -->
 
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 75 of 82 |
+| Done | 77 of 82 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -165,7 +165,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U10 | Work orders and audit log | Cloud | ✅ | Work orders, outcome form, audit log with filters; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
-| U13 | Empty, loading and error states | Cloud | 🟡 | Empty, loading and not-ready states on every screen, checked against an API that answers 503; one more pass after the design work |
+| U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
 | U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design system, motion and 3D hero merged (af225fe): step-and-scan wafer exposure, live control-chart motion, reduced motion respected, no horizontal scroll at 390 px; axe and Lighthouse not run yet |
 | U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | 🟡 | Requested by the owner at 13:06; built in its own thread |
 
@@ -188,7 +188,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ✅ | Statistics checked against known values: bootstrap coverage on simulated truth, Benjamini-Hochberg 1995 example, exact ECE, Mann-Whitney and binomial tests equal scipy, T² and SPE limits against the formulas, join-count null mean and calibration, Wilson and Mahalanobis; no bug found, no reported number changed |
 | Q2 | API tests | Cloud | ✅ | About 890 API tests pass on main with PostgreSQL (unit, database, science on the real bundles, methods); ruff and mypy strict clean; run in CI |
 | Q3 | Web tests, type check, lint | Cloud | ✅ | Web: type check (both configs), lint 0 warnings, 184 unit tests, 35 Playwright tests at 1440 and 390 px on the production build (72c1e9d) |
-| Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
+| Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ✅ | Playwright on the real compose stack (real bundles, PostgreSQL): 25 passed, 1 skipped (no work order yet); 375 px no-scroll on 13 routes; no Token Factory call (dda51e7). Run: pnpm --filter @yield-guardian/web e2e:stack, see apps/web/docs/E2E-STACK.md |
 | Q5 | Final review pass and performance check | Cloud | ⏳ | |
 
 ### X: Submission
@@ -213,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 13:23 | End-to-end tests on the real stack pass (Q4); not-configured states (U13). Live site verified at 375 px with no sideways scroll. Recorded run reached the writer and failed there (0.023 points); writer fix in progress |
 | 2026-10-14 13:07 | New item U15: an Arabic usage guide page, built in its own thread. Chart widths fixed on phones (1086c92) |
 | 2026-10-14 13:00 | README finished (X1 done). P3 replaced by committed bundles verified at build and start (a Release was not possible from here) |
 | 2026-10-14 12:58 | Mobile overflow fixed on /line, /methods and the home results table. Recorder reads data as of the alarm. Chat answers "what can you do?" from code instead of refusing (8329e4d) |

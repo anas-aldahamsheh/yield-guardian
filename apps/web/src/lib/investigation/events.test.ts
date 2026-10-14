@@ -8,6 +8,7 @@ import {
   issuesByTarget,
   readPointer,
   segmentNumbers,
+  triggerUnit,
 } from "./events";
 
 const stored = () => fixture<Investigation>("get_investigation");
@@ -115,5 +116,18 @@ describe("unverified marker", () => {
     expect(segs.map((s) => s.text)).toEqual(["Yield fell to ", "[unverified]", " after ", "18.4%", "."]);
     expect(segs[1]!.unverified).toBe(true);
     expect(segs[3]!.number).toBe(0);
+  });
+});
+
+describe("triggerUnit", () => {
+  it("reads the unit from an alarm ID or a unit trigger", () => {
+    expect(triggerUnit({ kind: "alarm", ref: "AL-1303-t2" })).toBe(1303);
+    expect(triggerUnit({ kind: "unit", ref: "522" })).toBe(522);
+  });
+  it("has none for wafers, lots or odd refs", () => {
+    expect(triggerUnit({ kind: "wafer", ref: "lot10291-1" })).toBeNull();
+    expect(triggerUnit({ kind: "lot", ref: "lot10291" })).toBeNull();
+    expect(triggerUnit({ kind: "alarm", ref: "nope" })).toBeNull();
+    expect(triggerUnit({ kind: "unit", ref: "12a" })).toBeNull();
   });
 });
