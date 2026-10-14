@@ -32,7 +32,7 @@ export function Hero() {
 
   return (
     <section data-theme="dark" className="relative overflow-hidden bg-room text-ink" aria-labelledby="hero-title">
-      <div className="mx-auto grid max-w-[1600px] gap-x-10 gap-y-6 px-gutter pt-10 pb-10 lg:min-h-[min(860px,calc(100svh-var(--bar-height)-120px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:pt-12 lg:pb-12">
+      <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-[1600px] gap-x-10 gap-y-6 px-gutter pt-10 pb-10 lg:min-h-[min(860px,calc(100svh-var(--bar-height)-120px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:pt-12 lg:pb-12">
         <div className="flex flex-col justify-center lg:pb-10">
           <h1
             id="hero-title"
@@ -137,7 +137,7 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
             />
           ) : null}
         </dl>
-        <div className="mt-5 grid gap-x-10 gap-y-3 text-[13px] leading-5 text-ink-3 lg:grid-cols-2">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-x-10 gap-y-3 text-[13px] leading-5 text-ink-3 lg:grid-cols-2">
           <p className="max-w-[72ch]">
             <span className="mr-1.5 inline-block size-2 translate-y-[-1px] rounded-full bg-fail align-middle" aria-hidden="true" />
             A red dot marks a die that failed at wafer test. Die colours are the interference colours

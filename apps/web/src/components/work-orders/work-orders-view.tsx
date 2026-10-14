@@ -53,7 +53,7 @@ export function WorkOrdersView() {
         title="Work orders"
         description="Actions an engineer approved from an investigation report, and what was found when the work was done. Every change is in the audit log."
       />
-      <div className="grid gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <Panel
           title="Work orders"
           description={total != null ? `${formatInt(total)} in all, newest first.` : undefined}

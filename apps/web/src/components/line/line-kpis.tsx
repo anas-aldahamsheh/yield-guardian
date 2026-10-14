@@ -22,7 +22,7 @@ export function LineKpis({ kpis, className }: { kpis: Kpis; className?: string }
     <section aria-label={`Counts over the last ${kpis.window_units} units`} className={cn("min-w-0", className)}>
       <dl className="grid grid-cols-2 gap-street sm:grid-cols-5">
         {items.map((item) => (
-          <div key={item.label} className="panel min-w-0 px-4 pt-3 pb-3.5 last:col-span-2 sm:px-5 sm:last:col-span-1">
+          <div key={item.label} className="panel flex min-w-0 flex-col justify-between px-4 pt-3 pb-3.5 last:col-span-2 sm:px-5 sm:last:col-span-1">
             <dt className="flex items-center gap-1.5 text-[13px] leading-5 text-ink-2">
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: item.mark }} />
               {item.label}

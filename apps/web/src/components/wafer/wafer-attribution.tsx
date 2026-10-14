@@ -43,7 +43,7 @@ export function WaferAttribution({
           {children ? "How it was chosen, licence and full attribution" : "Licence and full attribution"}
         </span>
       </summary>
-      <div className="swap-in mt-3 grid gap-3 break-words">
+      <div className="swap-in mt-3 grid grid-cols-[minmax(0,1fr)] gap-3 break-words">
         {children}
         {open ? (
           <Markdown className="[&_h2]:text-[14px] [&_li]:text-[13px] [&_li]:leading-5 [&_p]:text-[13px] [&_p]:leading-5 [&_ul]:text-[13px]">

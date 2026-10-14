@@ -126,7 +126,7 @@ export function SensorSeriesChart({
           </>
         )}
       </dl>
-      <div ref={ref} className="mt-2">
+      <div ref={ref} className="mt-2 min-w-0 [contain:inline-size]">
         <svg
           width={width}
           height={HEIGHT}

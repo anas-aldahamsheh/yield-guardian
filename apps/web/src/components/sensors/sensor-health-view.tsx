@@ -59,15 +59,15 @@ export function SensorHealthView() {
       {health.isError ? (
         <ErrorState error={health.error} onRetry={() => void health.refetch()} />
       ) : !report ? (
-        <div className="grid gap-street xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <Placeholder className="h-[420px]" label="Loading sensor health" />
           <Placeholder className="h-[420px]" label="Loading the sensor" />
         </div>
       ) : report.sensors.length === 0 ? (
         <EmptyState title="No sensor health yet">The SECOM bundle has no health report.</EmptyState>
       ) : (
-        <div className="grid gap-street">
-          <div className="grid gap-street xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <Panel
               title={`All ${formatInt(report.sensors.length)} sensors`}
               description={`S001 at the top left, ${formatInt(30)} to a row. Choose a status to fade the others; choose a tile to read the sensor.`}
@@ -76,7 +76,7 @@ export function SensorHealthView() {
               <SensorField sensors={report.sensors} selected={selected} onSelect={setSensor} visible={visible} className="mt-4" />
               <details className="mt-4 text-[13px] leading-5 text-ink-2">
                 <summary className="cursor-pointer text-ink">How a status is set</summary>
-                <ul className="mt-2 grid gap-1.5 pl-4">
+                <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5 pl-4">
                   {report.rules.map((r) => (
                     <li key={r} className="list-disc">{r}</li>
                   ))}
@@ -240,7 +240,7 @@ function WeeklyMissing({ health, windows }: { health: SensorHealth; windows: Hea
   return (
     <div className="mt-5">
       <h3 className="text-[13px] leading-5 text-ink-3">Missing readings by week</h3>
-      <ol className="mt-1.5 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${windows.length}, minmax(0, 1fr))` }}>
+      <ol className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-[3px]" style={{ gridTemplateColumns: `repeat(${windows.length}, minmax(0, 1fr))` }}>
         {windows.map((w, i) => {
           const v = health.missing_by_window[i] ?? null;
           const flat = health.flatline_windows.includes(w.window_id);

@@ -30,13 +30,13 @@ export function ModelsView() {
         title="Models"
         description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory."
       />
-      <div className="grid gap-street">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
         <Panel title="Roles" description="One model per job, with the fallbacks tried when it is unavailable." bodyClassName="px-0 sm:px-0">
           <QueryView query={roles} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}>
             {(r) => <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />}
           </QueryView>
         </Panel>
-        <div className="grid gap-street xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
           <Panel title="Evaluations" description="Each candidate on the same task set for its role." bodyClassName="px-0 sm:px-0">
             <QueryView query={evaluations} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}>
               {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
@@ -201,7 +201,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
   const quota = report.quota;
   const share = quota.limit && quota.used != null ? quota.used / quota.limit : null;
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
       <p className="text-[13px] leading-5 text-ink-3">
         Since <time dateTime={report.since} suppressHydrationWarning>{formatDateTime(report.since)}</time>.
       </p>
@@ -246,7 +246,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
         <UsageList title="By role" rows={report.by_role.map((r) => ({ key: r.role, label: ROLE_NAMES[r.role] ?? r.role, usage: r.usage }))} />
         <UsageList title="By model" rows={report.by_model.map((r) => ({ key: r.model_id, label: r.model_id, usage: r.usage }))} />
       </div>
@@ -297,7 +297,7 @@ function UsageList({ title, rows }: { title: string; rows: { key: string; label:
       {rows.length === 0 ? (
         <p className="mt-1 text-[13px] text-ink-3">None today.</p>
       ) : (
-        <ul className="mt-1 grid gap-2">
+        <ul className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-2">
           {rows.map((r) => (
             <li key={r.key} className="min-w-0 text-[12px] leading-4">
               <div className="flex items-baseline justify-between gap-2">

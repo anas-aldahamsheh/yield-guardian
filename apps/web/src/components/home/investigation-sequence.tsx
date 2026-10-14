@@ -49,7 +49,7 @@ export function InvestigationSequence() {
           Language models on AMD Token Factory plan, write and check. They never compute a
           statistic: the numbers come from the plant data and the trained models.
         </p>
-        <ol className="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-2 xl:grid-cols-5">
+        <ol className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-10 md:grid-cols-2 xl:grid-cols-5">
           {STEPS.map((step, i) => {
             const model = step.role ? modelFor(step.role) : undefined;
             return (

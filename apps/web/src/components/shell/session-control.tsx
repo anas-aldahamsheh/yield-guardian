@@ -115,14 +115,14 @@ function AdminLoginDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <form onSubmit={submit} className="grid gap-4">
+        <form onSubmit={submit} className="grid grid-cols-[minmax(0,1fr)] gap-4">
           <DialogHeader>
             <DialogTitle>Admin sign-in</DialogTitle>
             <DialogDescription>
               Admins assign models to roles. Engineers do not need an account: use “Try as engineer”.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
             <Label htmlFor="admin-username">Username</Label>
             <Input
               id="admin-username"
@@ -132,7 +132,7 @@ function AdminLoginDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
               required
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
             <Label htmlFor="admin-password">Password</Label>
             <Input
               id="admin-password"

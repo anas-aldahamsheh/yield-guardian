@@ -94,12 +94,12 @@ function LotContent({ detail }: { detail: LotDetail }) {
         }
       />
 
-      <div className="grid gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <Panel
           title="The lot as a stack"
           description="Slot 1 at the bottom. Failed dies are red on every wafer, so a pattern repeated through the lot lines up. Choose a slot to take that wafer out."
         >
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem]">
             <div className="relative aspect-[4/3] min-w-0 overflow-hidden rounded-sm bg-room" data-theme="dark">
               {canRender3d ? (
                 <LotStackScene wafers={stack} selected={selected} onSelect={setSelected} reducedMotion={reducedMotion} />
@@ -132,7 +132,7 @@ function LotContent({ detail }: { detail: LotDetail }) {
           </div>
         </Panel>
 
-        <div className="grid min-w-0 content-start gap-street">
+        <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
           <Panel
             title={current ? <span className="tnum">Slot {current.wafer_index}: {current.wafer_id}</span> : "Failure frequency across the lot"}
             description={
