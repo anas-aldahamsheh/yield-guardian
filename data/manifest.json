@@ -39,5 +39,25 @@
       ],
       "note": "Unmodified copies of the raw files above (same SHA-256), committed under CC BY 4.0 with secom/ATTRIBUTION.md."
     }
+  },
+  "wm811k": {
+    "title": "WM-811K wafer maps (MIR Lab, National Taiwan University)",
+    "page": "http://mirlab.org/dataSet/public/",
+    "source": "https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map",
+    "retrieved_at": "2026-10-14T07:29:50+00:00",
+    "citation": "Wu, M.-J., Jang, J.-S. R. and Chen, J.-L. (2015). Wafer map failure pattern recognition and similarity ranking for large-scale data sets. IEEE Transactions on Semiconductor Manufacturing, 28(1), 1-12.",
+    "licence": "Kaggle mirror qingyi/wm811k-wafer-map (dataset id 14180) lists the licence CC0-1.0 in its metadata (retrieved 2026-10-14). That licence was set by the Kaggle uploader, not by the original authors (MIR Lab); the original release states no licence we could retrieve (http://mirlab.org/dataSet/public/ returned HTTP 404 on 2026-10-14). We therefore treat it as a research dataset: raw data is never redistributed, only a small derived demo subset with attribution.",
+    "files": [
+      {
+        "path": "raw/wm811k/LSWMD.pkl",
+        "bytes": 2095505977,
+        "sha256": "1d04fccb3dd3176b276878b926b20fead7e077c5751e4d353ea9741a5e7b5c65"
+      },
+      {
+        "path": "raw/wm811k/wm811k-wafer-map.zip",
+        "bytes": 156686283,
+        "sha256": "0e4bd4316a110a04e475a88071f5e1c7fe4303b12ee53c851d2cae4d995a93e2"
+      }
+    ]
   }
 }

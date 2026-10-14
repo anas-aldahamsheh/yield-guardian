@@ -85,6 +85,14 @@ DATASETS: dict[str, dict] = {
             "on Semiconductor Manufacturing, 28(1), 1-12."
         ),
         "licence": "Research dataset. Record the licence shown at the source used.",
+        "kaggle_licence": (
+            "Kaggle mirror qingyi/wm811k-wafer-map (dataset id 14180) lists the licence CC0-1.0 in its "
+            "metadata (retrieved 2026-10-14). That licence was set by the Kaggle uploader, not by the "
+            "original authors (MIR Lab); the original release states no licence we could retrieve "
+            "(http://mirlab.org/dataSet/public/ returned HTTP 404 on 2026-10-14). We therefore treat it "
+            "as a research dataset: raw data is never redistributed, only a small derived demo subset "
+            "with attribution."
+        ),
     },
 }
 
@@ -190,6 +198,7 @@ def download_wm811k() -> None:
     if not archives:
         sys.exit("WM-811K: Kaggle returned no archive")
     files = unzip(archives[0], folder)
+    spec["licence"] = spec["kaggle_licence"]
     record("wm811k", f"https://www.kaggle.com/datasets/{dataset}", [archives[0], *files])
 
 
