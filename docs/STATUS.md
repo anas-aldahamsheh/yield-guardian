@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:40 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:49 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -30,10 +30,10 @@ Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, al
 
 | | |
 |---|---|
-| Done | 25 of 86 |
+| Done | 32 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
-| Waiting on you | Put the Token Factory key in `.env` on your PC when asked |
+| Waiting on you | Add TOKEN_FACTORY_API_KEY to anaslabs-hosting/.env yourself, then restart yield-guardian-api |
 
 ## Measured results
 
@@ -148,11 +148,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | 🟡 | App shell, navigation, sessions, theme menu, typed API client (on branch w5/web, merge pending) |
-| U2 | Design tokens: typefaces, colour, type scale, motion; reviewed against the brief | Cloud | 🟡 | Design tokens with contrast and colour-blind tests; dark theme fixed (c2dea39, on branch w5/web, merge pending) |
-| U3 | 3D wafer: instanced dies from real maps, thin-film shader, step-and-scan reveal | Cloud | 🟡 | 3D wafer with thin-film shader, tested optics, SVG poster fallback (c2dea39, on branch w5/web, merge pending) |
-| U4 | Home page with measured results | Cloud | 🟡 | Home page with measured results and data provenance (c2dea39, on branch w5/web, merge pending) |
-| U5 | Line screen | Cloud | 🟡 | Half done: live line state, socket hook, control charts (bbc8cec); KPIs, alarms and page being written |
+| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | 🟡 | App shell, navigation, sessions, theme menu, typed API client; merged to main (b7f321d) |
+| U2 | Design tokens: typefaces, colour, type scale, motion; reviewed against the brief | Cloud | ✅ | Design tokens with contrast and colour-blind tests; merged (b7f321d) |
+| U3 | 3D wafer: instanced dies from real maps, thin-film shader, step-and-scan reveal | Cloud | ✅ | 3D wafer with thin-film shader and SVG fallback; merged (b7f321d) |
+| U4 | Home page with measured results | Cloud | ✅ | Home page with measured results; merged (b7f321d) |
+| U5 | Line screen | Cloud | ✅ | Line screen: live charts with one cursor, KPIs, open alarms, units table, reconnecting socket; merged (b7f321d) |
 | U6 | Investigation screen | Cloud | ⏳ | |
 | U7 | Wafer lab | Cloud | ⏳ | |
 | U8 | Lots and 3D lot stack | Cloud | ⏳ | |
@@ -170,10 +170,10 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | ✅ | API and web images, non-root, read-only, healthchecks; CI builds them and runs the stack ([run](https://github.com/anas-aldahamsheh/yield-guardian/actions/runs/38549871531), merged da8e318) |
 | P2 | Standalone compose with optional Caddy profile | Cloud | ✅ | Compose with PostgreSQL, migrate, API, web and Caddy; migrations apply 0001 and /ready reports the database ok in CI (merged da8e318) |
 | P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
-| P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | 🟡 | Worker 3: compose.yaml backed up (byte-identical); Traefik, Sablier and the Cloudflare wildcard checked read-only; the domain already reaches Traefik. Services are added once the images pass CI |
-| P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ⏳ | |
-| P6 | Live at `yield-guardian.anaslabs.com` | PC | ⏳ | |
-| P7 | Security headers and CSP | Cloud | 🟡 | Worker 5: CSP with per-request nonce and security headers set by the web app itself |
+| P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ✅ | Worker 3: yield-guardian-api and -web in anaslabs compose (Pino Yard pattern, Sablier group, hardened), own always-on PostgreSQL with pgvector; compose.yaml and .env backed up first; secrets generated without printing |
+| P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ✅ | Hub card in apps.js and <noscript> (anaslabs-src 4fcfb48); hub rebuilt, Sablier restarted |
+| P6 | Live at `yield-guardian.anaslabs.com` | PC | 🟡 | API live at https://yield-guardian.anaslabs.com (/api/v1/ready answers, database ok, wakes in about 10 s); web merged to main (b7f321d) and being deployed; ready turns true when the SECOM bundle and wafer service land |
+| P7 | Security headers and CSP | Cloud | ✅ | CSP with per-request nonce, upgrade-insecure-requests only behind HTTPS, security headers; merged (b7f321d) |
 
 ### Q: Quality
 
@@ -206,6 +206,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 10:49 | Live on anaslabs-hosting: API at yield-guardian.anaslabs.com, hub card added (P4, P5). Web app merged to main (U2 to U5, P7 done) |
 | 2026-10-14 10:40 | Docker images and compose merged with CI green (P1, P2 done). Committed bundles are verified and baked into the API image |
 | 2026-10-14 10:29 | Statuses reconciled with the branches. Wafer-map W6 to W10 done and merged (unknown score switched to Mahalanobis, AUROC 0.922; energy 0.545). SECOM test-block results measured: PR-AUC 0.075 vs 0.054 no-skill, so SECOM risk is weak and the product leans on FDC and root cause. Unit pages list their investigations (30f1747) |
 | 2026-10-14 10:25 | Resumed after the pause: all workers continue from their branches. Empty environment variables now count as unset |
