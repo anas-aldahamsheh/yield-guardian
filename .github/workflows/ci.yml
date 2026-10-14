@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
+    paths-ignore: ["docs/**", "**/*.md"]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +13,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Every commit on main gets a complete run; superseded pull request runs are cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   UV_PYTHON: "3.13"
@@ -27,7 +30,7 @@ jobs:
         working-directory: services/api
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install (lock must match pyproject)
@@ -112,7 +115,7 @@ jobs:
         id: project
         working-directory: .
         run: echo "present=$([ -f training/${{ matrix.project }}/pyproject.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         if: steps.project.outputs.present == 'true'
         with:
           enable-cache: true
@@ -141,7 +144,8 @@ jobs:
           if grep -q '^\[tool.mypy\]' pyproject.toml; then uv run --no-sync mypy; else echo "no mypy config"; fi
       - name: Tests (raw data and GPU checks skip themselves in CI)
         if: steps.project.outputs.present == 'true'
-        run: uv run --no-sync pytest
+        run: |
+          if [ -d tests ]; then uv run --no-sync pytest; else echo "no tests in this project yet"; fi
 
   security:
     name: Secrets and dependency audit
@@ -167,7 +171,7 @@ jobs:
         run: |
           bad=$(git ls-files | grep -E '(^|/)\.env$|(^|/)\.env\.[^e]|\.kaggle/|access_token|^data/raw/|\.pkl$|LSWMD' || true)
           if [ -n "$bad" ]; then echo "::error::These files must never be committed:"; echo "$bad"; exit 1; fi
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Python dependency audit (API)
         working-directory: services/api
         run: |
