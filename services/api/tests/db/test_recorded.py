@@ -37,6 +37,7 @@ from yield_guardian.services.registry import ServiceRegistry
 RECORDER = Actor(role="system", name="Recorded demo run")
 ALARM = InvestigationTrigger(kind="alarm", ref="AL-1303-risk")
 UNIT = InvestigationTrigger(kind="unit", ref="1304")
+AS_OF = 1303
 
 
 async def _settled(store: DbInvestigationStore, investigation_id: str) -> str:
@@ -59,13 +60,15 @@ async def _events(database: Database, investigation_id: str) -> list[dict[str, o
 
 
 async def _record(persistence: Persistence, trigger: InvestigationTrigger) -> str:
-    created = await persistence.investigations.create_recorded(trigger, actor=RECORDER)
+    created = await persistence.investigations.create_recorded(trigger, actor=RECORDER, as_of=AS_OF)
     assert created.recorded
     assert await _settled(persistence.investigations, created.investigation_id) == "awaiting_decision"  # fmt: skip
     return created.investigation_id
 
 
-async def test_a_recorded_run_goes_through_the_job_queue(persistence: Persistence) -> None:
+async def test_a_recorded_run_goes_through_the_job_queue(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
     investigation_id = await _record(persistence, ALARM)
     async with persistence.database.sessionmaker() as db:
         kinds = (
@@ -76,6 +79,7 @@ async def test_a_recorded_run_goes_through_the_job_queue(persistence: Persistenc
             )
         ).all()
     assert list(kinds) == ["run"]
+    assert runner.as_of == [AS_OF]  # the recorded run's tools read the line as of its alarm
     summary = (await persistence.investigations.list()).items[0]
     assert (summary.investigation_id, summary.recorded) == (investigation_id, True)
     assert summary.models  # the fake runner's models are shown with the run
@@ -93,7 +97,7 @@ async def test_export_then_import_is_idempotent_and_keeps_the_run_decidable(
     persistence: Persistence, runner: FakeRunner, target_url: str, tmp_path: Path
 ) -> None:
     recorded = await _record(persistence, ALARM)
-    live = await persistence.investigations.create_recorded(UNIT, actor=RECORDER)
+    live = await persistence.investigations.create_recorded(UNIT, actor=RECORDER, as_of=AS_OF)
     session, _ = await persistence.sessions.guest(GuestSessionCreate(display_name="Dana"), client="t")  # fmt: skip
     plain = await persistence.investigations.create(InvestigationTrigger(kind="unit", ref="77"), session=session)  # fmt: skip
     await _settled(persistence.investigations, live.investigation_id)
@@ -204,4 +208,59 @@ def test_the_export_format_is_versioned() -> None:
     with pytest.raises(ValueError):
         RecordedRuns.model_validate(
             {"format": "other", "exported_at": "2026-10-14T00:00:00Z", "runs": []}
+        )
+
+
+async def test_a_live_run_never_gets_a_position(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    session, _ = await persistence.sessions.guest(GuestSessionCreate(display_name="Dana"), client="t")  # fmt: skip
+    created = await persistence.investigations.create(UNIT, session=session)
+    await _settled(persistence.investigations, created.investigation_id)
+    assert runner.as_of == [None]
+
+
+async def test_a_failed_recorded_run_stays_failed_and_is_never_exported_or_imported(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    runner.behaviour = "fail"
+    created = await persistence.investigations.create_recorded(ALARM, actor=RECORDER, as_of=AS_OF)
+    assert await _settled(persistence.investigations, created.investigation_id) == "failed"
+    failed = await persistence.investigations.get(created.investigation_id)
+    assert (failed.recorded, failed.status) == (True, "failed")
+    assert failed.error is not None  # the UI shows the status and this error
+    summary = (await persistence.investigations.list(status="failed")).items[0]
+    assert (summary.investigation_id, summary.recorded) == (created.investigation_id, True)
+    async with asyncio.timeout(15):  # the job reopens the alarm when it closes the run
+        while True:
+            if (await persistence.alarms.get(ALARM.ref)).status == "open":
+                break  # so a new recording can take it
+            await asyncio.sleep(0.05)
+
+    exported, left_out = await export_recorded(persistence.database.sessionmaker, None)
+    assert exported.runs == []
+    assert left_out == [created.investigation_id]
+
+    runner.behaviour = "report"
+    good = await _record(persistence, UNIT)
+    with_good, _ = await export_recorded(persistence.database.sessionmaker, None)
+    (run,) = with_good.runs
+    as_failed = run.investigation.model_copy(update={"status": "failed"})
+    forged = RecordedRuns(
+        exported_at=with_good.exported_at,
+        runs=[run.model_copy(update={"investigation": as_failed})],
+    )
+    await clean_ids(persistence, good)
+    report = await import_recorded(persistence.database.sessionmaker, forged, None)
+    assert (report.imported, report.not_importable) == ([], [good])
+
+
+async def clean_ids(persistence: Persistence, investigation_id: str) -> None:
+    from sqlalchemy import delete
+
+    from yield_guardian.db.tables import InvestigationRow
+
+    async with persistence.database.sessionmaker() as db, db.begin():
+        await db.execute(
+            delete(InvestigationRow).where(InvestigationRow.investigation_id == investigation_id)
         )

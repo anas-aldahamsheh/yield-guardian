@@ -117,9 +117,14 @@ class InvestigationState(TypedDict):
     decision: dict[str, Any] | None
     failure: dict[str, Any] | None
     """Problem details when the investigation failed; the runner reports it."""
+    as_of: int | None
+    """For a recorded run: the line position (the alarm's sequence) its tools read the data as
+    of. None for a live run, whose tools follow the replay clock."""
 
 
-def initial_state(investigation_id: str, trigger: InvestigationTrigger) -> InvestigationState:
+def initial_state(
+    investigation_id: str, trigger: InvestigationTrigger, *, as_of: int | None = None
+) -> InvestigationState:
     return InvestigationState(
         investigation_id=investigation_id,
         trigger=trigger.model_dump(mode="json"),
@@ -137,7 +142,24 @@ def initial_state(investigation_id: str, trigger: InvestigationTrigger) -> Inves
         decision_step=None,
         decision=None,
         failure=None,
+        as_of=as_of,
     )
+
+
+def services_as_of(services: ScienceServices, position: int | None) -> ScienceServices:
+    """The services a run's tools read: as of ``position`` for a recorded run, else unchanged.
+    Only the SECOM service follows the line; a stand-in without ``as_of`` is left as it is
+    (it refuses every read anyway)."""
+    if position is None:
+        return services
+    view = getattr(type(services.secom), "as_of", None)  # the class, not a stand-in's __getattr__
+    if view is None:
+        return services
+    return replace(services, secom=view(services.secom, position))
+
+
+def _services(ctx: GraphContext, state: InvestigationState) -> ScienceServices:
+    return services_as_of(ctx.services, state.get("as_of"))
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,7 +283,7 @@ async def triage(state: InvestigationState, runtime: Runtime[GraphContext]) -> d
     trigger = InvestigationTrigger.model_validate(state["trigger"])
     investigation_id = state["investigation_id"]
     ledger = EvidenceLedger(investigation_id)
-    executor = ToolExecutor(ctx.services, ledger, wall_clock=ctx.wall_clock)
+    executor = ToolExecutor(_services(ctx, state), ledger, wall_clock=ctx.wall_clock)
     chosen = triage_call(trigger)
     if chosen is None:
         return {
@@ -330,7 +352,7 @@ async def gather(state: InvestigationState, runtime: Runtime[GraphContext]) -> d
     limit = ctx.limits.max_tool_steps
     investigation_id = state["investigation_id"]
     ledger = EvidenceLedger(investigation_id, _evidence(state))
-    executor = ToolExecutor(ctx.services, ledger, wall_clock=ctx.wall_clock)
+    executor = ToolExecutor(_services(ctx, state), ledger, wall_clock=ctx.wall_clock)
     used = state["tool_steps"]
     index = state["next_step"]
     messages = list(state["messages"])
@@ -555,14 +577,20 @@ class InvestigatorRunner:
         return "decision" in snapshot.next
 
     async def run(
-        self, investigation_id: str, trigger: InvestigationTrigger, sink: InvestigationSink
+        self,
+        investigation_id: str,
+        trigger: InvestigationTrigger,
+        sink: InvestigationSink,
+        *,
+        as_of: int | None = None,
     ) -> None:
         snapshot = await self.graph.aget_state(self.config(investigation_id))
         if snapshot.values:
             await sink.error(_conflict(f"investigation {investigation_id} has already run"))
             return
         await sink.status("running")
-        await self._drive(initial_state(investigation_id, trigger), investigation_id, sink)
+        state = initial_state(investigation_id, trigger, as_of=as_of)
+        await self._drive(state, investigation_id, sink)
 
     async def resume(
         self, investigation_id: str, decision: Decision, sink: InvestigationSink

@@ -46,14 +46,14 @@ export function LineView() {
       {query.isError && !state ? (
         <ErrorState error={query.error} onRetry={() => void query.refetch()} />
       ) : !state ? (
-        <div className="grid gap-street">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
           <Placeholder className="h-28" label="Loading the line" />
           <Placeholder className="h-[440px]" label="Loading the control charts" />
         </div>
       ) : (
-        <div className="grid gap-street">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
           <LineKpis kpis={state.kpis} className="mb-2" />
-          <div className="grid gap-street xl:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,1fr)_380px]">
             <Panel
               live={connection === "live"}
               className="xl:self-start"
@@ -87,7 +87,7 @@ export function LineView() {
                 </p>
               ) : null}
             </Panel>
-            <div className="grid min-w-0 content-start gap-street">
+            <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
               <RootCause alarms={state.open_alarms} />
               <OpenAlarms alarms={state.open_alarms} />
             </div>

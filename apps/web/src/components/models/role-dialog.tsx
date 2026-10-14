@@ -63,8 +63,8 @@ export function RoleDialog({
           <DialogTitle>{ROLE_NAMES[assignment.role] ?? assignment.role}</DialogTitle>
           <DialogDescription>{ROLE_JOBS[assignment.role]}. The change applies from the next call and is recorded in the audit log.</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-5">
-          <div className="grid gap-1.5">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <Label htmlFor="role-model">Model</Label>
             <Select value={modelId} onValueChange={setModelId}>
               <SelectTrigger id="role-model" className="w-full">
@@ -86,7 +86,7 @@ export function RoleDialog({
               </p>
             ) : null}
           </div>
-          <div className="grid gap-1.5">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <Label htmlFor="role-effort">Reasoning effort</Label>
             <Select value={effortValue} onValueChange={setEffort} disabled={efforts.length === 0}>
               <SelectTrigger id="role-effort" className="w-full">
@@ -103,10 +103,10 @@ export function RoleDialog({
             </Select>
             {efforts.length === 0 ? <p className="text-[12px] leading-4 text-ink-3">This model takes no reasoning effort.</p> : null}
           </div>
-          <div className="grid gap-1.5">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <p className="text-sm leading-none font-medium">Fallbacks, tried in order</p>
             {fallbacks.length ? (
-              <ol className="grid gap-1">
+              <ol className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 {fallbacks.map((f, i) => (
                   <li key={f} className="flex items-center justify-between gap-2 rounded-sm border border-hairline px-2.5 py-1 text-[13px]">
                     <span className="tnum">

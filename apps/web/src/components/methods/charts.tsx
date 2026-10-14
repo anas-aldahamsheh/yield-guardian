@@ -75,7 +75,7 @@ export function PrCurve({
   const sorted = [...curve].sort((a, b) => a.recall - b.recall || b.precision - a.precision);
   const d = sorted.map((p, i) => `${i ? "L" : "M"}${x(p.recall).toFixed(1)},${y(p.precision).toFixed(1)}`).join("");
   return (
-    <div ref={ref} className="min-w-0">
+    <div ref={ref} className="min-w-0 [contain:inline-size]">
       <svg
         width={width}
         height={height}
@@ -121,7 +121,7 @@ export function ReliabilityDiagram({ bins }: { bins: ReliabilityBin[] }) {
   const r = scaleSqrt().domain([0, Math.max(1, ...bins.map((b) => b.units))]).range([0, 5.5]);
   const ticks = x.ticks(4);
   return (
-    <div ref={ref} className="min-w-0">
+    <div ref={ref} className="min-w-0 [contain:inline-size]">
       <svg width={width} height={height} role="img" aria-label={`Reliability diagram with ${bins.length} bins of equal size.`} className="block">
         {ticks.map((t) => (
           <g key={t}>
@@ -231,7 +231,7 @@ export function BlocksBar({ blocks }: { blocks: BlockInfo[] }) {
           <div key={b.block} className={cn("h-full border-r-2 border-die last:border-r-0", tone[b.block])} style={{ width: `${(b.units / total) * 100}%` }} />
         ))}
       </div>
-      <dl className="mt-2 grid gap-x-4 gap-y-2 sm:grid-cols-3">
+      <dl className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-2 sm:grid-cols-3">
         {blocks.map((b) => (
           <div key={b.block} className="min-w-0 text-[12px] leading-4">
             <dt className="font-medium text-ink capitalize">{b.block}</dt>

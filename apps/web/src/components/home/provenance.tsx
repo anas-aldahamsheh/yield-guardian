@@ -15,7 +15,7 @@ export function Provenance() {
 
   return (
     <section aria-labelledby="provenance-title" className="mx-auto max-w-[1600px] px-gutter py-16">
-      <div className="grid gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
         <div>
           <h2 id="provenance-title" className="text-h2 font-semibold tracking-[-0.01em]">
             Where the data comes from
@@ -32,13 +32,13 @@ export function Provenance() {
         </div>
         <QueryView query={methods} loading={<Placeholder className="h-64" label="Loading data sources" />}>
           {(data) => (
-            <div className="grid gap-street md:grid-cols-2">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-street md:grid-cols-2">
               {data.datasets.map((d) => (
                 <article key={d.name} className="panel p-5">
                   <h3 className="text-h4 font-semibold">{d.name}</h3>
                   <p className="mt-2 text-[15px] leading-6 text-ink-2">{d.description}</p>
                   <p className="mt-3 text-[13px] leading-5 text-ink-3">{d.citation}</p>
-                  <dl className="mt-4 grid gap-1 text-[13px] leading-5">
+                  <dl className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5">
                     <div className="flex gap-2">
                       <dt className="text-ink-3">Licence</dt>
                       <dd className="text-ink-2">{d.licence}</dd>

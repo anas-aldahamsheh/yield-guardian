@@ -7,8 +7,10 @@ engineer's decision, the investigator's paused state, so that on any host it can
 shown as recorded, replayed event by event, and still be approved or rejected (deciding resumes
 the graph from that state; no model is called).
 
-Only runs waiting for a decision are exported: a decided run carries a work order and audit
-entries that belong to the host where it was decided. Import never overwrites: an investigation
+Only runs waiting for a decision are exported or imported: a failed run has nothing to show
+or decide (it stays on its host, shown as failed), and a decided run carries a work order and
+audit entries that belong to the host where it was decided. Recorded runs read the data as of
+their alarm (``as_of`` in the paused state), so an imported run stays consistent. Import never overwrites: an investigation
 whose ID exists is skipped, so seeding at every start is safe.
 """
 
@@ -62,6 +64,8 @@ class ImportReport(BaseModel):
     imported: list[str] = Field(default_factory=list)
     skipped: list[str] = Field(default_factory=list)
     """Already present on this host."""
+    not_importable: list[str] = Field(default_factory=list)
+    """Failed or already decided: never imported."""
     without_state: list[str] = Field(default_factory=list)
     """Imported, but the paused state could not be restored: deciding records the decision and
     the step shows an error instead of the graph's completion."""
@@ -114,13 +118,17 @@ async def export_recorded(
     return RecordedRuns(exported_at=now or datetime.now(UTC), runs=runs), left_out
 
 
+def importable(run: RecordedRun) -> bool:
+    """Waiting for a decision that nobody took yet; a failed or decided run is skipped."""
+    inv = run.investigation
+    return inv.status == EXPORTED_STATUS and inv.decision is None
+
+
 def check_run(run: RecordedRun) -> None:
-    """The run is a recorded run waiting for a decision, and its events are its own, in order."""
+    """The run is a recorded run, and its events are its own, in order."""
     inv = run.investigation
     if not inv.recorded:
         raise ValueError(f"{inv.investigation_id} is not a recorded run")
-    if inv.status != EXPORTED_STATUS or inv.decision is not None:
-        raise ValueError(f"{inv.investigation_id} is not waiting for a decision")
     seqs = [_EVENTS.validate_python(e).seq for e in run.events]
     if seqs != list(range(1, len(seqs) + 1)):
         raise ValueError(f"{inv.investigation_id}: event seq must run 1, 2, ... without gaps")
@@ -137,6 +145,9 @@ async def import_recorded(
     report = ImportReport()
     for run in runs.runs:
         inv = run.investigation
+        if not importable(run):
+            report.not_importable.append(inv.investigation_id)
+            continue
         async with sessions() as db, db.begin():
             if await db.get(InvestigationRow, inv.investigation_id) is not None:
                 report.skipped.append(inv.investigation_id)

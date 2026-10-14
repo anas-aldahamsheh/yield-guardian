@@ -105,7 +105,7 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
               const href = targetHref(e.target_kind, e.target_id);
               const details = Object.entries(e.details ?? {});
               return (
-                <li key={e.audit_id} className="grid gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5">
+                <li key={e.audit_id} className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5">
                   <time dateTime={e.at} suppressHydrationWarning className="tnum text-[12px] leading-5 text-ink-3">
                     {formatDateTime(e.at)}
                   </time>

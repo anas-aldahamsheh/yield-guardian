@@ -76,7 +76,7 @@ export function TopBar() {
                   })}
                 </ul>
               </nav>
-              <div className="mt-auto grid gap-3 border-t border-hairline px-5 py-4">
+              <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-3 border-t border-hairline px-5 py-4">
                 <PlantClockLink className="sm:hidden" />
                 <SessionControl stacked className="md:hidden" />
               </div>

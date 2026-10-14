@@ -22,7 +22,7 @@ export function ResultsLedger() {
 
   return (
     <section aria-labelledby="results-title" className="mx-auto max-w-[1600px] px-gutter py-16">
-      <div className="grid gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
         <div>
           <h2 id="results-title" className="text-h2 font-semibold tracking-[-0.01em]">
             Results, with their uncertainty
@@ -39,7 +39,7 @@ export function ResultsLedger() {
 
         <QueryView query={results} loading={<Placeholder className="h-96" label="Loading results" />}>
           {(data) => (
-            <div className="panel overflow-hidden">
+            <div className="panel overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <caption className="sr-only">Measured results with confidence intervals</caption>
                 <thead>
@@ -76,7 +76,7 @@ function LedgerRow({ row }: { row: MeasuredResult }) {
         <span className={cn("block text-[15px] leading-6", e ? "text-ink" : "text-ink-2")}>{row.label}</span>
         <span className="block text-[13px] leading-5 text-ink-3">{row.data}</span>
       </th>
-      <td className="tnum px-3 py-3 text-right whitespace-nowrap">
+      <td className="tnum px-3 py-3 text-right sm:whitespace-nowrap">
         {e ? (
           <>
             <span className="block text-[17px] leading-6 font-medium text-ink">{formatMetric(e.value, row.format)}</span>

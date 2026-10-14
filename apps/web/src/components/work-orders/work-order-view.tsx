@@ -68,13 +68,13 @@ export function WorkOrderView({ id }: { id: string }) {
         }
         actions={<StatusMark status={o.status} className="text-[14px] text-ink" />}
       />
-      <div className="grid gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="grid min-w-0 content-start gap-street">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
           <Panel title="Progress">
             <StatusTrack status={o.status} />
           </Panel>
           <Panel title="Approved actions" description="From the investigation report, with the evidence each one cites.">
-            <ol className="grid gap-4">
+            <ol className="grid grid-cols-[minmax(0,1fr)] gap-4">
               {o.actions.map((a, i) => (
                 <li key={i} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-2 border-t border-hairline pt-3 first:border-t-0 first:pt-0">
                   <span className="tnum text-[14px] leading-6 text-ink-3">{i + 1}.</span>
@@ -178,7 +178,7 @@ function UpdatePanel({ order }: { order: WorkOrder }) {
   return (
     <Panel title="Update" description="Changes are recorded in the audit log with your name.">
       <form
-        className="grid gap-5"
+        className="grid grid-cols-[minmax(0,1fr)] gap-5"
         onSubmit={(e) => {
           e.preventDefault();
           if (dirty) update.mutate(body);
@@ -202,11 +202,11 @@ function UpdatePanel({ order }: { order: WorkOrder }) {
             ))}
           </ToggleGroup>
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
           <Label htmlFor="wo-note">Note</Label>
           <Textarea id="wo-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} rows={3} placeholder="What is planned, who has it" />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
           <Label htmlFor="wo-outcome">Outcome</Label>
           <Textarea
             id="wo-outcome"
@@ -263,7 +263,7 @@ function UpdatePanel({ order }: { order: WorkOrder }) {
 
 function Readonly({ order }: { order: WorkOrder }) {
   return (
-    <dl className="grid gap-3 text-[14px] leading-5">
+    <dl className="grid grid-cols-[minmax(0,1fr)] gap-3 text-[14px] leading-5">
       <div>
         <dt className="text-[12px] text-ink-3">Note</dt>
         <dd className="text-ink">{order.note || <span className="text-ink-3">None</span>}</dd>

@@ -64,7 +64,7 @@ async def run(args: argparse.Namespace, settings: Settings) -> int:
                 write_runs(path, exported)
                 print(f"Exported {len(exported.runs)} recorded run(s) to {path}")
                 for run_id in left_out:
-                    print(f"  left out {run_id}: not waiting for a decision")
+                    print(f"  left out {run_id}: failed or already decided")
                 for item in exported.runs:
                     if item.paused_state is None:
                         print(f"  {item.investigation.investigation_id}: no paused state saved")
@@ -74,6 +74,8 @@ async def run(args: argparse.Namespace, settings: Settings) -> int:
                     f"Imported {len(report.imported)}, already present {len(report.skipped)} "
                     f"(from {path})"
                 )
+                for run_id in report.not_importable:
+                    print(f"  skipped {run_id}: failed or already decided")
                 for run_id in report.without_state:
                     print(f"  {run_id}: imported without its paused state")
     finally:

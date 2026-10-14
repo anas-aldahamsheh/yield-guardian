@@ -47,14 +47,14 @@ export function WaferLab() {
         title="Wafer lab"
         description="Wafer maps from WM-811K: the pattern the classifier reads, whether the map looks like anything it was trained on, whether fail dies cluster, and the most similar wafers."
       />
-      <div className="grid gap-street lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street lg:grid-cols-[320px_minmax(0,1fr)]">
         <Panel
           title="Wafers"
           description={list.data ? `${formatInt(list.data.total)} match` : undefined}
           bodyClassName="px-0 sm:px-0 pb-0"
           className="lg:sticky lg:top-[calc(var(--bar-height)+8px)] lg:max-h-[calc(100dvh-var(--bar-height)-16px)] lg:overflow-hidden lg:flex lg:flex-col"
         >
-          <div className="grid gap-3 px-4 pb-3 sm:px-5">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 px-4 pb-3 sm:px-5">
             <Select value={label ?? "all"} onValueChange={(v) => setLabel(v === "all" ? null : v)}>
               <SelectTrigger aria-label="Recorded pattern" className="w-full">
                 <SelectValue />
@@ -134,7 +134,7 @@ function WaferPanel({ waferId, onSelect }: { waferId: string; onSelect: (id: str
   const api = useApi();
   const detail = useQuery(q.wafer(api, waferId));
   return (
-    <div className="grid min-w-0 content-start gap-street">
+    <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
       <QueryView query={detail} loading={<Placeholder className="h-[560px]" label="Loading the wafer" />}>
         {(d) => <WaferDetailView detail={d} />}
       </QueryView>
@@ -172,7 +172,7 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
         ) : null
       }
     >
-      <div className="grid gap-x-8 gap-y-6 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-6 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <figure className="m-0">
           <DieMap
             data={data}
@@ -201,7 +201,7 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
           {p ? (
             <>
               <h3 className="mt-6 text-[13px] leading-5 text-ink-3">Calibrated probability of each pattern</h3>
-              <ul className="mt-1.5 grid gap-1" aria-label="Pattern probabilities">
+              <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-1" aria-label="Pattern probabilities">
                 {p.probabilities.map((c) => (
                   <li key={c.label} className="grid grid-cols-[6.5rem_minmax(0,1fr)_3.5rem] items-center gap-2 text-[13px] leading-5">
                     <span className={cn(c.label === p.top_label ? "text-ink" : "text-ink-2")}>{patternName(c.label as PatternLabel)}</span>
@@ -317,12 +317,12 @@ function PatternCauses({ label }: { label: PatternLabel }) {
           return list.length === 0 ? (
             <p className="text-[14px] text-ink-3">The literature index has nothing on this pattern yet.</p>
           ) : (
-            <ul className="grid gap-4">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-4">
               {list.map((cause, i) => (
                 <li key={i}>
                   <p className="written max-w-[66ch] text-ink">{cause.hypothesis}</p>
                   <p className="mt-0.5 text-[12px] text-ink-3">Confidence: {cause.confidence}</p>
-                  <ul className="mt-2 grid gap-2">
+                  <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-2">
                     {cause.quotes.map((quote, k) => {
                       const s = sources.get(quote.source_id);
                       return (

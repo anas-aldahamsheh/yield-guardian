@@ -123,7 +123,7 @@ export function ChatSheet() {
           ) : turns.length === 0 ? (
             <div>
               <p className="text-[13px] leading-5 text-ink-3">Try</p>
-              <ul className="mt-2 grid gap-2">
+              <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-2">
                 {suggestions(context).map((s) => (
                   <li key={s}>
                     <button
@@ -139,9 +139,9 @@ export function ChatSheet() {
               </ul>
             </div>
           ) : (
-            <ol className="grid gap-6">
+            <ol className="grid grid-cols-[minmax(0,1fr)] gap-6">
               {turns.map((t) => (
-                <li key={t.id} className="grid gap-2">
+                <li key={t.id} className="grid grid-cols-[minmax(0,1fr)] gap-2">
                   <p className="ml-auto max-w-[85%] rounded-sm bg-die-2 px-3 py-2 text-[14px] leading-5 text-ink">
                     {t.question}
                     {t.context ? <span className="mt-0.5 block text-[11px] text-ink-3">About {describeContext(t.context)}</span> : null}
@@ -164,7 +164,7 @@ export function ChatSheet() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={onSubmit} className="grid gap-2">
+            <form onSubmit={onSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-2">
               {pageContext ? (
                 <label className="flex items-center gap-2 text-[12px] leading-4 text-ink-2">
                   <input type="checkbox" checked={useContext} onChange={(e) => setUseContext(e.target.checked)} className="size-3.5 accent-[var(--ink)]" />

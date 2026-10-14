@@ -1,10 +1,13 @@
 """SecomService on a verified SECOM bundle: risk, explanations, FDC, sensor groups and health.
 
 Every value comes from the bundle or the SECOM source files. Units after the plant clock's
-position have not come off the line and are never returned.
+position have not come off the line and are never returned. A recorded investigation reads the
+data as of its alarm instead (:meth:`SecomInference.as_of`); that view is made only by the
+investigator for runs the server stored as recorded, never from a request.
 """
 
 import base64
+import copy
 from collections import Counter
 from collections.abc import Sequence
 from typing import Protocol
@@ -105,10 +108,24 @@ class SecomInference:
         self.group_of = {s: g.group_id for g in bundle.groups.groups for s in g.sensors}
         self.health_of = {h.sensor: h for h in bundle.health.sensors}
         self.model_sensors = sorted(set(bundle.shap.feature_sensors))
+        self.fixed_position: int | None = None
 
     # Visibility -------------------------------------------------------------------------------
 
+    def as_of(self, position: int) -> "SecomInference":
+        """The same service with the line stopped at ``position`` (a recorded run evaluated as
+        of its alarm): units after it stay hidden, whatever the replay clock says."""
+        if not 0 <= position < len(self.timeline):
+            raise InvalidArgumentError(
+                f"position {position} is outside the line (0 to {len(self.timeline) - 1})"
+            )
+        view = copy.copy(self)
+        view.fixed_position = position
+        return view
+
     def _position(self) -> int:
+        if self.fixed_position is not None:
+            return self.fixed_position
         return self.line.clock().position
 
     def _sequence(self, unit_id: int, position: int) -> int:

@@ -188,6 +188,39 @@ class Route:
         return self.intent in REFUSED_INTENTS
 
 
+_CAPABILITIES = re.compile(
+    r"^\s*(?:(?:hi|hello|hey)\b[\s,!.]*)?(?:"
+    r"what\s+(?:can|could)\s+you\s+(?:do|help(?:\s+me)?(?:\s+with)?|answer|tell\s+me)"
+    r"|how\s+(?:can|could|do)\s+you\s+help(?:\s+me)?"
+    r"|what\s+(?:do\s+you\s+do|are\s+you(?:\s+for)?|is\s+this(?:\s+chat)?(?:\s+for)?)"
+    r"|who\s+are\s+you|what\s+are\s+your\s+(?:capabilities|skills|features)"
+    r"|what\s+(?:should|can)\s+i\s+ask(?:\s+you)?|help"
+    r"|(?:شو|ايش|إيش|ماذا|ما\s+الذي)\s+(?:بتقدر|تقدر|تستطيع|بتعرف|تعرف)\s*(?:تعمل|تساعدني|تقدم|تقدملي)?(?:\s+فيه|\s+به)?"
+    r"|كيف\s+(?:بتقدر\s+|تقدر\s+|يمكنك\s+)?(?:تساعدني|تساعد)"
+    r")\s*(?:here|today|for\s+me)?\s*[?!.\uff1f\u061f]*\s*$",
+    _I,
+)
+CAPABILITIES = (
+    "I answer questions about this plant's data, from the same records the screens use, and "
+    "cite each record I read. You can ask me:\n"
+    "- About a unit: its failure risk (experimental), which sensors moved it, and where it sits "
+    'on the T² and SPE control charts. For example: "Why is unit 1303 flagged?"\n'
+    "- About an alarm: what triggered it and which sensor groups carry it.\n"
+    "- About sensors: which are dead, stuck, jumping or drifting, and how many have a status.\n"
+    "- About a wafer: its defect pattern, its unknown-pattern score and the most similar past "
+    "wafers.\n"
+    "- About a lot: its pattern counts and whether they are unusual.\n"
+    "- About the literature: known causes of wafer-map patterns such as Edge-Ring or Scratch.\n"
+    "I only read and explain. An engineer approves reports and opens work orders in the "
+    "interface, and the numbers I give come from the data, never from me."
+)
+
+
+def is_capability_question(question: str) -> bool:
+    """ "What can you do?" and its variants: answered by code with a fixed description."""
+    return bool(_CAPABILITIES.match(question))
+
+
 ACTION_REFUSAL = (
     "I can only read and explain the plant data; I cannot take actions. An engineer approves "
     "reports, opens work orders and changes settings in the interface."

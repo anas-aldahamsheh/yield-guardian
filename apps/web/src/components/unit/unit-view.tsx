@@ -53,7 +53,7 @@ export function UnitView({ unitId }: { unitId: number }) {
         actions={<InvestigateUnit unit={u} />}
       />
       <UnitReadings unit={u} />
-      <div className="mt-street grid gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="mt-street grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <Panel
           title="Why the model scores this unit as it does"
           description="TreeSHAP contributions of the sensors that moved the failure score most. An association in historical data, not a cause."
@@ -66,7 +66,7 @@ export function UnitView({ unitId }: { unitId: number }) {
             </EmptyState>
           )}
         </Panel>
-        <div className="grid min-w-0 content-start gap-street">
+        <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
           <Contributions unitId={u.unit_id} />
           <UnitRecords unit={u} />
         </div>
@@ -125,7 +125,7 @@ function Explanation({ unitId }: { unitId: number }) {
             <div className="mt-6">
               <h3 className="text-[14px] leading-5 font-semibold text-ink">Correlated sensor groups</h3>
               <p className="text-[13px] leading-5 text-ink-3">Members of one group move together, so their contributions are summed.</p>
-              <ul className="mt-2 grid gap-1 text-[13px] leading-5">
+              <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5">
                 {e.groups.slice(0, 6).map((g) => (
                   <li key={g.group_id} className="tnum flex justify-between gap-4 border-t border-hairline py-1.5">
                     <span className="text-ink-2">
@@ -171,7 +171,7 @@ function UnitRecords({ unit: u }: { unit: UnitDetail }) {
       {u.alarms.length === 0 && u.investigation_ids.length === 0 ? (
         <p className="text-[14px] leading-5 text-ink-3">No alarm was raised on this unit.</p>
       ) : (
-        <ul className="grid gap-2 text-[14px] leading-5">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 text-[14px] leading-5">
           {u.alarms.map((a) => (
             <li key={a.alarm_id} className="border-t border-hairline pt-2">
               <span className="font-medium text-ink">{ALARM_KIND[a.kind] ?? a.kind}</span>{" "}

@@ -7,8 +7,8 @@ refuses in CI, without ``TOKEN_FACTORY_API_KEY`` and without ``--confirm``.
 
 Confirmed, it stores each investigation as recorded (``recorded = true``) and queues it like
 any other: the API's job worker runs the investigator. The script waits for each run to reach
-the engineer's decision (or fail) before queueing the next, and prints its models, usage and
-points. Decisions stay with a person in the UI. Export the runs afterwards with
+the engineer's decision (or fail) before queueing the next, and prints its models and the points
+from the usage the server reported. Decisions stay with a person in the UI. Export the runs afterwards with
 ``scripts/import_recorded.py export``.
 
 Usage (inside the API container, where DATABASE_URL, the bundle and the key are set)::
@@ -35,6 +35,7 @@ from yield_guardian.agent.recording import (
 )
 from yield_guardian.bundles.manifest import BundleError, latest_version, verify_bundle
 from yield_guardian.bundles.secom import load_secom_bundle
+from yield_guardian.contracts.investigation import Investigation
 from yield_guardian.core.settings import Settings
 from yield_guardian.db.engine import Database
 from yield_guardian.llm.dbstores import DbRoleAssignmentStore
@@ -78,6 +79,24 @@ def show_alarms(alarms: list[ChosenAlarm]) -> None:
     print(f"Rule: {SELECTION_RULE}")
     for n, alarm in enumerate(alarms, 1):
         print(f"  {n}. {alarm.alarm_id} (sequence {alarm.sequence}): {alarm.message}")
+
+
+def usage_line(investigation: Investigation) -> str:
+    """The run's models and the usage the server reported, summed over its model calls."""
+    models = ", ".join(f"{m.role} {m.model_id}" for m in investigation.models) or "none"
+    usage = investigation.usage
+    if usage is None:
+        return f"models: {models}; no model call was made: 0 points"
+    unknown = (
+        f"; {usage.requests_without_usage} request(s) reported no usage (not in the sum)"
+        if usage.requests_without_usage
+        else ""
+    )
+    return (
+        f"models: {models}; {usage.requests} request(s), {usage.cache_hits} cached; tokens in "
+        f"{usage.tokens_in}, out {usage.tokens_out} (reasoning {usage.tokens_reasoning}); "
+        f"points {usage.points:.6f}{unknown}"
+    )
 
 
 async def wait_for(store: DbInvestigationStore, investigation_id: str, limit_s: float) -> str:
@@ -135,17 +154,23 @@ async def run(args: argparse.Namespace, settings: Settings, env: Mapping[str, st
         if reason is not None:
             return fail(reason)
         store = DbInvestigationStore(database.sessionmaker)
+        spent = 0.0
         for alarm in alarms:
-            investigation = await store.create_recorded(alarm.trigger(), actor=RECORDER)
+            investigation = await store.create_recorded(
+                alarm.trigger(), actor=RECORDER, as_of=alarm.sequence
+            )
             if not investigation.recorded:
                 print(f"{alarm.alarm_id}: already under investigation {investigation.investigation_id}; skipped")  # fmt: skip
                 continue
             print(f"{alarm.alarm_id}: {investigation.investigation_id} queued")
             status = await wait_for(store, investigation.investigation_id, args.timeout)
             done = await store.get(investigation.investigation_id)
-            models = ", ".join(f"{m.role} {m.model_id}" for m in done.models) or "none"
-            points = f"{done.usage.points:.6f}" if done.usage else "unknown"
-            print(f"  {status}; models: {models}; points (documented pricing): {points}")
+            print(f"  {status}")
+            print(f"  {usage_line(done)}")
+            spent += done.usage.points if done.usage else 0.0
+            if done.error is not None:
+                print(f"  error: {done.error.title}: {done.error.detail}")
+        print(f"Points spent by these runs (documented pricing, reported usage): {spent:.6f}")
     finally:
         await database.stop()
     return 0
