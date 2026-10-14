@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 14:02 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 15:16 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 78 of 82 done (95%), 3 in progress, 1 not started
+## Progress: 78 of 82 done (95%), 4 in progress, 0 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -17,7 +17,7 @@
 | L: AI layer | 10 of 11 | 1 | 0 |
 | U: Interface | 14 of 15 | 1 | 0 |
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
-| Q: Quality | 4 of 5 | 0 | 1 |
+| Q: Quality | 4 of 5 | 1 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
 <!-- progress:end -->
 
@@ -50,7 +50,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | SECOM recall at 5% false-alarm rate | 5.9% (threshold set on validation; achieved false-alarm rate 2.0%) | [0.0%, 17.6%] | 313 test units, 17 failures | [results.md](../training/secom/reports/results.md) |
 | False alarms per 100 units at that point | 1.92 | [0.64, 3.51] | 313 test units | [results.md](../training/secom/reports/results.md) |
 | Sensors to inspect per investigation (median) | not measured yet | | | |
-| FDC false-alarm rate on held-out reference | 1.9% at the 99% T² limit (target 1%) and 1.9% at 99.9% (target 0.1%) | not computed | 106 held-out reference units | [results.md](../training/secom/reports/results.md); the 99.9% limit is above nominal, disclosed |
+| FDC false-alarm rate on held-out reference | 1.9% at the 99% T² limit (target 1%) and 1.9% at 99.9% (target 0.1%) | 99%: [0.2%, 6.6%] | 106 held-out reference units | [results.md](../training/secom/reports/results.md); the 99.9% limit is above nominal, disclosed |
 | WM-811K macro-F1, official split | 0.604 (mean of 3 seeds, sd 0.043) | seed 0: 0.621 [0.605, 0.634] | 118,595 test wafers; test lots are shifted from training | [metrics_official.json](../training/wafermap/reports/metrics_official.json) |
 | WM-811K macro-F1, lot-grouped split | 0.900 (mean of 3 seeds, sd 0.006) | seed 0: 0.905 [0.893, 0.916] | 25,954 test wafers, 1,608 lots | [metrics_lot.json](../training/wafermap/reports/metrics_lot.json) |
 | Unknown-pattern AUROC (leave-one-class-out, mean) | 0.922 Mahalanobis (energy 0.545) | per class in loco.json | 8 held-out classes, lot-grouped split | [loco.json](../training/wafermap/reports/loco.json); the method was chosen using these results, so 0.922 is not an independent estimate |
@@ -141,7 +141,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | ✅ | Retries with jitter and a 120 s Retry-After bound, response cache, usage records; every limiter removed (D-009); merged (578712c) |
 | L3 | Model registry: role to model, admin API, validation | Cloud | ✅ | Role-to-model registry with admin API and validation; merged (578712c) |
 | L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | ✅ | Investigator graph: code-only triage, up to 8 tool calls, 2 revisions, pause for the decision, resume after restart (PostgreSQL checkpointer tested); merged (578712c) |
-| L5 | Report writer with strict schema | Cloud | ✅ | Writer with strict JSON schema on MiMo, validated JSON on the fallback; merged (578712c) |
+| L5 | Report writer with strict schema | Cloud | ✅ | Writer with JSON output validated in code (MiMo refused strict json_schema on the live endpoint, 2026-10-14); merged (578712c) |
 | L6 | Verifier: number check, citation check, wording check, model check | Cloud | ✅ | Verifier: numbers, citations, identifiers and causal wording checked in code, then a model from another family; failed values shown as [unverified]; merged (578712c) |
 | L7 | Router: deterministic intents first | Cloud | ✅ | Router: rules first, model fallback with a closed intent set; injection and out-of-scope questions refused; merged (578712c) |
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
@@ -189,7 +189,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | Q2 | API tests | Cloud | ✅ | About 890 API tests pass on main with PostgreSQL (unit, database, science on the real bundles, methods); ruff and mypy strict clean; run in CI |
 | Q3 | Web tests, type check, lint | Cloud | ✅ | Web: type check (both configs), lint 0 warnings, 184 unit tests, 35 Playwright tests at 1440 and 390 px on the production build (72c1e9d) |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ✅ | Playwright on the real compose stack (real bundles, PostgreSQL): 25 passed, 1 skipped (no work order yet); 375 px no-scroll on 13 routes; no Token Factory call (dda51e7). Run: pnpm --filter @yield-guardian/web e2e:stack, see apps/web/docs/E2E-STACK.md |
-| Q5 | Final review pass and performance check | Cloud | ⏳ | |
+| Q5 | Final review pass and performance check | Cloud | 🟡 | Review done: nothing blocking. No secrets in history, every number matches its source, no fixtures in the build, no rate limits (D-009), no general model proxy. Doc drift fixed (writer schema, Mahalanobis in the model card, committed bundles, T² CI, router and verifier results in README). Performance check runs with U14 |
 
 ### X: Submission
 
@@ -213,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 15:16 | Final review: nothing blocking; docs corrected (writer JSON validated in code, Mahalanobis named in the wafer model card, bundles committed not released, T² interval, language-model results in README). Third recording reached a full report; the verifier rejected it on rounding and labels, then the writer timed out (0.0074 points); fixes in progress |
 | 2026-10-14 14:02 | Arabic guide live (U15 done). Writer fix and "no key means 503" deployed (d37fc64) |
 | 2026-10-14 13:23 | End-to-end tests on the real stack pass (Q4); not-configured states (U13). Live site verified at 375 px with no sideways scroll. Recorded run reached the writer and failed there (0.023 points); writer fix in progress |
 | 2026-10-14 13:07 | New item U15: an Arabic usage guide page, built in its own thread. Chart widths fixed on phones (1086c92) |

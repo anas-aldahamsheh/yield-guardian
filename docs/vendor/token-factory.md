@@ -17,7 +17,7 @@ Summary of the Token Factory documentation as provided to the team for the event
 - Rejected with 400: `thinking: {...}` and `reasoning.enabled`.
 - Timeout: 10 minutes non-streaming; when streaming, 10 minutes is the maximum gap between chunks. Streams end with `data: [DONE]`.
 - Thinking text is returned in `choices[0].message.reasoning`; its token count in `usage.completion_tokens_details.reasoning_tokens` (not for Qwen3.8-27B). Thinking tokens count toward `max_tokens`: a low limit can leave `content` empty with `finish_reason: length`.
-- Every chat model supports streaming, tools, `tool_choice` and `response_format: {"type":"json_object"}`. Only MiMo-V2.6-Flash accepts strict `json_schema`.
+- Every chat model supports streaming, tools, `tool_choice` and `response_format: {"type":"json_object"}`. Only MiMo-V2.6-Flash accepts strict `json_schema`. **Measured live on 2026-10-14:** MiMo-V2.6-Flash answers HTTP 400 `"Model MiMo-V2.6-Flash does not support JSON schema output mode"`, so in practice no model is known to accept it. Yield Guardian sends `json_object` everywhere and validates the answer in code.
 - Images: content part `{"type":"image_url","image_url":{"url":"data:image/png;base64,..."}}` works on DeepSeek-V4.1-Flash, DeepSeek-V4-Flash-Vision-Exp, MiMo-V2.6-Flash, Qwen3.8-Flash-Next and Qwen3.8-27B. GLM-5.3-Flash rejects images.
 
 ## Models (as documented; points per 1M tokens, input / output / cache read)

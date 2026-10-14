@@ -221,10 +221,12 @@ def test_system_messages_cannot_carry_images() -> None:
 # --- response formats, tools, parameters ------------------------------------------------------
 
 
-def test_strict_json_schema_is_sent_only_to_mimo() -> None:
+def test_strict_json_schema_is_sent_only_to_a_model_that_accepts_it() -> None:
     fmt = ResponseFormat.strict_schema("report", {"type": "object", "properties": {}})
+    # No documented model accepts it live (MiMo refused it, 2026-10-14); a hypothetical one.
+    capable = profile("MiMo-V2.6-Flash").model_copy(update={"supports_json_schema": True})
     built = build_chat_request(
-        profile("MiMo-V2.6-Flash"), request(ChatMessage.user("JSON please"), response_format=fmt)
+        capable, request(ChatMessage.user("JSON please"), response_format=fmt)
     )
     assert built.body["response_format"] == {
         "type": "json_schema",
@@ -234,7 +236,7 @@ def test_strict_json_schema_is_sent_only_to_mimo() -> None:
             "strict": True,
         },
     }
-    for model in ("GLM-5.3-Flash", "Qwen3.8-27B", "DeepSeek-V4-Flash"):
+    for model in ("MiMo-V2.6-Flash", "GLM-5.3-Flash", "Qwen3.8-27B", "DeepSeek-V4-Flash"):
         with pytest.raises(ProfileViolationError) as caught:
             build_chat_request(
                 profile(model), request(ChatMessage.user("JSON"), response_format=fmt)

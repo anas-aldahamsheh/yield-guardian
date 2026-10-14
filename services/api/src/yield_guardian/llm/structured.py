@@ -1,7 +1,9 @@
 """Structured (JSON) output: strict schemas for ``json_schema`` and validation for both modes.
 
-MiMo-V2.6-Flash is the only model documented to accept strict ``json_schema``; every other
-model gets ``json_object`` and its answer is validated by Pydantic. Strict schemas follow
+The docs name MiMo-V2.6-Flash as the one model with strict ``json_schema``, but it refused it
+live (HTTP 400, 2026-10-14), so every role now uses ``json_object`` and the answer is validated
+by Pydantic; the strict schema is kept for a model that accepts it and for prompts that show the
+shape. Strict schemas follow
 the common strict-mode subset: every property required, ``additionalProperties: false``,
 references inlined, and only structural keywords kept (``type``, ``properties``,
 ``required``, ``additionalProperties``, ``items``, ``enum``, ``anyOf``, ``description``).

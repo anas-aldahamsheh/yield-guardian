@@ -2,8 +2,9 @@
 we know (or suspect) the Token Factory applies.
 
 The first live writer call on MiMo-V2.6-Flash answered HTTP 400 and Qwen3.8-27B ran out of
-max_tokens while reasoning. The L10 evaluation only ever sent json_object (router on MiniCPM5-2B,
-verifier on GLM-5.3-Flash), so strict json_schema has never been accepted live. These tests pin
+max_tokens while reasoning. A probe on 2026-10-14 showed why: MiMo answers HTTP 400 "does not
+support JSON schema output mode", so no model is known to accept strict json_schema and every
+writer entry uses json_object, with the schema in the prompt. These tests pin
 the request shape to the conservative subset: documented parameters only, documented efforts
 only, a flat schema without the features strict-mode servers commonly reject, and enough
 max_tokens for a thinking model to finish its reasoning and the JSON.
@@ -21,7 +22,12 @@ import respx
 
 from tests.agent.helpers import evidence
 from tests.llm.helpers import HOST, make_stack
-from yield_guardian.agent.writer import REPORT_SCHEMA_NAME, ReportWriter, WriterInput
+from yield_guardian.agent.writer import (
+    REPORT_SCHEMA_NAME,
+    REPORT_SCHEMA_TEXT,
+    ReportWriter,
+    WriterInput,
+)
 from yield_guardian.contracts.investigation import InvestigationTrigger, Report
 from yield_guardian.llm.gateway import CallOptions
 from yield_guardian.llm.profiles import DOCUMENTED_PROFILES
@@ -184,6 +190,13 @@ async def test_each_writer_model_gets_a_request_inside_the_known_constraints(
         assert profile.supports_json_object
         assert fmt == {"type": "json_object"}
         assert "JSON" in body["messages"][0]["content"]  # json_object needs "JSON" in the prompt
+        # The model never sees the schema through response_format, so the prompt carries it.
+        assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
+
+
+def test_no_writer_default_asks_for_strict_json_schema() -> None:
+    # MiMo-V2.6-Flash answered HTTP 400 "does not support JSON schema output mode" (2026-10-14).
+    assert [c.response_mode for c in WRITER_CHAIN] == [ResponseMode.JSON_OBJECT] * len(WRITER_CHAIN)
 
 
 def test_the_report_schema_stays_inside_the_strict_subset() -> None:

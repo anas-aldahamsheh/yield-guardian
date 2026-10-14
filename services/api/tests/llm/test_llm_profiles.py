@@ -25,7 +25,8 @@ from yield_guardian.llm.profiles import (
 
 # (model, context, images, thinks by default, accepted efforts, system rule, developer rule,
 #  json_schema, reasoning tokens reported, pricing input/output/cache read), from the table
-# in docs/vendor/token-factory.md.
+# in docs/vendor/token-factory.md, except MiMo's json_schema: the docs list it, but the live
+# endpoint refused it with HTTP 400 on 2026-10-14.
 DOCUMENTED = [
     ("DeepSeek-V4-Flash", 1_048_576, False, False,
      {"none", "minimal", "low", "medium", "high", "xhigh", "max"}, SystemRule.ANY,
@@ -37,7 +38,7 @@ DOCUMENTED = [
      {"none", "minimal", "low", "medium", "high", "xhigh", "max"}, SystemRule.ANY,
      DeveloperRole.ACCEPTED, False, True, (0.14, 0.28, 0.0028)),
     ("MiMo-V2.6-Flash", 1_048_576, True, True, {"none", "low", "medium", "high"},
-     SystemRule.ANY, DeveloperRole.ACCEPTED, True, True, (0.14, 0.28, 0.0028)),
+     SystemRule.ANY, DeveloperRole.ACCEPTED, False, True, (0.14, 0.28, 0.0028)),
     ("GLM-5.3-Flash", 262_144, False, True, {"low", "medium", "high"}, SystemRule.ANY,
      DeveloperRole.MAP_TO_SYSTEM, False, True, (0.15, 0.50, 0.03)),
     ("Qwen3.8-Flash-Next", 262_144, True, True, {"none", "low", "medium", "xhigh"},
@@ -93,10 +94,10 @@ def test_documented_profile_matches_the_vendor_table(
     assert profile.source == "documented"
 
 
-def test_only_mimo_accepts_strict_json_schema() -> None:
-    assert [m for m, p in DOCUMENTED_PROFILES.items() if p.supports_json_schema] == [
-        "MiMo-V2.6-Flash"
-    ]
+def test_no_model_is_known_to_accept_strict_json_schema() -> None:
+    # MiMo-V2.6-Flash, the one model documented with it, refused it live (HTTP 400, 2026-10-14).
+    assert [m for m, p in DOCUMENTED_PROFILES.items() if p.supports_json_schema] == []
+    assert any("refused live" in note for note in DOCUMENTED_PROFILES["MiMo-V2.6-Flash"].notes)
 
 
 def test_documented_rejections_are_outside_the_accepted_sets() -> None:

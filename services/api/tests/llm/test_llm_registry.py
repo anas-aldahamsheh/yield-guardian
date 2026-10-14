@@ -41,8 +41,12 @@ def test_defaults_follow_plan_section_7_1() -> None:
         Role.VISION: "DeepSeek-V4.1-Flash",
         Role.OCR: "MinerU2.5-Pro",
     }
-    assert DEFAULT_CHAINS[Role.WRITER][0].response_mode is SCHEMA  # MiMo: strict json_schema
+    # MiMo refused strict json_schema live; every structured default is json_object.
+    assert DEFAULT_CHAINS[Role.WRITER][0] == ModelChoice(
+        model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT
+    )
     assert DEFAULT_CHAINS[Role.WRITER][1].response_mode is OBJECT
+    assert all(c.response_mode is not SCHEMA for chain in DEFAULT_CHAINS.values() for c in chain)
 
 
 @pytest.mark.parametrize("role", list(Role))
@@ -67,7 +71,10 @@ def test_policy_effort_picks_the_nearest_accepted_value() -> None:
 
 
 def test_default_mode_uses_json_schema_only_where_supported() -> None:
-    assert default_mode(Role.VERIFIER, DOCUMENTED_PROFILES["MiMo-V2.6-Flash"]) is SCHEMA
+    mimo = DOCUMENTED_PROFILES["MiMo-V2.6-Flash"]
+    assert default_mode(Role.VERIFIER, mimo) is OBJECT
+    capable = mimo.model_copy(update={"supports_json_schema": True})  # hypothetical model
+    assert default_mode(Role.VERIFIER, capable) is SCHEMA
     assert default_mode(Role.VERIFIER, DOCUMENTED_PROFILES["GLM-5.3-Flash"]) is OBJECT
     assert default_mode(Role.CHAT, DOCUMENTED_PROFILES["MiMo-V2.6-Flash"]) is TEXT
 
@@ -180,6 +187,32 @@ async def test_load_ignores_invalid_stored_chains_and_resets_cross_family_confli
     assert reg.assignment(Role.VERIFIER).chain == DEFAULT_CHAINS[Role.VERIFIER]
     assert any("stored chain for chat ignored" in w for w in warnings)
     assert any("writer and verifier reset" in w for w in warnings)
+
+
+async def test_load_turns_a_stored_mimo_json_schema_entry_into_json_object() -> None:
+    # Chains saved before MiMo was measured to refuse json_schema keep everything else.
+    stored = RoleAssignment(
+        role=Role.WRITER,
+        chain=(
+            ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="low", response_mode=SCHEMA),
+            ModelChoice(model="Qwen3.8-27B", reasoning_effort="medium", response_mode=OBJECT),
+        ),
+        updated_at=NOW,
+        updated_by="admin",
+    )
+    reg = registry(InMemoryRoleAssignmentStore([stored]))
+    warnings = await reg.load()
+    loaded = reg.assignment(Role.WRITER)
+    assert loaded.chain == (
+        ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="low", response_mode=OBJECT),
+        ModelChoice(model="Qwen3.8-27B", reasoning_effort="medium", response_mode=OBJECT),
+    )
+    assert loaded.chain != DEFAULT_CHAINS[Role.WRITER]  # coerced, not reset
+    assert (loaded.updated_by, loaded.updated_at) == ("admin", NOW)
+    assert warnings == [
+        "stored chain for writer: json_schema changed to json_object for MiMo-V2.6-Flash "
+        "(the model does not accept strict json_schema)"
+    ]
 
 
 def test_choice_for_keeps_an_existing_entry_and_adapts_a_new_one() -> None:
