@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 16:58 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 16:50 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | ✅ | Live site (21e851b), Lighthouse 12.8.2 mobile, median of 3 (performance / accessibility / best practices / SEO): home 94 / 100 / 96 / 100, /line 93 / 100 / 100 / 100, /methods 91 / 100 / 100 / 100. Axe on home: desktop 0 violations; mobile had one target-size issue, fixed in 7e45f7f. Home best practices 96 is one hydration warning in the console, being fixed |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | ✅ | Live site (21e851b), Lighthouse 12.8.2 mobile, median of 3 (performance / accessibility / best practices / SEO): home 94 / 100 / 96 / 100, /line 93 / 100 / 100 / 100, /methods 91 / 100 / 100 / 100. Axe on home after 7e45f7f (live, 8ba0adc): 0 violations on desktop and at 375 px. Home best practices 96 is one hydration warning in the console, being fixed |
 | U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | ✅ | Live on the site (d37fc64): 89 entries in 10 categories, filters and Arabic search, right-to-left, no sideways scroll at 375 px |
 
 ### P: Packaging and deployment
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 16:50 | Live 8ba0adc: axe on home has 0 violations on desktop and mobile (target-size fixed) |
 | 2026-10-14 16:58 | U14 done: live Lighthouse mobile home 94, /line 93, /methods 91 (accessibility 100 on all). Attribution toggle made a 24 px target (7e45f7f). Hydration warning on home being fixed |
 | 2026-10-14 16:50 | Merged 05e9669 (W5): home Lighthouse mobile 94 (poster image as LCP, menus and toasts load on first use, no Intl in hydration, CSS as a file, one preloaded font); sign-out menu regression fixed; 194 unit and 104 e2e tests pass |
 | 2026-10-14 16:24 | Second writer attempt (DeepSeek) failed on AMD 504 (0.003 points). Merged b2cecce: Qwen3.8-Flash-Next writes first, writer deadline 240 s; run bound raised to 30 min; 940 tests pass. Owner chose to stop recording here; L11 and A3 stay open |
