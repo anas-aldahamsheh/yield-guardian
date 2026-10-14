@@ -6,9 +6,12 @@
    "unknown" when the energy score is above the W6 threshold.
 2. Reference rates come from the validation lots (all their wafers): the model never trained
    on them, so their predicted rates carry the same model errors as the tested lots.
-3. Tested lots are those the model never saw: lot-grouped test lots and lots with no labels.
-   Per lot and pattern (8 defect classes + unknown): one-sided binomial test
-   P(X >= k | n, p_ref), then Benjamini-Hochberg at q = 0.05 over all lot x pattern tests.
+3. Tested lots are the lot-grouped test lots (all their wafers). Per lot and pattern
+   (8 defect classes + unknown): one-sided binomial test P(X >= k | n, p_ref), then
+   Benjamini-Hochberg at q = 0.05 over all lot x pattern tests. The same test run on the true
+   labels of the labelled wafers checks the model-based flags. Lots with no labelled wafer
+   are not tested: their wafers differ from the labelled population (far more unknowns), so
+   a flag there would mostly measure that shift; the shift is reported instead.
 4. Stacked failure map per lot: per die position, the share of wafers in which it failed.
 5. Join-count test per wafer (Cliff and Ord, 1981): number of rook-adjacent fail-fail die
    pairs, against 999 random permutations of the fail labels over the wafer's dies.
@@ -70,14 +73,14 @@ def predict_all(name: str) -> pd.DataFrame:
     return frame
 
 
-def excursions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
-    reference = frame[frame["split_lot_all"] == "validation"]
-    p_ref = {p: float((reference["pattern"] == p).mean()) for p in PATTERNS}
-    tested = frame[frame["split_lot_all"].isna() | (frame["split_lot_all"] == "test")]
-    counts = pd.crosstab(tested["lot"], tested["pattern"]).reindex(columns=PATTERNS, fill_value=0)
+def binomial_tests(
+    reference: pd.DataFrame, tested: pd.DataFrame, column: str, patterns: list[str]
+) -> tuple[pd.DataFrame, dict[str, float]]:
+    p_ref = {p: float((reference[column] == p).mean()) for p in patterns}
+    counts = pd.crosstab(tested["lot"], tested[column]).reindex(columns=patterns, fill_value=0)
     n = tested.groupby("lot").size().reindex(counts.index)
     records = []
-    for p in PATTERNS:
+    for p in patterns:
         k = counts[p].to_numpy()
         pv = binom.sf(k - 1, n.to_numpy(), p_ref[p])
         records.append(
@@ -96,6 +99,24 @@ def excursions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     reject, q, _, _ = multipletests(tests["p_value"], alpha=FDR_Q, method="fdr_bh")
     tests["q_value"] = q
     tests["flagged"] = reject
+    return tests, p_ref
+
+
+def excursions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    reference = frame[frame["split_lot_all"] == "validation"]
+    tested = frame[frame["split_lot_all"] == "test"]
+    tests, p_ref = binomial_tests(reference, tested, "pattern", PATTERNS)
+
+    # Check: the same test on true labels (labelled wafers only, defect classes).
+    labelled_ref = reference[reference["label"].notna()]
+    labelled_test = tested[tested["label"].notna()]
+    truth, truth_ref = binomial_tests(labelled_ref, labelled_test, "label", CLASSES[:-1])
+    model_flags = set(map(tuple, tests.loc[tests["flagged"], ["lot", "pattern"]].to_numpy()))
+    true_flags = set(map(tuple, truth.loc[truth["flagged"], ["lot", "pattern"]].to_numpy()))
+    model_flags_defects = {f for f in model_flags if f[1] != "unknown"}
+    both = model_flags_defects & true_flags
+
+    no_labels = frame[frame["split_lot_all"].isna()]
     summary = {
         "reference": {
             "lots": int(reference["lot"].nunique()),
@@ -113,6 +134,29 @@ def excursions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         },
         "method": "one-sided binomial P(X>=k), Benjamini-Hochberg over all lot x pattern tests",
         "fdr_q": FDR_Q,
+        "check_against_true_labels": {
+            "description": "same test on the true labels of labelled wafers (defect classes); "
+            "reference = labelled validation wafers",
+            "reference_rates": truth_ref,
+            "label_based_flags": len(true_flags),
+            "model_based_defect_flags": len(model_flags_defects),
+            "flagged_by_both": len(both),
+            "share_of_model_flags_confirmed": len(both) / len(model_flags_defects)
+            if model_flags_defects
+            else None,
+            "share_of_label_flags_found": len(both) / len(true_flags) if true_flags else None,
+        },
+        "lots_without_labels": {
+            "lots": int(no_labels["lot"].nunique()),
+            "wafers": len(no_labels),
+            "pattern_rates": {
+                p: float((no_labels["pattern"] == p).mean()) for p in [*PATTERNS, "none"]
+            },
+            "validation_lot_rates": {
+                p: float((reference["pattern"] == p).mean()) for p in [*PATTERNS, "none"]
+            },
+            "note": "not tested; their unknown rate shows a shift from the labelled population",
+        },
     }
     return tests, summary
 
@@ -205,7 +249,7 @@ def join_count_validation(frame: pd.DataFrame, rng: np.random.Generator) -> dict
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="lot-seed0")
-    parser.add_argument("--demo-lots", type=int, default=300)
+    parser.add_argument("--unflagged-lots", type=int, default=100)
     args = parser.parse_args()
     rng = np.random.default_rng(20261014)
     index = load_index()
@@ -215,7 +259,7 @@ def main() -> None:
 
     flagged = sorted(tests.loc[tests["flagged"], "lot"].unique())
     others = sorted(set(tests["lot"]) - set(flagged))
-    fill = max(0, args.demo_lots - len(flagged))
+    fill = min(args.unflagged_lots, len(others))  # unflagged lots for contrast
     demo = sorted(flagged + rng.choice(others, size=fill, replace=False).tolist())
     summary["demo"] = {
         "lots": len(demo),

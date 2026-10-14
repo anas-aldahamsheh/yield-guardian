@@ -249,10 +249,21 @@ def model_card(m: dict, deployed: str) -> str:
         "",
         "### Lot excursions",
         "",
-        f"{lots['tested']['lots']:,} lots the model never trained or validated on "
-        f"({lots['tested']['wafers']:,} wafers) were tested for each pattern against the rate "
-        f"in the validation lots, one-sided binomial with Benjamini-Hochberg at q = "
-        f"{lots['fdr_q']}: {lots['flagged_lots']:,} lots flagged.",
+        f"The {lots['tested']['lots']:,} lot-grouped test lots ({lots['tested']['wafers']:,} "
+        "wafers, labelled or not, patterns predicted by the deployed model) were tested for "
+        "each pattern against the rate in the validation lots, one-sided binomial with "
+        f"Benjamini-Hochberg at q = {lots['fdr_q']}: {lots['flagged_lots']:,} lots flagged. "
+        "Check against the same test on true labels (labelled wafers only): "
+        f"{lots['check_against_true_labels']['share_of_model_flags_confirmed']:.2f} of the "
+        "model's defect flags are also label flags, and the model finds "
+        f"{lots['check_against_true_labels']['share_of_label_flags_found']:.2f} of the label "
+        "flags.",
+        "",
+        f"Lots with no labelled wafer ({lots['lots_without_labels']['lots']:,} lots) are not "
+        "tested: the model calls "
+        f"{lots['lots_without_labels']['pattern_rates']['unknown']:.3f} of their wafers unknown "
+        f"versus {lots['lots_without_labels']['validation_lot_rates']['unknown']:.3f} in the "
+        "validation lots, a shift from the labelled population that would dominate any flag.",
         "",
         "## Comparison with published work",
         "",
