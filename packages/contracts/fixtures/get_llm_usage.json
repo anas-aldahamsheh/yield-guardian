@@ -6,7 +6,8 @@
     "tokens_out": 6100,
     "tokens_reasoning": 1540,
     "points": 0.0118,
-    "cache_hits": 3
+    "cache_hits": 3,
+    "requests_without_usage": 0
   },
   "by_role": [
     {
@@ -17,7 +18,8 @@
         "tokens_out": 1430,
         "tokens_reasoning": 600,
         "points": 0.0028,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     },
     {
@@ -28,7 +30,8 @@
         "tokens_out": 3248,
         "tokens_reasoning": 0,
         "points": 0.0044,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     },
     {
@@ -39,7 +42,8 @@
         "tokens_out": 1422,
         "tokens_reasoning": 940,
         "points": 0.0046,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     }
   ],
@@ -52,7 +56,8 @@
         "tokens_out": 1430,
         "tokens_reasoning": 600,
         "points": 0.0028,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     },
     {
@@ -63,7 +68,8 @@
         "tokens_out": 3248,
         "tokens_reasoning": 0,
         "points": 0.0044,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     },
     {
@@ -74,7 +80,8 @@
         "tokens_out": 1422,
         "tokens_reasoning": 940,
         "points": 0.0046,
-        "cache_hits": 1
+        "cache_hits": 1,
+        "requests_without_usage": 0
       }
     }
   ],

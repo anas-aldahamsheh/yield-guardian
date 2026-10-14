@@ -30,7 +30,8 @@
     "tokens_out": 1500,
     "tokens_reasoning": 380,
     "points": 0.00264,
-    "cache_hits": 0
+    "cache_hits": 0,
+    "requests_without_usage": 0
   },
   "work_order_id": null,
   "steps": [

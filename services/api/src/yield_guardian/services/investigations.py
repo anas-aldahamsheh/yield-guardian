@@ -156,13 +156,16 @@ def _usage(steps: list[InvestigationStep]) -> tuple[list[RoleModel], Usage | Non
         return [], None
     models = list(dict.fromkeys((call.role, call.model_id) for call in calls))
     cache_hits = sum(call.cached for call in calls)
+    sent = [call for call in calls if not call.cached]
+    known = [call for call in sent if call.tokens_in is not None and call.tokens_out is not None]
     return [RoleModel(role=role, model_id=model) for role, model in models], Usage(
-        requests=len(calls) - cache_hits,
-        tokens_in=sum(call.tokens_in for call in calls),
-        tokens_out=sum(call.tokens_out for call in calls),
-        tokens_reasoning=sum(call.tokens_reasoning for call in calls),
-        points=sum(call.points for call in calls),
+        requests=len(sent),
+        tokens_in=sum(call.tokens_in or 0 for call in known),
+        tokens_out=sum(call.tokens_out or 0 for call in known),
+        tokens_reasoning=sum(call.tokens_reasoning or 0 for call in known),
+        points=sum(call.points or 0.0 for call in known),
         cache_hits=cache_hits,
+        requests_without_usage=len(sent) - len(known),
     )
 
 

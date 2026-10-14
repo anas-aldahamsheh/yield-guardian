@@ -96,15 +96,14 @@ def contract_status(record: LlmCallRecord) -> ContractCallStatus:
 
 
 def to_call_usage(record: LlmCallRecord) -> CallUsage:
-    """The contract's view of one call. The contract has no null token counts, so a count the
-    endpoint did not report is shown as 0 (see the requests to the lead)."""
+    """The contract's view of one call; a count the endpoint did not report stays null."""
     return CallUsage(
         role=record.role,
         model_id=record.model,
-        tokens_in=record.tokens_in or 0,
-        tokens_out=record.tokens_out or 0,
-        tokens_reasoning=record.tokens_reasoning or 0,
-        points=max(record.points or 0.0, 0.0),
+        tokens_in=record.tokens_in,
+        tokens_out=record.tokens_out,
+        tokens_reasoning=record.tokens_reasoning,
+        points=_points(record),
         latency_ms=max(round(record.latency_ms), 0),
         cached=record.cache_hit,
     )
@@ -121,22 +120,29 @@ def to_llm_call(record: LlmCallRecord) -> LlmCall:
         role=record.role,
         model_id=record.model,
         status=contract_status(record),
-        tokens_in=record.tokens_in or 0,
-        tokens_out=record.tokens_out or 0,
-        tokens_reasoning=record.tokens_reasoning or 0,
-        points=max(record.points or 0.0, 0.0),
+        tokens_in=record.tokens_in,
+        tokens_out=record.tokens_out,
+        tokens_reasoning=record.tokens_reasoning,
+        points=_points(record),
         latency_ms=max(round(record.latency_ms), 0),
         error=error,
     )
 
 
 def total_usage(records: Sequence[LlmCallRecord]) -> Usage:
+    """Sums over the sent calls that reported usage; the others are counted, not guessed."""
     sent = [r for r in records if r.sent]
+    known = [r for r in sent if r.usage_known]
     return Usage(
         requests=len(sent),
-        tokens_in=sum(r.tokens_in or 0 for r in sent),
-        tokens_out=sum(r.tokens_out or 0 for r in sent),
-        tokens_reasoning=sum(r.tokens_reasoning or 0 for r in sent),
-        points=sum(max(r.points or 0.0, 0.0) for r in sent),
+        tokens_in=sum(r.tokens_in or 0 for r in known),
+        tokens_out=sum(r.tokens_out or 0 for r in known),
+        tokens_reasoning=sum(r.tokens_reasoning or 0 for r in known),
+        points=sum(max(r.points or 0.0, 0.0) for r in known),
         cache_hits=sum(r.cache_hit for r in records),
+        requests_without_usage=len(sent) - len(known),
     )
+
+
+def _points(record: LlmCallRecord) -> float | None:
+    return None if record.points is None else max(record.points, 0.0)

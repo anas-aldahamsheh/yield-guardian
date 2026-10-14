@@ -1648,7 +1648,13 @@ verification = Verification(
     verifier_model="GLM-5.3-Flash",
 )
 usage = Usage(
-    requests=3, tokens_in=14760, tokens_out=1500, tokens_reasoning=380, points=0.00264, cache_hits=0
+    requests=3,
+    tokens_in=14760,
+    tokens_out=1500,
+    tokens_reasoning=380,
+    points=0.00264,
+    cache_hits=0,
+    requests_without_usage=0,
 )
 trigger = InvestigationTrigger(kind="alarm", ref=f"AL-{FOCUS.unit_id}-t2", question=None)
 models = [
@@ -2091,6 +2097,7 @@ write(
             tokens_reasoning=1540,
             points=0.0118,
             cache_hits=3,
+            requests_without_usage=0,
         ),
         by_role=[
             RoleUsage(
@@ -2102,6 +2109,7 @@ write(
                     tokens_reasoning=600,
                     points=0.0028,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
             RoleUsage(
@@ -2113,6 +2121,7 @@ write(
                     tokens_reasoning=0,
                     points=0.0044,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
             RoleUsage(
@@ -2124,6 +2133,7 @@ write(
                     tokens_reasoning=940,
                     points=0.0046,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
         ],
@@ -2137,6 +2147,7 @@ write(
                     tokens_reasoning=600,
                     points=0.0028,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
             ModelUsage(
@@ -2148,6 +2159,7 @@ write(
                     tokens_reasoning=0,
                     points=0.0044,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
             ModelUsage(
@@ -2159,6 +2171,7 @@ write(
                     tokens_reasoning=940,
                     points=0.0046,
                     cache_hits=1,
+                    requests_without_usage=0,
                 ),
             ),
         ],

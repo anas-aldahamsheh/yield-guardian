@@ -3775,23 +3775,51 @@
             "title": "Model Id"
           },
           "tokens_in": {
-            "type": "integer",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tokens In"
           },
           "tokens_out": {
-            "type": "integer",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tokens Out"
           },
           "tokens_reasoning": {
-            "type": "integer",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tokens Reasoning"
           },
           "points": {
-            "type": "number",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Points"
           },
           "latency_ms": {
@@ -3817,7 +3845,7 @@
           "cached"
         ],
         "title": "CallUsage",
-        "description": "One model call."
+        "description": "One model call. Token counts and points are null when the endpoint did not report\nusage (never shown as zero)."
       },
       "CatalogModel": {
         "properties": {
@@ -6839,23 +6867,52 @@
             "title": "Status"
           },
           "tokens_in": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Tokens In"
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens In",
+            "description": "Null when the endpoint did not report usage."
           },
           "tokens_out": {
-            "type": "integer",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tokens Out"
           },
           "tokens_reasoning": {
-            "type": "integer",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tokens Reasoning"
           },
           "points": {
-            "type": "number",
-            "minimum": 0.0,
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Points"
           },
           "latency_ms": {
@@ -10303,6 +10360,12 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Cache Hits"
+          },
+          "requests_without_usage": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Requests Without Usage",
+            "description": "Requests the endpoint answered without reporting usage; not in the sums."
           }
         },
         "additionalProperties": false,
@@ -10313,9 +10376,11 @@
           "tokens_out",
           "tokens_reasoning",
           "points",
-          "cache_hits"
+          "cache_hits",
+          "requests_without_usage"
         ],
-        "title": "Usage"
+        "title": "Usage",
+        "description": "Totals over model calls. Token counts and points add up the calls whose usage the\nendpoint reported; `requests_without_usage` counts the others (their usage is unknown)."
       },
       "UsageReport": {
         "properties": {

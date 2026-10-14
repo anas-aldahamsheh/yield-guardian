@@ -155,8 +155,15 @@ def count_answer(route: Route, outcomes: Sequence[ToolOutcome]) -> str | None:
     return None
 
 
+def _sum[N: (int, float)](values: Sequence[N | None]) -> N | None:
+    """A total, or null when any part is unknown (a partial sum would understate it)."""
+    known = [v for v in values if v is not None]
+    return None if len(known) < len(values) else sum(known[1:], known[0])
+
+
 def total_usage(records: Sequence[LlmCallRecord]) -> CallUsage | None:
-    """All model calls of one answer, summed, named after the call that wrote the answer."""
+    """All model calls of one answer, summed, named after the call that wrote the answer; a
+    count stays null when any call did not report it."""
     used = [r for r in records if r.sent or r.cache_hit]
     if not used:
         return None
@@ -165,10 +172,10 @@ def total_usage(records: Sequence[LlmCallRecord]) -> CallUsage | None:
     return CallUsage(
         role=last.role,
         model_id=last.model_id,
-        tokens_in=sum(p.tokens_in for p in parts),
-        tokens_out=sum(p.tokens_out for p in parts),
-        tokens_reasoning=sum(p.tokens_reasoning for p in parts),
-        points=sum(p.points for p in parts),
+        tokens_in=_sum([p.tokens_in for p in parts]),
+        tokens_out=_sum([p.tokens_out for p in parts]),
+        tokens_reasoning=_sum([p.tokens_reasoning for p in parts]),
+        points=_sum([p.points for p in parts]),
         latency_ms=sum(p.latency_ms for p in parts),
         cached=all(p.cached for p in parts),
     )
