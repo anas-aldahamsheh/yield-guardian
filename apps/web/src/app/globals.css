@@ -1,0 +1,398 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Yellow Room tokens (work item U2). docs/DESIGN.md explains every role.
+ *
+ * Two palettes: inspection light (light) and the yellow room (dark). next-themes sets
+ * data-theme on <html>; any subtree can opt into the yellow room with data-theme="dark" (the
+ * home hero always does, because it depicts the bay). The palettes are written as plain blocks,
+ * not light-dark(), because the CSS compiler polyfills light-dark() at :root, which would stop
+ * a subtree from switching. The yellow room is written twice (explicit and system preference);
+ * src/lib/design-tokens.test.ts checks the two copies are identical and meet contrast targets.
+ * Hex values are computed from OKLCH in docs/DESIGN.md; the safelight is computed in
+ * src/lib/optics/safelight.ts and pinned by a unit test.
+ */
+
+/* Inspection light. */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces: the room, its panels (dies) and raised panels. */
+  --room: #eef0f2;
+  --die: #fcfdfe;
+  --die-2: #ffffff;
+  --hairline: #d6d9dc;
+  --hairline-strong: #b9bdc2;
+
+  /* Ink: readings and text. */
+  --ink: #1a1e24;
+  --ink-2: #4e5359;
+  --ink-3: #686c72;
+
+  /* Light. Marks attention only: focus, selection, the active step, the exposure field. */
+  --safelight: #a27900;
+  --safelight-wash: color-mix(in oklab, #f5d326 30%, transparent);
+  --safelight-wash-strong: color-mix(in oklab, #f5d326 48%, transparent);
+
+  /* Results. Validated as a colour-blind-safe pair in both themes (docs/DESIGN.md). */
+  --pass: #0f76a2;
+  --fail: #c62b44;
+  --pass-wash: color-mix(in oklab, #0f76a2 12%, transparent);
+  --fail-wash: color-mix(in oklab, #c62b44 11%, transparent);
+  /* Elevated risk, a quieter step of the fail hue. Always shown with its label, never alone. */
+  --concern: #cb6d7a;
+
+  /* Context marks in charts (baselines, reference periods), always direct-labelled. */
+  --mark-muted: #84888c;
+  /* Edges that identify a control (inputs, switches, radios): 3:1 against every surface. */
+  --edge: #84888c;
+  /* Hover fill for menu items and ghost buttons. */
+  --accent: #eef0f2;
+}
+
+/* The yellow room, chosen explicitly. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --room: #13120c;
+  --die: #1b1913;
+  --die-2: #24221b;
+  --hairline: #37352e;
+  --hairline-strong: #4f4c43;
+
+  --ink: #eceade;
+  --ink-2: #bdbbaf;
+  --ink-3: #96948a;
+
+  --safelight: #f5d326;
+  --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
+  --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+
+  --pass: #3fa0c9;
+  --fail: #eb556e;
+  --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
+  --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
+  --concern: #ab505f;
+
+  --mark-muted: #6f6d66;
+  --edge: #6f6d66;
+  --accent: #2c2a22;
+}
+
+/* The yellow room, from the system preference before a theme is chosen. Same values. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --room: #13120c;
+    --die: #1b1913;
+    --die-2: #24221b;
+    --hairline: #37352e;
+    --hairline-strong: #4f4c43;
+
+    --ink: #eceade;
+    --ink-2: #bdbbaf;
+    --ink-3: #96948a;
+
+    --safelight: #f5d326;
+    --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
+    --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+
+    --pass: #3fa0c9;
+    --fail: #eb556e;
+    --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
+    --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
+    --concern: #ab505f;
+
+    --mark-muted: #6f6d66;
+    --edge: #6f6d66;
+    --accent: #2c2a22;
+  }
+}
+
+/*
+ * Theme-independent tokens. Roles derived from the palettes follow in the next rule, declared
+ * on every themed element so a data-theme subtree recomputes them from its own palette.
+ */
+:root {
+  /* The lamp itself: the same physical light in both themes. */
+  --safelight-lamp: #f5d326;
+
+  /* Motion. */
+  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-component: 220ms;
+  --dur-panel: 420ms;
+
+  /* Layout. Panels are dies; the gap between them is a street. */
+  --street: 8px;
+  --gutter: clamp(16px, 3.2vw, 32px);
+  --bar-height: 56px;
+  --radius: 4px;
+}
+
+:root,
+[data-theme] {
+  /* shadcn/ui roles mapped onto the tokens above. */
+  --background: var(--room);
+  --foreground: var(--ink);
+  --card: var(--die);
+  --card-foreground: var(--ink);
+  --popover: var(--die-2);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--room);
+  --secondary: var(--die-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--die-2);
+  --muted-foreground: var(--ink-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--fail);
+  --border: var(--hairline);
+  --input: var(--edge);
+  --ring: var(--safelight);
+}
+
+/* A themed subtree paints its own ink, so text inherits the right palette. */
+[data-theme] {
+  color: var(--ink);
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --font-sans: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-written), ui-serif, Georgia, serif;
+  --font-mono: var(--font-reading), ui-monospace, monospace;
+
+  --color-room: var(--room);
+  --color-die: var(--die);
+  --color-die-2: var(--die-2);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-safelight: var(--safelight);
+  --color-safelight-lamp: var(--safelight-lamp);
+  --color-safelight-wash: var(--safelight-wash);
+  --color-safelight-wash-strong: var(--safelight-wash-strong);
+  --color-pass: var(--pass);
+  --color-fail: var(--fail);
+  --color-pass-wash: var(--pass-wash);
+  --color-fail-wash: var(--fail-wash);
+  --color-concern: var(--concern);
+  --color-mark-muted: var(--mark-muted);
+  --color-edge: var(--edge);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-panel: 2px;
+  --radius-control: 4px;
+
+  /* Type scale: Bringhurst's classic sizes. Size / line height. */
+  --text-micro: 12px;
+  --text-micro--line-height: 16px;
+  --text-ui: 14px;
+  --text-ui--line-height: 20px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-written: 18px;
+  --text-written--line-height: 29px;
+  --text-h4: 18px;
+  --text-h4--line-height: 24px;
+  --text-h3: 21px;
+  --text-h3--line-height: 28px;
+  --text-h2: 24px;
+  --text-h2--line-height: 30px;
+  --text-h1: 36px;
+  --text-h1--line-height: 40px;
+  --text-h1--letter-spacing: -0.02em;
+  --text-display: 52px;
+  --text-display--line-height: 54px;
+  --text-display--letter-spacing: -0.025em;
+  --text-display-lg: 72px;
+  --text-display-lg--line-height: 72px;
+  --text-display-lg--letter-spacing: -0.03em;
+
+  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --spacing-street: var(--street);
+  --spacing-gutter: var(--gutter);
+  --spacing-bar: var(--bar-height);
+}
+
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
+
+  html {
+    background: var(--room);
+    color: var(--ink);
+    font-family: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--bar-height) + 16px);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--room);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--safelight-wash-strong);
+    color: var(--ink);
+  }
+
+  /* Focus is light: a solid 2px safelight outline, at least 3:1 against both themes' panels. */
+  :focus-visible {
+    outline: 2px solid var(--safelight);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* A panel is a die: flat, square-cornered, no shadow. Streets separate panels. */
+  .panel {
+    background: var(--die);
+    border-radius: var(--radius-panel);
+  }
+
+  /* Readings: tabular figures so columns align. Atkinson's zero is slashed by design. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Text a language model wrote. Serif means: check its evidence links. */
+  .written {
+    font-family: var(--font-written), ui-serif, Georgia, serif;
+    font-optical-sizing: auto;
+    font-size: 18px;
+    line-height: 29px;
+    letter-spacing: 0.002em;
+    font-variant-numeric: proportional-nums oldstyle-nums;
+  }
+
+  /* Lit state: something is selected or running. The safelight falls on it. */
+  .lit {
+    background: var(--safelight-wash);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--safelight) 55%, transparent);
+  }
+
+  /* A unit that just came off the line: one ring of light that widens and fades. */
+  .arrival {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: arrival 1.1s var(--ease-arrive) both;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    z-index: 100;
+    padding: 8px 12px;
+    background: var(--die-2);
+    color: var(--ink);
+    border-radius: var(--radius-control);
+  }
+
+  .skip-link:focus-visible {
+    top: 8px;
+  }
+}
+
+@keyframes arrival {
+  from {
+    opacity: 1;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+  .lit {
+    outline: 2px solid Highlight;
+  }
+}

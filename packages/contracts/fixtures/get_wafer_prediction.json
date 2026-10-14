@@ -42,13 +42,13 @@
   ],
   "temperature": 1.42,
   "unknown": {
-    "method": "energy",
-    "score": -8.7,
-    "threshold": -4.6,
+    "method": "mahalanobis",
+    "score": 120.0,
+    "threshold": 270.0,
+    "threshold_set_on": "validation",
     "is_unknown": false,
     "in_distribution_recall": 0.95,
-    "mahalanobis_distance": 12.3,
-    "mahalanobis_flag": false
+    "energy_score": -8.7
   },
   "model": {
     "name": "wafermap",

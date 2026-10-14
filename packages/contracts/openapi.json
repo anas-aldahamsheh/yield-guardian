@@ -7560,26 +7560,48 @@
         "properties": {
           "method": {
             "type": "string",
-            "const": "energy",
+            "const": "mahalanobis",
             "title": "Method",
-            "default": "energy"
+            "default": "mahalanobis"
           },
           "threshold": {
             "type": "number",
             "title": "Threshold"
           },
+          "threshold_set_on": {
+            "type": "string",
+            "const": "validation",
+            "title": "Threshold Set On",
+            "default": "validation"
+          },
           "in_distribution_recall": {
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "In Distribution Recall"
+            "title": "In Distribution Recall",
+            "description": "Validation recall of known patterns at the threshold."
+          },
+          "in_distribution_recall_test": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Distribution Recall Test",
+            "description": "Test recall of known patterns at the same threshold."
           },
           "leave_one_class_out": {
             "items": {
               "$ref": "#/components/schemas/LeaveOneClassOut"
             },
             "type": "array",
-            "title": "Leave One Class Out"
+            "title": "Leave One Class Out",
+            "description": "AUROC of the Mahalanobis score for each held-out class."
           },
           "mean_auroc": {
             "anyOf": [
@@ -7589,9 +7611,10 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Mean Mahalanobis AUROC over held-out classes."
           },
-          "mahalanobis_mean_auroc": {
+          "energy_mean_auroc": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Estimate"
@@ -7599,7 +7622,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Mean AUROC of the energy score, the cross-check, over the same classes."
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
           }
         },
         "additionalProperties": false,
@@ -7607,11 +7635,14 @@
         "required": [
           "threshold",
           "in_distribution_recall",
+          "in_distribution_recall_test",
           "leave_one_class_out",
           "mean_auroc",
-          "mahalanobis_mean_auroc"
+          "energy_mean_auroc",
+          "note"
         ],
-        "title": "OodMetrics"
+        "title": "OodMetrics",
+        "description": "The unknown-pattern score (Mahalanobis) and its leave-one-class-out test."
       },
       "OperatingPoint": {
         "properties": {
@@ -9505,12 +9536,28 @@
             "title": "Seeds"
           },
           "seed_mean": {
-            "type": "number",
-            "title": "Seed Mean"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed Mean",
+            "description": "Null for a single fit (the baseline)."
           },
           "seed_sd": {
-            "type": "number",
-            "title": "Seed Sd"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed Sd",
+            "description": "Null for a single fit (the baseline)."
           },
           "lots_in_both": {
             "anyOf": [
@@ -10270,9 +10317,9 @@
         "properties": {
           "method": {
             "type": "string",
-            "const": "energy",
+            "const": "mahalanobis",
             "title": "Method",
-            "default": "energy"
+            "default": "mahalanobis"
           },
           "score": {
             "type": "number",
@@ -10281,6 +10328,12 @@
           "threshold": {
             "type": "number",
             "title": "Threshold"
+          },
+          "threshold_set_on": {
+            "type": "string",
+            "const": "validation",
+            "title": "Threshold Set On",
+            "default": "validation"
           },
           "is_unknown": {
             "type": "boolean",
@@ -10293,7 +10346,7 @@
             "title": "In Distribution Recall",
             "description": "Validation recall of known patterns at this threshold."
           },
-          "mahalanobis_distance": {
+          "energy_score": {
             "anyOf": [
               {
                 "type": "number"
@@ -10302,18 +10355,8 @@
                 "type": "null"
               }
             ],
-            "title": "Mahalanobis Distance"
-          },
-          "mahalanobis_flag": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mahalanobis Flag"
+            "title": "Energy Score",
+            "description": "Energy score (-logsumexp of the logits), a cross-check only: it does not set the flag. It separates unseen patterns worse; see OodMetrics.energy_mean_auroc."
           }
         },
         "additionalProperties": false,
@@ -10323,11 +10366,10 @@
           "threshold",
           "is_unknown",
           "in_distribution_recall",
-          "mahalanobis_distance",
-          "mahalanobis_flag"
+          "energy_score"
         ],
         "title": "UnknownScore",
-        "description": "Energy score; a wafer above the threshold is reported as an unknown pattern."
+        "description": "Mahalanobis score of the CNN embedding; above the threshold, the wafer is an unknown pattern.\n\nThe score is the smallest squared Mahalanobis distance from the L2-normalised embedding to a\nclass mean (shared Ledoit-Wolf covariance). The threshold accepts 95% of validation wafers."
       },
       "Usage": {
         "properties": {
@@ -10778,14 +10820,12 @@
             "$ref": "#/components/schemas/Estimate"
           },
           "auto_classification": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AutoClassification"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "items": {
+              "$ref": "#/components/schemas/AutoClassification"
+            },
+            "type": "array",
+            "title": "Auto Classification",
+            "description": "One row per precision target, as measured."
           },
           "published": {
             "items": {

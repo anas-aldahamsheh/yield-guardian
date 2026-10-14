@@ -1,0 +1,149 @@
+import type { Estimate } from "@yield-guardian/contracts";
+
+/**
+ * Formatting of readings. One place decides how a number looks, so the same value reads the same
+ * on every screen. Missing values are a dash with a reason nearby, never a zero.
+ */
+
+export const DASH = "–";
+const LOCALE = "en-US";
+
+const intFmt = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
+
+export function formatInt(value: number | null | undefined): string {
+  return value == null || !Number.isFinite(value) ? DASH : intFmt.format(value);
+}
+
+/** A decimal with a fixed number of digits (default 2). */
+export function formatNumber(value: number | null | undefined, digits = 2): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return new Intl.NumberFormat(LOCALE, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value);
+}
+
+/** Significant figures for values whose scale varies (sensor readings, T², test statistics). */
+export function formatReading(value: number | null | undefined, significant = 4): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  if (value === 0) return "0";
+  const abs = Math.abs(value);
+  if (abs >= 1e6 || abs < 1e-4) return value.toExponential(significant - 1);
+  const digits = Math.max(0, significant - 1 - Math.floor(Math.log10(abs)));
+  return formatNumber(value, Math.min(digits, 6));
+}
+
+/** A share in [0, 1] as a percentage. */
+export function formatPercent(value: number | null | undefined, digits = 1): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return `${formatNumber(value * 100, digits)}%`;
+}
+
+/** A probability: percent with one decimal, or a bound for tiny and near-certain values. */
+export function formatProbability(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  if (value > 0 && value < 0.001) return "<0.1%";
+  if (value < 1 && value > 0.999) return ">99.9%";
+  return formatPercent(value, 1);
+}
+
+/** A p-value or q-value the way papers write it. */
+export function formatPValue(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  if (value < 0.001) return "<0.001";
+  if (value < 0.01) return formatNumber(value, 3);
+  return formatNumber(value, 2);
+}
+
+/** Signed value for contributions in log-odds: always shows + or −. */
+export function formatSigned(value: number | null | undefined, digits = 2): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  const s = formatNumber(Math.abs(value), digits);
+  if (Number(s) === 0) return formatNumber(0, digits);
+  return value < 0 ? `−${s}` : `+${s}`;
+}
+
+export type MetricFormat = "ratio" | "percent" | "count" | "number";
+
+/** A metric value in the format the API names. */
+export function formatMetric(value: number | null | undefined, format: MetricFormat): string {
+  switch (format) {
+    case "percent":
+      return formatPercent(value, value != null && Math.abs(value) < 0.1 ? 1 : 0);
+    case "count":
+      return formatInt(value);
+    case "ratio":
+      return formatNumber(value, 2);
+    case "number":
+      return formatNumber(value, 1);
+  }
+}
+
+/** "0.71–0.84" or "71–84%"; null when the interval cannot be computed. */
+export function formatInterval(estimate: Estimate, format: MetricFormat = "ratio"): string | null {
+  if (estimate.ci_low == null || estimate.ci_high == null) return null;
+  if (format === "percent") {
+    const digits = Math.abs(estimate.ci_high) < 0.1 ? 1 : 0;
+    return `${formatNumber(estimate.ci_low * 100, digits)}–${formatNumber(estimate.ci_high * 100, digits)}%`;
+  }
+  return `${formatMetric(estimate.ci_low, format)}–${formatMetric(estimate.ci_high, format)}`;
+}
+
+/** The confidence level as written next to an interval: "95% CI". */
+export function ciLabel(estimate: Estimate): string {
+  return `${Math.round((estimate.ci_level ?? 0.95) * 100)}% CI`;
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Plant time as recorded (ISO date and minutes, no time-zone conversion): SECOM timestamps are
+ * local plant times, so they are shown exactly as the record has them.
+ */
+export function formatPlantTime(iso: string | null | undefined, seconds = false): string {
+  if (!iso) return DASH;
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):?(\d{2})?/);
+  if (!m) return iso;
+  return `${m[1]} ${m[2]}:${m[3]}${seconds && m[4] ? `:${m[4]}` : ""}`;
+}
+
+/** A wall-clock moment in the viewer's time zone, for events in this product (audit, usage). */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** "3 min ago", for recent product events. */
+export function formatRelative(iso: string | null | undefined, now = Date.now()): string {
+  if (!iso) return DASH;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return iso;
+  const s = Math.round((now - t) / 1000);
+  if (s < 45) return "just now";
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h ago`;
+  return formatDateTime(iso);
+}
+
+export function formatDuration(ms: number | null | undefined): string {
+  if (ms == null || !Number.isFinite(ms)) return DASH;
+  if (ms < 1000) return `${Math.round(ms)} ms`;
+  return `${formatNumber(ms / 1000, ms < 10_000 ? 1 : 0)} s`;
+}
+
+/** Large counts in a compact form: 12.4k, 3.1M. */
+export function formatCompact(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 }).format(
+    value,
+  );
+}
+
+/** "1 unit", "3 units". */
+export function plural(count: number, one: string, many = `${one}s`): string {
+  return `${formatInt(count)} ${count === 1 ? one : many}`;
+}

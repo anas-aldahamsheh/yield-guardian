@@ -1,0 +1,6435 @@
+{
+  "method": {
+    "correlation": "spearman",
+    "threshold": 0.8,
+    "linkage": "average",
+    "stability_refits": 100,
+    "stability_threshold": 0.7,
+    "permutations": 200,
+    "fdr_q": 0.05
+  },
+  "groups": [
+    {
+      "group_id": "G001",
+      "sensors": [
+        "S060"
+      ],
+      "representative": "S060",
+      "importance": 0.3612890191253122,
+      "stability": 0.98,
+      "p_value": 0.004975124378109453,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S060",
+          "mann_whitney_p": 1.3683017062923218e-12,
+          "q_value": 6.403651985448067e-10,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G002",
+      "sensors": [
+        "S173",
+        "S175",
+        "S308",
+        "S310",
+        "S444",
+        "S446"
+      ],
+      "representative": "S444",
+      "importance": 0.2108086240563204,
+      "stability": 0.61,
+      "p_value": 0.014925373134328358,
+      "q_value": 0.5159914712153518,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S173",
+          "mann_whitney_p": 0.03914971149252833,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S175",
+          "mann_whitney_p": 0.03913516994169167,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S308",
+          "mann_whitney_p": 0.08866329823966891,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S310",
+          "mann_whitney_p": 0.08843352537321403,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S444",
+          "mann_whitney_p": 0.037698839736828096,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S446",
+          "mann_whitney_p": 0.03566823399101043,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G003",
+      "sensors": [
+        "S248",
+        "S386",
+        "S520"
+      ],
+      "representative": "S386",
+      "importance": 0.15291247292574078,
+      "stability": 0.88,
+      "p_value": 0.004975124378109453,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S248",
+          "mann_whitney_p": 1.252703944320653e-06,
+          "q_value": 0.0002203319255975277,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S386",
+          "mann_whitney_p": 0.00022273368169059424,
+          "q_value": 0.01042393630311981,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S520",
+          "mann_whitney_p": 1.4123841384456904e-06,
+          "q_value": 0.0002203319255975277,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G004",
+      "sensors": [
+        "S065",
+        "S066"
+      ],
+      "representative": "S065",
+      "importance": 0.10675620513131051,
+      "stability": 0.36,
+      "p_value": 0.009950248756218905,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S065",
+          "mann_whitney_p": 0.16161362100560994,
+          "q_value": 0.5561409899310695,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S066",
+          "mann_whitney_p": 0.15735655379647062,
+          "q_value": 0.5537057682462275,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G005",
+      "sensors": [
+        "S001"
+      ],
+      "representative": "S001",
+      "importance": 0.10605294969349574,
+      "stability": 0.55,
+      "p_value": 0.009950248756218905,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S001",
+          "mann_whitney_p": 0.00040700330720839427,
+          "q_value": 0.015200897676958917,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G006",
+      "sensors": [
+        "S461"
+      ],
+      "representative": "S461",
+      "importance": 0.09036878625627366,
+      "stability": 0.51,
+      "p_value": 0.009950248756218905,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S461",
+          "mann_whitney_p": 0.002209881372279844,
+          "q_value": 0.051711224111348354,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G007",
+      "sensors": [
+        "S198",
+        "S334",
+        "S470"
+      ],
+      "representative": "S198",
+      "importance": 0.07749376790757856,
+      "stability": 0.58,
+      "p_value": 0.04975124378109453,
+      "q_value": 0.7524875621890548,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S198",
+          "mann_whitney_p": 0.005337841535995036,
+          "q_value": 0.08921820853020275,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S334",
+          "mann_whitney_p": 0.002997254232600255,
+          "q_value": 0.06375977185713269,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S470",
+          "mann_whitney_p": 0.007482654436135779,
+          "q_value": 0.10611764473065287,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G008",
+      "sensors": [
+        "S122",
+        "S124",
+        "S125"
+      ],
+      "representative": "S122",
+      "importance": 0.07740171012861118,
+      "stability": 0.13,
+      "p_value": 0.01990049751243781,
+      "q_value": 0.53510226644555,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S122",
+          "mann_whitney_p": 0.18491243198697838,
+          "q_value": 0.5844194343212863,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S124",
+          "mann_whitney_p": 0.4830511449527285,
+          "q_value": 0.8913853829941323,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S125",
+          "mann_whitney_p": 0.03857600935484738,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G009",
+      "sensors": [
+        "S091"
+      ],
+      "representative": "S091",
+      "importance": 0.0720264750966404,
+      "stability": 0.29,
+      "p_value": 0.009950248756218905,
+      "q_value": 0.4013266998341625,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S091",
+          "mann_whitney_p": 0.026533822715170866,
+          "q_value": 0.22262223852630797,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G010",
+      "sensors": [
+        "S022"
+      ],
+      "representative": "S022",
+      "importance": 0.07022092301084454,
+      "stability": 0.54,
+      "p_value": 0.01990049751243781,
+      "q_value": 0.53510226644555,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S022",
+          "mann_whitney_p": 0.0006212335573073856,
+          "q_value": 0.016152072489992023,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G011",
+      "sensors": [
+        "S067",
+        "S071",
+        "S073"
+      ],
+      "representative": "S073",
+      "importance": 0.06530011814348168,
+      "stability": 0.17,
+      "p_value": 0.06965174129353234,
+      "q_value": 0.8871432312123593,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S067",
+          "mann_whitney_p": 0.9859742460010585,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S071",
+          "mann_whitney_p": 0.9947093501388096,
+          "q_value": 0.9955889364619435,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S073",
+          "mann_whitney_p": 0.5687166369622569,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G012",
+      "sensors": [
+        "S011"
+      ],
+      "representative": "S011",
+      "importance": 0.057600691660082734,
+      "stability": 0.18,
+      "p_value": 0.03482587064676617,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S011",
+          "mann_whitney_p": 0.02242550201712074,
+          "q_value": 0.2126559390610584,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G013",
+      "sensors": [
+        "S034"
+      ],
+      "representative": "S034",
+      "importance": 0.05400955182451407,
+      "stability": 0.48,
+      "p_value": 0.029850746268656716,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S034",
+          "mann_whitney_p": 0.000483221623723781,
+          "q_value": 0.015200897676958917,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G014",
+      "sensors": [
+        "S220",
+        "S358",
+        "S492"
+      ],
+      "representative": "S492",
+      "importance": 0.053914449216419594,
+      "stability": 0.24,
+      "p_value": 0.05472636815920398,
+      "q_value": 0.7790459467369037,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S220",
+          "mann_whitney_p": 0.05409712997779085,
+          "q_value": 0.33312443196850156,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S358",
+          "mann_whitney_p": 0.029823622469486662,
+          "q_value": 0.2365670392494874,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S492",
+          "mann_whitney_p": 0.05156881751063446,
+          "q_value": 0.3261379269591477,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G015",
+      "sensors": [
+        "S164",
+        "S299",
+        "S435"
+      ],
+      "representative": "S164",
+      "importance": 0.04890404428174602,
+      "stability": 0.19,
+      "p_value": 0.0945273631840796,
+      "q_value": 0.953150912106136,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S164",
+          "mann_whitney_p": 0.029311416844375916,
+          "q_value": 0.23651281177875738,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S299",
+          "mann_whitney_p": 0.021297205404869856,
+          "q_value": 0.20764775269748112,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S435",
+          "mann_whitney_p": 0.08036777544734638,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G016",
+      "sensors": [
+        "S214",
+        "S352"
+      ],
+      "representative": "S214",
+      "importance": 0.047946770321439035,
+      "stability": 0.11,
+      "p_value": 0.03980099502487562,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S214",
+          "mann_whitney_p": 0.0172963366397186,
+          "q_value": 0.17597142494322404,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S352",
+          "mann_whitney_p": 0.012733376068147657,
+          "q_value": 0.1418861904736453,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G017",
+      "sensors": [
+        "S131"
+      ],
+      "representative": "S131",
+      "importance": 0.04597630148546282,
+      "stability": 0.19,
+      "p_value": 0.04477611940298507,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S131",
+          "mann_whitney_p": 0.09674563694625994,
+          "q_value": 0.40802250158056985,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G018",
+      "sensors": [
+        "S197",
+        "S202",
+        "S333",
+        "S338",
+        "S474"
+      ],
+      "representative": "S202",
+      "importance": 0.044579757561707414,
+      "stability": 0.03,
+      "p_value": 0.15422885572139303,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S197",
+          "mann_whitney_p": 0.5059318249272923,
+          "q_value": 0.9141934133821343,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S202",
+          "mann_whitney_p": 0.47496840436278376,
+          "q_value": 0.8824290169280478,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S333",
+          "mann_whitney_p": 0.7829412131929722,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S338",
+          "mann_whitney_p": 0.7562811980709943,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S474",
+          "mann_whitney_p": 0.9545853011892019,
+          "q_value": 0.9927687132367701,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G019",
+      "sensors": [
+        "S347"
+      ],
+      "representative": "S347",
+      "importance": 0.04457659646431843,
+      "stability": 0.3,
+      "p_value": 0.03980099502487562,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S347",
+          "mann_whitney_p": 0.007040070532393333,
+          "q_value": 0.10611764473065287,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G020",
+      "sensors": [
+        "S165",
+        "S300",
+        "S436"
+      ],
+      "representative": "S300",
+      "importance": 0.04435915541598692,
+      "stability": 0.16,
+      "p_value": 0.08955223880597014,
+      "q_value": 0.953150912106136,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S165",
+          "mann_whitney_p": 0.17772296411198052,
+          "q_value": 0.581638791639209,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S300",
+          "mann_whitney_p": 0.07549264825176193,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S436",
+          "mann_whitney_p": 0.2012350961834536,
+          "q_value": 0.6009392165424997,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G021",
+      "sensors": [
+        "S156",
+        "S291",
+        "S429"
+      ],
+      "representative": "S291",
+      "importance": 0.04403315499930842,
+      "stability": 0.51,
+      "p_value": 0.07462686567164178,
+      "q_value": 0.9029850746268655,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S156",
+          "mann_whitney_p": 0.0005897452245949223,
+          "q_value": 0.016152072489992023,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S291",
+          "mann_whitney_p": 6.699851828695762e-05,
+          "q_value": 0.003919413319787021,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S429",
+          "mann_whitney_p": 0.0006173407933187615,
+          "q_value": 0.016152072489992023,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G022",
+      "sensors": [
+        "S103"
+      ],
+      "representative": "S103",
+      "importance": 0.03950692185854904,
+      "stability": 0.11,
+      "p_value": 0.04477611940298507,
+      "q_value": 0.7223880597014924,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S103",
+          "mann_whitney_p": 0.02361116898492073,
+          "q_value": 0.2126559390610584,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G023",
+      "sensors": [
+        "S185",
+        "S321",
+        "S457"
+      ],
+      "representative": "S185",
+      "importance": 0.0393114708103212,
+      "stability": 0.04,
+      "p_value": 0.10945273631840796,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S185",
+          "mann_whitney_p": 0.9911780006786547,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S321",
+          "mann_whitney_p": 0.9296362690672093,
+          "q_value": 0.9820988124682933,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S457",
+          "mann_whitney_p": 0.8827957540848154,
+          "q_value": 0.9697542443752332,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G024",
+      "sensors": [
+        "S489"
+      ],
+      "representative": "S489",
+      "importance": 0.037992989137044596,
+      "stability": 0.08,
+      "p_value": 0.06467661691542288,
+      "q_value": 0.8695411829740187,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S489",
+          "mann_whitney_p": 0.03678799317074287,
+          "q_value": 0.26461451944636394,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G025",
+      "sensors": [
+        "S144",
+        "S279",
+        "S417"
+      ],
+      "representative": "S417",
+      "importance": 0.03746229452041203,
+      "stability": 0.13,
+      "p_value": 0.0845771144278607,
+      "q_value": 0.953150912106136,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S144",
+          "mann_whitney_p": 0.141014146945084,
+          "q_value": 0.5272262656252691,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S279",
+          "mann_whitney_p": 0.2416929695161475,
+          "q_value": 0.6500707455951553,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S417",
+          "mann_whitney_p": 0.1550997815905842,
+          "q_value": 0.549899225639344,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G026",
+      "sensors": [
+        "S176",
+        "S311",
+        "S447"
+      ],
+      "representative": "S447",
+      "importance": 0.03667319337414432,
+      "stability": 0.23,
+      "p_value": 0.0945273631840796,
+      "q_value": 0.953150912106136,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S176",
+          "mann_whitney_p": 0.05639661541542836,
+          "q_value": 0.34277423395351264,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S311",
+          "mann_whitney_p": 0.16486477529120047,
+          "q_value": 0.5604204964530274,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S447",
+          "mann_whitney_p": 0.06285769722060175,
+          "q_value": 0.3631778061634768,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G027",
+      "sensors": [
+        "S153",
+        "S288",
+        "S426"
+      ],
+      "representative": "S153",
+      "importance": 0.03256144968797255,
+      "stability": 0.35,
+      "p_value": 0.18407960199004975,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S153",
+          "mann_whitney_p": 0.001652494901671072,
+          "q_value": 0.04070355863063482,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S288",
+          "mann_whitney_p": 0.002456594407001421,
+          "q_value": 0.05474696107031739,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S426",
+          "mann_whitney_p": 0.004682721435366429,
+          "q_value": 0.08116717154635143,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G028",
+      "sensors": [
+        "S166",
+        "S301",
+        "S437"
+      ],
+      "representative": "S301",
+      "importance": 0.031920069167787044,
+      "stability": 0.05,
+      "p_value": 0.19402985074626866,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S166",
+          "mann_whitney_p": 0.30765382983533207,
+          "q_value": 0.7356308915736133,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S301",
+          "mann_whitney_p": 0.3430580940947411,
+          "q_value": 0.7745291933560019,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S437",
+          "mann_whitney_p": 0.5240670034434286,
+          "q_value": 0.921705368596294,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G029",
+      "sensors": [
+        "S253",
+        "S391",
+        "S525"
+      ],
+      "representative": "S391",
+      "importance": 0.03014012266635127,
+      "stability": 0.25,
+      "p_value": 0.14925373134328357,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S253",
+          "mann_whitney_p": 0.6483690729363193,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S391",
+          "mann_whitney_p": 0.5305827045419169,
+          "q_value": 0.921705368596294,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S525",
+          "mann_whitney_p": 0.7093641718671836,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G030",
+      "sensors": [
+        "S056"
+      ],
+      "representative": "S056",
+      "importance": 0.023269886605663877,
+      "stability": 0.01,
+      "p_value": 0.10945273631840796,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S056",
+          "mann_whitney_p": 0.43537954428377035,
+          "q_value": 0.8578796418266338,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G031",
+      "sensors": [
+        "S249",
+        "S387",
+        "S521"
+      ],
+      "representative": "S249",
+      "importance": 0.021990999005580637,
+      "stability": 0.03,
+      "p_value": 0.208955223880597,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S249",
+          "mann_whitney_p": 0.8535490469804593,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S387",
+          "mann_whitney_p": 0.7782652890851167,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S521",
+          "mann_whitney_p": 0.8610190438363614,
+          "q_value": 0.9571423100128673,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G032",
+      "sensors": [
+        "S018",
+        "S154",
+        "S289",
+        "S427"
+      ],
+      "representative": "S427",
+      "importance": 0.012717323197949573,
+      "stability": 0.24,
+      "p_value": 0.21393034825870647,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S018",
+          "mann_whitney_p": 0.06147967662362032,
+          "q_value": 0.3596561082481789,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S154",
+          "mann_whitney_p": 0.025420671013791224,
+          "q_value": 0.22031248211952392,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S289",
+          "mann_whitney_p": 0.023315710837816868,
+          "q_value": 0.2126559390610584,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S427",
+          "mann_whitney_p": 0.027114246999999047,
+          "q_value": 0.22262223852630797,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G033",
+      "sensors": [
+        "S002"
+      ],
+      "representative": "S002",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S002",
+          "mann_whitney_p": 0.9580504257546053,
+          "q_value": 0.9929070111553052,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G034",
+      "sensors": [
+        "S003"
+      ],
+      "representative": "S003",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S003",
+          "mann_whitney_p": 0.8467794807993825,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G035",
+      "sensors": [
+        "S004"
+      ],
+      "representative": "S004",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S004",
+          "mann_whitney_p": 0.7183356595162949,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G036",
+      "sensors": [
+        "S005"
+      ],
+      "representative": "S005",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S005",
+          "mann_whitney_p": 0.7569834671375935,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G037",
+      "sensors": [
+        "S007"
+      ],
+      "representative": "S007",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S007",
+          "mann_whitney_p": 0.49114136556076804,
+          "q_value": 0.8996720353303375,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G038",
+      "sensors": [
+        "S008"
+      ],
+      "representative": "S008",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S008",
+          "mann_whitney_p": 0.14714946118749375,
+          "q_value": 0.5272262656252691,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G039",
+      "sensors": [
+        "S009"
+      ],
+      "representative": "S009",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S009",
+          "mann_whitney_p": 0.6979756714676155,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G040",
+      "sensors": [
+        "S010"
+      ],
+      "representative": "S010",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S010",
+          "mann_whitney_p": 0.5940989852634899,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G041",
+      "sensors": [
+        "S012",
+        "S148",
+        "S283",
+        "S421"
+      ],
+      "representative": "S012",
+      "importance": 0.0,
+      "stability": 0.21,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S012",
+          "mann_whitney_p": 0.00946673454211142,
+          "q_value": 0.11360081450533703,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S148",
+          "mann_whitney_p": 0.0036420038019140833,
+          "q_value": 0.06778579315885888,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S283",
+          "mann_whitney_p": 0.003174056282106239,
+          "q_value": 0.06458514521850957,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S421",
+          "mann_whitney_p": 0.003765877397714382,
+          "q_value": 0.06778579315885888,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G042",
+      "sensors": [
+        "S013",
+        "S019"
+      ],
+      "representative": "S013",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S013",
+          "mann_whitney_p": 0.961083068490071,
+          "q_value": 0.9929070111553052,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S019",
+          "mann_whitney_p": 0.7087931870844721,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G043",
+      "sensors": [
+        "S015"
+      ],
+      "representative": "S015",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S015",
+          "mann_whitney_p": 0.03957909478898606,
+          "q_value": 0.26461451944636394,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G044",
+      "sensors": [
+        "S016"
+      ],
+      "representative": "S016",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S016",
+          "mann_whitney_p": 0.2744761018760137,
+          "q_value": 0.6832702961594384,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G045",
+      "sensors": [
+        "S017"
+      ],
+      "representative": "S017",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S017",
+          "mann_whitney_p": 0.188562680731868,
+          "q_value": 0.5844194343212863,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G046",
+      "sensors": [
+        "S020"
+      ],
+      "representative": "S020",
+      "importance": 0.0,
+      "stability": 0.13,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S020",
+          "mann_whitney_p": 0.760216338355839,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G047",
+      "sensors": [
+        "S021"
+      ],
+      "representative": "S021",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S021",
+          "mann_whitney_p": 0.9284748511000924,
+          "q_value": 0.9820988124682933,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G048",
+      "sensors": [
+        "S023"
+      ],
+      "representative": "S023",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S023",
+          "mann_whitney_p": 0.18841559671159946,
+          "q_value": 0.5844194343212863,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G049",
+      "sensors": [
+        "S024"
+      ],
+      "representative": "S024",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S024",
+          "mann_whitney_p": 0.25561826453291203,
+          "q_value": 0.6597150434183194,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G050",
+      "sensors": [
+        "S025"
+      ],
+      "representative": "S025",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S025",
+          "mann_whitney_p": 0.4608017917606264,
+          "q_value": 0.8824290169280478,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G051",
+      "sensors": [
+        "S026"
+      ],
+      "representative": "S026",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S026",
+          "mann_whitney_p": 0.8301762473359116,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G052",
+      "sensors": [
+        "S027",
+        "S028"
+      ],
+      "representative": "S027",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S027",
+          "mann_whitney_p": 0.8698943385519687,
+          "q_value": 0.963700344819837,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S028",
+          "mann_whitney_p": 0.7403068207716357,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G053",
+      "sensors": [
+        "S029"
+      ],
+      "representative": "S029",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S029",
+          "mann_whitney_p": 0.0004872082588768884,
+          "q_value": 0.015200897676958917,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G054",
+      "sensors": [
+        "S030",
+        "S031"
+      ],
+      "representative": "S030",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S030",
+          "mann_whitney_p": 0.5481771969644593,
+          "q_value": 0.9301238439499202,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S031",
+          "mann_whitney_p": 0.07734072980129056,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G055",
+      "sensors": [
+        "S032"
+      ],
+      "representative": "S032",
+      "importance": 0.0,
+      "stability": 0.15,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S032",
+          "mann_whitney_p": 0.5389679189160758,
+          "q_value": 0.9239450038561299,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G056",
+      "sensors": [
+        "S033"
+      ],
+      "representative": "S033",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S033",
+          "mann_whitney_p": 0.22010136039126316,
+          "q_value": 0.6218429174917279,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G057",
+      "sensors": [
+        "S035",
+        "S037"
+      ],
+      "representative": "S035",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S035",
+          "mann_whitney_p": 0.14391227898784945,
+          "q_value": 0.5272262656252691,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S037",
+          "mann_whitney_p": 0.14349163798347533,
+          "q_value": 0.5272262656252691,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G058",
+      "sensors": [
+        "S036"
+      ],
+      "representative": "S036",
+      "importance": 0.0,
+      "stability": 0.1,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S036",
+          "mann_whitney_p": 0.06906944960837114,
+          "q_value": 0.3848155049609249,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G059",
+      "sensors": [
+        "S038"
+      ],
+      "representative": "S038",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S038",
+          "mann_whitney_p": 0.06499335009944368,
+          "q_value": 0.3709376566651176,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G060",
+      "sensors": [
+        "S039"
+      ],
+      "representative": "S039",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S039",
+          "mann_whitney_p": 0.146328424866645,
+          "q_value": 0.5272262656252691,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G061",
+      "sensors": [
+        "S040"
+      ],
+      "representative": "S040",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S040",
+          "mann_whitney_p": 0.8038842204423078,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G062",
+      "sensors": [
+        "S041"
+      ],
+      "representative": "S041",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S041",
+          "mann_whitney_p": 0.003458386525695056,
+          "q_value": 0.06743853725105359,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G063",
+      "sensors": [
+        "S042"
+      ],
+      "representative": "S042",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S042",
+          "mann_whitney_p": 0.6734381952010307,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G064",
+      "sensors": [
+        "S044",
+        "S061"
+      ],
+      "representative": "S044",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S044",
+          "mann_whitney_p": 0.24340888235580083,
+          "q_value": 0.6509448968143702,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S061",
+          "mann_whitney_p": 0.4017933365628805,
+          "q_value": 0.8363396901462465,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G065",
+      "sensors": [
+        "S045"
+      ],
+      "representative": "S045",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S045",
+          "mann_whitney_p": 0.019800877725186707,
+          "q_value": 0.19716618671036976,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G066",
+      "sensors": [
+        "S046"
+      ],
+      "representative": "S046",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S046",
+          "mann_whitney_p": 0.2924016465744338,
+          "q_value": 0.7127290135251824,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G067",
+      "sensors": [
+        "S047",
+        "S051"
+      ],
+      "representative": "S047",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S047",
+          "mann_whitney_p": 0.25080867115428407,
+          "q_value": 0.6594295398887918,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S051",
+          "mann_whitney_p": 0.24998581278348075,
+          "q_value": 0.6594295398887918,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G068",
+      "sensors": [
+        "S048"
+      ],
+      "representative": "S048",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S048",
+          "mann_whitney_p": 0.6207421805215865,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G069",
+      "sensors": [
+        "S049"
+      ],
+      "representative": "S049",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S049",
+          "mann_whitney_p": 0.2062211255058003,
+          "q_value": 0.6069904826208462,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G070",
+      "sensors": [
+        "S052"
+      ],
+      "representative": "S052",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S052",
+          "mann_whitney_p": 0.6223693810882622,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G071",
+      "sensors": [
+        "S054",
+        "S055"
+      ],
+      "representative": "S054",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S054",
+          "mann_whitney_p": 0.4337368181081168,
+          "q_value": 0.8578796418266338,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S055",
+          "mann_whitney_p": 0.3380693779933943,
+          "q_value": 0.7717876531751636,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G072",
+      "sensors": [
+        "S057"
+      ],
+      "representative": "S057",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S057",
+          "mann_whitney_p": 0.16107834544473654,
+          "q_value": 0.5561409899310695,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G073",
+      "sensors": [
+        "S058"
+      ],
+      "representative": "S058",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S058",
+          "mann_whitney_p": 0.692140710663812,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G074",
+      "sensors": [
+        "S059"
+      ],
+      "representative": "S059",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S059",
+          "mann_whitney_p": 0.11474941465603125,
+          "q_value": 0.458997658624125,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G075",
+      "sensors": [
+        "S062",
+        "S063"
+      ],
+      "representative": "S062",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S062",
+          "mann_whitney_p": 0.7533132365429773,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S063",
+          "mann_whitney_p": 0.8279921186297347,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G076",
+      "sensors": [
+        "S064"
+      ],
+      "representative": "S064",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S064",
+          "mann_whitney_p": 0.16770936956484306,
+          "q_value": 0.560628463973904,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G077",
+      "sensors": [
+        "S068"
+      ],
+      "representative": "S068",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S068",
+          "mann_whitney_p": 0.2593751452755786,
+          "q_value": 0.6597150434183194,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G078",
+      "sensors": [
+        "S069"
+      ],
+      "representative": "S069",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S069",
+          "mann_whitney_p": 0.4747642662451257,
+          "q_value": 0.8824290169280478,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G079",
+      "sensors": [
+        "S072"
+      ],
+      "representative": "S072",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S072",
+          "mann_whitney_p": 0.3650358699887737,
+          "q_value": 0.8020506439189956,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G080",
+      "sensors": [
+        "S074"
+      ],
+      "representative": "S074",
+      "importance": 0.0,
+      "stability": 0.13,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S074",
+          "mann_whitney_p": 0.7873435965743644,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G081",
+      "sensors": [
+        "S076"
+      ],
+      "representative": "S076",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S076",
+          "mann_whitney_p": 0.43822731862073383,
+          "q_value": 0.8578796418266338,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G082",
+      "sensors": [
+        "S077"
+      ],
+      "representative": "S077",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S077",
+          "mann_whitney_p": 0.0810482688039556,
+          "q_value": 0.3910370082500126,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G083",
+      "sensors": [
+        "S078"
+      ],
+      "representative": "S078",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S078",
+          "mann_whitney_p": 0.45084055519440625,
+          "q_value": 0.8718734703759592,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G084",
+      "sensors": [
+        "S079"
+      ],
+      "representative": "S079",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S079",
+          "mann_whitney_p": 0.009089578093670255,
+          "q_value": 0.11360081450533703,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G085",
+      "sensors": [
+        "S080"
+      ],
+      "representative": "S080",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S080",
+          "mann_whitney_p": 0.0004865579081994618,
+          "q_value": 0.015200897676958917,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G086",
+      "sensors": [
+        "S081"
+      ],
+      "representative": "S081",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S081",
+          "mann_whitney_p": 0.3142106300313209,
+          "q_value": 0.7464496185515643,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G087",
+      "sensors": [
+        "S082"
+      ],
+      "representative": "S082",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S082",
+          "mann_whitney_p": 0.7951527360785346,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G088",
+      "sensors": [
+        "S083"
+      ],
+      "representative": "S083",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S083",
+          "mann_whitney_p": 0.46581207413344017,
+          "q_value": 0.8824290169280478,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G089",
+      "sensors": [
+        "S084"
+      ],
+      "representative": "S084",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S084",
+          "mann_whitney_p": 0.5948441970172474,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G090",
+      "sensors": [
+        "S085"
+      ],
+      "representative": "S085",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S085",
+          "mann_whitney_p": 0.7355747418181482,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G091",
+      "sensors": [
+        "S086",
+        "S543"
+      ],
+      "representative": "S086",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S086",
+          "mann_whitney_p": 0.18212463284492608,
+          "q_value": 0.5844194343212863,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S543",
+          "mann_whitney_p": 0.05025579173605482,
+          "q_value": 0.32218781551333775,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G092",
+      "sensors": [
+        "S087"
+      ],
+      "representative": "S087",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S087",
+          "mann_whitney_p": 0.5939901742845544,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G093",
+      "sensors": [
+        "S088",
+        "S223",
+        "S361",
+        "S495"
+      ],
+      "representative": "S088",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S088",
+          "mann_whitney_p": 0.7325474384624542,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S223",
+          "mann_whitney_p": 0.847142508407343,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S361",
+          "mann_whitney_p": 0.7554085828861603,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S495",
+          "mann_whitney_p": 0.8250067049407762,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G094",
+      "sensors": [
+        "S089"
+      ],
+      "representative": "S089",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S089",
+          "mann_whitney_p": 0.5266671216932082,
+          "q_value": 0.921705368596294,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G095",
+      "sensors": [
+        "S090"
+      ],
+      "representative": "S090",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S090",
+          "mann_whitney_p": 0.011741121971051083,
+          "q_value": 0.13402061176711969,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G096",
+      "sensors": [
+        "S092"
+      ],
+      "representative": "S092",
+      "importance": 0.0,
+      "stability": 0.1,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S092",
+          "mann_whitney_p": 0.13150121411012713,
+          "q_value": 0.5128547350294957,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G097",
+      "sensors": [
+        "S093",
+        "S106"
+      ],
+      "representative": "S093",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S093",
+          "mann_whitney_p": 0.49212829283027004,
+          "q_value": 0.8996720353303375,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S106",
+          "mann_whitney_p": 0.7980400981659079,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G098",
+      "sensors": [
+        "S094",
+        "S107"
+      ],
+      "representative": "S094",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S094",
+          "mann_whitney_p": 0.2396928805437708,
+          "q_value": 0.6500707455951553,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S107",
+          "mann_whitney_p": 0.2853879396240433,
+          "q_value": 0.7066748981166787,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G099",
+      "sensors": [
+        "S095",
+        "S097"
+      ],
+      "representative": "S095",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S095",
+          "mann_whitney_p": 0.5115206688156483,
+          "q_value": 0.9207372038681669,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S097",
+          "mann_whitney_p": 0.7440682435847641,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G100",
+      "sensors": [
+        "S096"
+      ],
+      "representative": "S096",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S096",
+          "mann_whitney_p": 0.010153635230952194,
+          "q_value": 0.11879753220214066,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G101",
+      "sensors": [
+        "S099",
+        "S102"
+      ],
+      "representative": "S099",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S099",
+          "mann_whitney_p": 0.7806212617724937,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S102",
+          "mann_whitney_p": 0.39420362062469017,
+          "q_value": 0.8347841377934615,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G102",
+      "sensors": [
+        "S100",
+        "S105"
+      ],
+      "representative": "S100",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S100",
+          "mann_whitney_p": 0.5356868357454394,
+          "q_value": 0.9231622360099481,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S105",
+          "mann_whitney_p": 0.796711642368056,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G103",
+      "sensors": [
+        "S101"
+      ],
+      "representative": "S101",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S101",
+          "mann_whitney_p": 0.5038018775352189,
+          "q_value": 0.9141934133821343,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G104",
+      "sensors": [
+        "S104"
+      ],
+      "representative": "S104",
+      "importance": 0.0,
+      "stability": 0.23,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S104",
+          "mann_whitney_p": 5.7369432958473905e-06,
+          "q_value": 0.0006712223656141447,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G105",
+      "sensors": [
+        "S108"
+      ],
+      "representative": "S108",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S108",
+          "mann_whitney_p": 0.7392907169438578,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G106",
+      "sensors": [
+        "S109"
+      ],
+      "representative": "S109",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S109",
+          "mann_whitney_p": 0.5608762036408275,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G107",
+      "sensors": [
+        "S110"
+      ],
+      "representative": "S110",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S110",
+          "mann_whitney_p": 0.6989823679564076,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G108",
+      "sensors": [
+        "S111"
+      ],
+      "representative": "S111",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S111",
+          "mann_whitney_p": 0.47499655373729877,
+          "q_value": 0.8824290169280478,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G109",
+      "sensors": [
+        "S112"
+      ],
+      "representative": "S112",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S112",
+          "mann_whitney_p": 0.8943600016391378,
+          "q_value": 0.9697542443752332,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G110",
+      "sensors": [
+        "S113"
+      ],
+      "representative": "S113",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S113",
+          "mann_whitney_p": 0.008315139798051763,
+          "q_value": 0.11118529787109215,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G111",
+      "sensors": [
+        "S114"
+      ],
+      "representative": "S114",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S114",
+          "mann_whitney_p": 0.5725070431275612,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G112",
+      "sensors": [
+        "S115",
+        "S250",
+        "S388",
+        "S522"
+      ],
+      "representative": "S115",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S115",
+          "mann_whitney_p": 0.07679746515936417,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S250",
+          "mann_whitney_p": 0.07654239316086764,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S388",
+          "mann_whitney_p": 0.07654239316086764,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S522",
+          "mann_whitney_p": 0.08083852403383476,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G113",
+      "sensors": [
+        "S116"
+      ],
+      "representative": "S116",
+      "importance": 0.0,
+      "stability": 0.12,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S116",
+          "mann_whitney_p": 0.036217181135761806,
+          "q_value": 0.26461451944636394,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G114",
+      "sensors": [
+        "S117"
+      ],
+      "representative": "S117",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S117",
+          "mann_whitney_p": 0.11024892286779447,
+          "q_value": 0.44866518175763315,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G115",
+      "sensors": [
+        "S118"
+      ],
+      "representative": "S118",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S118",
+          "mann_whitney_p": 0.41520051987985696,
+          "q_value": 0.8448427969729264,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G116",
+      "sensors": [
+        "S119"
+      ],
+      "representative": "S119",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S119",
+          "mann_whitney_p": 0.13579656333559392,
+          "q_value": 0.5166893629354306,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G117",
+      "sensors": [
+        "S120",
+        "S255",
+        "S393",
+        "S527"
+      ],
+      "representative": "S120",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S120",
+          "mann_whitney_p": 0.7992955400559055,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S255",
+          "mann_whitney_p": 0.5835117605721748,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S393",
+          "mann_whitney_p": 0.5186850082566168,
+          "q_value": 0.921705368596294,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S527",
+          "mann_whitney_p": 0.6078747691185757,
+          "q_value": 0.9462270629959977,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G118",
+      "sensors": [
+        "S121"
+      ],
+      "representative": "S121",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S121",
+          "mann_whitney_p": 0.7442598627719863,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G119",
+      "sensors": [
+        "S123",
+        "S128"
+      ],
+      "representative": "S123",
+      "importance": 0.0,
+      "stability": 0.19,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S123",
+          "mann_whitney_p": 0.007984833881454488,
+          "q_value": 0.10990888989766766,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S128",
+          "mann_whitney_p": 0.03189924439898641,
+          "q_value": 0.24473518653648585,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G120",
+      "sensors": [
+        "S126"
+      ],
+      "representative": "S126",
+      "importance": 0.0,
+      "stability": 0.1,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S126",
+          "mann_whitney_p": 0.006652338663273501,
+          "q_value": 0.10377648314706663,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G121",
+      "sensors": [
+        "S127"
+      ],
+      "representative": "S127",
+      "importance": 0.0,
+      "stability": 0.15,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S127",
+          "mann_whitney_p": 0.08869428996708806,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G122",
+      "sensors": [
+        "S129"
+      ],
+      "representative": "S129",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S129",
+          "mann_whitney_p": 0.00929749288494965,
+          "q_value": 0.11360081450533703,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G123",
+      "sensors": [
+        "S130"
+      ],
+      "representative": "S130",
+      "importance": 0.0,
+      "stability": 0.35,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S130",
+          "mann_whitney_p": 0.0003883974636725548,
+          "q_value": 0.015200897676958917,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G124",
+      "sensors": [
+        "S132"
+      ],
+      "representative": "S132",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S132",
+          "mann_whitney_p": 0.9216039985050111,
+          "q_value": 0.9785251125348859,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G125",
+      "sensors": [
+        "S133"
+      ],
+      "representative": "S133",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S133",
+          "mann_whitney_p": 0.30808473236843636,
+          "q_value": 0.7356308915736133,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G126",
+      "sensors": [
+        "S134"
+      ],
+      "representative": "S134",
+      "importance": 0.0,
+      "stability": 0.16,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S134",
+          "mann_whitney_p": 0.053185884165760804,
+          "q_value": 0.33187991719434745,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G127",
+      "sensors": [
+        "S135"
+      ],
+      "representative": "S135",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S135",
+          "mann_whitney_p": 0.2301459507068797,
+          "q_value": 0.6376373896841909,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G128",
+      "sensors": [
+        "S136",
+        "S271",
+        "S409"
+      ],
+      "representative": "S136",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S136",
+          "mann_whitney_p": 0.07992084679286207,
+          "q_value": 0.3910370082500126,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S271",
+          "mann_whitney_p": 0.08507051411464338,
+          "q_value": 0.39912430485189626,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S409",
+          "mann_whitney_p": 0.07782599788334277,
+          "q_value": 0.3910370082500126,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G129",
+      "sensors": [
+        "S137",
+        "S272",
+        "S410"
+      ],
+      "representative": "S137",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S137",
+          "mann_whitney_p": 0.9354748293853972,
+          "q_value": 0.9860410363792024,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S272",
+          "mann_whitney_p": 0.3511636164797134,
+          "q_value": 0.7827205643824391,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S410",
+          "mann_whitney_p": 0.8290738070347027,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G130",
+      "sensors": [
+        "S138",
+        "S273",
+        "S411"
+      ],
+      "representative": "S138",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S138",
+          "mann_whitney_p": 0.27447570602457627,
+          "q_value": 0.6832702961594384,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S273",
+          "mann_whitney_p": 0.21397840758883502,
+          "q_value": 0.6125019425157681,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S411",
+          "mann_whitney_p": 0.27365924065949465,
+          "q_value": 0.6832702961594384,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G131",
+      "sensors": [
+        "S139",
+        "S274",
+        "S412"
+      ],
+      "representative": "S139",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S139",
+          "mann_whitney_p": 0.1657110818444626,
+          "q_value": 0.5604204964530274,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S274",
+          "mann_whitney_p": 0.655685592391553,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S412",
+          "mann_whitney_p": 0.14757829230109026,
+          "q_value": 0.5272262656252691,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G132",
+      "sensors": [
+        "S140",
+        "S275",
+        "S413"
+      ],
+      "representative": "S140",
+      "importance": 0.0,
+      "stability": 0.16,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S140",
+          "mann_whitney_p": 0.9057697602482541,
+          "q_value": 0.9700234503345146,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S275",
+          "mann_whitney_p": 0.9508971440336924,
+          "q_value": 0.9927687132367701,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S413",
+          "mann_whitney_p": 0.790061930521143,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G133",
+      "sensors": [
+        "S141",
+        "S276",
+        "S414"
+      ],
+      "representative": "S141",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S141",
+          "mann_whitney_p": 0.5905653209765986,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S276",
+          "mann_whitney_p": 0.48378608393271283,
+          "q_value": 0.8913853829941323,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S414",
+          "mann_whitney_p": 0.5910985193484113,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G134",
+      "sensors": [
+        "S143",
+        "S278",
+        "S416"
+      ],
+      "representative": "S143",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S143",
+          "mann_whitney_p": 0.5829141082618073,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S278",
+          "mann_whitney_p": 0.7682779130909942,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S416",
+          "mann_whitney_p": 0.5848248787302252,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G135",
+      "sensors": [
+        "S145",
+        "S280",
+        "S418"
+      ],
+      "representative": "S145",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S145",
+          "mann_whitney_p": 0.1447543090655417,
+          "q_value": 0.5272262656252691,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S280",
+          "mann_whitney_p": 0.09603366400333292,
+          "q_value": 0.40802250158056985,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S418",
+          "mann_whitney_p": 0.09241452076138063,
+          "q_value": 0.4042055674423003,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G136",
+      "sensors": [
+        "S146",
+        "S281"
+      ],
+      "representative": "S146",
+      "importance": 0.0,
+      "stability": 0.15,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S146",
+          "mann_whitney_p": 0.07453626280724865,
+          "q_value": 0.3910370082500126,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S281",
+          "mann_whitney_p": 0.0138378292626161,
+          "q_value": 0.15060707197451942,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G137",
+      "sensors": [
+        "S147",
+        "S282"
+      ],
+      "representative": "S147",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S147",
+          "mann_whitney_p": 0.7885318030287627,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S282",
+          "mann_whitney_p": 0.8534229054280368,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G138",
+      "sensors": [
+        "S149",
+        "S155",
+        "S284",
+        "S290",
+        "S422",
+        "S428"
+      ],
+      "representative": "S149",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S149",
+          "mann_whitney_p": 0.8077275254109115,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S155",
+          "mann_whitney_p": 0.8010785870416361,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S284",
+          "mann_whitney_p": 0.7022955436879348,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S290",
+          "mann_whitney_p": 0.9817596895857397,
+          "q_value": 0.9955889364619435,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S422",
+          "mann_whitney_p": 0.7644274634541004,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S428",
+          "mann_whitney_p": 0.8052325156792786,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G139",
+      "sensors": [
+        "S151",
+        "S286"
+      ],
+      "representative": "S151",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S151",
+          "mann_whitney_p": 0.42680244563143,
+          "q_value": 0.8578796418266338,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S286",
+          "mann_whitney_p": 0.47515408603817955,
+          "q_value": 0.8824290169280478,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G140",
+      "sensors": [
+        "S152",
+        "S287",
+        "S425"
+      ],
+      "representative": "S152",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S152",
+          "mann_whitney_p": 0.7100495588703981,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S287",
+          "mann_whitney_p": 0.6316880766158064,
+          "q_value": 0.9505788419813421,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S425",
+          "mann_whitney_p": 0.7789826385212248,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G141",
+      "sensors": [
+        "S157",
+        "S292",
+        "S430"
+      ],
+      "representative": "S157",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S157",
+          "mann_whitney_p": 0.9933888994904784,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S292",
+          "mann_whitney_p": 0.7591619201861748,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S430",
+          "mann_whitney_p": 0.9881248396341372,
+          "q_value": 0.9955889364619435,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G142",
+      "sensors": [
+        "S158",
+        "S293"
+      ],
+      "representative": "S158",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S158",
+          "mann_whitney_p": 0.7516854993188641,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S293",
+          "mann_whitney_p": 0.6649913635990418,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G143",
+      "sensors": [
+        "S159",
+        "S226",
+        "S251",
+        "S294",
+        "S364",
+        "S389",
+        "S498",
+        "S523"
+      ],
+      "representative": "S159",
+      "importance": 0.0,
+      "stability": 0.15,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S159",
+          "mann_whitney_p": 0.10484237588935492,
+          "q_value": 0.4342144417364434,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S226",
+          "mann_whitney_p": 0.8984152043153949,
+          "q_value": 0.9697542443752332,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S251",
+          "mann_whitney_p": 0.7707561238008582,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S294",
+          "mann_whitney_p": 0.09531845549230225,
+          "q_value": 0.40802250158056985,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S364",
+          "mann_whitney_p": 0.7417075080939786,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S389",
+          "mann_whitney_p": 0.5050588353409352,
+          "q_value": 0.9141934133821343,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S498",
+          "mann_whitney_p": 0.7526329783657356,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S523",
+          "mann_whitney_p": 0.5409929362348072,
+          "q_value": 0.9240317305032472,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G144",
+      "sensors": [
+        "S160",
+        "S295",
+        "S431"
+      ],
+      "representative": "S160",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S160",
+          "mann_whitney_p": 0.07843520271641564,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S295",
+          "mann_whitney_p": 0.08747982621610574,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S431",
+          "mann_whitney_p": 0.05888976433111304,
+          "q_value": 0.3533385859866782,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G145",
+      "sensors": [
+        "S161",
+        "S296",
+        "S432"
+      ],
+      "representative": "S161",
+      "importance": 0.0,
+      "stability": 0.11,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S161",
+          "mann_whitney_p": 0.014202742163677248,
+          "q_value": 0.15106553028638528,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S296",
+          "mann_whitney_p": 0.009136116109159575,
+          "q_value": 0.11360081450533703,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S432",
+          "mann_whitney_p": 0.007461215278355072,
+          "q_value": 0.10611764473065287,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G146",
+      "sensors": [
+        "S162",
+        "S297"
+      ],
+      "representative": "S162",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S162",
+          "mann_whitney_p": 0.7125918874674039,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S297",
+          "mann_whitney_p": 0.7857743720327983,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G147",
+      "sensors": [
+        "S163",
+        "S298"
+      ],
+      "representative": "S163",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S163",
+          "mann_whitney_p": 0.9013741374000566,
+          "q_value": 0.9697542443752332,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S298",
+          "mann_whitney_p": 0.8956265445492931,
+          "q_value": 0.9697542443752332,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G148",
+      "sensors": [
+        "S167",
+        "S302",
+        "S438"
+      ],
+      "representative": "S167",
+      "importance": 0.0,
+      "stability": 0.12,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S167",
+          "mann_whitney_p": 0.6196002541893056,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S302",
+          "mann_whitney_p": 0.3512207660690432,
+          "q_value": 0.7827205643824391,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S438",
+          "mann_whitney_p": 0.33765908201580697,
+          "q_value": 0.7717876531751636,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G149",
+      "sensors": [
+        "S168",
+        "S303",
+        "S439"
+      ],
+      "representative": "S168",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S168",
+          "mann_whitney_p": 0.9726755120381393,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S303",
+          "mann_whitney_p": 0.8129883604977528,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S439",
+          "mann_whitney_p": 0.8132289134687939,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G150",
+      "sensors": [
+        "S169",
+        "S304",
+        "S440"
+      ],
+      "representative": "S169",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S169",
+          "mann_whitney_p": 0.9764542910857983,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S304",
+          "mann_whitney_p": 0.9604400554584492,
+          "q_value": 0.9929070111553052,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S440",
+          "mann_whitney_p": 0.43756486576415154,
+          "q_value": 0.8578796418266338,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G151",
+      "sensors": [
+        "S170",
+        "S305",
+        "S441"
+      ],
+      "representative": "S170",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S170",
+          "mann_whitney_p": 0.9866852926640739,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S305",
+          "mann_whitney_p": 0.8415197666392943,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S441",
+          "mann_whitney_p": 0.944441337263474,
+          "q_value": 0.9910281296845422,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G152",
+      "sensors": [
+        "S171",
+        "S306",
+        "S442"
+      ],
+      "representative": "S171",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S171",
+          "mann_whitney_p": 0.2218969385066636,
+          "q_value": 0.6218429174917279,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S306",
+          "mann_whitney_p": 0.4361220493500334,
+          "q_value": 0.8578796418266338,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S442",
+          "mann_whitney_p": 0.29600105350703754,
+          "q_value": 0.7140643971200699,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G153",
+      "sensors": [
+        "S172",
+        "S307",
+        "S443"
+      ],
+      "representative": "S172",
+      "importance": 0.0,
+      "stability": 0.1,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S172",
+          "mann_whitney_p": 0.23025794627484675,
+          "q_value": 0.6376373896841909,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S307",
+          "mann_whitney_p": 0.18762001796838657,
+          "q_value": 0.5844194343212863,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S443",
+          "mann_whitney_p": 0.7770359420894034,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G154",
+      "sensors": [
+        "S174",
+        "S309",
+        "S445"
+      ],
+      "representative": "S174",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S174",
+          "mann_whitney_p": 0.4199236129438847,
+          "q_value": 0.8507543327174806,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S309",
+          "mann_whitney_p": 0.783162557521741,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S445",
+          "mann_whitney_p": 0.34211890445005433,
+          "q_value": 0.7745291933560019,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G155",
+      "sensors": [
+        "S177",
+        "S312",
+        "S448"
+      ],
+      "representative": "S177",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S177",
+          "mann_whitney_p": 0.3737446032589802,
+          "q_value": 0.8028933356485438,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S312",
+          "mann_whitney_p": 0.32832986689371746,
+          "q_value": 0.7668076279079805,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S448",
+          "mann_whitney_p": 0.37531379288183,
+          "q_value": 0.8028933356485438,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G156",
+      "sensors": [
+        "S178",
+        "S313",
+        "S449"
+      ],
+      "representative": "S178",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S178",
+          "mann_whitney_p": 0.9661909710112175,
+          "q_value": 0.9937964273258237,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S313",
+          "mann_whitney_p": 0.9543206162995685,
+          "q_value": 0.9927687132367701,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S449",
+          "mann_whitney_p": 0.9220717406578732,
+          "q_value": 0.9785251125348859,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G157",
+      "sensors": [
+        "S181",
+        "S317",
+        "S453"
+      ],
+      "representative": "S181",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S181",
+          "mann_whitney_p": 0.09677456768257106,
+          "q_value": 0.40802250158056985,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S317",
+          "mann_whitney_p": 0.02675482898584309,
+          "q_value": 0.22262223852630797,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S453",
+          "mann_whitney_p": 0.09099387409093296,
+          "q_value": 0.40174653843921343,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G158",
+      "sensors": [
+        "S182",
+        "S318",
+        "S454"
+      ],
+      "representative": "S182",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S182",
+          "mann_whitney_p": 0.947227895546406,
+          "q_value": 0.9917285349344921,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S318",
+          "mann_whitney_p": 0.9012490436526808,
+          "q_value": 0.9697542443752332,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S454",
+          "mann_whitney_p": 0.9955889364619435,
+          "q_value": 0.9955889364619435,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G159",
+      "sensors": [
+        "S183",
+        "S319",
+        "S455"
+      ],
+      "representative": "S183",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S183",
+          "mann_whitney_p": 0.8489756637392961,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S319",
+          "mann_whitney_p": 0.567708551928818,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S455",
+          "mann_whitney_p": 0.8501793350534816,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G160",
+      "sensors": [
+        "S184",
+        "S320",
+        "S456"
+      ],
+      "representative": "S184",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S184",
+          "mann_whitney_p": 0.3327655679236463,
+          "q_value": 0.7671639694003275,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S320",
+          "mann_whitney_p": 0.4399382778598122,
+          "q_value": 0.8578796418266338,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S456",
+          "mann_whitney_p": 0.3442351970471119,
+          "q_value": 0.7745291933560019,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G161",
+      "sensors": [
+        "S186",
+        "S322",
+        "S458"
+      ],
+      "representative": "S186",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S186",
+          "mann_whitney_p": 0.8339628154703855,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S322",
+          "mann_whitney_p": 0.9687627899744812,
+          "q_value": 0.9942565476053886,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S458",
+          "mann_whitney_p": 0.8113801699615153,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G162",
+      "sensors": [
+        "S188",
+        "S324",
+        "S460"
+      ],
+      "representative": "S188",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S188",
+          "mann_whitney_p": 0.8972377943340767,
+          "q_value": 0.9697542443752332,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S324",
+          "mann_whitney_p": 0.5317530972670927,
+          "q_value": 0.921705368596294,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S460",
+          "mann_whitney_p": 0.9109835078103886,
+          "q_value": 0.9733796384823331,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G163",
+      "sensors": [
+        "S189",
+        "S325"
+      ],
+      "representative": "S189",
+      "importance": 0.0,
+      "stability": 0.1,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S189",
+          "mann_whitney_p": 0.043794634685718176,
+          "q_value": 0.2886744934213536,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S325",
+          "mann_whitney_p": 0.08829518387575509,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G164",
+      "sensors": [
+        "S196",
+        "S332",
+        "S468"
+      ],
+      "representative": "S196",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S196",
+          "mann_whitney_p": 0.7797069955657691,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S332",
+          "mann_whitney_p": 0.6979892354740986,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S468",
+          "mann_whitney_p": 0.8788264379314549,
+          "q_value": 0.9677429951809903,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G165",
+      "sensors": [
+        "S199",
+        "S335",
+        "S471"
+      ],
+      "representative": "S199",
+      "importance": 0.0,
+      "stability": 0.16,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S199",
+          "mann_whitney_p": 0.16644967736532224,
+          "q_value": 0.5604204964530274,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S335",
+          "mann_whitney_p": 0.1690639608347292,
+          "q_value": 0.5611484657493139,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S471",
+          "mann_whitney_p": 0.18703747755262268,
+          "q_value": 0.5844194343212863,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G166",
+      "sensors": [
+        "S200",
+        "S336",
+        "S472"
+      ],
+      "representative": "S200",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S200",
+          "mann_whitney_p": 0.693581651927072,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S336",
+          "mann_whitney_p": 0.7139549325731886,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S472",
+          "mann_whitney_p": 0.7374397523594145,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G167",
+      "sensors": [
+        "S201"
+      ],
+      "representative": "S201",
+      "importance": 0.0,
+      "stability": 0.09,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S201",
+          "mann_whitney_p": 0.14322951999521438,
+          "q_value": 0.5272262656252691,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G168",
+      "sensors": [
+        "S203",
+        "S339",
+        "S475"
+      ],
+      "representative": "S203",
+      "importance": 0.0,
+      "stability": 0.13,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S203",
+          "mann_whitney_p": 0.21335089237726057,
+          "q_value": 0.6125019425157681,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S339",
+          "mann_whitney_p": 0.33097252315686343,
+          "q_value": 0.7668076279079805,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S475",
+          "mann_whitney_p": 0.636186719225288,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G169",
+      "sensors": [
+        "S204",
+        "S340",
+        "S476"
+      ],
+      "representative": "S204",
+      "importance": 0.0,
+      "stability": 0.12,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S204",
+          "mann_whitney_p": 0.7217929022123688,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S340",
+          "mann_whitney_p": 0.8969353149132642,
+          "q_value": 0.9697542443752332,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S476",
+          "mann_whitney_p": 0.6223399791772825,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G170",
+      "sensors": [
+        "S205",
+        "S341",
+        "S477"
+      ],
+      "representative": "S205",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S205",
+          "mann_whitney_p": 0.39945966728184545,
+          "q_value": 0.8363396901462465,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S341",
+          "mann_whitney_p": 0.2892055298747197,
+          "q_value": 0.7086292564469572,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S477",
+          "mann_whitney_p": 0.6114832391001596,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G171",
+      "sensors": [
+        "S206",
+        "S342",
+        "S478"
+      ],
+      "representative": "S206",
+      "importance": 0.0,
+      "stability": 0.53,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S206",
+          "mann_whitney_p": 5.8996908871088764e-05,
+          "q_value": 0.003919413319787021,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S342",
+          "mann_whitney_p": 0.00010558857373048019,
+          "q_value": 0.0054906058339849705,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S478",
+          "mann_whitney_p": 5.1740711904542386e-05,
+          "q_value": 0.003919413319787021,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G172",
+      "sensors": [
+        "S208",
+        "S344",
+        "S480"
+      ],
+      "representative": "S208",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S208",
+          "mann_whitney_p": 0.44867912398792886,
+          "q_value": 0.8712939005242768,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S344",
+          "mann_whitney_p": 0.6073797721777632,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S480",
+          "mann_whitney_p": 0.4026596659709466,
+          "q_value": 0.8363396901462465,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G173",
+      "sensors": [
+        "S209",
+        "S345",
+        "S481"
+      ],
+      "representative": "S209",
+      "importance": 0.0,
+      "stability": 0.13,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S209",
+          "mann_whitney_p": 0.5910903245792616,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S345",
+          "mann_whitney_p": 0.5215982581698078,
+          "q_value": 0.921705368596294,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S481",
+          "mann_whitney_p": 0.7325598244127675,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G174",
+      "sensors": [
+        "S211",
+        "S349"
+      ],
+      "representative": "S211",
+      "importance": 0.0,
+      "stability": 0.15,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S211",
+          "mann_whitney_p": 0.023628437673450933,
+          "q_value": 0.2126559390610584,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S349",
+          "mann_whitney_p": 0.0065443930387139105,
+          "q_value": 0.10377648314706663,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G175",
+      "sensors": [
+        "S212",
+        "S350"
+      ],
+      "representative": "S212",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S212",
+          "mann_whitney_p": 0.6316868332520698,
+          "q_value": 0.9505788419813421,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S350",
+          "mann_whitney_p": 0.6120621411648843,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G176",
+      "sensors": [
+        "S213",
+        "S351"
+      ],
+      "representative": "S213",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S213",
+          "mann_whitney_p": 0.24553950770297162,
+          "q_value": 0.652911872755629,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S351",
+          "mann_whitney_p": 0.26547601672798904,
+          "q_value": 0.6715825720470209,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G177",
+      "sensors": [
+        "S215",
+        "S353"
+      ],
+      "representative": "S215",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S215",
+          "mann_whitney_p": 0.9919198174303894,
+          "q_value": 0.9955889364619435,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S353",
+          "mann_whitney_p": 0.47467398956901596,
+          "q_value": 0.8824290169280478,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G178",
+      "sensors": [
+        "S216",
+        "S354"
+      ],
+      "representative": "S216",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S216",
+          "mann_whitney_p": 0.6230905649310059,
+          "q_value": 0.9462270629959977,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S354",
+          "mann_whitney_p": 0.5665717980870333,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G179",
+      "sensors": [
+        "S217",
+        "S355"
+      ],
+      "representative": "S217",
+      "importance": 0.0,
+      "stability": 0.17,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S217",
+          "mann_whitney_p": 0.19989292762580158,
+          "q_value": 0.6009392165424997,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S355",
+          "mann_whitney_p": 0.03144275890830588,
+          "q_value": 0.24473518653648585,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G180",
+      "sensors": [
+        "S218",
+        "S356"
+      ],
+      "representative": "S218",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S218",
+          "mann_whitney_p": 0.5623210960204086,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S356",
+          "mann_whitney_p": 0.7034325168283568,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G181",
+      "sensors": [
+        "S219",
+        "S357",
+        "S491"
+      ],
+      "representative": "S219",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S219",
+          "mann_whitney_p": 0.6054084779506036,
+          "q_value": 0.9462270629959977,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S357",
+          "mann_whitney_p": 0.7042311740968291,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S491",
+          "mann_whitney_p": 0.6957061926268742,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G182",
+      "sensors": [
+        "S221",
+        "S493",
+        "S544",
+        "S546"
+      ],
+      "representative": "S221",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S221",
+          "mann_whitney_p": 0.3305299609137957,
+          "q_value": 0.7668076279079805,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S493",
+          "mann_whitney_p": 0.2557764346051374,
+          "q_value": 0.6597150434183194,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S544",
+          "mann_whitney_p": 0.4105896890271189,
+          "q_value": 0.8448427969729264,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S546",
+          "mann_whitney_p": 0.8418832099283926,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G183",
+      "sensors": [
+        "S222",
+        "S360",
+        "S494"
+      ],
+      "representative": "S222",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S222",
+          "mann_whitney_p": 0.7519308254990249,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S360",
+          "mann_whitney_p": 0.5296628790750735,
+          "q_value": 0.921705368596294,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S494",
+          "mann_whitney_p": 0.7739247619617247,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G184",
+      "sensors": [
+        "S224",
+        "S362",
+        "S496"
+      ],
+      "representative": "S224",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S224",
+          "mann_whitney_p": 0.8768398725978984,
+          "q_value": 0.9677429951809903,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S362",
+          "mann_whitney_p": 0.6605520351616058,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S496",
+          "mann_whitney_p": 0.8385324250731734,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G185",
+      "sensors": [
+        "S225",
+        "S363",
+        "S497"
+      ],
+      "representative": "S225",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S225",
+          "mann_whitney_p": 0.2044524497414001,
+          "q_value": 0.6055933321454129,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S363",
+          "mann_whitney_p": 0.21463743284740588,
+          "q_value": 0.6125019425157681,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S497",
+          "mann_whitney_p": 0.5485345746371324,
+          "q_value": 0.9301238439499202,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G186",
+      "sensors": [
+        "S228",
+        "S366"
+      ],
+      "representative": "S228",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S228",
+          "mann_whitney_p": 0.07435103138710299,
+          "q_value": 0.3910370082500126,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S366",
+          "mann_whitney_p": 0.05975546819085426,
+          "q_value": 0.35399441915594676,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G187",
+      "sensors": [
+        "S229",
+        "S367"
+      ],
+      "representative": "S229",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S229",
+          "mann_whitney_p": 0.18216679054624718,
+          "q_value": 0.5844194343212863,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S367",
+          "mann_whitney_p": 0.2870805437322079,
+          "q_value": 0.7071247077193332,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G188",
+      "sensors": [
+        "S239",
+        "S377"
+      ],
+      "representative": "S239",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S239",
+          "mann_whitney_p": 0.2319841310737618,
+          "q_value": 0.6386386667207089,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S377",
+          "mann_whitney_p": 0.5287654313088509,
+          "q_value": 0.921705368596294,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G189",
+      "sensors": [
+        "S240",
+        "S378"
+      ],
+      "representative": "S240",
+      "importance": 0.0,
+      "stability": 0.21,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S240",
+          "mann_whitney_p": 0.0681026327728838,
+          "q_value": 0.3840003872013207,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S378",
+          "mann_whitney_p": 0.02422699287570349,
+          "q_value": 0.2139289182231931,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G190",
+      "sensors": [
+        "S245",
+        "S383",
+        "S517"
+      ],
+      "representative": "S245",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S245",
+          "mann_whitney_p": 0.7506059121379925,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S383",
+          "mann_whitney_p": 0.8080397669401493,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S517",
+          "mann_whitney_p": 0.7380060168454678,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G191",
+      "sensors": [
+        "S246",
+        "S384",
+        "S518"
+      ],
+      "representative": "S246",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S246",
+          "mann_whitney_p": 0.3757129070663058,
+          "q_value": 0.8028933356485438,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S384",
+          "mann_whitney_p": 0.41302115282508756,
+          "q_value": 0.8448427969729264,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S518",
+          "mann_whitney_p": 0.37210019394676475,
+          "q_value": 0.8028933356485438,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G192",
+      "sensors": [
+        "S247",
+        "S385",
+        "S519"
+      ],
+      "representative": "S247",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S247",
+          "mann_whitney_p": 0.3578655556480552,
+          "q_value": 0.7937491945179613,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S385",
+          "mann_whitney_p": 0.5871823809438151,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S519",
+          "mann_whitney_p": 0.3596258733399147,
+          "q_value": 0.7938910788824531,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G193",
+      "sensors": [
+        "S252",
+        "S390",
+        "S524"
+      ],
+      "representative": "S252",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S252",
+          "mann_whitney_p": 0.18695078746931626,
+          "q_value": 0.5844194343212863,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S390",
+          "mann_whitney_p": 0.39884257126555034,
+          "q_value": 0.8363396901462465,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S524",
+          "mann_whitney_p": 0.21171473068945934,
+          "q_value": 0.6125019425157681,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G194",
+      "sensors": [
+        "S254",
+        "S392",
+        "S526"
+      ],
+      "representative": "S254",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S254",
+          "mann_whitney_p": 0.7930225904277424,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S392",
+          "mann_whitney_p": 0.5775061538833859,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S526",
+          "mann_whitney_p": 0.7293342340213098,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G195",
+      "sensors": [
+        "S256",
+        "S394",
+        "S528"
+      ],
+      "representative": "S256",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S256",
+          "mann_whitney_p": 0.6996797477913532,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S394",
+          "mann_whitney_p": 0.8710368501256219,
+          "q_value": 0.963700344819837,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S528",
+          "mann_whitney_p": 0.6856395999416618,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G196",
+      "sensors": [
+        "S268",
+        "S406",
+        "S540"
+      ],
+      "representative": "S268",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S268",
+          "mann_whitney_p": 0.7341585446568055,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S406",
+          "mann_whitney_p": 0.7129059084528961,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S540",
+          "mann_whitney_p": 0.7558494768786118,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G197",
+      "sensors": [
+        "S269",
+        "S407",
+        "S541"
+      ],
+      "representative": "S269",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S269",
+          "mann_whitney_p": 0.370756552040183,
+          "q_value": 0.8028933356485438,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S407",
+          "mann_whitney_p": 0.46104719859595944,
+          "q_value": 0.8824290169280478,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S541",
+          "mann_whitney_p": 0.3728194191616443,
+          "q_value": 0.8028933356485438,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G198",
+      "sensors": [
+        "S270",
+        "S408",
+        "S542"
+      ],
+      "representative": "S270",
+      "importance": 0.0,
+      "stability": 0.06,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S270",
+          "mann_whitney_p": 0.8192556509366207,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S408",
+          "mann_whitney_p": 0.8903174432638769,
+          "q_value": 0.9697542443752332,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S542",
+          "mann_whitney_p": 0.965342146307226,
+          "q_value": 0.9937964273258237,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G199",
+      "sensors": [
+        "S337"
+      ],
+      "representative": "S337",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S337",
+          "mann_whitney_p": 0.08377857807501021,
+          "q_value": 0.39912430485189626,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G200",
+      "sensors": [
+        "S346"
+      ],
+      "representative": "S346",
+      "importance": 0.0,
+      "stability": 0.28,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S346",
+          "mann_whitney_p": 0.12519468777588832,
+          "q_value": 0.49653486338233677,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G201",
+      "sensors": [
+        "S359",
+        "S545"
+      ],
+      "representative": "S359",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S359",
+          "mann_whitney_p": 0.10113117102275025,
+          "q_value": 0.42258382177363496,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S545",
+          "mann_whitney_p": 0.16033308176494376,
+          "q_value": 0.5561409899310695,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G202",
+      "sensors": [
+        "S368"
+      ],
+      "representative": "S368",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S368",
+          "mann_whitney_p": 0.9831375165837614,
+          "q_value": 0.9955889364619435,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G203",
+      "sensors": [
+        "S369"
+      ],
+      "representative": "S369",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S369",
+          "mann_whitney_p": 0.11374653027383612,
+          "q_value": 0.45890841524271814,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G204",
+      "sensors": [
+        "S419"
+      ],
+      "representative": "S419",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S419",
+          "mann_whitney_p": 0.5733404332224339,
+          "q_value": 0.9404969060948372,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G205",
+      "sensors": [
+        "S420"
+      ],
+      "representative": "S420",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S420",
+          "mann_whitney_p": 0.6181246189740747,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G206",
+      "sensors": [
+        "S424"
+      ],
+      "representative": "S424",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S424",
+          "mann_whitney_p": 0.40387344011335835,
+          "q_value": 0.8363396901462465,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G207",
+      "sensors": [
+        "S433"
+      ],
+      "representative": "S433",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S433",
+          "mann_whitney_p": 0.7767513971472123,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G208",
+      "sensors": [
+        "S434"
+      ],
+      "representative": "S434",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S434",
+          "mann_whitney_p": 0.32200763257224396,
+          "q_value": 0.761108949716213,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G209",
+      "sensors": [
+        "S469"
+      ],
+      "representative": "S469",
+      "importance": 0.0,
+      "stability": 0.13,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S469",
+          "mann_whitney_p": 0.015408433689204365,
+          "q_value": 0.1602477103677254,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G210",
+      "sensors": [
+        "S473"
+      ],
+      "representative": "S473",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S473",
+          "mann_whitney_p": 0.8413455740028513,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G211",
+      "sensors": [
+        "S483"
+      ],
+      "representative": "S483",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S483",
+          "mann_whitney_p": 0.729930049868186,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G212",
+      "sensors": [
+        "S484"
+      ],
+      "representative": "S484",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S484",
+          "mann_whitney_p": 0.9204179217857676,
+          "q_value": 0.9785251125348859,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G213",
+      "sensors": [
+        "S485"
+      ],
+      "representative": "S485",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S485",
+          "mann_whitney_p": 0.2591361351259812,
+          "q_value": 0.6597150434183194,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G214",
+      "sensors": [
+        "S486"
+      ],
+      "representative": "S486",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S486",
+          "mann_whitney_p": 0.2015971303358386,
+          "q_value": 0.6009392165424997,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G215",
+      "sensors": [
+        "S487"
+      ],
+      "representative": "S487",
+      "importance": 0.0,
+      "stability": 0.09,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S487",
+          "mann_whitney_p": 0.20816635426975472,
+          "q_value": 0.6088865862390326,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G216",
+      "sensors": [
+        "S488"
+      ],
+      "representative": "S488",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S488",
+          "mann_whitney_p": 0.9424528919935418,
+          "q_value": 0.9910281296845422,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G217",
+      "sensors": [
+        "S490"
+      ],
+      "representative": "S490",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S490",
+          "mann_whitney_p": 0.7573130024873521,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G218",
+      "sensors": [
+        "S500"
+      ],
+      "representative": "S500",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S500",
+          "mann_whitney_p": 0.5140626165222051,
+          "q_value": 0.921705368596294,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G219",
+      "sensors": [
+        "S501"
+      ],
+      "representative": "S501",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S501",
+          "mann_whitney_p": 0.7039410809717478,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G220",
+      "sensors": [
+        "S511"
+      ],
+      "representative": "S511",
+      "importance": 0.0,
+      "stability": 0.18,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S511",
+          "mann_whitney_p": 4.3885889136886436e-05,
+          "q_value": 0.003919413319787021,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G221",
+      "sensors": [
+        "S512"
+      ],
+      "representative": "S512",
+      "importance": 0.0,
+      "stability": 0.02,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S512",
+          "mann_whitney_p": 0.13485646527675715,
+          "q_value": 0.5166893629354306,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G222",
+      "sensors": [
+        "S547"
+      ],
+      "representative": "S547",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S547",
+          "mann_whitney_p": 0.6247524839012035,
+          "q_value": 0.9462270629959977,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G223",
+      "sensors": [
+        "S548"
+      ],
+      "representative": "S548",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S548",
+          "mann_whitney_p": 0.39327122684716787,
+          "q_value": 0.8347841377934615,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G224",
+      "sensors": [
+        "S549"
+      ],
+      "representative": "S549",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S549",
+          "mann_whitney_p": 0.8235820608693761,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G225",
+      "sensors": [
+        "S550",
+        "S553",
+        "S556"
+      ],
+      "representative": "S550",
+      "importance": 0.0,
+      "stability": 0.08,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S550",
+          "mann_whitney_p": 0.4387289644526583,
+          "q_value": 0.8578796418266338,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S553",
+          "mann_whitney_p": 0.41433145722214304,
+          "q_value": 0.8448427969729264,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S556",
+          "mann_whitney_p": 0.17263029143691866,
+          "q_value": 0.5689505379751967,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G226",
+      "sensors": [
+        "S551",
+        "S554",
+        "S557"
+      ],
+      "representative": "S551",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S551",
+          "mann_whitney_p": 0.7718363957242464,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S554",
+          "mann_whitney_p": 0.5656029977843577,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S557",
+          "mann_whitney_p": 0.7695222672793306,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G227",
+      "sensors": [
+        "S552",
+        "S555",
+        "S558"
+      ],
+      "representative": "S552",
+      "importance": 0.0,
+      "stability": 0.05,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S552",
+          "mann_whitney_p": 0.5365387354587732,
+          "q_value": 0.9231622360099481,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S555",
+          "mann_whitney_p": 0.433505496085164,
+          "q_value": 0.8578796418266338,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S558",
+          "mann_whitney_p": 0.6090722033389494,
+          "q_value": 0.9462270629959977,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G228",
+      "sensors": [
+        "S559"
+      ],
+      "representative": "S559",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S559",
+          "mann_whitney_p": 0.5697813067727456,
+          "q_value": 0.9404969060948372,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G229",
+      "sensors": [
+        "S560",
+        "S561",
+        "S562"
+      ],
+      "representative": "S560",
+      "importance": 0.0,
+      "stability": 0.07,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S560",
+          "mann_whitney_p": 0.6571704292057852,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S561",
+          "mann_whitney_p": 0.4708931967504313,
+          "q_value": 0.8824290169280478,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S562",
+          "mann_whitney_p": 0.7373227227765176,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G230",
+      "sensors": [
+        "S563"
+      ],
+      "representative": "S563",
+      "importance": 0.0,
+      "stability": 0.04,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S563",
+          "mann_whitney_p": 0.12701962973664307,
+          "q_value": 0.499539384174361,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G231",
+      "sensors": [
+        "S564"
+      ],
+      "representative": "S564",
+      "importance": 0.0,
+      "stability": 0.19,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S564",
+          "mann_whitney_p": 0.7702314470149858,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G232",
+      "sensors": [
+        "S565",
+        "S567",
+        "S569"
+      ],
+      "representative": "S565",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S565",
+          "mann_whitney_p": 0.741683594232418,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S567",
+          "mann_whitney_p": 0.8334760382747025,
+          "q_value": 0.9510975094925118,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S569",
+          "mann_whitney_p": 0.743786957568392,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G233",
+      "sensors": [
+        "S566",
+        "S568",
+        "S570"
+      ],
+      "representative": "S566",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S566",
+          "mann_whitney_p": 0.7924759931590487,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S568",
+          "mann_whitney_p": 0.8024976991488229,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S570",
+          "mann_whitney_p": 0.46287508849131265,
+          "q_value": 0.8824290169280478,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G234",
+      "sensors": [
+        "S571"
+      ],
+      "representative": "S571",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S571",
+          "mann_whitney_p": 0.19271870267523805,
+          "q_value": 0.5933707424474435,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G235",
+      "sensors": [
+        "S572"
+      ],
+      "representative": "S572",
+      "importance": 0.0,
+      "stability": 0.11,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S572",
+          "mann_whitney_p": 0.32721735028165333,
+          "q_value": 0.7668076279079805,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G236",
+      "sensors": [
+        "S573",
+        "S575",
+        "S577"
+      ],
+      "representative": "S573",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S573",
+          "mann_whitney_p": 0.8342158521574174,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S575",
+          "mann_whitney_p": 0.5304788950924155,
+          "q_value": 0.921705368596294,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S577",
+          "mann_whitney_p": 0.8438111910040496,
+          "q_value": 0.9510975094925118,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G237",
+      "sensors": [
+        "S574",
+        "S576",
+        "S578"
+      ],
+      "representative": "S574",
+      "importance": 0.0,
+      "stability": 0.14,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S574",
+          "mann_whitney_p": 0.2411974088124701,
+          "q_value": 0.6500707455951553,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S576",
+          "mann_whitney_p": 0.2546343288895916,
+          "q_value": 0.6597150434183194,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S578",
+          "mann_whitney_p": 0.29597652114506345,
+          "q_value": 0.7140643971200699,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G238",
+      "sensors": [
+        "S579",
+        "S587"
+      ],
+      "representative": "S579",
+      "importance": 0.0,
+      "stability": 0.01,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S579",
+          "mann_whitney_p": 0.9043710279696593,
+          "q_value": 0.9700234503345146,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S587",
+          "mann_whitney_p": 0.8957769646884367,
+          "q_value": 0.9697542443752332,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G239",
+      "sensors": [
+        "S580",
+        "S581",
+        "S588",
+        "S589"
+      ],
+      "representative": "S580",
+      "importance": 0.0,
+      "stability": 0.12,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S580",
+          "mann_whitney_p": 0.10622470140513403,
+          "q_value": 0.436080353136866,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S581",
+          "mann_whitney_p": 0.19576881615873498,
+          "q_value": 0.5988222611914247,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S588",
+          "mann_whitney_p": 0.039026575330025876,
+          "q_value": 0.26461451944636394,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S589",
+          "mann_whitney_p": 0.04665852791780223,
+          "q_value": 0.3032804314657145,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G240",
+      "sensors": [
+        "S582",
+        "S590"
+      ],
+      "representative": "S582",
+      "importance": 0.0,
+      "stability": 0.0,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S582",
+          "mann_whitney_p": 0.2590789188416094,
+          "q_value": 0.6597150434183194,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S590",
+          "mann_whitney_p": 0.13543240661987171,
+          "q_value": 0.5166893629354306,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G241",
+      "sensors": [
+        "S583"
+      ],
+      "representative": "S583",
+      "importance": 0.0,
+      "stability": 0.03,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S583",
+          "mann_whitney_p": 0.20122858314543812,
+          "q_value": 0.6009392165424997,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G242",
+      "sensors": [
+        "S584",
+        "S585",
+        "S586"
+      ],
+      "representative": "S584",
+      "importance": 0.0,
+      "stability": 0.11,
+      "p_value": 1.0,
+      "q_value": 1.0,
+      "significant": false,
+      "univariate": [
+        {
+          "sensor": "S584",
+          "mann_whitney_p": 0.22182375365058382,
+          "q_value": 0.6218429174917279,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S585",
+          "mann_whitney_p": 0.09050855690860612,
+          "q_value": 0.40174653843921343,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S586",
+          "mann_whitney_p": 0.23616388320040105,
+          "q_value": 0.6463432592853081,
+          "direction": "higher_in_failures"
+        }
+      ]
+    }
+  ]
+}

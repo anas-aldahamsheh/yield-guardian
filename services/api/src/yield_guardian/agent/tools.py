@@ -204,8 +204,8 @@ def _prediction_summary(args: WaferArgs, p: WaferPrediction) -> str:
     kind = "unknown pattern" if p.unknown.is_unknown else "known pattern"
     return (
         f"Wafer {p.wafer_id}: predicted {p.top_label} with probability "
-        f"{p.top_probability:.3f}; {kind} (energy score {_num(p.unknown.score)}, threshold "
-        f"{_num(p.unknown.threshold)})."
+        f"{p.top_probability:.3f}; {kind} (Mahalanobis score {_num(p.unknown.score)}, threshold "
+        f"{_num(p.unknown.threshold)} set on {p.unknown.threshold_set_on})."
     )
 
 

@@ -1,0 +1,109 @@
+{
+  "name": "secom",
+  "version": "v1",
+  "created_at": "2026-10-14T10:46:33Z",
+  "git_commit": "21d77afb06551252ca82ed9bfa85931dc4a1be24",
+  "data": [
+    {
+      "path": "data/secom/secom.data",
+      "sha256": "20f0e7ee434f7dcbae0eea9ffff009a2b57f42d6b0dc9a5bd4f00782c0a3374c"
+    },
+    {
+      "path": "data/secom/secom.names",
+      "sha256": "6d91b0b46cdee03064ee3e3112f937c1b3f7fcd9933575794ec07974e6f1ea59"
+    },
+    {
+      "path": "data/secom/secom_labels.data",
+      "sha256": "126884cf453705c9e61a903fe906f0665a3b45ce3639e621edc5c93c89627e03"
+    }
+  ],
+  "environment": {
+    "python": "3.13.16",
+    "packages": {
+      "yg-secom": "0.1.0",
+      "yg-common": "0.1.0",
+      "numpy": "2.5.4",
+      "pandas": "3.0.6",
+      "pyarrow": "26.0.0",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1",
+      "imbalanced-learn": "0.14.2",
+      "lightgbm": "4.7.0",
+      "optuna": "5.0.0",
+      "statsmodels": "0.15.0",
+      "pandera": "0.34.1",
+      "pydantic": "2.14.1",
+      "matplotlib": "3.11.2",
+      "joblib": "1.6.0",
+      "mlflow-skinny": "3.17.1",
+      "jsonschema": "4.26.0"
+    }
+  },
+  "files": [
+    {
+      "path": "timeline.parquet",
+      "bytes": 40356,
+      "sha256": "8f20350891370f0b244c2d9eb7cc302e16f202c32204c2dd83b98b15d70363d9"
+    },
+    {
+      "path": "shap.npz",
+      "bytes": 3026396,
+      "sha256": "0b238ce490eac2125a3c8b807d24021909f1f3ee561d574f3938e0e257caf9b0"
+    },
+    {
+      "path": "fdc.npz",
+      "bytes": 5498704,
+      "sha256": "97114cfa8851692f86cf0ca006d840b056ac5cc40f7d8e15f8ff230fabab0cf9"
+    },
+    {
+      "path": "fdc_model.npz",
+      "bytes": 217816,
+      "sha256": "ee2ef4116ea8784cc08b3ce3ac6460df7b7d72d9c19ffaba9bd5b82664c9b253"
+    },
+    {
+      "path": "groups.json",
+      "bytes": 154647,
+      "sha256": "b15eb1ddaaeb0693773daa2b6167af0b3bf50c8f45d31139aa3112ae15542f44"
+    },
+    {
+      "path": "health.json",
+      "bytes": 439794,
+      "sha256": "bea0d978580cf128f4cc1a392a3ef63ee06a936f84fde459ed161fb5188029bd"
+    },
+    {
+      "path": "operating_points.json",
+      "bytes": 52549,
+      "sha256": "dba9a9bf7033779ae90862e0715cc410076778b9b8133b401ca376dbc3dfea16"
+    },
+    {
+      "path": "metrics.json",
+      "bytes": 194946,
+      "sha256": "512edbdf2e9a8262f23d33afd9f354c998d883259ea2a43d7aafa53cfb934e42"
+    },
+    {
+      "path": "model.txt",
+      "bytes": 40206,
+      "sha256": "d13562df517a8006173677ef3ad3af2d986e813f69fb7dcac5b966fa66086a40"
+    },
+    {
+      "path": "calibrator.json",
+      "bytes": 79,
+      "sha256": "ba47605f8fbc4a261d775fbc2b0ab6877a1ae773cb18f9745296f1c6faeb7915"
+    },
+    {
+      "path": "preprocess.json",
+      "bytes": 133571,
+      "sha256": "2fa11591524791db80c6537a547418ec1e1b6a16f15b0cee5884e13d20c00cd5"
+    },
+    {
+      "path": "eda.json",
+      "bytes": 39507,
+      "sha256": "58044676cf969e3e533a2dc86ea211264b65c7dc5427fa87cb7e74395ddb0dab"
+    },
+    {
+      "path": "model_card.md",
+      "bytes": 8168,
+      "sha256": "15908a5e9a33e108520174a04b1013539a9ac89422d51a5bc7cdf35f91638724"
+    }
+  ]
+}

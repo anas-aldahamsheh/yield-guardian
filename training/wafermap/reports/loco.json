@@ -1,0 +1,328 @@
+{
+  "epochs_cap": 12,
+  "seed": 0,
+  "split": "lot",
+  "classes": {
+    "Center": {
+      "run": "loco-Center-lot-seed0",
+      "unseen_wafers": 4294,
+      "id_test_wafers": 25311,
+      "energy": {
+        "auroc": {
+          "value": 0.5061810674648454,
+          "ci_low": 0.48678760561676276,
+          "ci_high": 0.5261050242118093,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 29605,
+          "lots": 3010
+        },
+        "threshold": -3.486154556274414,
+        "unseen_flagged_at_threshold": 0.17163483931066603,
+        "id_test_accepted_at_threshold": 0.9467425230137094,
+        "unseen_flagged_class_thresholds": 0.10130414531904984,
+        "id_test_accepted_class_thresholds": 0.946268420844692
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9072984333852869,
+          "ci_low": 0.8996924501681243,
+          "ci_high": 0.9155824235252575,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 29605,
+          "lots": 3010
+        },
+        "threshold": 266.5114135742186,
+        "unseen_flagged_at_threshold": 0.42873777363763393,
+        "id_test_accepted_at_threshold": 0.9459523527320137,
+        "unseen_flagged_class_thresholds": 0.168141592920354,
+        "id_test_accepted_class_thresholds": 0.945162182450318
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.842596756061069
+    },
+    "Donut": {
+      "run": "loco-Donut-lot-seed0",
+      "unseen_wafers": 555,
+      "id_test_wafers": 25872,
+      "energy": {
+        "auroc": {
+          "value": 0.5044684991113564,
+          "ci_low": 0.45378368333251606,
+          "ci_high": 0.558152742073981,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26427,
+          "lots": 1800
+        },
+        "threshold": -3.4028964042663574,
+        "unseen_flagged_at_threshold": 0.24504504504504504,
+        "id_test_accepted_at_threshold": 0.9449984539270253,
+        "unseen_flagged_class_thresholds": 0.15675675675675677,
+        "id_test_accepted_class_thresholds": 0.9443800247371676
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.976552410480982,
+          "ci_low": 0.9719246621605512,
+          "ci_high": 0.9801711953440306,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26427,
+          "lots": 1800
+        },
+        "threshold": 280.7924285888671,
+        "unseen_flagged_at_threshold": 0.8882882882882883,
+        "id_test_accepted_at_threshold": 0.9449598021026593,
+        "unseen_flagged_class_thresholds": 0.41081081081081083,
+        "id_test_accepted_class_thresholds": 0.9453463203463204
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8602286015453146
+    },
+    "Edge-Loc": {
+      "run": "loco-Edge-Loc-lot-seed0",
+      "unseen_wafers": 5189,
+      "id_test_wafers": 25176,
+      "energy": {
+        "auroc": {
+          "value": 0.5912476033821148,
+          "ci_low": 0.5755997017827095,
+          "ci_high": 0.6059842432290488,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 30365,
+          "lots": 4345
+        },
+        "threshold": -3.4980556964874268,
+        "unseen_flagged_at_threshold": 0.3305068413952592,
+        "id_test_accepted_at_threshold": 0.9472116301239275,
+        "unseen_flagged_class_thresholds": 0.30680285218731934,
+        "id_test_accepted_class_thresholds": 0.9458611375913568
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9185972304408455,
+          "ci_low": 0.9121065108677975,
+          "ci_high": 0.9247372072409783,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 30365,
+          "lots": 4345
+        },
+        "threshold": 277.03942260742184,
+        "unseen_flagged_at_threshold": 0.5739063403353247,
+        "id_test_accepted_at_threshold": 0.9470924690181125,
+        "unseen_flagged_class_thresholds": 0.4195413374445943,
+        "id_test_accepted_class_thresholds": 0.9450270098506515
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.864553772039525
+    },
+    "Edge-Ring": {
+      "run": "loco-Edge-Ring-lot-seed0",
+      "unseen_wafers": 9680,
+      "id_test_wafers": 24502,
+      "energy": {
+        "auroc": {
+          "value": 0.21122936034568945,
+          "ci_low": 0.1949336577442773,
+          "ci_high": 0.22900203404608244,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 34182,
+          "lots": 2507
+        },
+        "threshold": -3.308220148086548,
+        "unseen_flagged_at_threshold": 0.01384297520661157,
+        "id_test_accepted_at_threshold": 0.9473920496286018,
+        "unseen_flagged_class_thresholds": 0.01456611570247934,
+        "id_test_accepted_class_thresholds": 0.9478001795771773
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9532680836983454,
+          "ci_low": 0.9450101619562571,
+          "ci_high": 0.9599816092564069,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 34182,
+          "lots": 2507
+        },
+        "threshold": 248.7358413696289,
+        "unseen_flagged_at_threshold": 0.8559917355371901,
+        "id_test_accepted_at_threshold": 0.9486572524691862,
+        "unseen_flagged_class_thresholds": 0.45,
+        "id_test_accepted_class_thresholds": 0.9494735123663375
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8397205572523125
+    },
+    "Loc": {
+      "run": "loco-Loc-lot-seed0",
+      "unseen_wafers": 3593,
+      "id_test_wafers": 25416,
+      "energy": {
+        "auroc": {
+          "value": 0.6488268170605226,
+          "ci_low": 0.6335715265849714,
+          "ci_high": 0.6623017579415281,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 29009,
+          "lots": 3699
+        },
+        "threshold": -3.293301820755005,
+        "unseen_flagged_at_threshold": 0.3412190370164208,
+        "id_test_accepted_at_threshold": 0.9507396915328926,
+        "unseen_flagged_class_thresholds": 0.3055942109657668,
+        "id_test_accepted_class_thresholds": 0.9487724268177526
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9086962660231602,
+          "ci_low": 0.9014423335510356,
+          "ci_high": 0.9160642475546654,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 29009,
+          "lots": 3699
+        },
+        "threshold": 277.68797912597654,
+        "unseen_flagged_at_threshold": 0.5396604508767047,
+        "id_test_accepted_at_threshold": 0.9478281397544853,
+        "unseen_flagged_class_thresholds": 0.31839688282772055,
+        "id_test_accepted_class_thresholds": 0.9458215297450425
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8612559621440967
+    },
+    "Near-full": {
+      "run": "loco-Near-full-lot-seed0",
+      "unseen_wafers": 149,
+      "id_test_wafers": 25931,
+      "energy": {
+        "auroc": {
+          "value": 0.3878025291176714,
+          "ci_low": 0.3335560984081181,
+          "ci_high": 0.44892789503248853,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26080,
+          "lots": 1724
+        },
+        "threshold": -3.251178026199341,
+        "unseen_flagged_at_threshold": 0.15436241610738255,
+        "id_test_accepted_at_threshold": 0.9477073772704485,
+        "unseen_flagged_class_thresholds": 0.06040268456375839,
+        "id_test_accepted_class_thresholds": 0.9489799853457251
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9952136788415514,
+          "ci_low": 0.9927388569824933,
+          "ci_high": 0.9973620443073621,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26080,
+          "lots": 1724
+        },
+        "threshold": 271.9451538085937,
+        "unseen_flagged_at_threshold": 0.9932885906040269,
+        "id_test_accepted_at_threshold": 0.9459720026223439,
+        "unseen_flagged_class_thresholds": 0.8523489932885906,
+        "id_test_accepted_class_thresholds": 0.9442751918553083
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8620746218062854
+    },
+    "Random": {
+      "run": "loco-Random-lot-seed0",
+      "unseen_wafers": 866,
+      "id_test_wafers": 25824,
+      "energy": {
+        "auroc": {
+          "value": 0.9283417183936171,
+          "ci_low": 0.90987926055954,
+          "ci_high": 0.9462970745219522,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26690,
+          "lots": 1973
+        },
+        "threshold": -3.4837069511413574,
+        "unseen_flagged_at_threshold": 0.7944572748267898,
+        "id_test_accepted_at_threshold": 0.9479166666666666,
+        "unseen_flagged_class_thresholds": 0.8406466512702079,
+        "id_test_accepted_class_thresholds": 0.9482264560099133
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.9522603800893453,
+          "ci_low": 0.9346867729367623,
+          "ci_high": 0.9661012448853041,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26690,
+          "lots": 1973
+        },
+        "threshold": 257.77943725585914,
+        "unseen_flagged_at_threshold": 0.8764434180138568,
+        "id_test_accepted_at_threshold": 0.9463677199504337,
+        "unseen_flagged_class_thresholds": 0.815242494226328,
+        "id_test_accepted_class_thresholds": 0.9460966542750929
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8810013315715778
+    },
+    "Scratch": {
+      "run": "loco-Scratch-lot-seed0",
+      "unseen_wafers": 1193,
+      "id_test_wafers": 25776,
+      "energy": {
+        "auroc": {
+          "value": 0.582286692807152,
+          "ci_low": 0.5551448931067311,
+          "ci_high": 0.608228848875812,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26969,
+          "lots": 2504
+        },
+        "threshold": -3.6144211292266846,
+        "unseen_flagged_at_threshold": 0.19279128248113997,
+        "id_test_accepted_at_threshold": 0.9485180012414649,
+        "unseen_flagged_class_thresholds": 0.1751886001676446,
+        "id_test_accepted_class_thresholds": 0.9466945996275605
+      },
+      "mahalanobis": {
+        "auroc": {
+          "value": 0.7662926012124315,
+          "ci_low": 0.7510604474828998,
+          "ci_high": 0.7807106871728402,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 500 resamples (percentile)",
+          "n": 26969,
+          "lots": 2504
+        },
+        "threshold": 270.5379043579102,
+        "unseen_flagged_at_threshold": 0.1550712489522213,
+        "id_test_accepted_at_threshold": 0.9451039726877716,
+        "unseen_flagged_class_thresholds": 0.09052808046940486,
+        "id_test_accepted_class_thresholds": 0.9433969584109249
+      },
+      "epochs_run": 12,
+      "validation_macro_f1": 0.8876285552013569
+    }
+  },
+  "mean_auroc_energy": 0.5450480359603711,
+  "mean_auroc_mahalanobis": 0.9222723855214936,
+  "tags": {
+    "git_commit": "55e9d5ad209e6316c3f6c3c3548c624cb4915c19",
+    "source_parquet_sha256": "3178754727a8399b424177e840307baad8c74d253c6f925ded6b57154e91f683",
+    "maps64_sha256": "0380420c4e241728b514c94990360f63ddcf81bd19c1ff08674a5cc798ba7b24",
+    "splits_sha256": "2f30ff76442a0c25b3b5babfd81ea47d506f435f07d718947235285346522097",
+    "index_sha256": "a8d9f51edef3b829a57eb9963c118858f46f868827fb493c4a8da7004b5338a1"
+  }
+}

@@ -1,7 +1,7 @@
-"""Builds the running registry from settings: verified bundles, the line replay, the SECOM service,
-the language-model admin and investigator when TOKEN_FACTORY_API_KEY is set and, when
-DATABASE_URL is set, the database-backed stores. A part that cannot load is left out, so
-its routes answer 503 not_ready and /ready names the reason."""
+"""Builds the running registry from settings: verified bundles, the line replay, the SECOM and
+wafer-map services, the language-model admin, investigator and chat when TOKEN_FACTORY_API_KEY
+is set and, when DATABASE_URL is set, the database-backed stores. A part that cannot load is
+left out, so its routes answer 503 not_ready and /ready names the reason."""
 
 from collections.abc import Mapping
 
@@ -10,11 +10,13 @@ import structlog
 from yield_guardian.agent.wiring import install_agent
 from yield_guardian.bundles.manifest import BundleError, latest_version, verify_bundle
 from yield_guardian.bundles.secom import load_secom_bundle
+from yield_guardian.bundles.wafermap import load_wafermap_bundle
 from yield_guardian.contracts.line import AlarmStatus
 from yield_guardian.core.settings import Settings
 from yield_guardian.replay.clock import ReplayClock
 from yield_guardian.replay.line import LineReplay
 from yield_guardian.science.secom.service import SecomInference
+from yield_guardian.science.wafermap.service import WaferInference
 from yield_guardian.services.alarms import AlarmStateStore
 from yield_guardian.services.persistence import build_persistence
 from yield_guardian.services.registry import ServiceRegistry
@@ -64,7 +66,29 @@ def build_registry(settings: Settings) -> ServiceRegistry:
         )
         states = StoredAlarmStates(persistence.alarms) if persistence else None
         registry.line = LineReplay(bundle, clock, states)
-        registry.secom = SecomInference(bundle, registry.line)
+        registry.secom = SecomInference(
+            bundle, registry.line, persistence.investigations if persistence else None
+        )
         registry.bundles.append(verified.info)
         log.info("secom_bundle_loaded", version=verified.info.bundle.version)
+    try:
+        wafer_verified = verify_bundle(
+            latest_version(settings.artifacts_dir, "wafermap"), "wafermap"
+        )
+        wafer_bundle = load_wafermap_bundle(wafer_verified)
+        wafer_service = WaferInference(wafer_bundle)
+    except Exception as error:  # a broken bundle never stops the API: /ready names the reason
+        registry.problems["wafermap_bundle"] = str(error)
+        log.warning("wafermap_bundle_not_loaded", reason=str(error))
+    else:
+        registry.wafer = wafer_service
+        registry.bundles.append(wafer_verified.info)
+        parity = wafer_bundle.parity
+        log.info(
+            "wafermap_bundle_loaded",
+            version=wafer_verified.info.bundle.version,
+            wafers=parity.wafers,
+            parity_top_label_agreement=parity.top_label_agreement,
+            parity_max_confidence_diff=parity.max_confidence_diff,
+        )
     return registry

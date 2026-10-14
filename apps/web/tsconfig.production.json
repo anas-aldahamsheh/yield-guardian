@@ -1,0 +1,27 @@
+{
+  "$comment": "Type-checks the app without the files .dockerignore keeps out of the image (mocks, scripts, tests, dev pages), so a production file that depends on one fails here, not in the Docker build.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "types": ["node"]
+  },
+  "include": ["next-env.d.ts", "next.config.ts", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "src/mocks",
+    "scripts",
+    "e2e",
+    "src/test",
+    "**/*.dev.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/__tests__",
+    "**/__mocks__",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "playwright.config.ts"
+  ]
+}
