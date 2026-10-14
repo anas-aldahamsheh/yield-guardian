@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   agentRules: false,
+  devIndicators: false,
   pageExtensions: devPages ? ["dev.tsx", "tsx", "ts"] : ["tsx", "ts"],
   transpilePackages: ["@yield-guardian/contracts"],
   experimental: {

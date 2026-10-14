@@ -4,58 +4,121 @@
 /*
  * Yellow Room tokens (work item U2). docs/DESIGN.md explains every role.
  *
- * Each token is written once with light-dark(inspection light, yellow room). The theme is
- * chosen by color-scheme: next-themes sets data-theme on <html>, and any subtree can opt into
- * the yellow room with data-theme="dark" (the home hero always does, because it depicts the bay).
+ * Two palettes: inspection light (light) and the yellow room (dark). next-themes sets
+ * data-theme on <html>; any subtree can opt into the yellow room with data-theme="dark" (the
+ * home hero always does, because it depicts the bay). The palettes are written as plain blocks,
+ * not light-dark(), because the CSS compiler polyfills light-dark() at :root, which would stop
+ * a subtree from switching. The yellow room is written twice (explicit and system preference);
+ * src/lib/design-tokens.test.ts checks the two copies are identical and meet contrast targets.
  * Hex values are computed from OKLCH in docs/DESIGN.md; the safelight is computed in
  * src/lib/optics/safelight.ts and pinned by a unit test.
  */
-:root {
-  color-scheme: light dark;
+
+/* Inspection light. */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
 
   /* Surfaces: the room, its panels (dies) and raised panels. */
-  --room: light-dark(#eef0f2, #13120c);
-  --die: light-dark(#fcfdfe, #1b1913);
-  --die-2: light-dark(#ffffff, #24221b);
-  --hairline: light-dark(#d6d9dc, #37352e);
-  --hairline-strong: light-dark(#b9bdc2, #4f4c43);
+  --room: #eef0f2;
+  --die: #fcfdfe;
+  --die-2: #ffffff;
+  --hairline: #d6d9dc;
+  --hairline-strong: #b9bdc2;
 
   /* Ink: readings and text. */
-  --ink: light-dark(#1a1e24, #eceade);
-  --ink-2: light-dark(#4e5359, #bdbbaf);
-  --ink-3: light-dark(#686c72, #96948a);
+  --ink: #1a1e24;
+  --ink-2: #4e5359;
+  --ink-3: #686c72;
 
   /* Light. Marks attention only: focus, selection, the active step, the exposure field. */
-  --safelight: light-dark(#a27900, #f5d326);
-  --safelight-lamp: #f5d326;
-  --safelight-wash: light-dark(
-    color-mix(in oklab, #f5d326 30%, transparent),
-    color-mix(in oklab, #f5d326 13%, transparent)
-  );
-  --safelight-wash-strong: light-dark(
-    color-mix(in oklab, #f5d326 48%, transparent),
-    color-mix(in oklab, #f5d326 22%, transparent)
-  );
+  --safelight: #a27900;
+  --safelight-wash: color-mix(in oklab, #f5d326 30%, transparent);
+  --safelight-wash-strong: color-mix(in oklab, #f5d326 48%, transparent);
 
   /* Results. Validated as a colour-blind-safe pair in both themes (docs/DESIGN.md). */
-  --pass: light-dark(#0f76a2, #3fa0c9);
-  --fail: light-dark(#c62b44, #eb556e);
-  --pass-wash: light-dark(
-    color-mix(in oklab, #0f76a2 12%, transparent),
-    color-mix(in oklab, #3fa0c9 16%, transparent)
-  );
-  --fail-wash: light-dark(
-    color-mix(in oklab, #c62b44 11%, transparent),
-    color-mix(in oklab, #eb556e 16%, transparent)
-  );
+  --pass: #0f76a2;
+  --fail: #c62b44;
+  --pass-wash: color-mix(in oklab, #0f76a2 12%, transparent);
+  --fail-wash: color-mix(in oklab, #c62b44 11%, transparent);
   /* Elevated risk, a quieter step of the fail hue. Always shown with its label, never alone. */
-  --concern: light-dark(#cb6d7a, #ab505f);
+  --concern: #cb6d7a;
 
   /* Context marks in charts (baselines, reference periods), always direct-labelled. */
-  --mark-muted: light-dark(#84888c, #6f6d66);
-
+  --mark-muted: #84888c;
   /* Edges that identify a control (inputs, switches, radios): 3:1 against every surface. */
-  --edge: light-dark(#84888c, #6f6d66);
+  --edge: #84888c;
+  /* Hover fill for menu items and ghost buttons. */
+  --accent: #eef0f2;
+}
+
+/* The yellow room, chosen explicitly. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --room: #13120c;
+  --die: #1b1913;
+  --die-2: #24221b;
+  --hairline: #37352e;
+  --hairline-strong: #4f4c43;
+
+  --ink: #eceade;
+  --ink-2: #bdbbaf;
+  --ink-3: #96948a;
+
+  --safelight: #f5d326;
+  --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
+  --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+
+  --pass: #3fa0c9;
+  --fail: #eb556e;
+  --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
+  --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
+  --concern: #ab505f;
+
+  --mark-muted: #6f6d66;
+  --edge: #6f6d66;
+  --accent: #2c2a22;
+}
+
+/* The yellow room, from the system preference before a theme is chosen. Same values. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --room: #13120c;
+    --die: #1b1913;
+    --die-2: #24221b;
+    --hairline: #37352e;
+    --hairline-strong: #4f4c43;
+
+    --ink: #eceade;
+    --ink-2: #bdbbaf;
+    --ink-3: #96948a;
+
+    --safelight: #f5d326;
+    --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
+    --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+
+    --pass: #3fa0c9;
+    --fail: #eb556e;
+    --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
+    --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
+    --concern: #ab505f;
+
+    --mark-muted: #6f6d66;
+    --edge: #6f6d66;
+    --accent: #2c2a22;
+  }
+}
+
+/*
+ * Theme-independent tokens. Roles derived from the palettes follow in the next rule, declared
+ * on every themed element so a data-theme subtree recomputes them from its own palette.
+ */
+:root {
+  /* The lamp itself: the same physical light in both themes. */
+  --safelight-lamp: #f5d326;
 
   /* Motion. */
   --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
@@ -68,9 +131,12 @@
   --street: 8px;
   --gutter: clamp(16px, 3.2vw, 32px);
   --bar-height: 56px;
-
-  /* shadcn/ui roles mapped onto the tokens above. */
   --radius: 4px;
+}
+
+:root,
+[data-theme] {
+  /* shadcn/ui roles mapped onto the tokens above. */
   --background: var(--room);
   --foreground: var(--ink);
   --card: var(--die);
@@ -83,7 +149,6 @@
   --secondary-foreground: var(--ink);
   --muted: var(--die-2);
   --muted-foreground: var(--ink-2);
-  --accent: light-dark(#eef0f2, #2c2a22);
   --accent-foreground: var(--ink);
   --destructive: var(--fail);
   --border: var(--hairline);
@@ -91,12 +156,9 @@
   --ring: var(--safelight);
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
+/* A themed subtree paints its own ink, so text inherits the right palette. */
+[data-theme] {
+  color: var(--ink);
 }
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

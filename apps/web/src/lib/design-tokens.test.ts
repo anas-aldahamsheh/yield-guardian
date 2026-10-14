@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { paletteHex as token, palettes, systemDarkPalette, type Theme } from "@/test/palettes";
 
 import { contrastRatio, hexToLinearSrgb, linearSrgbToOklab, type Vec3 } from "./optics/oklab";
 
@@ -8,17 +7,16 @@ import { contrastRatio, hexToLinearSrgb, linearSrgbToOklab, type Vec3 } from "./
  * change that breaks accessibility fails the build. Text needs 4.5:1 (1.4.3); marks, focus
  * outlines and control edges need 3:1 (1.4.11).
  */
-const css = readFileSync(path.join(import.meta.dirname, "../app/globals.css"), "utf8");
 
-type Theme = "light" | "dark";
+describe("palettes", () => {
+  it("define the same tokens in both themes", () => {
+    expect([...palettes.dark.keys()].sort()).toEqual([...palettes.light.keys()].sort());
+  });
 
-function token(name: string, theme: Theme): string {
-  const pair = css.match(
-    new RegExp(`--${name}:\\s*light-dark\\((#[0-9a-f]{6}),\\s*(#[0-9a-f]{6})\\);`),
-  );
-  if (!pair) throw new Error(`Token --${name} is not a light-dark() pair of hex colours`);
-  return theme === "light" ? pair[1]! : pair[2]!;
-}
+  it("write the yellow room identically for the system preference", () => {
+    expect(Object.fromEntries(systemDarkPalette)).toEqual(Object.fromEntries(palettes.dark));
+  });
+});
 
 const SURFACES = ["room", "die", "die-2"] as const;
 const THEMES: Theme[] = ["light", "dark"];

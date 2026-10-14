@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { globalsCss, paletteHex } from "@/test/palettes";
 
 import { contrastRatio, deltaEOk } from "./oklab";
 import {
@@ -8,8 +7,6 @@ import {
   safelightHue,
   safelightTokenHex,
 } from "./safelight";
-
-const css = readFileSync(path.join(import.meta.dirname, "../../app/globals.css"), "utf8");
 
 describe("safelight", () => {
   it("has no power below the 500 nm cut-off", () => {
@@ -34,12 +31,12 @@ describe("safelight", () => {
 
   it("is the value of --safelight-lamp and of the dark --safelight token", () => {
     const token = safelightTokenHex();
-    expect(css).toContain(`--safelight-lamp: ${token};`);
-    expect(css).toMatch(new RegExp(`--safelight: light-dark\\(#[0-9a-f]{6}, ${token}\\);`));
+    expect(globalsCss).toContain(`--safelight-lamp: ${token};`);
+    expect(paletteHex("safelight", "dark")).toBe(token);
   });
 
   it("reads as light on the dark room (well above 3:1)", () => {
-    expect(contrastRatio(safelightTokenHex(), "#13120c")).toBeGreaterThan(10);
+    expect(contrastRatio(safelightTokenHex(), paletteHex("room", "dark"))).toBeGreaterThan(10);
   });
 
   it("stays distinct from the fail colour, so light never reads as an error", () => {
