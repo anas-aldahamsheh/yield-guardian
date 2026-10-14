@@ -41,9 +41,7 @@ PERMUTATIONS = 999
 
 
 def predict_all(name: str) -> pd.DataFrame:
-    path = PROCESSED / f"predictions-{name}.parquet"
-    if path.exists():
-        return pd.read_parquet(path)
+    path = PROCESSED / f"predictions-{name}.parquet"  # written for inspection, never reused
     dev = device()
     model = load_model(name, len(CLASSES), dev)
     calibration = json.loads((RUNS / name / "calibration.json").read_text(encoding="utf-8"))

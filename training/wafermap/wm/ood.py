@@ -56,6 +56,17 @@ def threshold(scores_val: np.ndarray) -> float:
     return float(np.quantile(scores_val, ID_RECALL))
 
 
+def class_thresholds(scores_val: np.ndarray, pred_val: np.ndarray, k: int) -> np.ndarray:
+    """Variant: one threshold per predicted class, each accepting 95% of the validation wafers
+    predicted as that class, so rare classes are not flagged more often than common ones."""
+    return np.array(
+        [
+            threshold(scores_val[pred_val == c]) if (pred_val == c).any() else np.inf
+            for c in range(k)
+        ]
+    )
+
+
 def scores_for(name: str, split: str, classes: list[str], parts: dict) -> dict:
     """Energy and Mahalanobis scores for each named part (uint8 maps) under one model."""
     dev = device()
@@ -78,10 +89,17 @@ def fit(split: str, seed: int) -> dict:
     m_test = mahalanobis(s["test"]["embedding"], params)
     t_e, t_m = threshold(e_val), threshold(m_val)
     y = parts["test"].labels
+    pred_val = s["validation"]["logits"].argmax(1)
+    pred_test = s["test"]["logits"].argmax(1)
+    tc_e = class_thresholds(e_val, pred_val, len(CLASSES))
+    tc_m = class_thresholds(m_val, pred_val, len(CLASSES))
+    flag_ce, flag_cm = e_test > tc_e[pred_test], m_test > tc_m[pred_test]
     flagged = {
         c: {
             "energy": float((e_test[y == i] > t_e).mean()),
             "mahalanobis": float((m_test[y == i] > t_m).mean()),
+            "energy_class_thresholds": float(flag_ce[y == i].mean()),
+            "mahalanobis_class_thresholds": float(flag_cm[y == i].mean()),
         }
         for i, c in enumerate(CLASSES)
     }
@@ -97,6 +115,13 @@ def fit(split: str, seed: int) -> dict:
             "in_distribution_recall_validation": float((m_val <= t_m).mean()),
             "in_distribution_recall_test": float((m_test <= t_m).mean()),
             "covariance": "shared within-class, Ledoit-Wolf shrinkage, L2-normalised embeddings",
+        },
+        "class_conditional_variant": {
+            "rule": "flag when score > threshold of the predicted class",
+            "energy_thresholds": dict(zip(CLASSES, tc_e.tolist(), strict=True)),
+            "mahalanobis_thresholds": dict(zip(CLASSES, tc_m.tolist(), strict=True)),
+            "in_distribution_recall_test_energy": float(1 - flag_ce.mean()),
+            "in_distribution_recall_test_mahalanobis": float(1 - flag_cm.mean()),
         },
         "test_share_flagged_by_class": flagged,
         "agreement_test": {
@@ -148,6 +173,9 @@ def loco() -> dict:
 
             val, test, ood = score("validation"), score("test"), score("unseen")
             t = threshold(val)
+            tc = class_thresholds(val, s["validation"]["logits"].argmax(1), len(classes))
+            ood_flag_c = ood > tc[s["unseen"]["logits"].argmax(1)]
+            test_ok_c = test <= tc[s["test"]["logits"].argmax(1)]
             y = np.r_[np.zeros(len(test)), np.ones(len(ood))]
             sc = np.r_[test, ood]
             lots = np.r_[parts["test"].lots, parts["unseen"].lots]
@@ -158,6 +186,8 @@ def loco() -> dict:
                 "threshold": t,
                 "unseen_flagged_at_threshold": float((ood > t).mean()),
                 "id_test_accepted_at_threshold": float((test <= t).mean()),
+                "unseen_flagged_class_thresholds": float(ood_flag_c.mean()),
+                "id_test_accepted_class_thresholds": float(test_ok_c.mean()),
             }
         history = json.loads((RUNS / name / "history.json").read_text(encoding="utf-8"))
         entry["epochs_run"] = history["epochs_run"]
