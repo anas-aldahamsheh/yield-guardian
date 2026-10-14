@@ -11,5 +11,5 @@
   },
   "above_threshold": true,
   "calibration": "platt",
-  "note": null
+  "note": "Placeholder model output for interface development; replaced by the real bundle."
 }

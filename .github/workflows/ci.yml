@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_PYTHON: "3.13"
+  # No Token Factory key exists in CI, so no test can reach AMD Token Factory.
+
+jobs:
+  api:
+    name: API (lint, types, tests, contract staleness)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install (lock must match pyproject)
+        run: uv sync --locked
+      - name: Ruff
+        run: |
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check .
+          uv run --no-sync ruff check --config pyproject.toml ../../scripts/ci ../../packages/contracts/scripts
+          uv run --no-sync ruff format --check --config pyproject.toml ../../scripts/ci ../../packages/contracts/scripts
+      - name: Mypy (strict)
+        run: |
+          uv run --no-sync mypy src tests
+          uv run --no-sync mypy --strict ../../scripts/ci/check_no_fixtures.py
+      - name: Tests (includes the OpenAPI staleness test)
+        run: uv run --no-sync pytest
+      - name: Fixtures are current
+        run: |
+          uv run --no-sync python ../../packages/contracts/scripts/make_fixtures.py
+          git diff --exit-code -- ../../packages/contracts/fixtures \
+            || { echo "::error::Fixtures are stale. Run packages/contracts/scripts/make_fixtures.py and commit."; exit 1; }
+      - name: Fixture leak checker works on these fixtures
+        run: python3 ../../scripts/ci/check_no_fixtures.py --self-test
+
+  web:
+    name: Web (contracts, lint, types, tests, production build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: TypeScript types match openapi.json
+        run: |
+          pnpm --filter @yield-guardian/contracts run generate
+          git diff --exit-code -- packages/contracts/src \
+            || { echo "::error::schema.d.ts is stale. Run pnpm contracts:generate and commit."; exit 1; }
+          pnpm --filter @yield-guardian/contracts run typecheck
+      - name: Detect the web app
+        id: web
+        run: echo "present=$([ -f apps/web/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Lint
+        if: steps.web.outputs.present == 'true'
+        run: pnpm --filter @yield-guardian/web run lint
+      - name: Typecheck
+        if: steps.web.outputs.present == 'true'
+        run: pnpm --filter @yield-guardian/web run typecheck
+      - name: Unit tests
+        if: steps.web.outputs.present == 'true'
+        run: pnpm --filter @yield-guardian/web run test
+      - name: Production build
+        if: steps.web.outputs.present == 'true'
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: pnpm --filter @yield-guardian/web run build
+      - name: No development fixtures or mock code in the production build
+        if: steps.web.outputs.present == 'true'
+        run: |
+          python3 scripts/ci/check_no_fixtures.py --self-test
+          python3 scripts/ci/check_no_fixtures.py apps/web/.next $( [ -d apps/web/public ] && echo apps/web/public )
+
+  training:
+    name: Training (${{ matrix.project }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [common, secom, wafermap]
+    defaults:
+      run:
+        working-directory: training/${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Detect the project
+        id: project
+        working-directory: .
+        run: echo "present=$([ -f training/${{ matrix.project }}/pyproject.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: astral-sh/setup-uv@v6
+        if: steps.project.outputs.present == 'true'
+        with:
+          enable-cache: true
+          cache-dependency-glob: training/${{ matrix.project }}/uv.lock
+      - name: Install
+        if: steps.project.outputs.present == 'true'
+        run: |
+          if grep -q '^name = "torch"' uv.lock; then
+            # The lock pins a CUDA build of PyTorch for the training GPU. CI has no GPU, so it
+            # installs everything else from the lock and the CPU build of the same version.
+            skip=$(grep -oP '^name = "\K(torch|triton|nvidia-[^"]+|cuda-[^"]+)(?=")' uv.lock | sort -u | sed 's/^/--no-install-package /' | tr '\n' ' ')
+            uv sync --locked $skip
+            version=$(grep -A1 '^name = "torch"' uv.lock | grep -oP 'version = "\K[0-9.]+' | head -1)
+            uv pip install --no-deps "torch==${version}" --index-url https://download.pytorch.org/whl/cpu
+          else
+            uv sync --locked
+          fi
+      - name: Ruff
+        if: steps.project.outputs.present == 'true'
+        run: |
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check .
+      - name: Mypy (where the project configures it)
+        if: steps.project.outputs.present == 'true'
+        run: |
+          if grep -q '^\[tool.mypy\]' pyproject.toml; then uv run --no-sync mypy; else echo "no mypy config"; fi
+      - name: Tests (raw data and GPU checks skip themselves in CI)
+        if: steps.project.outputs.present == 'true'
+        run: uv run --no-sync pytest
+
+  security:
+    name: Secrets and dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: No Token Factory key anywhere in the history
+        run: |
+          if git log --all -p | grep -qE 'rc-[0-9a-fA-F]{48}'; then
+            echo "::error::A Token Factory key (rc- and 48 hex characters) is in the git history. Rotate it now."; exit 1
+          fi
+      - name: Committed files hold no secrets or raw data
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)\.env$|(^|/)\.env\.[^e]|\.kaggle/|access_token|^data/raw/|\.pkl$|LSWMD' || true)
+          if [ -n "$bad" ]; then echo "::error::These files must never be committed:"; echo "$bad"; exit 1; fi
+      - uses: astral-sh/setup-uv@v6
+      - name: Python dependency audit (API)
+        working-directory: services/api
+        run: |
+          uv export --locked --no-dev --no-emit-project --no-hashes --format requirements-txt > "$RUNNER_TEMP/api-requirements.txt"
+          uvx pip-audit==2.9.0 --strict --no-deps --disable-pip -r "$RUNNER_TEMP/api-requirements.txt"
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: JavaScript dependency audit (production dependencies)
+        run: pnpm audit --prod --audit-level high

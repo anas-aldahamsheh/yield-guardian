@@ -44,7 +44,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -57,7 +57,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -70,7 +70,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         }
       ]
@@ -90,7 +90,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -103,7 +103,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -116,7 +116,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         }
       ]
@@ -136,7 +136,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -149,7 +149,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -162,7 +162,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         }
       ]
@@ -182,7 +182,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -195,7 +195,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         },
         {
@@ -208,7 +208,7 @@
             "ci_level": 0.95,
             "method": "stratified bootstrap, 2000 resamples",
             "n": 307,
-            "note": null
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
           }
         }
       ]
@@ -225,7 +225,7 @@
         "ci_level": 0.95,
         "method": "paired bootstrap, 2000 resamples",
         "n": 307,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "p_value": 0.03
     },
@@ -239,7 +239,7 @@
         "ci_level": 0.95,
         "method": "paired bootstrap, 2000 resamples",
         "n": 307,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "p_value": 0.11
     },
@@ -253,7 +253,7 @@
         "ci_level": 0.95,
         "method": "paired bootstrap, 2000 resamples",
         "n": 307,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "p_value": 0.002
     }
@@ -269,7 +269,7 @@
       "ci_level": 0.95,
       "method": "stratified bootstrap, 2000 resamples",
       "n": 307,
-      "note": null
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
     },
     "ece": {
       "value": 0.021,
@@ -278,7 +278,7 @@
       "ci_level": 0.95,
       "method": "stratified bootstrap, 2000 resamples",
       "n": 307,
-      "note": null
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
     },
     "bins": [
       {
@@ -404,7 +404,7 @@
       "ci_level": 0.95,
       "method": "stratified bootstrap, 2000 resamples",
       "n": 75,
-      "note": null
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
     },
     "false_alarm_rate_999": {
       "value": 0.0,
@@ -413,7 +413,7 @@
       "ci_level": 0.95,
       "method": "stratified bootstrap, 2000 resamples",
       "n": 75,
-      "note": null
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
     },
     "ewma": "lambda 0.2, L 2.86; in-control ARL 370",
     "cusum": "k 0.5, h 4.77; in-control ARL 370"

@@ -225,7 +225,12 @@ def est(
 ) -> Estimate:
     lo, hi = value - half, value + half
     return Estimate(
-        value=round(value, 4), ci_low=round(lo, 4), ci_high=round(hi, 4), method=method, n=n
+        value=round(value, 4),
+        ci_low=round(lo, 4),
+        ci_high=round(hi, 4),
+        method=method,
+        n=n,
+        note=SYNTHETIC,
     )
 
 
@@ -236,6 +241,7 @@ def prob_est(value: float, half: float, n: int | None = None) -> Estimate:
         ci_high=round(min(1.0, value + half), 4),
         method="stratified bootstrap, 2000 resamples",
         n=n,
+        note=SYNTHETIC,
     )
 
 
@@ -483,7 +489,7 @@ focus_risk = UnitRisk(
     risk_band=FOCUS.risk_band,
     operating_point=OP,
     above_threshold=True,
-    note=None,
+    note=SYNTHETIC,
 )
 focus_alarms = [a for a in all_alarms if a.unit_id == FOCUS.unit_id]
 unit_detail = UnitDetail(
