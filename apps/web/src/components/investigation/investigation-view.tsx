@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
 import { q } from "@/lib/api/queries";
-import { LIVE_STATUSES, issuesByTarget } from "@/lib/investigation/events";
+import { LIVE_STATUSES, issuesByTarget, triggerUnit } from "@/lib/investigation/events";
 import { useInvestigationStream } from "@/lib/investigation/use-investigation-stream";
-import { formatDateTime, formatInt, formatNumber, plural } from "@/lib/format";
+import { formatDateTime, formatInt, formatNumber, formatPlantTime, plural } from "@/lib/format";
 import { ISSUE_CODE, ROLE_NAMES, TRIGGER_KIND } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -77,11 +77,11 @@ export function InvestigationView({ id }: { id: string }) {
               From {TRIGGER_KIND[inv.trigger.kind]?.toLowerCase()} <TriggerLink investigation={inv} />
             </span>
             <span className="tnum">Started {formatDateTime(inv.created_at)}</span>
-            {inv.recorded ? <span>Recorded run: generated once, replayed without calling a model</span> : null}
+            {inv.recorded ? <RecordedLabel investigation={inv} /> : null}
           </span>
         }
         actions={
-          !LIVE_STATUSES.has(stored.status) ? (
+          !LIVE_STATUSES.has(stored.status) && !(stored.recorded && stored.status === "failed") ? (
             <Button variant="outline" size="sm" disabled={replay != null && state === "streaming"} onClick={startReplay}>
               {replay != null && state === "streaming" ? "Replaying…" : "Replay the run"}
             </Button>
@@ -143,6 +143,28 @@ function BackLink() {
     <Link href="/investigations" className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
       All investigations
     </Link>
+  );
+}
+
+/**
+ * A recorded run reads the data as of its alarm, not the live line: say where, from the
+ * trigger's unit and that unit's plant time. A failed recorded run is never replayed.
+ */
+function RecordedLabel({ investigation }: { investigation: Investigation }) {
+  const api = useApi();
+  const unitId = triggerUnit(investigation.trigger);
+  const unit = useQuery({ ...q.unit(api, unitId ?? -1), enabled: unitId != null });
+  const failed = investigation.status === "failed";
+  return (
+    <>
+      <span>{failed ? "Recorded run: it failed when it was generated and is not replayed" : "Recorded run: generated once, replayed without calling a model"}</span>
+      {unitId != null ? (
+        <span className="tnum">
+          Data as of unit {unitId}
+          {unit.data ? `, ${formatPlantTime(unit.data.timestamp)}` : ""}
+        </span>
+      ) : null}
+    </>
   );
 }
 
