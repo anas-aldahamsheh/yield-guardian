@@ -7,6 +7,7 @@ wakes the streams of every API process. The investigator itself runs in the job 
 """
 
 import asyncio
+import builtins
 import contextlib
 import re
 import secrets
@@ -446,6 +447,21 @@ class DbInvestigationStore:
         return InvestigationPage(
             items=[to_summary(row) for row in rows], next_cursor=next_cursor, total=total
         )
+
+    async def for_unit(self, unit_id: int) -> builtins.list[str]:
+        """IDs of the investigations about one unit or one of its alarms, newest first."""
+        unit = InvestigationRow.trigger_ref.regexp_match(f"^0*{unit_id}$")
+        alarm = InvestigationRow.trigger_ref.regexp_match(f"^AL-0*{unit_id}-")
+        query = (
+            select(InvestigationRow.investigation_id)
+            .where(
+                ((InvestigationRow.trigger_kind == "unit") & unit)
+                | ((InvestigationRow.trigger_kind == "alarm") & alarm)
+            )
+            .order_by(InvestigationRow.created_at.desc(), InvestigationRow.investigation_id.desc())
+        )
+        async with self._sessionmaker() as db:
+            return builtins.list((await db.scalars(query)).all())
 
     async def get_evidence(self, investigation_id: str, evidence_id: str) -> Evidence:
         investigation = await self.get(investigation_id)
