@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 12:13 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 12:31 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 73 of 86 done (85%), 8 in progress, 5 not started
+## Progress: 74 of 86 done (86%), 7 in progress, 5 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 1 | 0 |
 | L: AI layer | 10 of 11 | 1 | 0 |
-| U: Interface | 11 of 14 | 3 | 0 |
+| U: Interface | 12 of 14 | 2 | 0 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 3 of 5 | 0 | 2 |
 | X: Submission | 1 of 6 | 2 | 3 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 73 of 86 |
+| Done | 74 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -153,7 +153,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | 🟡 | App shell, navigation, sessions, theme menu, typed API client; merged to main (b7f321d) |
+| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | ✅ | App shell with sliding navigation, replay position under the top bar, theme menu, chat entry, typed API client (af225fe) |
 | U2 | Design tokens: typefaces, colour, type scale, motion; reviewed against the brief | Cloud | ✅ | Design tokens with contrast and colour-blind tests; merged (b7f321d) |
 | U3 | 3D wafer: instanced dies from real maps, thin-film shader, step-and-scan reveal | Cloud | ✅ | 3D wafer with thin-film shader and SVG fallback; merged (b7f321d) |
 | U4 | Home page with measured results | Cloud | ✅ | Home page with measured results; merged (b7f321d) |
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | 🟡 | Empty, loading and not-ready states on every screen, checked against an API that answers 503; one more pass after the design work |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design helper: visual system, type, motion module, page transitions, live-line motion, 3D polish, light and dark, accessibility and performance budget (branch w1/design) |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design system, motion and 3D hero merged (af225fe): step-and-scan wafer exposure, live control-chart motion, reduced motion respected, no horizontal scroll at 390 px; axe and Lighthouse not run yet |
 
 ### P: Packaging and deployment
 
@@ -213,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 12:31 | New visual design merged: 3D wafer hero with a step-and-scan exposure, live chart motion, investigation report layout, attribution shown as one citation line (af225fe) |
 | 2026-10-14 12:13 | "Waiting on you" cleaned: changelog rows moved back here; open asks are L11 go-ahead, key rotation and the lablab submission |
 | 2026-10-14 12:08 | API tests (Q2) and web tests (Q3) closed with evidence; live site runs 249300b with results and every screen |
 | 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
