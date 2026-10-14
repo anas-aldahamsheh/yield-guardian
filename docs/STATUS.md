@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 15:16 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 15:25 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 78 of 82 done (95%), 4 in progress, 0 not started
+## Progress: 79 of 82 done (96%), 3 in progress, 0 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -17,7 +17,7 @@
 | L: AI layer | 10 of 11 | 1 | 0 |
 | U: Interface | 14 of 15 | 1 | 0 |
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
-| Q: Quality | 4 of 5 | 1 | 0 |
+| Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
 <!-- progress:end -->
 
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 78 of 82 |
+| Done | 79 of 82 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design system, motion and 3D hero merged (af225fe): step-and-scan wafer exposure, live control-chart motion, reduced motion respected, no horizontal scroll at 390 px; axe and Lighthouse not run yet |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | axe on every route (real stack): 0 serious or critical. No sideways scroll at 375 px. Lighthouse mobile, median of 3 (performance / accessibility / best practices): home 44→79 / 100 / 100, /line 58→63 / 100 / 96, /methods 63→73 / 100 / 100. Home performance is below the 90 target |
 | U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | ✅ | Live on the site (d37fc64): 89 entries in 10 categories, filters and Arabic search, right-to-left, no sideways scroll at 375 px |
 
 ### P: Packaging and deployment
@@ -189,7 +189,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | Q2 | API tests | Cloud | ✅ | About 890 API tests pass on main with PostgreSQL (unit, database, science on the real bundles, methods); ruff and mypy strict clean; run in CI |
 | Q3 | Web tests, type check, lint | Cloud | ✅ | Web: type check (both configs), lint 0 warnings, 184 unit tests, 35 Playwright tests at 1440 and 390 px on the production build (72c1e9d) |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ✅ | Playwright on the real compose stack (real bundles, PostgreSQL): 25 passed, 1 skipped (no work order yet); 375 px no-scroll on 13 routes; no Token Factory call (dda51e7). Run: pnpm --filter @yield-guardian/web e2e:stack, see apps/web/docs/E2E-STACK.md |
-| Q5 | Final review pass and performance check | Cloud | 🟡 | Review done: nothing blocking. No secrets in history, every number matches its source, no fixtures in the build, no rate limits (D-009), no general model proxy. Doc drift fixed (writer schema, Mahalanobis in the model card, committed bundles, T² CI, router and verifier results in README). Performance check runs with U14 |
+| Q5 | Final review pass and performance check | Cloud | ✅ | Review done: nothing blocking (no secrets in history, numbers match sources, no fixtures in the build, no rate limits, no general model proxy); doc drift fixed (fd5c12a); performance measured (see U14) |
 
 ### X: Submission
 
@@ -213,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 15:25 | Chat is fully model-written: no canned replies, the model knows every tool and the product, and the number check stays as a check. Accessibility and performance work merged (4e1e524) |
 | 2026-10-14 15:16 | Final review: nothing blocking; docs corrected (writer JSON validated in code, Mahalanobis named in the wafer model card, bundles committed not released, T² interval, language-model results in README). Third recording reached a full report; the verifier rejected it on rounding and labels, then the writer timed out (0.0074 points); fixes in progress |
 | 2026-10-14 14:02 | Arabic guide live (U15 done). Writer fix and "no key means 503" deployed (d37fc64) |
 | 2026-10-14 13:23 | End-to-end tests on the real stack pass (Q4); not-configured states (U13). Live site verified at 375 px with no sideways scroll. Recorded run reached the writer and failed there (0.023 points); writer fix in progress |
