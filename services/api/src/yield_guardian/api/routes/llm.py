@@ -39,7 +39,7 @@ async def update_role_assignment(
 
 @router.get("/llm/usage", operation_id="get_llm_usage", responses=problem_responses(503))
 async def get_llm_usage(llm: Llm) -> UsageReport:
-    """Tokens and points used today, the quota and the budget guard."""
+    """Tokens and points used today and the remaining quota (for information only)."""
     return await llm.usage()
 
 

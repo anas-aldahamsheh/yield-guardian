@@ -2,25 +2,25 @@
   {
     "type": "status",
     "seq": 1,
-    "at": "2026-10-13T23:39:00Z",
+    "at": "2026-10-14T11:08:24Z",
     "status": "queued"
   },
   {
     "type": "status",
     "seq": 2,
-    "at": "2026-10-13T23:39:00Z",
+    "at": "2026-10-14T11:08:24Z",
     "status": "running"
   },
   {
     "type": "step",
     "seq": 3,
-    "at": "2026-10-13T23:39:00Z",
+    "at": "2026-10-14T11:08:24Z",
     "step": {
       "index": 0,
       "node": "triage",
       "status": "running",
-      "title": "Read alarm AL-443-t2 on unit 443",
-      "started_at": "2026-10-13T23:39:00Z",
+      "title": "Read alarm AL-1062-t2 on unit 1062",
+      "started_at": "2026-10-14T11:08:24Z",
       "finished_at": null,
       "tool": null,
       "evidence_ids": [],
@@ -30,14 +30,14 @@
   {
     "type": "step",
     "seq": 4,
-    "at": "2026-10-13T23:39:01Z",
+    "at": "2026-10-14T11:08:25Z",
     "step": {
       "index": 0,
       "node": "triage",
       "status": "completed",
-      "title": "Read alarm AL-443-t2 on unit 443",
-      "started_at": "2026-10-13T23:39:00Z",
-      "finished_at": "2026-10-13T23:39:01Z",
+      "title": "Read alarm AL-1062-t2 on unit 1062",
+      "started_at": "2026-10-14T11:08:24Z",
+      "finished_at": "2026-10-14T11:08:25Z",
       "tool": null,
       "evidence_ids": [],
       "llm": []
@@ -46,13 +46,13 @@
   {
     "type": "step",
     "seq": 5,
-    "at": "2026-10-13T23:39:01Z",
+    "at": "2026-10-14T11:08:25Z",
     "step": {
       "index": 1,
       "node": "plan",
       "status": "running",
       "title": "Planned four evidence steps",
-      "started_at": "2026-10-13T23:39:01Z",
+      "started_at": "2026-10-14T11:08:25Z",
       "finished_at": null,
       "tool": null,
       "evidence_ids": [],
@@ -62,14 +62,14 @@
   {
     "type": "step",
     "seq": 6,
-    "at": "2026-10-13T23:39:03Z",
+    "at": "2026-10-14T11:08:27Z",
     "step": {
       "index": 1,
       "node": "plan",
       "status": "completed",
       "title": "Planned four evidence steps",
-      "started_at": "2026-10-13T23:39:01Z",
-      "finished_at": "2026-10-13T23:39:03Z",
+      "started_at": "2026-10-14T11:08:25Z",
+      "finished_at": "2026-10-14T11:08:27Z",
       "tool": null,
       "evidence_ids": [],
       "llm": [
@@ -89,13 +89,13 @@
   {
     "type": "step",
     "seq": 7,
-    "at": "2026-10-13T23:39:03Z",
+    "at": "2026-10-14T11:08:27Z",
     "step": {
       "index": 2,
       "node": "evidence",
       "status": "running",
-      "title": "Read unit 443",
-      "started_at": "2026-10-13T23:39:03Z",
+      "title": "Read unit 1062",
+      "started_at": "2026-10-14T11:08:27Z",
       "finished_at": null,
       "tool": "get_unit",
       "evidence_ids": [],
@@ -105,18 +105,18 @@
   {
     "type": "evidence",
     "seq": 8,
-    "at": "2026-10-13T23:39:04Z",
+    "at": "2026-10-14T11:08:28Z",
     "evidence": {
       "evidence_id": "E1",
       "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
       "tool": "get_unit",
       "arguments": {
-        "unit_id": 443
+        "unit_id": 1062
       },
       "data": {
-        "unit_id": 443,
-        "sequence": 471,
-        "timestamp": "2008-08-12T19:35:01.983569Z",
+        "unit_id": 1062,
+        "sequence": 1062,
+        "timestamp": "2008-09-24T15:05:00Z",
         "block": "validation",
         "risk": 0.184,
         "risk_source": "validation",
@@ -125,11 +125,11 @@
         "spe": 47.6,
         "fdc_alarm": "alarm",
         "fdc_period": "monitoring",
-        "ewma_alarm": false,
-        "cusum_alarm": false,
-        "final_test": null,
+        "ewma_alarm": true,
+        "cusum_alarm": true,
+        "final_test": "fail",
         "risk_detail": {
-          "unit_id": 443,
+          "unit_id": 1062,
           "block": "validation",
           "risk": 0.184,
           "risk_source": "validation",
@@ -143,15 +143,15 @@
           "calibration": "platt",
           "note": null
         },
-        "sensors_measured": 561,
-        "sensors_missing": 29,
+        "sensors_measured": 570,
+        "sensors_missing": 20,
         "explanation_available": true,
         "alarms": [
           {
-            "alarm_id": "AL-443-risk",
-            "unit_id": 443,
-            "sequence": 471,
-            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "alarm_id": "AL-1062-risk",
+            "unit_id": 1062,
+            "sequence": 1062,
+            "timestamp": "2008-09-24T15:05:00Z",
             "kind": "risk",
             "severity": "alarm",
             "value": 0.184,
@@ -161,10 +161,10 @@
             "investigation_id": null
           },
           {
-            "alarm_id": "AL-443-t2",
-            "unit_id": 443,
-            "sequence": 471,
-            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "alarm_id": "AL-1062-t2",
+            "unit_id": 1062,
+            "sequence": 1062,
+            "timestamp": "2008-09-24T15:05:00Z",
             "kind": "t2",
             "severity": "alarm",
             "value": 35.8,
@@ -174,10 +174,10 @@
             "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
           },
           {
-            "alarm_id": "AL-443-spe",
-            "unit_id": 443,
-            "sequence": 471,
-            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "alarm_id": "AL-1062-spe",
+            "unit_id": 1062,
+            "sequence": 1062,
+            "timestamp": "2008-09-24T15:05:00Z",
             "kind": "spe",
             "severity": "warning",
             "value": 47.6,
@@ -191,12 +191,12 @@
           "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
         ]
       },
-      "summary": "Unit 443: risk 18.4%, T\u00b2 35.8 (alarm).",
-      "created_at": "2026-10-13T23:39:04Z",
+      "summary": "Unit 1062: risk 18.4%, T\u00b2 35.8 (alarm).",
+      "created_at": "2026-10-14T11:08:28Z",
       "source": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       }
     }
@@ -204,14 +204,14 @@
   {
     "type": "step",
     "seq": 9,
-    "at": "2026-10-13T23:39:04Z",
+    "at": "2026-10-14T11:08:28Z",
     "step": {
       "index": 2,
       "node": "evidence",
       "status": "completed",
-      "title": "Read unit 443",
-      "started_at": "2026-10-13T23:39:03Z",
-      "finished_at": "2026-10-13T23:39:04Z",
+      "title": "Read unit 1062",
+      "started_at": "2026-10-14T11:08:27Z",
+      "finished_at": "2026-10-14T11:08:28Z",
       "tool": "get_unit",
       "evidence_ids": [
         "E1"
@@ -222,13 +222,13 @@
   {
     "type": "step",
     "seq": 10,
-    "at": "2026-10-13T23:39:04Z",
+    "at": "2026-10-14T11:08:28Z",
     "step": {
       "index": 3,
       "node": "evidence",
       "status": "running",
       "title": "Read the T\u00b2 contributions",
-      "started_at": "2026-10-13T23:39:04Z",
+      "started_at": "2026-10-14T11:08:28Z",
       "finished_at": null,
       "tool": "get_contributions",
       "evidence_ids": [],
@@ -238,18 +238,18 @@
   {
     "type": "evidence",
     "seq": 11,
-    "at": "2026-10-13T23:39:07Z",
+    "at": "2026-10-14T11:08:31Z",
     "evidence": {
       "evidence_id": "E2",
       "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
       "tool": "get_contributions",
       "arguments": {
-        "unit_id": 443,
+        "unit_id": 1062,
         "statistic": "t2",
         "top_k": 6
       },
       "data": {
-        "unit_id": 443,
+        "unit_id": 1062,
         "statistic": "t2",
         "value": 35.8,
         "limit_99": 26.2,
@@ -260,54 +260,54 @@
             "sensor": "S060",
             "contribution": 9.1,
             "share": 0.254,
-            "value": 37.698,
-            "reference_median": 55.298
+            "value": 1.0027,
+            "reference_median": 17.3018
           },
           {
             "sensor": "S061",
             "contribution": 6.3,
             "share": 0.176,
-            "value": 41.246,
-            "reference_median": 57.202
+            "value": 352.6027,
+            "reference_median": 357.25
           },
           {
             "sensor": "S104",
             "contribution": 4.0,
             "share": 0.112,
-            "value": 45.887,
-            "reference_median": 51.069
+            "value": -0.0139,
+            "reference_median": -0.006
           },
           {
             "sensor": "S026",
             "contribution": 2.9,
             "share": 0.081,
-            "value": 51.632,
-            "reference_median": 43.022
+            "value": 1.3185,
+            "reference_median": 1.2577
           },
           {
             "sensor": "S348",
             "contribution": 2.2,
             "share": 0.061,
-            "value": 47.03,
-            "reference_median": 50.992
+            "value": 0.0,
+            "reference_median": 0.0
           },
           {
             "sensor": "S211",
             "contribution": 1.6,
             "share": 0.045,
-            "value": 43.037,
-            "reference_median": 52.235
+            "value": 0.0706,
+            "reference_median": 0.0951
           }
         ],
         "other_share": 0.271,
         "method": "Per-sensor contributions to Hotelling T\u00b2 of a PCA model fit on the reference period"
       },
       "summary": "Top T\u00b2 contributors: S060, S061, S104.",
-      "created_at": "2026-10-13T23:39:07Z",
+      "created_at": "2026-10-14T11:08:31Z",
       "source": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       }
     }
@@ -315,14 +315,14 @@
   {
     "type": "step",
     "seq": 12,
-    "at": "2026-10-13T23:39:07Z",
+    "at": "2026-10-14T11:08:31Z",
     "step": {
       "index": 3,
       "node": "evidence",
       "status": "completed",
       "title": "Read the T\u00b2 contributions",
-      "started_at": "2026-10-13T23:39:04Z",
-      "finished_at": "2026-10-13T23:39:07Z",
+      "started_at": "2026-10-14T11:08:28Z",
+      "finished_at": "2026-10-14T11:08:31Z",
       "tool": "get_contributions",
       "evidence_ids": [
         "E2"
@@ -333,13 +333,13 @@
   {
     "type": "step",
     "seq": 13,
-    "at": "2026-10-13T23:39:07Z",
+    "at": "2026-10-14T11:08:31Z",
     "step": {
       "index": 4,
       "node": "evidence",
       "status": "running",
       "title": "Read the SHAP explanation",
-      "started_at": "2026-10-13T23:39:07Z",
+      "started_at": "2026-10-14T11:08:31Z",
       "finished_at": null,
       "tool": "get_shap",
       "evidence_ids": [],
@@ -349,17 +349,17 @@
   {
     "type": "evidence",
     "seq": 14,
-    "at": "2026-10-13T23:39:10Z",
+    "at": "2026-10-14T11:08:34Z",
     "evidence": {
       "evidence_id": "E3",
       "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
       "tool": "get_shap",
       "arguments": {
-        "unit_id": 443,
+        "unit_id": 1062,
         "top_k": 15
       },
       "data": {
-        "unit_id": 443,
+        "unit_id": 1062,
         "risk": 0.184,
         "base_value": -2.65,
         "raw_score": -0.94,
@@ -368,7 +368,7 @@
             "feature": "S060",
             "sensor": "S060",
             "kind": "reading",
-            "value": 84.747,
+            "value": 1.0027,
             "shap": 0.62,
             "group_id": "G01"
           },
@@ -376,7 +376,7 @@
             "feature": "S104",
             "sensor": "S104",
             "kind": "reading",
-            "value": 41.29,
+            "value": -0.0139,
             "shap": 0.41,
             "group_id": "G02"
           },
@@ -384,7 +384,7 @@
             "feature": "S130",
             "sensor": "S130",
             "kind": "reading",
-            "value": 88.409,
+            "value": 0.0,
             "shap": -0.33,
             "group_id": "G03"
           },
@@ -392,7 +392,7 @@
             "feature": "S061",
             "sensor": "S061",
             "kind": "reading",
-            "value": 113.457,
+            "value": 352.6027,
             "shap": 0.29,
             "group_id": "G01"
           },
@@ -400,7 +400,7 @@
             "feature": "S026",
             "sensor": "S026",
             "kind": "reading",
-            "value": 66.294,
+            "value": 1.3185,
             "shap": 0.22,
             "group_id": "G04"
           },
@@ -408,7 +408,7 @@
             "feature": "S034",
             "sensor": "S034",
             "kind": "reading",
-            "value": 134.796,
+            "value": 8.9132,
             "shap": 0.18,
             "group_id": "G05"
           },
@@ -416,7 +416,7 @@
             "feature": "S487__missing",
             "sensor": "S487",
             "kind": "missing_indicator",
-            "value": 1.0,
+            "value": 0.0,
             "shap": -0.15,
             "group_id": null
           },
@@ -424,7 +424,7 @@
             "feature": "S211",
             "sensor": "S211",
             "kind": "reading",
-            "value": 159.304,
+            "value": 0.0706,
             "shap": 0.12,
             "group_id": null
           },
@@ -432,7 +432,7 @@
             "feature": "S348",
             "sensor": "S348",
             "kind": "reading",
-            "value": 125.699,
+            "value": 0.0,
             "shap": 0.09,
             "group_id": null
           },
@@ -440,7 +440,7 @@
             "feature": "S065",
             "sensor": "S065",
             "kind": "reading",
-            "value": 158.839,
+            "value": 18.9973,
             "shap": -0.08,
             "group_id": null
           },
@@ -448,7 +448,7 @@
             "feature": "S590",
             "sensor": "S590",
             "kind": "reading",
-            "value": 86.72,
+            "value": 31.0252,
             "shap": 0.07,
             "group_id": null
           },
@@ -456,7 +456,7 @@
             "feature": "S435",
             "sensor": "S435",
             "kind": "reading",
-            "value": 139.759,
+            "value": 2.5787,
             "shap": 0.06,
             "group_id": null
           },
@@ -464,7 +464,7 @@
             "feature": "S090",
             "sensor": "S090",
             "kind": "reading",
-            "value": 110.965,
+            "value": 0.1834,
             "shap": -0.05,
             "group_id": null
           },
@@ -472,7 +472,7 @@
             "feature": "S029",
             "sensor": "S029",
             "kind": "reading",
-            "value": 140.558,
+            "value": 72.2333,
             "shap": 0.04,
             "group_id": null
           },
@@ -480,7 +480,7 @@
             "feature": "S511",
             "sensor": "S511",
             "kind": "reading",
-            "value": 114.458,
+            "value": 38.9189,
             "shap": 0.03,
             "group_id": null
           }
@@ -515,11 +515,11 @@
         "method": "TreeSHAP (LightGBM pred_contrib), exact for tree models"
       },
       "summary": "Largest SHAP contribution: S060 (+0.62 log-odds).",
-      "created_at": "2026-10-13T23:39:10Z",
+      "created_at": "2026-10-14T11:08:34Z",
       "source": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       }
     }
@@ -527,14 +527,14 @@
   {
     "type": "step",
     "seq": 15,
-    "at": "2026-10-13T23:39:10Z",
+    "at": "2026-10-14T11:08:34Z",
     "step": {
       "index": 4,
       "node": "evidence",
       "status": "completed",
       "title": "Read the SHAP explanation",
-      "started_at": "2026-10-13T23:39:07Z",
-      "finished_at": "2026-10-13T23:39:10Z",
+      "started_at": "2026-10-14T11:08:31Z",
+      "finished_at": "2026-10-14T11:08:34Z",
       "tool": "get_shap",
       "evidence_ids": [
         "E3"
@@ -545,13 +545,13 @@
   {
     "type": "step",
     "seq": 16,
-    "at": "2026-10-13T23:39:10Z",
+    "at": "2026-10-14T11:08:34Z",
     "step": {
       "index": 5,
       "node": "evidence",
       "status": "running",
       "title": "Read the significant sensor groups",
-      "started_at": "2026-10-13T23:39:10Z",
+      "started_at": "2026-10-14T11:08:34Z",
       "finished_at": null,
       "tool": "get_feature_groups",
       "evidence_ids": [],
@@ -561,7 +561,7 @@
   {
     "type": "evidence",
     "seq": 17,
-    "at": "2026-10-13T23:39:13Z",
+    "at": "2026-10-14T11:08:37Z",
     "evidence": {
       "evidence_id": "E4",
       "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
@@ -812,11 +812,11 @@
         "wording": "Statistically associated with failure in held-out data; association, not causation."
       },
       "summary": "4 sensor groups are significant at q < 0.05.",
-      "created_at": "2026-10-13T23:39:13Z",
+      "created_at": "2026-10-14T11:08:37Z",
       "source": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       }
     }
@@ -824,14 +824,14 @@
   {
     "type": "step",
     "seq": 18,
-    "at": "2026-10-13T23:39:13Z",
+    "at": "2026-10-14T11:08:37Z",
     "step": {
       "index": 5,
       "node": "evidence",
       "status": "completed",
       "title": "Read the significant sensor groups",
-      "started_at": "2026-10-13T23:39:10Z",
-      "finished_at": "2026-10-13T23:39:13Z",
+      "started_at": "2026-10-14T11:08:34Z",
+      "finished_at": "2026-10-14T11:08:37Z",
       "tool": "get_feature_groups",
       "evidence_ids": [
         "E4"
@@ -842,13 +842,13 @@
   {
     "type": "step",
     "seq": 19,
-    "at": "2026-10-13T23:39:13Z",
+    "at": "2026-10-14T11:08:37Z",
     "step": {
       "index": 6,
       "node": "write",
       "status": "running",
       "title": "Wrote the report",
-      "started_at": "2026-10-13T23:39:13Z",
+      "started_at": "2026-10-14T11:08:37Z",
       "finished_at": null,
       "tool": null,
       "evidence_ids": [],
@@ -858,13 +858,13 @@
   {
     "type": "report",
     "seq": 20,
-    "at": "2026-10-13T23:39:18Z",
+    "at": "2026-10-14T11:08:42Z",
     "round": 0,
     "report": {
-      "summary": "Unit 443 crossed the 99.9% T\u00b2 limit and has a failure risk of 18.4%. The readings that move T\u00b2 most belong to sensor group G01 (S060, S061), which is also statistically associated with failure across held-out units.",
+      "summary": "Unit 1062 crossed the 99.9% T\u00b2 limit and has a failure risk of 18.4%. The readings that move T\u00b2 most belong to sensor group G01 (S060, S061), which is also statistically associated with failure across held-out units.",
       "findings": [
         {
-          "claim": "Unit 443 has a calibrated failure risk of 18.4%, above the 5% false-alarm threshold.",
+          "claim": "Unit 1062 has a calibrated failure risk of 18.4%, above the 5% false-alarm threshold.",
           "evidence_ids": [
             "E1"
           ],
@@ -936,21 +936,21 @@
       "limitations": [
         "SECOM sensors are anonymous, so the tool behind S060 is not named in the data.",
         "Association, not causation: no work-order outcome confirms a cause yet.",
-        "Synthetic fixture for interface development; not a measured result."
+        "Placeholder model output for interface development; replaced by the real bundle."
       ]
     }
   },
   {
     "type": "step",
     "seq": 21,
-    "at": "2026-10-13T23:39:18Z",
+    "at": "2026-10-14T11:08:42Z",
     "step": {
       "index": 6,
       "node": "write",
       "status": "completed",
       "title": "Wrote the report",
-      "started_at": "2026-10-13T23:39:13Z",
-      "finished_at": "2026-10-13T23:39:18Z",
+      "started_at": "2026-10-14T11:08:37Z",
+      "finished_at": "2026-10-14T11:08:42Z",
       "tool": null,
       "evidence_ids": [],
       "llm": [
@@ -970,13 +970,13 @@
   {
     "type": "step",
     "seq": 22,
-    "at": "2026-10-13T23:39:18Z",
+    "at": "2026-10-14T11:08:42Z",
     "step": {
       "index": 7,
       "node": "verify",
       "status": "running",
       "title": "Checked 4 numbers and 3 findings against the evidence",
-      "started_at": "2026-10-13T23:39:18Z",
+      "started_at": "2026-10-14T11:08:42Z",
       "finished_at": null,
       "tool": null,
       "evidence_ids": [],
@@ -986,7 +986,7 @@
   {
     "type": "verification",
     "seq": 23,
-    "at": "2026-10-13T23:39:22Z",
+    "at": "2026-10-14T11:08:46Z",
     "round": 0,
     "verification": {
       "passed": false,
@@ -1024,14 +1024,14 @@
   {
     "type": "step",
     "seq": 24,
-    "at": "2026-10-13T23:39:22Z",
+    "at": "2026-10-14T11:08:46Z",
     "step": {
       "index": 7,
       "node": "verify",
       "status": "completed",
       "title": "Checked 4 numbers and 3 findings against the evidence",
-      "started_at": "2026-10-13T23:39:18Z",
-      "finished_at": "2026-10-13T23:39:22Z",
+      "started_at": "2026-10-14T11:08:42Z",
+      "finished_at": "2026-10-14T11:08:46Z",
       "tool": null,
       "evidence_ids": [],
       "llm": [
@@ -1051,13 +1051,13 @@
   {
     "type": "status",
     "seq": 25,
-    "at": "2026-10-13T23:39:22Z",
+    "at": "2026-10-14T11:08:46Z",
     "status": "awaiting_decision"
   },
   {
     "type": "end",
     "seq": 26,
-    "at": "2026-10-13T23:39:22Z",
+    "at": "2026-10-14T11:08:46Z",
     "status": "awaiting_decision"
   }
 ]

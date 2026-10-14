@@ -1,9 +1,9 @@
 {
   "block": "test",
   "default": "fpr_0.05",
-  "units": 307,
-  "failures": 19,
-  "prevalence": 0.0619,
+  "units": 313,
+  "failures": 17,
+  "prevalence": 0.0543,
   "points": [
     {
       "id": "fpr_0.05",
@@ -46,10 +46,10 @@
         "n": 307,
         "note": null
       },
-      "tp": 8,
+      "tp": 7,
       "fp": 18,
-      "tn": 270,
-      "fn": 11
+      "tn": 278,
+      "fn": 10
     },
     {
       "id": "fpr_0.10",
@@ -92,10 +92,10 @@
         "n": 307,
         "note": null
       },
-      "tp": 11,
-      "fp": 31,
-      "tn": 257,
-      "fn": 8
+      "tp": 10,
+      "fp": 32,
+      "tn": 264,
+      "fn": 7
     }
   ],
   "curve": [

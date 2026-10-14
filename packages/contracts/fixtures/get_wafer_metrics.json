@@ -2,7 +2,7 @@
   "bundle": {
     "name": "wafermap",
     "version": "v1",
-    "created_at": "2026-10-13T23:48:00Z",
+    "created_at": "2026-10-14T11:17:24Z",
     "git_commit": "0000000000000000000000000000000000000000"
   },
   "splits": [
@@ -1490,10 +1490,10 @@
       "source": "Synthetic fixture source",
       "metric": "accuracy",
       "value": 0.9,
-      "note": "Synthetic fixture for interface development; not a measured result."
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
     }
   ],
   "limitations": [
-    "Synthetic fixture for interface development; not a measured result."
+    "Placeholder model output for interface development; replaced by the real bundle."
   ]
 }

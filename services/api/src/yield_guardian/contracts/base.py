@@ -109,8 +109,6 @@ ProblemCode = Literal[
     "csrf_failed",
     "not_found",
     "conflict",
-    "rate_limited",
-    "budget_guard",
     "not_ready",
     "upstream_error",
     "internal_error",

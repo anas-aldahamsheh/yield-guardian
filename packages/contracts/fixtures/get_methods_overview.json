@@ -6,7 +6,7 @@
       "source_url": "https://archive.ics.uci.edu/dataset/179/secom",
       "citation": "McCann, M. and Johnston, A. (2008). SECOM. UCI Machine Learning Repository.",
       "licence": "Synthetic fixture: the licence is recorded at download.",
-      "retrieved_at": "2026-10-13T23:48:00Z",
+      "retrieved_at": "2026-10-14T11:17:24Z",
       "files": [
         {
           "path": "data/secom/secom.data",
@@ -21,7 +21,7 @@
       "source_url": "http://mirlab.org/dataSet/public/",
       "citation": "Wu, M.-J., Jang, J.-S. R. and Chen, J.-L. (2015). Wafer map failure pattern recognition and similarity ranking for large-scale data sets. IEEE TSM 28(1), 1-12.",
       "licence": "Synthetic fixture: the licence is recorded at download.",
-      "retrieved_at": "2026-10-13T23:48:00Z",
+      "retrieved_at": "2026-10-14T11:17:24Z",
       "files": [
         {
           "path": "data/raw/wm811k/LSWMD.pkl",
@@ -36,7 +36,7 @@
       "bundle": {
         "name": "secom",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       },
       "files": 14,
@@ -46,7 +46,7 @@
       "bundle": {
         "name": "wafermap",
         "version": "v1",
-        "created_at": "2026-10-13T23:48:00Z",
+        "created_at": "2026-10-14T11:17:24Z",
         "git_commit": "0000000000000000000000000000000000000000"
       },
       "files": 11,
@@ -64,6 +64,6 @@
     }
   ],
   "limitations": [
-    "Synthetic fixture for interface development; not a measured result."
+    "Placeholder model output for interface development; replaced by the real bundle."
   ]
 }
