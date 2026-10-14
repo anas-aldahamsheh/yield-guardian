@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:32 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:36 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 64 of 86 done (74%), 5 in progress, 17 not started
+## Progress: 64 of 86 done (74%), 6 in progress, 16 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 0 | 1 |
 | L: AI layer | 10 of 11 | 0 | 1 |
-| U: Interface | 4 of 14 | 1 | 9 |
+| U: Interface | 4 of 14 | 2 | 8 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 1 of 5 | 1 | 3 |
 | X: Submission | 1 of 6 | 2 | 3 |
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ⏳ | |
 | U12 | Methods page and model cards | Cloud | ⏳ | |
 | U13 | Empty, loading and error states | Cloud | ⏳ | |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | ⏳ | |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design helper: visual system, type, motion module, page transitions, live-line motion, 3D polish, light and dark, accessibility and performance budget (branch w1/design) |
 
 ### P: Packaging and deployment
 
@@ -211,6 +211,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:36 | Owner found the interface visually weak: a dedicated design helper started on the visual system, motion and 3D (U14), in parallel with worker 5's screens |
 | 2026-10-14 11:32 | Model evaluation run once with the owner's approval (L10 done): router 0.857, verifier 1.000, 0.0019 points. Statistics tests against known values (Q1 done) |
 | 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
 | 2026-10-14 11:09 | Literature on wafer-pattern causes checked and extended (K1, K3 done); a wrong attribution in one quote was corrected |
