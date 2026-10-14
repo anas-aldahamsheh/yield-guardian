@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "Streamed tool call: id and name in the first delta, arguments in fragments, finish_reason tool_calls, usage, [DONE].",
+    "source": "OpenAI chat.completion.chunk tool_calls delta shape; docs/vendor/token-factory.md (tools supported when streaming)"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "Qwen3.8-Flash-Next", "stream": true}
+      },
+      "response": {
+        "status": 200,
+        "chunk_size": 11,
+        "sse": [
+          "{\"id\":\"chatcmpl-fixture-stream-3\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_stream_1\",\"type\":\"function\",\"function\":{\"name\":\"get_risk\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-3\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"unit_\"}}]},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-3\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"id\\\": 7}\"}}]},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-3\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":500,\"completion_tokens\":15,\"total_tokens\":515}}",
+          "[DONE]"
+        ]
+      }
+    }
+  ]
+}

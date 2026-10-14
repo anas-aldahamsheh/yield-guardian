@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "A per-minute rate limit answered with 429 and Retry-After (gateway error shape), then success on the retry.",
+    "source": "docs/vendor/token-factory.md: 'A limited request returns 429 with Retry-After (60 s for per-minute limits, 1 s for concurrency)'; gateway errors use the OpenAI shape {\"error\":{...}}. Retry-After is 1 here so the test's recorded delay is short; the sleep is not real in tests."
+  },
+  "interactions": [
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 429,
+        "headers": {"retry-after": "1", "x-ratelimit-remaining-requests": "0"},
+        "json_body": {
+          "error": {
+            "message": "Rate limit exceeded: too many concurrent requests",
+            "type": "rate_limit_error",
+            "code": "rate_limited",
+            "param": null
+          }
+        }
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 200,
+        "json_body": {
+          "id": "chatcmpl-fixture-after-429",
+          "object": "chat.completion",
+          "model": "DeepSeek-V4-Flash",
+          "choices": [
+            {"index": 0, "message": {"role": "assistant", "content": "Fixture reply after a retry."}, "finish_reason": "stop"}
+          ],
+          "usage": {"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150}
+        }
+      }
+    }
+  ]
+}

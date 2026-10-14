@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "POST /v1/ocr with MinerU2.5-Pro for pages 0-1 of a document URL: pages[].markdown and usage_info.pages_processed.",
+    "source": "docs/vendor/token-factory.md, section OCR: the request shape and 'returns pages[].markdown and usage_info.pages_processed'. The page text is written for the fixture and is not from any paper."
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/ocr",
+        "match": {"model": "MinerU2.5-Pro", "pages": "0-1"}
+      },
+      "response": {
+        "status": 200,
+        "json_body": {
+          "pages": [
+            {"markdown": "# Fixture document\n\n## 1. Introduction\n\nFixture paragraph one.\n\nFixture paragraph two."},
+            {"markdown": "## 2. Method\n\nFixture method paragraph."}
+          ],
+          "usage_info": {"pages_processed": 2}
+        }
+      }
+    }
+  ]
+}

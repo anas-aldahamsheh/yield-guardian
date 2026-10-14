@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "Streamed answer from Qwen3.8-Flash-Next: reasoning deltas, content deltas (one with a multi-byte character), finish_reason, a final chunk with usage, then data: [DONE]. Served in 7-byte pieces so lines and characters are split across reads.",
+    "source": "docs/vendor/token-factory.md ('Streams end with data: [DONE]'); OpenAI chat.completion.chunk shape"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "Qwen3.8-Flash-Next", "stream": true}
+      },
+      "response": {
+        "status": 200,
+        "headers": {"x-ratelimit-remaining-requests": "16"},
+        "chunk_size": 7,
+        "sse": [
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning\":\"Fixture thinking.\"},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Fixture answer, \"},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"T² chart.\"},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-1\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[],\"usage\":{\"prompt_tokens\":300,\"completion_tokens\":25,\"total_tokens\":325,\"completion_tokens_details\":{\"reasoning_tokens\":5}}}",
+          "[DONE]"
+        ]
+      }
+    }
+  ]
+}

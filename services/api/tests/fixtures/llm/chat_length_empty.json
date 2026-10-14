@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "A thinking model that used up max_tokens on reasoning: empty content, finish_reason length, every completion token a reasoning token.",
+    "source": "docs/vendor/token-factory.md: 'Thinking tokens count toward max_tokens: a low limit can leave content empty with finish_reason: length'"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "MiMo-V2.6-Flash"}
+      },
+      "response": {
+        "status": 200,
+        "json_body": {
+          "id": "chatcmpl-fixture-length-1",
+          "object": "chat.completion",
+          "created": 1792058640,
+          "model": "MiMo-V2.6-Flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "",
+                "reasoning": "Fixture thinking text that ran out of tokens before any answer"
+              },
+              "finish_reason": "length"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 800,
+            "completion_tokens": 64,
+            "total_tokens": 864,
+            "completion_tokens_details": {"reasoning_tokens": 64}
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "One response per documented error case, in both documented shapes: unknown model (400, gateway shape), not enough credits (400, platform shape), invalid key (401), account in review (403, account_not_verified), value rejected while parsing (422, platform shape), gateway saturated (503).",
+    "source": "docs/vendor/token-factory.md, section Errors. The status codes, the 'Requested model <name> not supported' message, the account_not_verified code and both body shapes are documented; the other messages are written for the fixture."
+  },
+  "interactions": [
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 400,
+        "json_body": {
+          "error": {
+            "message": "Requested model Fixture-Missing-Model not supported",
+            "type": "invalid_request_error",
+            "code": null,
+            "param": "model"
+          }
+        }
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 400,
+        "json_body": {
+          "detail": {
+            "error": {
+              "message": "Not enough credits to run this request",
+              "type": "invalid_request_error",
+              "code": "insufficient_credits"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 401,
+        "json_body": {"error": {"message": "Invalid API key", "type": "authentication_error", "code": "invalid_api_key"}}
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 403,
+        "json_body": {"detail": {"error": {"message": "Account is in review", "type": "permission_error", "code": "account_not_verified"}}}
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 422,
+        "json_body": {"detail": {"error": {"message": "reasoning_effort 'xhigh' is not supported by GLM-5.3-Flash", "type": "invalid_request_error", "code": "unprocessable", "param": "reasoning_effort"}}}
+      }
+    },
+    {
+      "request": {"method": "POST", "path": "/chat/completions"},
+      "response": {
+        "status": 503,
+        "json_body": {"error": {"message": "Upstream saturated", "type": "server_error", "code": "service_unavailable"}}
+      }
+    }
+  ]
+}

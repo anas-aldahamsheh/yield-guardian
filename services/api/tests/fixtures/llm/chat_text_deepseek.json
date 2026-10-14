@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "Non-streaming text completion from DeepSeek-V4-Flash with reasoning_effort none: content, no reasoning, usage with a zero reasoning-token breakdown, X-RateLimit headers.",
+    "source": "docs/vendor/token-factory.md (chat completion parameters, reasoning fields, usage); OpenAI chat.completion shape"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "DeepSeek-V4-Flash"}
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-ratelimit-limit-requests": "20",
+          "x-ratelimit-remaining-requests": "19",
+          "x-ratelimit-reset-requests": "60s"
+        },
+        "json_body": {
+          "id": "chatcmpl-fixture-text-1",
+          "object": "chat.completion",
+          "created": 1792058400,
+          "model": "DeepSeek-V4-Flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "Fixture reply: hello from the test double."
+              },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 120,
+            "completion_tokens": 30,
+            "total_tokens": 150,
+            "completion_tokens_details": {"reasoning_tokens": 0}
+          }
+        }
+      }
+    }
+  ]
+}

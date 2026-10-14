@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "Streamed answer without any usage chunk: the gateway drops stream_options, so usage may never arrive; points stay unknown.",
+    "source": "docs/vendor/token-factory.md (unknown fields such as stream_options are dropped)"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "Qwen3.8-Flash-Next", "stream": true}
+      },
+      "response": {
+        "status": 200,
+        "sse": [
+          "{\"id\":\"chatcmpl-fixture-stream-2\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Fixture answer without usage.\"},\"finish_reason\":null}]}",
+          "{\"id\":\"chatcmpl-fixture-stream-2\",\"object\":\"chat.completion.chunk\",\"model\":\"Qwen3.8-Flash-Next\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}",
+          "[DONE]"
+        ]
+      }
+    }
+  ]
+}
