@@ -10,7 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", frozen=True)
+    model_config = SettingsConfigDict(extra="ignore", frozen=True, env_ignore_empty=True)
 
     app_name: str = Field("Yield Guardian", description="Product name, held in one place (D-007).")
     environment: Literal["development", "test", "production"] = "development"
@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     database_url: SecretStr | None = Field(
         None, description="postgresql+asyncpg://user:password@host:5432/yield_guardian"
     )
+    migrate_on_start: bool = Field(True, description="Apply database migrations at startup.")
     artifacts_dir: Path = Path("artifacts")
     secom_data_dir: Path = Path("data/secom")
 

@@ -52,5 +52,6 @@ class ServiceRegistry:
     llm: LlmAdmin | None = None
     bundles: list[BundleInfo] = field(default_factory=list)
     resources: list[Resource] = field(default_factory=list)
+    problems: dict[str, str] = field(default_factory=dict)
     database_ok: bool | None = None
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
