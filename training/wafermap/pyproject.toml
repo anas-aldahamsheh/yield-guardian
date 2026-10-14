@@ -43,7 +43,7 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "RUF", "SIM", "N", "NPY"]
-ignore = ["N803", "N806"]
+ignore = ["N803", "N806", "N812", "NPY002"]  # torch F alias; global numpy seed for determinism
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
