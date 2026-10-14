@@ -193,7 +193,7 @@
   html {
     background: var(--room);
     color: var(--ink);
-    font-family: var(--font-sans);
+    font-family: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
@@ -263,7 +263,7 @@
 
   /* Text a language model wrote. Serif means: check its evidence links. */
   .written {
-    font-family: var(--font-serif);
+    font-family: var(--font-written), ui-serif, Georgia, serif;
     font-optical-sizing: auto;
     font-size: 18px;
     line-height: 29px;

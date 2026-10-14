@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "dev:mock": "NEXT_PUBLIC_API_MOCKING=enabled next dev",
+    "dev": "tsx scripts/gateway.ts --mode dev",
+    "dev:mock": "tsx scripts/gateway.ts --mode dev --mock",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0 .",
@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "screenshots": "playwright test --project=screenshots"
+    "screenshots": "playwright test --project=screenshots",
+    "start:mock": "tsx scripts/gateway.ts --mode start --mock",
+    "dev:next": "next dev"
   },
   "dependencies": {
     "@ai-sdk/react": "4.0.143",

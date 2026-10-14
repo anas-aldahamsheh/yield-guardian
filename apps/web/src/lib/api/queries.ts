@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { paths } from "@yield-guardian/contracts";
 
 import { type Api, unwrap } from "./client";
 
@@ -10,6 +11,11 @@ import { type Api, unwrap } from "./client";
 const MINUTE = 60_000;
 
 type Range = { from_seq?: number | null; to_seq?: number | null };
+
+/** Query parameters of a GET operation, straight from the contract. */
+export type QueryOf<P extends keyof paths> = paths[P] extends { get: { parameters: { query?: infer Q } } }
+  ? NonNullable<Q>
+  : never;
 
 export const q = {
   meta: (api: Api) =>
@@ -57,7 +63,7 @@ export const q = {
 
   alarms: (
     api: Api,
-    query: { status?: string | null; kind?: string | null; cursor?: string | null; limit?: number } = {},
+    query: QueryOf<"/api/v1/alarms"> = {},
   ) =>
     queryOptions({
       queryKey: ["alarms", query],
@@ -66,7 +72,7 @@ export const q = {
 
   units: (
     api: Api,
-    query: Range & { band?: string | null; cursor?: string | null; limit?: number } = {},
+    query: QueryOf<"/api/v1/units"> = {},
   ) =>
     queryOptions({
       queryKey: ["units", query],
@@ -142,7 +148,7 @@ export const q = {
 
   investigations: (
     api: Api,
-    query: { status?: string | null; cursor?: string | null; limit?: number } = {},
+    query: QueryOf<"/api/v1/investigations"> = {},
   ) =>
     queryOptions({
       queryKey: ["investigations", "list", query],
@@ -193,7 +199,7 @@ export const q = {
         ),
     }),
 
-  audit: (api: Api, query: { action?: string | null; cursor?: string | null; limit?: number } = {}) =>
+  audit: (api: Api, query: QueryOf<"/api/v1/audit"> = {}) =>
     queryOptions({
       queryKey: ["audit", query],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/audit", { params: { query }, signal })),
@@ -201,13 +207,7 @@ export const q = {
 
   wafers: (
     api: Api,
-    query: {
-      lot?: string | null;
-      label?: string | null;
-      unknown?: boolean | null;
-      cursor?: string | null;
-      limit?: number;
-    } = {},
+    query: QueryOf<"/api/v1/wafers"> = {},
   ) =>
     queryOptions({
       queryKey: ["wafers", "list", query],
@@ -264,7 +264,7 @@ export const q = {
       staleTime: 30 * MINUTE,
     }),
 
-  patternCauses: (api: Api, label?: string | null) =>
+  patternCauses: (api: Api, label?: QueryOf<"/api/v1/knowledge/patterns">["label"]) =>
     queryOptions({
       queryKey: ["knowledge", "patterns", label ?? null],
       queryFn: ({ signal }) =>

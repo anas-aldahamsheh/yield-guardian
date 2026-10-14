@@ -1,16 +1,16 @@
 import createClient from "openapi-fetch";
 import { CSRF_HEADER, type paths } from "@yield-guardian/contracts";
 
-import { originOf } from "./config";
 import { ApiError, isProblem } from "./errors";
 
 /**
  * A client typed by the API contracts. Every path, parameter and response body is checked
- * against packages/contracts at compile time.
+ * against packages/contracts at compile time. `origin` is "" in the browser (same origin) or
+ * the API origin on the server.
  */
-export function createApi(apiUrl: string, init: Omit<RequestInit, "headers"> = {}) {
+export function createApi(origin: string, init: Omit<RequestInit, "headers"> = {}) {
   return createClient<paths>({
-    baseUrl: originOf(apiUrl),
+    baseUrl: origin,
     credentials: "include",
     ...init,
   });
