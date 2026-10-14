@@ -99,6 +99,8 @@ class CallOptions:
     use_cache: bool = True
     exclude_families: frozenset[str] = field(default_factory=frozenset)
     """Model families that must not serve this call (the verifier excludes the writer's)."""
+    on_record: Callable[[LlmCallRecord], None] | None = None
+    """Also receives each call record (an investigation step collects its own calls)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -429,6 +431,8 @@ class _Logger:
             **fields,
         )
         await self._gateway.call_log.record(record)
+        if self._options.on_record is not None:
+            self._options.on_record(record)
 
     async def refused(self, status: CallStatus, kind: str, message: str) -> None:
         await self._emit(
