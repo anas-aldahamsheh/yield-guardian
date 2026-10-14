@@ -81,7 +81,7 @@ function UnitReadings({ unit: u }: { unit: UnitDetail }) {
     <section aria-label="Readings" className="panel px-4 py-4 sm:px-5">
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
         <Reading
-          label="Failure risk"
+          label="Failure risk, experimental"
           value={u.risk == null ? "Warm-up" : formatProbability(u.risk)}
           detail={u.risk_band ? BAND_NAME[u.risk_band] : undefined}
         />

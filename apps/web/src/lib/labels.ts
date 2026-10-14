@@ -46,7 +46,7 @@ export const INVESTIGATION_STATUS: Record<string, string> = {
 };
 
 export const ALARM_KIND: Record<string, string> = {
-  risk: "Failure risk",
+  risk: "Failure risk (experimental)",
   t2: "Hotelling T²",
   spe: "SPE (Q)",
   ewma: "EWMA",
