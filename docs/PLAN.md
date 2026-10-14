@@ -211,7 +211,7 @@ Money appears only through a calculator where the engineer enters their own cost
 | Role | Default model | Why | Reasoning effort |
 |---|---|---|---|
 | Investigator (plans, calls tools) | DeepSeek-V4.1-Flash | Tool calling, 1M context, lowest price | low |
-| Report writer | MiMo-V2.6-Flash | The only model with strict `json_schema` | low |
+| Report writer | MiMo-V2.6-Flash | JSON output validated in code (the live endpoint refused strict `json_schema` for MiMo on 2026-10-14) | none |
 | Verifier | GLM-5.3-Flash | Different family from the writer | low |
 | Engineer chat | Qwen3.8-Flash-Next | Fast | none |
 | Router fallback | MiniCPM5-2B | Small; used only when deterministic rules cannot route | n/a |
@@ -269,7 +269,7 @@ Report
 
 Verification, in order:
 
-1. Schema validation (strict `json_schema` on MiMo, Pydantic validation for any other model).
+1. Schema validation: `json_object` output validated against the report schema in code (Pydantic) for every model; no model on the live endpoint accepted strict `json_schema` (measured 2026-10-14).
 2. Every number in the text must appear in `numbers[]` and match the cited evidence at its path.
 3. Every finding cites at least one existing evidence ID.
 4. Causal wording ("caused", "root cause is") is rejected unless the evidence is a confirmed work-order outcome.
