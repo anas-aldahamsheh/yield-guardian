@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:23 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:26 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 62 of 86 done (72%), 7 in progress, 17 not started
+## Progress: 63 of 86 done (73%), 6 in progress, 17 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -17,7 +17,7 @@
 | L: AI layer | 9 of 11 | 1 | 1 |
 | U: Interface | 4 of 14 | 1 | 9 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
-| Q: Quality | 0 of 5 | 2 | 3 |
+| Q: Quality | 1 of 5 | 1 | 3 |
 | X: Submission | 1 of 6 | 2 | 3 |
 <!-- progress:end -->
 
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 62 of 86 |
+| Done | 63 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -184,7 +184,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | 🟡 | Training tests: SECOM statistics, split leakage and smoke run; wafer-map units and data; ONNX parity in the API; all green in CI |
+| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ✅ | Statistics checked against known values: bootstrap coverage on simulated truth, Benjamini-Hochberg 1995 example, exact ECE, Mann-Whitney and binomial tests equal scipy, T² and SPE limits against the formulas, join-count null mean and calibration, Wilson and Mahalanobis; no bug found, no reported number changed |
 | Q2 | API tests | Cloud | 🟡 | API: 230 tests including PostgreSQL, real-bundle tests for SECOM and wafer services; green in CI |
 | Q3 | Web tests, type check, lint | Cloud | ⏳ | |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
