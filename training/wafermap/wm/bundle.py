@@ -275,6 +275,16 @@ def model_card(m: dict, deployed: str) -> str:
         "- The official test set is 93% `none`, the lot-grouped one about 85%; macro-F1 weighs "
         "every class equally, so rare classes (Near-full: "
         f"{dep['test']['per_class']['Near-full']['support']} test wafers) have wide intervals.",
+        "- The official split gives a much lower macro-F1 than the lot-grouped one "
+        f"({off['across_seeds']['macro_f1']['mean']:.3f} ± "
+        f"{off['across_seeds']['macro_f1']['sd']:.3f} vs {lot['across_seeds']['macro_f1']['mean']:.3f} ± "
+        f"{lot['across_seeds']['macro_f1']['sd']:.3f}). Its test lots are the higher-numbered "
+        "ones and differ from its training lots: models that score well on validation lots drawn "
+        "from official training call many test `none` wafers Edge-Loc, Center or Loc. One "
+        "official seed stopped early (best validation epoch "
+        + ", ".join(str(off["seeds"][str(s)]["best_epoch"]) for s in SEEDS)
+        + " for seeds 0, 1, 2) and is reported as measured; seeds were not re-run after the "
+        "test results were seen.",
         "- Labels were assigned by the dataset's annotators; label noise is unmeasured.",
         '- WM-811K has no timestamps, so "reference period" for the lot tests means the '
         "validation lots, not an earlier time window. The binomial test treats wafers of a lot "
