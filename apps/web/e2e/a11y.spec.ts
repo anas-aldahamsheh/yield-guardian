@@ -21,6 +21,7 @@ const ROUTES = [
   "/work-orders/WO-000012",
   "/models",
   "/methods",
+  "/guide",
 ];
 
 for (const viewport of VIEWPORTS) {

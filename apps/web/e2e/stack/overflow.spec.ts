@@ -24,6 +24,7 @@ const ROUTES: { name: string; path: (ids: Ids) => string | null }[] = [
   { name: "a work order", path: (ids) => (ids.workOrder ? `/work-orders/${ids.workOrder}` : null) },
   { name: "models", path: () => "/models" },
   { name: "methods", path: () => "/methods" },
+  { name: "guide", path: () => "/guide" },
 ];
 
 test.describe("375 px, no horizontal scroll", () => {
