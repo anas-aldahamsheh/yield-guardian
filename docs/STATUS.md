@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 15:55 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 16:02 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | 4f7e92b run: evidence in 42 s (DeepSeek), then MiMo and Qwen3.8-27B both missed the 180 s writer deadline (MiMo ~5 tok/s); 0.0029 points. Writer is now DeepSeek-V4.1-Flash with MiMo as fallback (53106d8). Waiting on the owner's go-ahead for one more recording |
+| L11 | Recorded demo investigations | Cloud | 🟡 | 4f7e92b run: evidence in 42 s (DeepSeek), then MiMo and Qwen3.8-27B both missed the 180 s writer deadline (MiMo ~5 tok/s); 0.0029 points. Writer is now DeepSeek-V4.1-Flash with MiMo as fallback (53106d8). Owner approved one more recording (16:01); running on 2baaf44 |
 
 ### U: Interface
 
@@ -206,13 +206,13 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
-| 2026-10-14 15:55 | Go-ahead for one more recording (L11) after the writer switch, on the decision card in the thread | Costs about 0.003 to 0.01 points; about 0.028 of the 0.1 approval used |
 | 2026-10-14 | Rotate the Token Factory key after the event | It was pasted in chat |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 16:02 | Owner approved one more recording with DeepSeek as writer; deploy and record line sent |
 | 2026-10-14 15:55 | 4f7e92b live: both chat checks pass (full answer, list markers shown, 173 = 116 + 57 verified; 0.0125 points). Recording failed at the writer (timeout). Merged 53106d8: DeepSeek-V4.1-Flash writes, MiMo is fallback, Qwen3.8-27B dropped; 939 tests pass |
 | 2026-10-14 15:25 | Chat is fully model-written: no canned replies, the model knows every tool and the product, and the number check stays as a check. Accessibility and performance work merged (4e1e524) |
 | 2026-10-14 15:16 | Final review: nothing blocking; docs corrected (writer JSON validated in code, Mahalanobis named in the wafer model card, bundles committed not released, T² interval, language-model results in README). Third recording reached a full report; the verifier rejected it on rounding and labels, then the writer timed out (0.0074 points); fixes in progress |
