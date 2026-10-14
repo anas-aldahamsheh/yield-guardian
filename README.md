@@ -18,6 +18,9 @@ Built for the AMD Developer Hackathon: ACT III, track Intelligent Industry.
 | Lots | Lots whose pattern counts are unusual, with stacked maps |
 | Sensor health | Dead, stuck, jumping and drifting sensors, and missingness tests |
 | Work orders and audit | What was approved, by whom, and what happened |
+| Models | The model behind each AI role, switchable by the admin, with measured evaluation results and usage |
+| Methods | Data sources with checksums, model cards, every measured result with its interval, and the limitations |
+| Engineer chat | Questions about any unit, sensor, wafer or lot, answered from cited records; numbers not in the evidence are withheld, and it reads but never acts |
 
 ## Results
 
