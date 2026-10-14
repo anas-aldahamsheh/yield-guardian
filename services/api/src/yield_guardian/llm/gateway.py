@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+import structlog
 from pydantic import BaseModel
 
 from yield_guardian.llm.cache import ResponseCache, cache_key
@@ -42,6 +43,7 @@ from yield_guardian.llm.errors import (
     StreamReportedError,
     TokenFactoryHttpError,
     TransportError,
+    mask_secrets,
 )
 from yield_guardian.llm.messages import ChatRequest, ResponseFormat
 from yield_guardian.llm.registry import (
@@ -62,6 +64,8 @@ from yield_guardian.llm.results import (
 from yield_guardian.llm.structured import parse_structured, strict_json_schema
 from yield_guardian.llm.usage import QuotaMonitor
 
+_log = structlog.get_logger(__name__)
+
 _MODEL_SPECIFIC_HTTP = frozenset(
     {
         ErrorKind.UNKNOWN_MODEL,
@@ -75,6 +79,16 @@ _MODEL_SPECIFIC_HTTP = frozenset(
 )
 
 
+def _schema_refused(resolved: ResolvedChoice, spec: _OutputSpec | None, exc: BaseException) -> bool:
+    """A strict json_schema request the server rejected as invalid (400 or 422)."""
+    return (
+        spec is not None
+        and resolved.choice.response_mode is ResponseMode.JSON_SCHEMA
+        and isinstance(exc, TokenFactoryHttpError)
+        and exc.kind in (ErrorKind.BAD_REQUEST, ErrorKind.UNPROCESSABLE)
+    )
+
+
 def fallback_reason(exc: BaseException) -> str | None:
     """Why the next model of the chain may succeed, or None if the failure is account-wide."""
     if isinstance(exc, ProfileViolationError):
@@ -84,7 +98,9 @@ def fallback_reason(exc: BaseException) -> str | None:
     if isinstance(exc, EmptyCompletionError):
         return f"empty answer (finish_reason={exc.finish_reason})"
     if isinstance(exc, TokenFactoryHttpError):
-        return f"HTTP {exc.status} {exc.kind}" if exc.kind in _MODEL_SPECIFIC_HTTP else None
+        if exc.kind not in _MODEL_SPECIFIC_HTTP:
+            return None
+        return f"HTTP {exc.status} {exc.kind}: {mask_secrets(exc.error.message)[:200]}"
     if isinstance(
         exc, TransportError | ResponseShapeError | StreamProtocolError | StreamReportedError
     ):
@@ -200,13 +216,18 @@ class LlmGateway:
     # -- chain --------------------------------------------------------------------------------
 
     def _prepare(
-        self, resolved: ResolvedChoice, request: ChatRequest, spec: _OutputSpec | None
+        self,
+        resolved: ResolvedChoice,
+        request: ChatRequest,
+        spec: _OutputSpec | None,
+        *,
+        mode_override: ResponseMode | None = None,
     ) -> ChatRequest:
         if request.reasoning_effort is not None:
             raise ValueError("reasoning_effort is set per role by the registry, not by callers")
         update: dict[str, Any] = {"reasoning_effort": resolved.choice.reasoning_effort}
         if spec is not None:
-            mode = resolved.choice.response_mode
+            mode = mode_override or resolved.choice.response_mode
             if mode is ResponseMode.JSON_SCHEMA:
                 update["response_format"] = ResponseFormat.strict_schema(spec.name, spec.schema)
             elif mode is ResponseMode.JSON_OBJECT:
@@ -235,7 +256,21 @@ class LlmGateway:
                 reason = fallback_reason(exc)
                 if reason is None:
                     raise
-                failures.append((resolved.choice.model, reason))
+                if not _schema_refused(resolved, spec, exc):
+                    failures.append((resolved.choice.model, reason))
+                    continue
+            # The server refused the strict schema request: the same model may still answer
+            # with json_object, which Pydantic validates the same way.
+            try:
+                plain = self._prepare(
+                    resolved, request, spec, mode_override=ResponseMode.JSON_OBJECT
+                )
+                return await self._attempt(role, resolved, plain, options, parse)
+            except LlmError as again:
+                second = fallback_reason(again)
+                if second is None:
+                    raise
+                failures.append((resolved.choice.model, f"{reason}; as json_object: {second}"))
         raise NoModelAvailableError(str(role), failures)
 
     # -- one attempt --------------------------------------------------------------------------
@@ -462,8 +497,20 @@ class _Logger:
             attempts=exc.attempts,
             http_status=exc.status,
             error_kind=str(exc.kind),
-            error_message=exc.error.message[:500],
+            error_message=mask_secrets(exc.error.message)[:500],
+            error_body=exc.body,
             request_key=key,
+        )
+        _log.warning(
+            "llm_http_error",
+            role=role_name(self._role),
+            model=self._model,
+            status=exc.status,
+            kind=str(exc.kind),
+            message=mask_secrets(exc.error.message)[:500],
+            param=exc.error.param,
+            body=exc.body,
+            correlation_id=self._options.correlation_id,
         )
 
     async def error(self, kind: str, message: str, *, key: str) -> None:

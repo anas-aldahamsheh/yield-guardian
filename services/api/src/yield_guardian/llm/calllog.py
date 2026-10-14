@@ -52,6 +52,8 @@ class LlmCallRecord(BaseModel):
     http_status: int | None = None
     error_kind: str | None = None
     error_message: str | None = None
+    error_body: str | None = None
+    """The provider's error body on an HTTP error, secrets masked, at most 2000 characters."""
     request_key: str | None = None
     correlation_id: str | None = None
 

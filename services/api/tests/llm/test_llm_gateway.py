@@ -433,3 +433,112 @@ async def test_structured_output_needs_a_json_mode_in_the_chain(stack: Stack) ->
         await stack.gateway.complete_structured(
             Role.CHAT, json_request(), Verdicts, schema_name="verdicts"
         )
+
+
+SCHEMA_400 = {
+    "error": {
+        "message": "Invalid response_format",
+        "type": "invalid_request_error",
+        "param": "response_format.json_schema",
+    }
+}
+
+
+async def test_a_refused_schema_is_retried_on_the_same_model_as_json_object(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    route = respx_mock.post(host=HOST).mock(
+        side_effect=[
+            httpx.Response(400, json=SCHEMA_400),
+            completion("MiMo-V2.6-Flash", '{"label": "x", "count": 1}'),
+        ]
+    )
+    out = await stack.gateway.complete_structured(
+        Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+    )
+    assert out.result.model == "MiMo-V2.6-Flash"
+    first, second = sent_bodies(route)
+    assert (first["model"], first["response_format"]["type"]) == ("MiMo-V2.6-Flash", "json_schema")
+    assert (second["model"], second["response_format"]) == (
+        "MiMo-V2.6-Flash",
+        {"type": "json_object"},
+    )
+    assert second["reasoning_effort"] == first["reasoning_effort"]
+    error, ok = stack.call_log.records
+    assert (error.status, error.http_status, error.error_kind) == (
+        CallStatus.ERROR,
+        400,
+        "bad_request",
+    )
+    assert error.error_body is not None
+    assert "response_format.json_schema" in error.error_body
+    assert ok.status is CallStatus.OK
+
+
+async def test_when_both_shapes_fail_the_chain_moves_on_and_names_both_reasons(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    respx_mock.post(host=HOST).mock(
+        side_effect=[
+            httpx.Response(400, json=SCHEMA_400),
+            failure(400, "reasoning_effort low is not supported"),
+            failure(400, "bad request again"),
+        ]
+    )
+    with pytest.raises(NoModelAvailableError) as caught:
+        await stack.gateway.complete_structured(
+            Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+        )
+    text = str(caught.value)
+    assert "MiMo-V2.6-Flash: HTTP 400 bad_request: Invalid response_format" in text
+    assert "as json_object: HTTP 400 bad_request: reasoning_effort low is not supported" in text
+    assert "Qwen3.8-27B: HTTP 400 bad_request: bad request again" in text
+    assert [r.model for r in stack.call_log.records] == [
+        "MiMo-V2.6-Flash",
+        "MiMo-V2.6-Flash",
+        "Qwen3.8-27B",
+    ]
+    assert all(r.error_body for r in stack.call_log.records)
+
+
+async def test_a_400_on_a_json_object_model_is_not_retried_on_the_same_model(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    await stack.registry.assign(
+        Role.WRITER,
+        [
+            ModelChoice(
+                model="Qwen3.8-27B", reasoning_effort="low", response_mode=ResponseMode.JSON_OBJECT
+            )
+        ],
+        actor="test",
+    )
+    route = respx_mock.post(host=HOST).mock(return_value=failure(400, "no"))
+    with pytest.raises(NoModelAvailableError):
+        await stack.gateway.complete_structured(
+            Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+        )
+    assert route.call_count == 1
+
+
+async def test_an_http_error_body_is_logged_without_the_key(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    from structlog.testing import capture_logs
+
+    secret = "rc-" + "ab" * 24
+    respx_mock.post(host=HOST).mock(
+        return_value=httpx.Response(
+            422,
+            json={"error": {"message": f"bad schema for key {secret}", "param": "messages"}},
+        )
+    )
+    with capture_logs() as logs, pytest.raises(NoModelAvailableError):
+        await stack.gateway.complete(Role.INVESTIGATOR, text_request())
+    warnings = [e for e in logs if e["event"] == "llm_http_error"]
+    assert warnings
+    assert warnings[0]["status"] == 422
+    assert warnings[0]["param"] == "messages"
+    assert "bad schema" in warnings[0]["body"]
+    assert all(secret not in str(e) for e in logs)
+    assert all(secret not in (r.error_body or "") for r in stack.call_log.records)

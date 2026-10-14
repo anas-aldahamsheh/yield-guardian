@@ -9,7 +9,7 @@
       "request": {
         "method": "POST",
         "path": "/chat/completions",
-        "match": {"model": "MiMo-V2.6-Flash", "reasoning_effort": "low"}
+        "match": {"model": "MiMo-V2.6-Flash", "reasoning_effort": "none"}
       },
       "response": {
         "status": 200,

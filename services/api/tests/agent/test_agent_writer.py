@@ -12,6 +12,7 @@ from tests.llm.helpers import make_stack
 from yield_guardian.agent.prompts import REVISION_NOTE, WRITER_SYSTEM
 from yield_guardian.agent.writer import (
     REPORT_SCHEMA_NAME,
+    WRITER_MAX_TOKENS,
     ReportWriter,
     WriterInput,
     writer_request,
@@ -49,7 +50,7 @@ def test_first_draft_request_carries_trigger_and_evidence_as_data() -> None:
     assert data["trigger"]["question"] == "Why is it risky?"
     assert [e["evidence_id"] for e in data["evidence"]] == ["E1"]
     assert "previous_report" not in data
-    assert request.max_tokens == 4096
+    assert request.max_tokens == WRITER_MAX_TOKENS == 16384
 
 
 def test_revision_request_lists_the_problems() -> None:

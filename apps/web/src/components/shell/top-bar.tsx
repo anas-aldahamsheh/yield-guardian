@@ -6,7 +6,14 @@ import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import { ChatLauncher } from "@/components/chat/chat-launcher";
@@ -36,11 +43,19 @@ export function TopBar() {
           <SessionControl className="hidden md:flex" />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="xl:hidden" aria-label="Open the menu">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="xl:hidden"
+                aria-label="Open the menu"
+              >
                 <Menu className="size-4" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[min(360px,100vw)] gap-0 border-hairline bg-die p-0">
+            <SheetContent
+              side="right"
+              className="w-[min(360px,100vw)] gap-0 border-hairline bg-die p-0"
+            >
               <SheetHeader className="border-b border-hairline px-5 py-4">
                 <SheetTitle className="text-base">Menu</SheetTitle>
                 <SheetDescription className="sr-only">Pages of Yield Guardian</SheetDescription>
@@ -57,7 +72,9 @@ export function TopBar() {
                           onClick={() => setOpen(false)}
                           className={cn(
                             "block border-l-2 px-5 py-2.5 no-underline",
-                            active ? "border-safelight bg-safelight-wash text-ink" : "border-transparent text-ink hover:bg-accent",
+                            active
+                              ? "border-safelight bg-safelight-wash text-ink"
+                              : "border-transparent text-ink hover:bg-accent",
                           )}
                         >
                           <span className="block text-[15px] font-medium">{item.label}</span>
@@ -94,9 +111,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
     if (!el) return;
     const place = (animate: boolean) => {
       const link = activeHref ? el.querySelector<HTMLElement>(`a[href="${activeHref}"]`) : null;
-      setBar((prev) =>
-        link ? { left: link.offsetLeft + 12, width: link.offsetWidth - 24, animate: animate && prev != null } : null,
-      );
+      setBar((prev) => (link ? { ...underText(link), animate: animate && prev != null } : null));
     };
     place(true);
     const observer = new ResizeObserver(() => place(false));
@@ -115,7 +130,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex items-center px-3 text-sm no-underline transition-colors duration-[var(--dur-micro)]",
+                  "relative flex items-center px-2 text-sm no-underline transition-colors duration-[var(--dur-micro)] 2xl:px-3",
                   active ? "font-medium text-ink" : "text-ink-2 hover:text-ink",
                 )}
               >
@@ -129,7 +144,8 @@ function DesktopNav({ pathname }: { pathname: string }) {
             aria-hidden="true"
             className={cn(
               "pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full bg-safelight",
-              bar.animate && "transition-[transform,width] duration-[var(--dur-panel)] ease-[var(--ease-arrive)]",
+              bar.animate &&
+                "transition-[transform,width] duration-[var(--dur-panel)] ease-[var(--ease-arrive)]",
             )}
             style={{ width: bar.width, transform: `translateX(${bar.left}px)` }}
           />
@@ -137,4 +153,10 @@ function DesktopNav({ pathname }: { pathname: string }) {
       </ul>
     </nav>
   );
+}
+
+/** The bar spans the link's text, inside its padding (which narrows below 2xl so nine pages fit). */
+function underText(link: HTMLElement): { left: number; width: number } {
+  const pad = Number.parseFloat(getComputedStyle(link).paddingLeft) || 0;
+  return { left: link.offsetLeft + pad, width: link.offsetWidth - 2 * pad };
 }

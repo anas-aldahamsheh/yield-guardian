@@ -94,7 +94,9 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         _c("Qwen3.8-Flash-Next", "low", _T),
     ),
     Role.WRITER: (
-        _c("MiMo-V2.6-Flash", "low", _S),
+        # "none" is the one MiMo value the docs name ("none turns it off"); "low" was never
+        # verified and the first live writer call on MiMo answered 400 (2026-10-14).
+        _c("MiMo-V2.6-Flash", "none", _S),
         _c("Qwen3.8-27B", "low", _O),
     ),
     Role.VERIFIER: (

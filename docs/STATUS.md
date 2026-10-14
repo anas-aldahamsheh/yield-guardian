@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 13:23 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 14:02 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 77 of 82 done (94%), 4 in progress, 1 not started
+## Progress: 78 of 82 done (95%), 3 in progress, 1 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 1 | 0 |
 | L: AI layer | 10 of 11 | 1 | 0 |
-| U: Interface | 13 of 15 | 2 | 0 |
+| U: Interface | 14 of 15 | 1 | 0 |
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 4 of 5 | 0 | 1 |
 | X: Submission | 2 of 2 | 0 | 0 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 77 of 82 |
+| Done | 78 of 82 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | Recorder fixed: recorded runs read the data as of their alarm, live runs still follow the cursor (8329e4d). First live attempt failed before any model call (0 points); one rerun approved |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Writer step fixed (strict-schema fallback, reasoning budget, provider errors logged) in d37fc64. Second attempt reached the writer after 7 evidence records and failed there (0.023 points). Waiting on the owner's go-ahead for a tiny writer check and one more recording |
 
 ### U: Interface
 
@@ -167,7 +167,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
 | U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design system, motion and 3D hero merged (af225fe): step-and-scan wafer exposure, live control-chart motion, reduced motion respected, no horizontal scroll at 390 px; axe and Lighthouse not run yet |
-| U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | 🟡 | Requested by the owner at 13:06; built in its own thread |
+| U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | ✅ | Live on the site (d37fc64): 89 entries in 10 categories, filters and Arabic search, right-to-left, no sideways scroll at 375 px |
 
 ### P: Packaging and deployment
 
@@ -213,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 14:02 | Arabic guide live (U15 done). Writer fix and "no key means 503" deployed (d37fc64) |
 | 2026-10-14 13:23 | End-to-end tests on the real stack pass (Q4); not-configured states (U13). Live site verified at 375 px with no sideways scroll. Recorded run reached the writer and failed there (0.023 points); writer fix in progress |
 | 2026-10-14 13:07 | New item U15: an Arabic usage guide page, built in its own thread. Chart widths fixed on phones (1086c92) |
 | 2026-10-14 13:00 | README finished (X1 done). P3 replaced by committed bundles verified at build and start (a Release was not possible from here) |

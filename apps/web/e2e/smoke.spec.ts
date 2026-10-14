@@ -15,6 +15,7 @@ const ROUTES: { path: string; heading: RegExp }[] = [
   { path: "/work-orders/WO-000012", heading: /./ },
   { path: "/models", heading: /^Models$/ },
   { path: "/methods", heading: /^Methods$/ },
+  { path: "/guide", heading: /^دليل الاستخدام$/ },
 ];
 
 function watch(page: Page) {
@@ -22,7 +23,8 @@ function watch(page: Page) {
   page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
     const text = m.text();
-    if (m.type() === "error" && /Content Security Policy|Refused to|Hydration/i.test(text)) problems.push(`console: ${text}`);
+    if (m.type() === "error" && /Content Security Policy|Refused to|Hydration/i.test(text))
+      problems.push(`console: ${text}`);
   });
   return problems;
 }
@@ -36,7 +38,9 @@ for (const route of ROUTES) {
     await expect(page.locator("h1")).toHaveText(route.heading);
     await expect(page.locator("main")).toHaveCount(1);
     await page.waitForLoadState("networkidle").catch(() => undefined);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
     expect(overflow, "no horizontal page scroll").toBeLessThanOrEqual(1);
     expect(problems).toEqual([]);
   });
