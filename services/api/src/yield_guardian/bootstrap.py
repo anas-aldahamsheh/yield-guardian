@@ -18,6 +18,7 @@ from yield_guardian.replay.line import LineReplay
 from yield_guardian.science.secom.service import SecomInference
 from yield_guardian.science.wafermap.service import WaferInference
 from yield_guardian.services.alarms import AlarmStateStore
+from yield_guardian.services.methods import BundleMethods
 from yield_guardian.services.persistence import build_persistence
 from yield_guardian.services.registry import ServiceRegistry
 
@@ -92,5 +93,13 @@ def build_registry(settings: Settings) -> ServiceRegistry:
             wafers=parity.wafers,
             parity_top_label_agreement=parity.top_label_agreement,
             parity_max_confidence_diff=parity.max_confidence_diff,
+        )
+    if registry.bundles:
+        registry.methods = BundleMethods(
+            bundles=registry.bundles,
+            artifacts_dir=settings.artifacts_dir,
+            manifest_path=settings.secom_data_dir.parent / "manifest.json",
+            secom=registry.secom,
+            wafer=registry.wafer,
         )
     return registry

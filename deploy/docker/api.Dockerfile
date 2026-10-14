@@ -78,6 +78,8 @@ COPY services/api/scripts/ /app/services/api/scripts/
 # SECOM, redistributed unmodified under CC BY 4.0; ATTRIBUTION.md travels with the data.
 COPY data/secom/ATTRIBUTION.md data/secom/secom.data data/secom/secom_labels.data \
      data/secom/secom.names /app/data/secom/
+# Dataset provenance (sources, licences, file hashes) for the methods page.
+COPY data/manifest.json /app/data/manifest.json
 COPY --from=artifacts /artifacts/ /app/artifacts/
 # Curated literature for the knowledge search (agent/wiring.py reads /app/docs/knowledge).
 COPY docs/knowledge/ /app/docs/knowledge/
