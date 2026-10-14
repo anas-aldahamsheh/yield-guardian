@@ -78,6 +78,33 @@ def test_statuses_reasons_and_jump_calibration() -> None:
     assert [w["window_id"] for w in doc["windows"]] == list(range(len(doc["windows"])))
 
 
+def test_stuck_rule_uses_the_reference_repeat_rate_and_counts_shared_runs() -> None:
+    X, ts, y = _health_inputs()
+    rng = np.random.default_rng(7)
+    lots = np.repeat(rng.normal(size=len(X) // 5), 5)  # one reading per lot of 5 units
+    X["S006"] = lots
+    X["S001"] = lots + 1.0  # same lot structure: runs over exactly the same units
+    order = np.arange(len(X), dtype=np.int64)
+    doc, summary = analyse_health(
+        X,
+        ts,
+        y,
+        order,
+        label_ids=order[:450],
+        reference_ids=order[:100],
+        held_out_ids=order[100:200],
+        rules=RULES,
+        fdr_q=0.05,
+    )
+    status = {s["sensor"]: s for s in doc["sensors"]}
+    for sensor in ("S001", "S006"):
+        assert not any("stuck" in r for r in status[sensor]["reasons"])
+    assert any("stuck" in r for r in status["S004"]["reasons"])  # 51 repeats: still flagged
+    runs = summary["identical_runs"]
+    assert runs["largest_number_of_sensors_sharing_one_span"] == 2
+    assert runs["runs_sharing_their_unit_span_with_another_sensor"] == 2 * (len(X) // 5)
+
+
 def test_missingness_test_uses_only_the_given_label_rows() -> None:
     X, ts, y = _health_inputs(seed=1)
     order = np.arange(len(X), dtype=np.int64)

@@ -915,7 +915,11 @@ def limitations(metrics: dict[str, Any]) -> list[str]:
         "holds fewer units than sensors, so the covariance is estimated with few degrees of "
         "freedom.",
         "Sensor-health rules are deterministic and label-free; the jump test treats "
-        "consecutive differences as independent, which a single spike violates.",
+        "consecutive differences as independent, which a single spike violates; the "
+        "stuck-value rule uses a first-order repeat model fitted on a short reference; and "
+        f"{health['rules']['out_of_reference_check']['held_out_sensors_at_or_above_watch_rate']}"
+        " sensors already reach the out-of-reference watch rate on held-out in-control data, "
+        "so that rule alone over-flags. Statuses are prompts for inspection, not diagnoses.",
         "Missingness of sensor readings: "
         f"{len(health['missingness_associated_with_failure']['sensors'])} "
         "sensors associated with failure after Benjamini-Hochberg on the development period; "
