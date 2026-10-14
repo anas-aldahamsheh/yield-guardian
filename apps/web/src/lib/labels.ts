@@ -142,3 +142,25 @@ export const TRIGGER_KIND: Record<string, string> = {
   wafer: "Wafer",
   lot: "Lot",
 };
+
+export const WORK_ORDER_FLOW = ["open", "in_progress", "done"] as const;
+
+export const AUDIT_ACTION: Record<string, string> = {
+  "session.guest": "Started an engineer trial",
+  "session.login": "Signed in",
+  "session.login_failed": "Failed sign-in",
+  "session.logout": "Signed out",
+  "investigation.created": "Started an investigation",
+  "investigation.approved": "Approved a report",
+  "investigation.rejected": "Rejected a report",
+  "work_order.created": "Opened a work order",
+  "work_order.updated": "Updated a work order",
+  "role.updated": "Changed a model role",
+};
+
+export const ACTOR_ROLE: Record<string, string> = {
+  system: "System",
+  visitor: "Visitor",
+  engineer: "Engineer",
+  admin: "Admin",
+};
