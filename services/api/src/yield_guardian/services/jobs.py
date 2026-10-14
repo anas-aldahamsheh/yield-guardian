@@ -44,8 +44,8 @@ NO_RUNNER_DETAIL = (
 NO_RUNNER = Problem(
     title="Investigator not available", status=503, code="not_ready", detail=NO_RUNNER_DETAIL
 )
-INVESTIGATION_TIMEOUT_S = 1200.0
-"""Wall-time bound of one investigation run (20 minutes); each model call has its own deadline
+INVESTIGATION_TIMEOUT_S = 1800.0
+"""Wall-time bound of one investigation run (30 minutes, the recorder's default); each model call has its own deadline
 in the gateway, so this only stops a run that keeps going call after call."""
 
 
