@@ -1,10 +1,11 @@
-"""Startup wiring of the language-model services: the model admin and the investigator.
+"""Startup wiring of the language-model services: the model admin, the investigator, the chat.
 
 :func:`install_agent` is called by ``bootstrap.build_registry``. Without a Token Factory key it
 installs nothing and records why in ``registry.problems``, so the routes answer 503 not_ready.
 With a key it sets ``registry.llm`` at once (no I/O) and adds an :class:`AgentResource` that,
 when the app starts, applies the stored role assignments, opens the investigation checkpointer
-(Postgres when DATABASE_URL is set, memory otherwise) and sets ``registry.runner``.
+(Postgres when DATABASE_URL is set, memory otherwise) and sets ``registry.chat`` and
+``registry.runner``.
 
 Startup makes no Token Factory call: the live model catalog is not read here (it would be a
 network call to the endpoint before anyone asked for one). Nothing here limits, delays or
@@ -20,6 +21,7 @@ import structlog
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 
+from yield_guardian.agent.chat import ChatAnswerer
 from yield_guardian.agent.graph import InvestigatorRunner
 from yield_guardian.contracts.services import (
     KnowledgeService,
@@ -35,7 +37,6 @@ from yield_guardian.services.registry import ServiceRegistry
 log = structlog.get_logger(__name__)
 
 NO_KEY = "TOKEN_FACTORY_API_KEY is not set"
-CHAT_NOT_BUILT = "the engineer chat is not built yet"
 KNOWLEDGE_NOT_BUILT = "the knowledge base (literature search) is not built yet"
 MEMORY_CHECKPOINTS = (
     "investigation checkpoints are kept in memory (DATABASE_URL is not set): a restart loses "
@@ -108,6 +109,11 @@ class AgentResource:
             warnings = await self.stack.registry.load()
             if warnings:
                 self.registry.problems["llm_roles"] = "; ".join(warnings)
+            self.registry.chat = ChatAnswerer(
+                gateway=self.stack.gateway,
+                services=science_services(self.registry),
+                route_log=self.stack.route_log,
+            )
             checkpointer = await self._checkpointer()
             self.registry.runner = InvestigatorRunner(
                 gateway=self.stack.gateway,
@@ -122,16 +128,17 @@ class AgentResource:
 
     async def stop(self) -> None:
         self.registry.runner = None
+        self.registry.chat = None
         await self._exit.aclose()
         await self.stack.aclose()
 
 
 def install_agent(registry: ServiceRegistry, settings: Settings) -> AgentResource | None:
-    """Wire the model admin and the investigator when a key is set; record why not otherwise."""
-    registry.problems.setdefault("chat", CHAT_NOT_BUILT)
+    """Wire the model admin, the investigator and the chat when a key is set; record why not
+    otherwise."""
     registry.problems.setdefault("knowledge", KNOWLEDGE_NOT_BUILT)
     if not key_configured(settings):
-        for name in ("llm", "investigator"):
+        for name in ("llm", "investigator", "chat"):
             registry.problems[name] = NO_KEY
         log.info("language_models_not_configured", reason=NO_KEY)
         return None
@@ -139,7 +146,7 @@ def install_agent(registry: ServiceRegistry, settings: Settings) -> AgentResourc
         stack = assemble_llm_stack(settings)
     except Exception as error:
         reason = f"{type(error).__name__}: {error}"[:300]
-        for name in ("llm", "investigator"):
+        for name in ("llm", "investigator", "chat"):
             registry.problems[name] = reason
         log.warning("language_models_not_built", reason=reason)
         return None

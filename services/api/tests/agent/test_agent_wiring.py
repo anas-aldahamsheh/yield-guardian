@@ -9,6 +9,7 @@ import respx
 from pydantic import SecretStr
 
 from tests.llm.helpers import PLACEHOLDER_KEY
+from yield_guardian.agent.chat import ChatAnswerer
 from yield_guardian.agent.graph import InvestigatorRunner
 from yield_guardian.agent.wiring import (
     MEMORY_CHECKPOINTS,
@@ -45,7 +46,7 @@ def test_without_a_key_nothing_is_installed_and_the_reason_is_recorded(
     assert registry.chat is None
     assert registry.problems["llm"] == NO_KEY
     assert registry.problems["investigator"] == NO_KEY
-    assert "chat" in registry.problems
+    assert registry.problems["chat"] == NO_KEY
     assert "knowledge" in registry.problems
     assert not [r for r in registry.resources if isinstance(r, AgentResource)]
 
@@ -60,11 +61,13 @@ async def test_with_a_key_the_admin_is_set_and_the_runner_starts_without_any_cal
     assert registry.resources.index(resource) == 0  # before any job worker
     await resource.start()
     assert isinstance(registry.runner, InvestigatorRunner)
+    assert isinstance(registry.chat, ChatAnswerer)
     assert registry.problems["investigation_checkpoints"] == MEMORY_CHECKPOINTS
     assert "investigator" not in registry.problems
     assert respx_mock.calls.call_count == 0
     await resource.stop()
     assert registry.runner is None
+    assert registry.chat is None
 
 
 async def test_a_failing_start_is_recorded_not_raised(tmp_path: Path) -> None:

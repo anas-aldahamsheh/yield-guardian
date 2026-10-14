@@ -327,8 +327,9 @@ TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
         ),
         Tool(
             "get_sensor_health",
-            "Read the health status of sensors (dead, frozen, jumping, missing data), by sensor "
-            "IDs or by status.",
+            "Read the health of sensors (status ok, watch, maintenance or dead, with the rules "
+            "that set it: missing data, flat lines, stuck values, jumps), by sensor IDs or by "
+            "status.",
             SensorHealthArgs,
             lambda s, a: s.secom.get_sensor_health(sensors=a.sensors, statuses=a.statuses),
             _sensor_health_title,

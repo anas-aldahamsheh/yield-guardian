@@ -230,6 +230,21 @@ def tool_reply(*calls: tuple[str, dict[str, Any] | str]) -> httpx.Response:
     return httpx.Response(200, json=_body(message, "tool_calls"))
 
 
+def stream_reply(*pieces: str) -> httpx.Response:
+    """A streamed answer: one content delta per piece, then a usage chunk and [DONE]."""
+    chunks: list[dict[str, Any]] = [
+        {
+            "id": "cmpl-test",
+            "model": "scripted",
+            "choices": [{"index": 0, "delta": {"content": p}, "finish_reason": None}],
+        }
+        for p in pieces
+    ]
+    chunks.append({"id": "cmpl-test", "model": "scripted", "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}], "usage": USAGE})  # fmt: skip
+    body = "".join(f"data: {json.dumps(c)}\n\n" for c in chunks) + "data: [DONE]\n\n"
+    return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=body.encode())
+
+
 def error_reply(status: int, message: str = "scripted failure") -> httpx.Response:
     return httpx.Response(status, json={"error": {"message": message}})
 
