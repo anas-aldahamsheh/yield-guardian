@@ -56,7 +56,7 @@ export function Report({
       <Flags issues={shared.issues.get("summary")} />
 
       <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Findings</h3>
-      <ol className="mt-2 grid gap-5">
+      <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-5">
         {report.findings.map((finding, i) => {
           const verdict = verdicts.get(i);
           return (
@@ -93,7 +93,7 @@ export function Report({
 
       <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Proposed actions</h3>
       {actionsSlot ?? (
-        <ol className="mt-2 grid gap-4">
+        <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-4">
           {report.actions.map((action, i) => (
             <li key={i} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2">
               <span className="tnum pt-[5px] text-[13px] leading-5 text-ink-3">{i + 1}.</span>
@@ -106,7 +106,7 @@ export function Report({
       {report.limitations.length ? (
         <>
           <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Limitations</h3>
-          <ul className="mt-2 grid max-w-[68ch] list-disc gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
+          <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] max-w-[68ch] list-disc gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
             {report.limitations.map((l, i) => (
               <li key={i}>{l}</li>
             ))}
@@ -221,7 +221,7 @@ export function EvidenceChips({ ids, selection, onSelect }: { ids: string[] } & 
 function Flags({ issues }: { issues: VerificationIssue[] | undefined }) {
   if (!issues?.length) return null;
   return (
-    <ul className="mt-2 grid gap-1">
+    <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1">
       {issues.map((issue, i) => (
         <li key={i} className="flex max-w-[66ch] gap-2 rounded-sm border-l-2 border-fail bg-fail-wash px-3 py-1.5 text-[13px] leading-5 text-ink">
           <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}.</span>

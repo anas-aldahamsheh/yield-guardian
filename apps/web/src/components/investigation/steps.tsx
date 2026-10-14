@@ -32,7 +32,7 @@ export function Steps({
     return <p className="text-[14px] leading-5 text-ink-3">{running ? "Waiting for the first step." : "No steps were recorded."}</p>;
   }
   return (
-    <ol className="relative grid">
+    <ol className="relative grid grid-cols-[minmax(0,1fr)]">
       {steps.map((step, i) => {
         const last = i === steps.length - 1;
         const ms = duration(step);

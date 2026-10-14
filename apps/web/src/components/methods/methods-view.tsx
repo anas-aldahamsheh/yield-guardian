@@ -40,7 +40,7 @@ export function MethodsView() {
           </a>
         ))}
       </nav>
-      <div className="grid gap-12">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-12">
         <Section id="results" title="Measured results" lede="The headline numbers. A row reads “Not measured yet” until it has been measured on held-out data.">
           <Panel bodyClassName="px-0 sm:px-0 pt-0">
             <QueryView query={results} loading={<Placeholder className="mx-4 h-48 sm:mx-5" label="Loading results" />}>
@@ -121,11 +121,11 @@ function ResultsTable({ data }: { data: MeasuredResults }) {
 
 function Provenance({ data }: { data: MethodsOverview }) {
   return (
-    <div className="grid gap-street">
-      <div className="grid gap-street xl:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         {data.datasets.map((d) => (
           <Panel key={d.name} title={d.name} description={d.description}>
-            <dl className="grid gap-2 text-[13px] leading-5">
+            <dl className="grid grid-cols-[minmax(0,1fr)] gap-2 text-[13px] leading-5">
               <div>
                 <dt className="text-ink-3">Citation</dt>
                 <dd className="text-ink">{d.citation}</dd>
@@ -150,7 +150,7 @@ function Provenance({ data }: { data: MethodsOverview }) {
               </div>
             </dl>
             <h3 className="mt-4 text-[12px] text-ink-3">Files (SHA-256)</h3>
-            <ul className="mt-1 grid gap-1.5">
+            <ul className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-1.5">
               {d.files.map((f) => (
                 <li key={f.path} className="tnum text-[12px] leading-4">
                   <span className="text-ink">{f.path}</span> <span className="text-ink-3">{f.bytes ? `${formatCompact(f.bytes)} bytes` : ""}</span>
@@ -210,7 +210,7 @@ function ModelCards({ cards }: { cards: MethodsOverview["model_cards"] }) {
         cards.length > 1 ? (
           <ToggleGroup type="single" variant="outline" size="sm" value={name} onValueChange={(v) => v && setName(v as typeof name)} aria-label="Model card">
             {cards.map((c) => (
-              <ToggleGroupItem key={c.name} value={c.name} className="px-2.5">
+              <ToggleGroupItem key={c.name} value={c.name} className="h-auto min-h-8 shrink px-2.5 py-1 text-left whitespace-normal">
                 {c.title}
               </ToggleGroupItem>
             ))}

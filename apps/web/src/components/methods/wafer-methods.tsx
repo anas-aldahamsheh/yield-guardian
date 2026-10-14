@@ -47,7 +47,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
   const ood = metrics.ood;
 
   return (
-    <div className="grid gap-street">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
       <Panel
         title="Pattern classifier on held-out wafers"
         description="The lot-grouped split keeps every lot on one side, so wafers from the same lot never sit in both training and test data."
@@ -110,7 +110,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
             ) : null
           }
         >
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] border-collapse text-left text-[12px] leading-5">
                 <caption className="sr-only">Per-pattern metrics, {SPLIT_NAME[split]}</caption>
@@ -144,7 +144,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
         </Panel>
       ) : null}
 
-      <div className="grid gap-street xl:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         <Panel title="Unknown-pattern score (Mahalanobis)" description={ood.note}>
           <div className="grid grid-cols-2 gap-4">
             <Reading
@@ -165,7 +165,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
           {ood.leave_one_class_out.length ? (
             <>
               <h3 className="mt-5 text-[13px] leading-5 text-ink-3">AUROC when each pattern is left out of training</h3>
-              <ul className="mt-1.5 grid gap-1.5">
+              <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
                 {ood.leave_one_class_out.map((l) => (
                   <li key={l.held_out} className="grid grid-cols-[6.5rem_minmax(0,1fr)_auto] items-center gap-3 text-[12px] leading-4">
                     <span className="text-ink">{patternName(l.held_out as PatternLabel)}</span>
@@ -221,7 +221,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
             <>
               <h3 className="mt-5 text-[13px] leading-5 font-medium text-ink">Published results on WM-811K</h3>
               <p className="text-[12px] leading-4 text-ink-3">Reported by their authors on their own splits, so not directly comparable.</p>
-              <ul className="mt-1.5 grid gap-1.5 text-[12px] leading-4">
+              <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5 text-[12px] leading-4">
                 {metrics.published.map((p, i) => (
                   <li key={i}>
                     <span className="text-ink">{p.source}</span>: <span className="tnum">{p.metric} {formatNumber(p.value, 3)}</span>

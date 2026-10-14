@@ -129,7 +129,7 @@ export function LineCharts({
         tabIndex={0}
         aria-label={`Control charts for units ${formatInt(first)} to ${formatInt(last)}. Left and right arrows move between units, Enter opens the unit, Escape returns to the latest.`}
         onKeyDown={onKeyDown}
-        className="mt-3 rounded-sm"
+        className="mt-3 min-w-0 rounded-sm [contain:inline-size]"
       >
         {t2 && spe ? (
           <>

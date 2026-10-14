@@ -57,7 +57,7 @@ export function DecisionActions({
 
   return (
     <div className="mt-2">
-      <ol className="grid gap-4">
+      <ol className="grid grid-cols-[minmax(0,1fr)] gap-4">
         {report.actions.map((action, i) => {
           const approved = decision?.verdict === "approve" && decision.actions.includes(i);
           return (
@@ -110,8 +110,8 @@ export function DecisionActions({
           </Button>
         </div>
       ) : open ? (
-        <div className="mt-6 grid gap-3 rounded-sm bg-die-2 px-4 py-4">
-          <div className="grid gap-1.5">
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 rounded-sm bg-die-2 px-4 py-4">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <Label htmlFor={noteId} className="text-[13px] text-ink-2">
               Note for the work order (optional)
             </Label>

@@ -64,7 +64,7 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
   const noSkill = metrics.models.find((m) => m.model === "prevalence");
 
   return (
-    <div className="grid gap-street">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
       <Panel title="How the units were split" description="By time, never shuffled: the model is fitted on the past and tested on the future.">
         <BlocksBar blocks={metrics.blocks} />
       </Panel>
@@ -165,7 +165,7 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
         </Panel>
       ) : null}
 
-      <div className="grid gap-street xl:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         <Panel title="Operating points" description="Thresholds chosen on the validation block, measured once on the test block.">
           {pointsError ? (
             <p className="text-[14px] text-ink-3">The operating points could not be loaded.</p>
@@ -185,14 +185,14 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
         </Panel>
       </div>
 
-      <div className="grid gap-street xl:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         {metrics.fdc ? (
           <Panel title="Control charts (FDC) on held-out reference units" description={`${formatInt(metrics.fdc.holdout_units)} units the limits were not fitted on.`}>
             <div className="grid grid-cols-2 gap-4">
               <Reading label="False alarms at the 99% limit" value={<EstimateText estimate={metrics.fdc.false_alarm_rate_99} format="percent" />} />
               <Reading label="False alarms at the 99.9% limit" value={<EstimateText estimate={metrics.fdc.false_alarm_rate_999} format="percent" />} />
             </div>
-            <dl className="mt-4 grid gap-2 text-[13px] leading-5">
+            <dl className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-2 text-[13px] leading-5">
               <div>
                 <dt className="text-ink-3">EWMA</dt>
                 <dd className="tnum text-ink">{metrics.fdc.ewma}</dd>
@@ -309,7 +309,7 @@ export function Limitations({ items, title }: { items: string[]; title: string }
   if (!items.length) return null;
   return (
     <Panel title={title}>
-      <ul className="grid max-w-[90ch] list-disc gap-1.5 pl-5 text-[14px] leading-6 text-ink-2">
+      <ul className="grid grid-cols-[minmax(0,1fr)] max-w-[90ch] list-disc gap-1.5 pl-5 text-[14px] leading-6 text-ink-2">
         {items.map((l) => (
           <li key={l}>{l}</li>
         ))}

@@ -94,7 +94,7 @@ export function InvestigationView({ id }: { id: string }) {
 
       {inv.error ? <ErrorState className="mb-4" error={new ApiError(inv.error.status, inv.error)} /> : null}
 
-      <div className="grid gap-street xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,1fr)_440px]">
         <Panel
           title="Report"
           description="Written by a language model from the evidence only. Numbers link to the value they came from."
@@ -118,7 +118,7 @@ export function InvestigationView({ id }: { id: string }) {
           )}
         </Panel>
 
-        <div className="grid min-w-0 content-start gap-street">
+        <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
           <Panel
             live={running}
             title="Run"
@@ -217,7 +217,7 @@ function VerificationSummary({ investigation }: { investigation: Investigation }
         {v.rounds === 0 ? "No revision was needed." : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}
       </p>
       {remaining ? (
-        <ul className="mt-2 grid gap-1 text-[13px] leading-5">
+        <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5">
           {v.issues.map((issue, i) => (
             <li key={i} className="text-ink">
               <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}</span>
