@@ -52,9 +52,9 @@ Changing a format means a new version folder and a note to the lead. Never chang
 | `unit_id` | int32 | Row index in `secom.data` |
 | `timestamp` | timestamp[UTC] | From `secom_labels.data` |
 | `label` | int8 | 1 = failed final test, 0 = passed (source encodes 1 and -1) |
-| `block` | string | `train`, `validation` or `test` |
+| `block` | string | `train`: the rolling-origin warm-up, the first 30% of the units before the test block; only fitted on, so it has no out-of-sample risk (`risk` and `risk_source` null). `validation`: the rest of the units before the test block, cut into consecutive rolling-origin slices, each scored by a fold model fitted only on earlier units (`risk_source` `oof`); these out-of-fold scores chose the hyperparameters, the calibrator and the thresholds. `test`: the last 20% of units in time order, scored once by the final model (`risk_source` `test`) |
 | `risk` | float32, nullable | Calibrated failure probability, always out of sample (see `risk_source`); null during the warm-up period |
-| `risk_source` | string, nullable | `oof` (rolling-origin fold model), `validation` (model fit on train; calibrator fit on these rows, so calibration is in-sample here) or `test` (final model, untouched block) |
+| `risk_source` | string, nullable | `oof` (rolling-origin fold model; every `validation` row) or `test` (final model refitted on all units before the test block; every `test` row); null on `train` rows. The value `validation` stays in the enum but SECOM v1 never writes it. The calibrator is fitted on the pooled `oof` scores, so calibration on `validation` rows is in-sample |
 | `risk_band` | string, nullable | `low`, `elevated` or `high`, from the thresholds in `operating_points.json` |
 | `t2`, `spe` | float32 | FDC statistics |
 | `t2_limit_99`, `t2_limit_999`, `spe_limit_99`, `spe_limit_999` | float32 | Control limits |
