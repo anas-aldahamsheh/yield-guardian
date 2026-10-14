@@ -53,7 +53,7 @@ export function useLiveLine(window: number) {
       socket.onmessage = (message) => {
         const event = parseLineEvent(message.data);
         if (!event) return;
-        let followUp: "none" | "refetch" = "none";
+        let followUp = "none" as "none" | "refetch";
         client.setQueryData<LineState>(queryKey, (current) => {
           if (!current) {
             return event.type === "hello" ? event.state : current;

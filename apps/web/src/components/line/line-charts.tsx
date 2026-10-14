@@ -13,7 +13,7 @@ import {
   axisMax,
 } from "@/components/charts/control-chart";
 import { useWidth } from "@/components/charts/use-width";
-import { formatInt, formatNumber, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
+import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { BAND_NAME } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -139,7 +139,7 @@ export function LineCharts({
           limits={risk.lines}
           formatTick={(v) => `${Math.round(v * 100)}%`}
           rug={rug}
-          height={150}
+          height={166}
         />
         {t2 && spe ? (
           <>
@@ -152,7 +152,7 @@ export function LineCharts({
               limits={spe.lines}
               formatTick={(v) => formatInt(v)}
               showXAxis
-              height={150}
+              height={166}
             />
           </>
         ) : (
@@ -245,4 +245,3 @@ function Legend() {
   );
 }
 
-export { formatNumber };

@@ -60,6 +60,22 @@ describe("security headers", () => {
     expect(response.headers.get("Permissions-Policy")).toContain("microphone=()");
   });
 
+  it("upgrades insecure requests only when the gateway says the page came over HTTPS", () => {
+    const viaHttp = proxy(
+      new NextRequest("http://yield-guardian.example:8080/line", {
+        headers: { host: "yield-guardian.example:8080", "x-forwarded-proto": "http" },
+      }),
+    );
+    expect(viaHttp.headers.get("Content-Security-Policy")).not.toContain("upgrade-insecure-requests");
+    expect(csp).not.toContain("upgrade-insecure-requests");
+    const viaHttps = proxy(
+      new NextRequest("http://web:3000/line", {
+        headers: { host: "yield-guardian.example", "x-forwarded-proto": "https, http" },
+      }),
+    );
+    expect(viaHttps.headers.get("Content-Security-Policy")).toContain("upgrade-insecure-requests");
+  });
+
   it("ignores a Host header that is not a host name", () => {
     const value = contentSecurityPolicy({ nonce: createNonce(), host: "evil.example; script-src *" });
     expect(directives(value).get("connect-src")).toBe("'self'");

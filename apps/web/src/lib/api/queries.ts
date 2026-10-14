@@ -61,6 +61,15 @@ export const q = {
         unwrap(api.GET("/api/v1/fdc/series", { params: { query: range }, signal })),
     }),
 
+  /** Control limits and method of the FDC model: the series of its first unit, which carries them. */
+  fdcModel: (api: Api) =>
+    queryOptions({
+      queryKey: ["fdc", "model"],
+      queryFn: ({ signal }) =>
+        unwrap(api.GET("/api/v1/fdc/series", { params: { query: { from_seq: 0, to_seq: 0 } }, signal })),
+      staleTime: 30 * MINUTE,
+    }),
+
   alarms: (
     api: Api,
     query: QueryOf<"/api/v1/alarms"> = {},

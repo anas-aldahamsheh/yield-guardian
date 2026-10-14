@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { STATIC_SECURITY_HEADERS, contentSecurityPolicy, createNonce } from "@/lib/security";
+import {
+  STATIC_SECURITY_HEADERS,
+  contentSecurityPolicy,
+  createNonce,
+  forwardedHttps,
+} from "@/lib/security";
 
 /**
  * Sets a Content-Security-Policy with a fresh nonce on every page request. Next.js reads the
@@ -13,6 +18,7 @@ export function proxy(request: NextRequest) {
     nonce,
     host: request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
     dev: process.env.NODE_ENV === "development",
+    https: forwardedHttps(request.headers.get("x-forwarded-proto")),
   });
 
   const requestHeaders = new Headers(request.headers);

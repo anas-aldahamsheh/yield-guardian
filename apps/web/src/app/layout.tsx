@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible_Next, Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
@@ -9,20 +9,32 @@ import { TopBar } from "@/components/shell/top-bar";
 
 import "./globals.css";
 
+/*
+ * Both families are bundled from @fontsource-variable and self-hosted by next/font/local, so the
+ * build needs no network and the page loads no font from another origin.
+ */
 /** Readings, data and interface. Glyphs that are easy to confuse (0 O, 1 l I, 5 S) differ. */
-const reading = Atkinson_Hyperlegible_Next({
-  subsets: ["latin"],
+const reading = localFont({
+  src: [
+    { path: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2", style: "normal" },
+    { path: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-italic.woff2", style: "italic" },
+  ],
+  weight: "200 800",
   variable: "--font-reading",
   display: "swap",
+  adjustFontFallback: "Arial",
 });
 
 /** Text a language model wrote. Optical sizes keep it crisp at report sizes. */
-const written = Source_Serif_4({
-  subsets: ["latin"],
-  axes: ["opsz"],
-  style: ["normal", "italic"],
+const written = localFont({
+  src: [
+    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2", style: "normal" },
+    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2", style: "italic" },
+  ],
+  weight: "200 900",
   variable: "--font-written",
   display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
 export const metadata: Metadata = {

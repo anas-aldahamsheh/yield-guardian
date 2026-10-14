@@ -14,12 +14,17 @@ export interface CspOptions {
   host?: string | null;
   /** next dev needs eval for React's debugging and a socket for hot reload. */
   dev?: boolean;
+  /**
+   * The browser reached the site over HTTPS (the gateway's X-Forwarded-Proto). Only then are
+   * insecure subresource requests upgraded; a plain-HTTP deployment (for example :8080) must work.
+   */
+  https?: boolean;
 }
 
 /** Host names as they appear in a Host header: letters, digits, dots, dashes and a port. */
 const HOST = /^[A-Za-z0-9.-]+(:\d{1,5})?$/;
 
-export function contentSecurityPolicy({ nonce, host, dev = false }: CspOptions): string {
+export function contentSecurityPolicy({ nonce, host, dev = false, https = false }: CspOptions): string {
   const sockets = host && HOST.test(host) ? ` ws://${host} wss://${host}` : "";
   const directives = [
     "default-src 'self'",
@@ -36,7 +41,7 @@ export function contentSecurityPolicy({ nonce, host, dev = false }: CspOptions):
     "frame-ancestors 'none'",
     "manifest-src 'self'",
   ];
-  if (!dev) directives.push("upgrade-insecure-requests");
+  if (https && !dev) directives.push("upgrade-insecure-requests");
   return directives.join("; ");
 }
 
@@ -64,6 +69,11 @@ export const STATIC_SECURITY_HEADERS: readonly { key: string; value: string }[] 
   },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
+
+/** Whether the original request was HTTPS, from the first X-Forwarded-Proto value. */
+export function forwardedHttps(forwardedProto: string | null | undefined): boolean {
+  return forwardedProto?.split(",")[0]?.trim().toLowerCase() === "https";
+}
 
 /** A fresh nonce: 128 random bits, base64. */
 export function createNonce(): string {

@@ -1,7 +1,7 @@
 "use client";
 
 import { scaleLinear } from "d3";
-import { type PointerEvent, useMemo } from "react";
+import { type MouseEvent, useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -68,7 +68,7 @@ export function ControlChart({
   limits,
   formatTick,
   width,
-  height = 132,
+  height = 148,
   cursorX,
   pinned = false,
   newestX,
@@ -97,8 +97,8 @@ export function ControlChart({
 }) {
   const rugHeight = rug ? 22 : 0;
   const axisHeight = showXAxis ? 22 : 0;
-  const top = 10;
-  const plotBottom = height - rugHeight - axisHeight;
+  const top = 26;
+  const plotBottom = height - rugHeight - axisHeight - (rug || showXAxis ? 0 : 10);
   const x = useMemo(() => xScaleFor(xDomain, width), [xDomain, width]);
   const y = useMemo(() => scaleLinear().domain([0, yMax]).range([plotBottom, top]), [yMax, plotBottom]);
   const yTicks = y.ticks(3);
@@ -121,7 +121,7 @@ export function ControlChart({
     return d;
   }, [points, x, y, yMax]);
 
-  const nearest = (event: PointerEvent<SVGSVGElement>) => {
+  const nearest = (event: MouseEvent<SVGSVGElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     const px = event.clientX - box.left;
     const value = Math.round(x.invert(px));
@@ -161,7 +161,7 @@ export function ControlChart({
           </text>
         </g>
       ))}
-      <text x={0} y={top - 1} dy="0.7em" className="fill-ink-2 text-[12px] font-medium">
+      <text x={0} y={4} dy="0.8em" className="fill-ink-2 text-[12px] font-medium">
         {label}
         {unitLabel ? <tspan className="fill-ink-3 font-normal"> {unitLabel}</tspan> : null}
       </text>
