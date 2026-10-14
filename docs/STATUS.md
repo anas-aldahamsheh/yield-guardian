@@ -1,23 +1,23 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:59 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:01 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 46 of 86 done (53%), 14 in progress, 26 not started
+## Progress: 48 of 86 done (56%), 16 in progress, 22 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
 | F: Foundations | 6 of 6 | 0 | 0 |
-| D: Data | 4 of 5 | 1 | 0 |
+| D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
-| K: Knowledge base | 0 of 3 | 0 | 3 |
+| K: Knowledge base | 0 of 3 | 2 | 1 |
 | A: API | 7 of 9 | 1 | 1 |
 | L: AI layer | 0 of 11 | 9 | 2 |
 | U: Interface | 4 of 14 | 1 | 9 |
-| P: Packaging and deployment | 5 of 7 | 2 | 0 |
-| Q: Quality | 0 of 5 | 0 | 5 |
+| P: Packaging and deployment | 6 of 7 | 1 | 0 |
+| Q: Quality | 0 of 5 | 2 | 3 |
 | X: Submission | 0 of 6 | 0 | 6 |
 <!-- progress:end -->
 
@@ -35,10 +35,10 @@
 
 | | |
 |---|---|
-| Done | 46 of 86 |
+| Done | 48 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
-| Waiting on you | Add TOKEN_FACTORY_API_KEY to anaslabs-hosting/.env yourself, then restart yield-guardian-api |
+| Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
 
 ## Measured results
 
@@ -77,7 +77,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|---|---|
 | D1 | Download SECOM from UCI, record SHA-256 and licence | PC | ✅ | Byte-identical to the UCI archive; SHA-256 in [manifest.json](../data/manifest.json); CC BY 4.0, DOI 10.24432/C54305; committed with [ATTRIBUTION.md](../data/secom/ATTRIBUTION.md) (78ba1f3) |
 | D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ✅ | MIR Lab returned HTTP 404, so the Kaggle mirror was used; LSWMD.pkl 2,095,505,977 bytes, SHA-256 in the manifest; mirror lists CC0-1.0 set by the uploader, recorded with that caveat; raw data not committed |
-| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | 🟡 | WM-811K facts done ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)): 811,457 wafers, 46,293 lots (PLAN corrected from 46,393), 172,950 labelled. SECOM EDA with worker 2 |
+| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | ✅ | SECOM EDA ([eda.md](../training/secom/reports/eda.md)) and WM-811K facts ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)) |
 | D4 | Validated loaders (pandera schemas) | Cloud | ✅ | Pandera schemas for SECOM; merged (5f5c5dd) |
 | D5 | Official-split lot-overlap check for WM-811K | PC | ✅ | Official split has 0 lots in both training (5,809 lots) and test (4,953 lots). Class mix differs: "none" is 67.6% of training, 93.3% of test; reported as a limitation |
 
@@ -115,9 +115,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | ⏳ | |
+| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
 | K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ⏳ | Costs points; run once |
-| K3 | Pattern-to-cause table with citations | Cloud | ⏳ | |
+| K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
 
 ### A: API
 
@@ -177,15 +177,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ✅ | Worker 3: yield-guardian-api and -web in anaslabs compose (Pino Yard pattern, Sablier group, hardened), own always-on PostgreSQL with pgvector; compose.yaml and .env backed up first; secrets generated without printing |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ✅ | Hub card in apps.js and <noscript> (anaslabs-src 4fcfb48); hub rebuilt, Sablier restarted |
-| P6 | Live at `yield-guardian.anaslabs.com` | PC | 🟡 | Live at https://yield-guardian.anaslabs.com: home and /line answer 200 (about 10 s cold wake through Sablier), API and database healthy; ready turns true when the SECOM bundle and wafer service land; remaining screens follow as they merge |
+| P6 | Live at `yield-guardian.anaslabs.com` | PC | ✅ | Live at https://yield-guardian.anaslabs.com from main 005a8ee: /api/v1/ready answers ready true (SECOM bundle, wafer bundle, database); cold wake about 20 s through Sablier; Token Factory key read from the server's .env without printing it |
 | P7 | Security headers and CSP | Cloud | ✅ | CSP with per-request nonce, upgrade-insecure-requests only behind HTTPS, security headers; merged (b7f321d) |
 
 ### Q: Quality
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ⏳ | |
-| Q2 | API tests | Cloud | ⏳ | |
+| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | 🟡 | Training tests: SECOM statistics, split leakage and smoke run; wafer-map units and data; ONNX parity in the API; all green in CI |
+| Q2 | API tests | Cloud | 🟡 | API: 230 tests including PostgreSQL, real-bundle tests for SECOM and wafer services; green in CI |
 | Q3 | Web tests, type check, lint | Cloud | ⏳ | |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
 | Q5 | Final review pass and performance check | Cloud | ⏳ | |
@@ -211,6 +211,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
 | 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |
 | 2026-10-14 10:49 | Live on anaslabs-hosting: API at yield-guardian.anaslabs.com, hub card added (P4, P5). Web app merged to main (U2 to U5, P7 done) |
 | 2026-10-14 10:40 | Docker images and compose merged with CI green (P1, P2 done). Committed bundles are verified and baked into the API image |
