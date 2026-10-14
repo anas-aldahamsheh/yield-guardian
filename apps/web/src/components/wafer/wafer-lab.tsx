@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { decodeWaferCells, type WaferDetail, type WaferMap, type WaferSummary } from "@yield-guardian/contracts";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import { PageFrame, PageHeader, Panel, Reading } from "@/components/page";
@@ -16,6 +15,7 @@ import { useApi } from "@/lib/api/context";
 import { useStartInvestigation } from "@/lib/api/investigations";
 import { q } from "@/lib/api/queries";
 import { useSession } from "@/lib/api/session";
+import { useParam } from "@/lib/use-param";
 import { formatInt, formatNumber, formatPercent, formatPValue, formatReading } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -23,20 +23,6 @@ import { cn } from "@/lib/utils";
 import { DieMap } from "./die-map";
 
 export const PATTERN_LABELS: PatternLabel[] = ["Center", "Donut", "Edge-Loc", "Edge-Ring", "Loc", "Near-full", "Random", "Scratch", "none"];
-
-function useParam(name: string) {
-  const params = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const value = params.get(name);
-  const set = (next: string | null) => {
-    const p = new URLSearchParams(params.toString());
-    if (next == null || next === "") p.delete(name);
-    else p.set(name, next);
-    router.replace(`${pathname}${p.size ? `?${p}` : ""}`, { scroll: false });
-  };
-  return [value, set] as const;
-}
 
 export function WaferLab() {
   const [selected, setSelected] = useParam("wafer");

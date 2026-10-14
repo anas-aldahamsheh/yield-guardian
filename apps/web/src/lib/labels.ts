@@ -86,6 +86,16 @@ export const HEALTH_STATUS: Record<string, string> = {
   dead: "Dead",
 };
 
+export const HEALTH_STATUS_ORDER = ["dead", "maintenance", "watch", "ok"] as const;
+export type HealthStatus = (typeof HEALTH_STATUS_ORDER)[number];
+
+export const UNIVARIATE_DIRECTION: Record<string, string> = {
+  higher_in_failures: "Higher in failures",
+  lower_in_failures: "Lower in failures",
+  no_difference: "No difference",
+  not_tested: "not tested",
+};
+
 export const WORK_ORDER_STATUS: Record<string, string> = {
   open: "Open",
   in_progress: "In progress",
