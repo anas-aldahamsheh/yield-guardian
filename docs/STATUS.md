@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 08:56 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:25 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -13,9 +13,9 @@
 
 **Where:** Cloud = this session writes and tests it. PC = runs on the owner's PC. You = needs the owner.
 
-## Paused: resume from here
+## Resume points (last pause)
 
-Paused at 2026-10-14 08:55 UTC to save the usage quota. Nothing half done is on main; each worker's work is on its own branch. To resume, say "continue" in the lead's thread.
+Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, all workers continuing from these points. Nothing half done is on main; each worker's work is on its own branch. To resume, say "continue" in the lead's thread.
 
 | Who | Branch | State at pause | Next step |
 |---|---|---|---|
@@ -206,6 +206,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 10:25 | Resumed after the pause: all workers continue from their branches. Empty environment variables now count as unset |
 | 2026-10-14 08:51 | Database, sessions, work orders and audit merged and tested on PostgreSQL (A2, A8, A9 done). The API now loads the newest verified SECOM bundle at startup and /ready says why when it can't (A1 done) |
 | 2026-10-14 08:47 | W1 to W5 done on the PC: wafer-map CNN trained (3 seeds per split); lot-grouped test macro-F1 0.900 against 0.699 for the baseline; official split 0.604 because its test lots are shifted. OOD, leave-one-class-out, similarity, ONNX and the bundle running next |
 | 2026-10-14 08:41 | Two helpers started under the lead: database, sessions, work orders and audit (A2, A8, A9); Docker images, compose and artifact verification (P1 to P3). P7 assigned to worker 5. SECOM bundle format aligned with the API (019dd80) |
