@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 12:50 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 12:58 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | Recorder ready: picks alarms from the held-out test block, refuses without --confirm (ffe9da1). Waiting on your go-ahead to spend points; upper bound about 3 points per run |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Recorder fixed: recorded runs read the data as of their alarm, live runs still follow the cursor (8329e4d). First live attempt failed before any model call (0 points); one rerun approved |
 
 ### U: Interface
 
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 12:58 | Mobile overflow fixed on /line, /methods and the home results table. Recorder reads data as of the alarm. Chat answers "what can you do?" from code instead of refusing (8329e4d) |
 | 2026-10-14 12:50 | Owner cut the submission material: video (X2), slides (X3), cover (X4) and the lablab submission (X6). Cut items no longer count toward the total. Recorder bug found on the live server (tools read the live cursor, not the alarm time); 0 points spent, fix in progress |
 | 2026-10-14 12:31 | New visual design merged: 3D wafer hero with a step-and-scan exposure, live chart motion, investigation report layout, attribution shown as one citation line (af225fe) |
 | 2026-10-14 12:13 | "Waiting on you" cleaned: changelog rows moved back here; open asks are L11 go-ahead, key rotation and the lablab submission |
