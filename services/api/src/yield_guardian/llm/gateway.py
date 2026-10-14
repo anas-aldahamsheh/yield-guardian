@@ -140,7 +140,7 @@ class _OutputSpec:
 
 ROLE_TIMEOUT_S: dict[Role, float] = {
     Role.INVESTIGATOR: 180.0,
-    Role.WRITER: 180.0,
+    Role.WRITER: 240.0,  # a report is about 2,000 tokens; Qwen3.8-Flash-Next wrote ~1,300 in 62 s
     Role.VERIFIER: 90.0,
     Role.ROUTER: 30.0,
     Role.CHAT: 120.0,

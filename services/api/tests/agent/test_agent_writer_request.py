@@ -69,6 +69,8 @@ VERIFIED_EFFORTS: dict[str, frozenset[str]] = {
     "MiMo-V2.6-Flash": frozenset({"none"}),
     # Used live by the investigator role on DeepSeek-V4.1-Flash (plan calls, 2026-10-14).
     "DeepSeek-V4.1-Flash": frozenset({"low"}),
+    # Run live at "none" by the chat role (4 of 4 long answers OK, 2026-10-14).
+    "Qwen3.8-Flash-Next": frozenset({"none"}),
     # Documented for Qwen3.8-27B; it cannot switch thinking off.
     "Qwen3.8-27B": frozenset({"low", "medium", "xhigh"}),
 }

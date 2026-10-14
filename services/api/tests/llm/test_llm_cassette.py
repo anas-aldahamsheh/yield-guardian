@@ -52,7 +52,7 @@ def request(method: str, path: str, body: object | None = None) -> httpx.Request
 def test_player_serves_in_order_and_checks_method_path_and_pinned_fields() -> None:
     player = CassettePlayer(load_cassette("structured_fallback"))
     with pytest.raises(CassetteError, match="reasoning_effort"):
-        player(request("POST", "/chat/completions", {"model": "DeepSeek-V4.1-Flash"}))
+        player(request("POST", "/chat/completions", {"model": "Qwen3.8-Flash-Next"}))
     player = CassettePlayer(load_cassette("structured_fallback"))
     with pytest.raises(CassetteError, match="does not match"):
         player(request("GET", "/chat/completions"))

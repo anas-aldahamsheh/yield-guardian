@@ -449,7 +449,8 @@ async def test_a_model_failure_fails_the_investigation(respx_mock: respx.Router)
 async def test_a_writer_failure_fails_the_investigation(respx_mock: respx.Router) -> None:
     model = ScriptedModel().mount(respx_mock)
     model.add("investigator", text_reply("READY"))
-    model.add("writer", text_reply("not json"), text_reply("still not json"))
+    # One bad answer per writer-chain model (Qwen3.8-Flash-Next, DeepSeek, MiMo).
+    model.add("writer", text_reply("not json"), text_reply("still not json"), text_reply("no"))
     sink = RecordingSink()
     await runner(FakeScience()).run(INV, UNIT, sink)
     assert [p.code for p in sink.of("error")] == ["upstream_error"]

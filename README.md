@@ -67,7 +67,7 @@ All language-model roles run on AMD GPUs through **AMD Token Factory**, one mode
 | Role | Default model |
 |---|---|
 | Investigator (plans, calls tools) | DeepSeek-V4.1-Flash |
-| Report writer (JSON output validated in code) | DeepSeek-V4.1-Flash; MiMo-V2.6-Flash as fallback (MiMo was too slow for a full report in live runs) |
+| Report writer (JSON output validated in code) | Qwen3.8-Flash-Next; DeepSeek-V4.1-Flash, then MiMo-V2.6-Flash as fallbacks (Qwen was the one model that returned long outputs reliably in live runs) |
 | Verifier (a different family from the writer) | GLM-5.3-Flash |
 | Engineer chat | Qwen3.8-Flash-Next |
 | Router fallback | MiniCPM5-2B |
