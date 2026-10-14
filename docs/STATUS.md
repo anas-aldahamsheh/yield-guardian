@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:09 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:11 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 61 of 86 done (71%), 6 in progress, 19 not started
+## Progress: 62 of 86 done (72%), 7 in progress, 17 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -18,7 +18,7 @@
 | U: Interface | 4 of 14 | 1 | 9 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 0 of 5 | 2 | 3 |
-| X: Submission | 0 of 6 | 1 | 5 |
+| X: Submission | 1 of 6 | 2 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 61 of 86 |
+| Done | 62 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -195,10 +195,10 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
-| X2 | Demo video script and shot list | Cloud | ⏳ | |
+| X2 | Demo video script and shot list | Cloud | 🟡 | [Video script](submission/video_script.md): 9 scenes, 185 s; screens U7 to U12 and a recorded investigation needed before recording |
 | X3 | Slide deck | Cloud | ⏳ | |
 | X4 | Cover image | Cloud | ⏳ | |
-| X5 | Submission form texts (title, short and long description, tags) | Cloud | ⏳ | |
+| X5 | Submission form texts (title, short and long description, tags) | Cloud | ✅ | [Form texts](submission/form.md): title 56 chars, short 243 chars, long 483 words, 7 tags; only measured numbers, SECOM weakness stated; checked by check_form.py |
 | X6 | Submit on lablab | You | ⏳ | |
 
 ## Waiting on you
