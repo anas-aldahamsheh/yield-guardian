@@ -111,7 +111,7 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
   const limit = 6;
   const shown = all ? group.sensors : group.sensors.slice(0, limit);
   return (
-    <span className="tnum flex flex-wrap gap-x-2 gap-y-0.5">
+    <span className="tnum flex flex-wrap gap-x-2">
       {shown.map((s) => (
         <button
           key={s}
@@ -119,7 +119,8 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
           onClick={() => onSelect(s)}
           aria-pressed={selected === s}
           className={cn(
-            "cursor-pointer underline decoration-hairline-strong underline-offset-4 hover:text-ink",
+            // 24 px tall: a touch target that meets WCAG 2.2 target size.
+            "min-h-6 cursor-pointer underline decoration-hairline-strong underline-offset-4 hover:text-ink",
             s === group.representative ? "font-medium text-ink" : "text-ink-2",
             selected === s && "lit rounded-[2px] px-0.5",
           )}
@@ -129,7 +130,7 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
         </button>
       ))}
       {group.sensors.length > limit && !all ? (
-        <button type="button" onClick={() => setAll(true)} className="cursor-pointer text-ink-3 hover:text-ink">
+        <button type="button" onClick={() => setAll(true)} className="min-h-6 cursor-pointer text-ink-3 hover:text-ink">
           +{group.sensors.length - limit} more
         </button>
       ) : null}
