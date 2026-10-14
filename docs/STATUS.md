@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 16:50 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 17:00 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | Stopped by the owner (16:23). Three live attempts reached 7 evidence records each, then failed at the writer: MiMo too slow (~5 tok/s), DeepSeek 504 from AMD's upstream. Writer chain is now Qwen3.8-Flash-Next, DeepSeek-V4.1-Flash, MiMo with a 240 s deadline and a 30-min run bound (b2cecce + this merge); not yet tried live |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Stopped by the owner (16:23), then restarted for one attempt at 16:50 on the owner\'s "يلا بسرعة". Three live attempts reached 7 evidence records each, then failed at the writer: MiMo too slow (~5 tok/s), DeepSeek 504 from AMD's upstream. Writer chain is now Qwen3.8-Flash-Next, DeepSeek-V4.1-Flash, MiMo with a 240 s deadline and a 30-min run bound (b2cecce + this merge); not yet tried live |
 
 ### U: Interface
 
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | ✅ | Live site (21e851b), Lighthouse 12.8.2 mobile, median of 3 (performance / accessibility / best practices / SEO): home 94 / 100 / 96 / 100, /line 93 / 100 / 100 / 100, /methods 91 / 100 / 100 / 100. Axe on home after 7e45f7f (live, 8ba0adc): 0 violations on desktop and at 375 px. Home best practices 96 is one hydration warning in the console, being fixed |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | ✅ | Live site (21e851b), Lighthouse 12.8.2 mobile, median of 3 (performance / accessibility / best practices / SEO): home 94 / 100 / 96 / 100, /line 93 / 100 / 100 / 100, /methods 91 / 100 / 100 / 100. Axe on home after 7e45f7f (live, 8ba0adc): 0 violations on desktop and at 375 px. Home best practices 96 was a hydration error (React #418, event times in the viewer's zone); fixed in 189406d and checked on a production build: the old build throws it on / and /investigations, the new one has 0 console errors on 5 pages in 3 time zones. Waiting on the live check |
 | U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | ✅ | Live on the site (d37fc64): 89 entries in 10 categories, filters and Arabic search, right-to-left, no sideways scroll at 375 px |
 
 ### P: Packaging and deployment
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 17:00 | Merged 189406d (W5): event times render in UTC on the server and switch to local time after hydration, fixing React #418 on home and /investigations; verified on a production build in Asia/Amman, America/Los_Angeles and UTC. One L11 recording started on the owner's "يلا بسرعة" (writer Qwen3.8-Flash-Next first) |
 | 2026-10-14 16:50 | Live 8ba0adc: axe on home has 0 violations on desktop and mobile (target-size fixed) |
 | 2026-10-14 16:58 | U14 done: live Lighthouse mobile home 94, /line 93, /methods 91 (accessibility 100 on all). Attribution toggle made a 24 px target (7e45f7f). Hydration warning on home being fixed |
 | 2026-10-14 16:50 | Merged 05e9669 (W5): home Lighthouse mobile 94 (poster image as LCP, menus and toasts load on first use, no Intl in hydration, CSS as a file, one preloaded font); sign-out menu regression fixed; 194 unit and 104 e2e tests pass |
