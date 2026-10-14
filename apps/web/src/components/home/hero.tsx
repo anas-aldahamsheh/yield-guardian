@@ -151,8 +151,19 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
             (the dataset records only pass and fail).
           </p>
           <details className="max-w-[72ch]" onToggle={(e) => setOpen(e.currentTarget.open)}>
-            <summary className="w-fit cursor-pointer rounded-sm text-ink-2 underline decoration-hairline-strong underline-offset-4 marker:text-ink-3 hover:text-ink">
-              How this wafer was chosen, and its source
+            <summary className="w-fit cursor-pointer rounded-sm marker:text-ink-3">
+              Wafer map from WM-811K, MIR Lab (
+              <a
+                href="https://doi.org/10.1109/TSM.2014.2364237"
+                className="text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+                rel="noreferrer"
+              >
+                Wu, Jang and Chen, 2015
+              </a>
+              ).{" "}
+              <span className="text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
+                How it was chosen, licence and full attribution
+              </span>
             </summary>
             <div className="swap-in mt-3 grid gap-3">
               <p>{hero.selection}</p>

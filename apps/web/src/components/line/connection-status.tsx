@@ -38,7 +38,7 @@ export function ConnectionStatus({
         aria-hidden="true"
         className={cn(
           "size-2 rounded-full",
-          connection === "live" ? "bg-safelight" : connection === "offline" ? "bg-fail" : "bg-mark-muted",
+          connection === "live" ? "live-dot" : connection === "offline" ? "bg-fail" : "bg-mark-muted",
         )}
       />
       <span className="font-medium text-ink">{copy.label}</span>

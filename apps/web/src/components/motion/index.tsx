@@ -111,7 +111,8 @@ export function useNewIds(ids: readonly string[]): ReadonlySet<string> {
     }
     const next = new Set(ids.filter((id) => !seen.current!.has(id)));
     for (const id of ids) seen.current.add(id);
-    if (next.size) setFresh(next);
+    // A handful of new ids is arrivals; many at once is a reload or a new window, not news.
+    if (next.size > 0 && next.size <= 3) setFresh(next);
     // `joined` stands for `ids`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joined]);

@@ -12,7 +12,6 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatNumber, formatPercent } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
-import { cn } from "@/lib/utils";
 
 import { ConfusionMatrix } from "./charts";
 import { EstimateFootnote, Limitations } from "./secom-methods";
@@ -63,7 +62,6 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                 <th scope="col" className="px-3 py-2 text-right font-normal">Test wafers</th>
                 <th scope="col" className="w-[28%] px-3 py-2 font-normal">Macro-F1</th>
                 <th scope="col" className="px-3 py-2 font-normal">Accuracy</th>
-                <th scope="col" className="px-3 py-2 font-normal">Across seeds</th>
                 <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">Lots in both</th>
               </tr>
             </thead>
@@ -80,9 +78,13 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                     <span className="mt-0.5 block text-[12px]">
                       <EstimateText estimate={s.macro_f1} digits={3} />
                     </span>
+                    {s.seed_mean != null && s.seed_sd != null ? (
+                      <span className="tnum mt-0.5 block text-[12px] text-ink">
+                        Mean across seeds {seedText(s)}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-3 py-2.5 text-[12px]">{s.accuracy ? <EstimateText estimate={s.accuracy} digits={3} /> : <span className="text-ink-3">Not measured yet</span>}</td>
-                  <td className={cn("tnum px-3 py-2.5 text-[12px]", s.seed_mean == null ? "text-ink-3" : "text-ink-2")}>{seedText(s)}</td>
                   <td className="tnum px-4 py-2.5 text-right text-ink-2 sm:px-5">{s.lots_in_both == null ? "–" : formatInt(s.lots_in_both)}</td>
                 </tr>
               ))}

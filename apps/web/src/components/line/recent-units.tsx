@@ -4,6 +4,7 @@ import type { UnitSummary } from "@yield-guardian/contracts";
 import Link from "next/link";
 import { useState } from "react";
 
+import { useNewIds } from "@/components/motion";
 import { Panel } from "@/components/page";
 import { Button } from "@/components/ui/button";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
@@ -19,6 +20,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
   const [all, setAll] = useState(false);
   const newestFirst = [...units].reverse();
   const shown = all ? newestFirst : newestFirst.slice(0, SHOWN);
+  const fresh = useNewIds(units.map((u) => String(u.sequence)));
 
   return (
     <Panel
@@ -43,7 +45,13 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
           </thead>
           <tbody>
             {shown.map((u) => (
-              <tr key={u.sequence} className="border-b border-hairline last:border-b-0 hover:bg-die-2">
+              <tr
+                key={u.sequence}
+                className={cn(
+                  "border-b border-hairline last:border-b-0 hover:bg-die-2",
+                  fresh.has(String(u.sequence)) && (u.fdc_alarm === "alarm" || u.risk_band === "high" ? "flash-alarm" : "flash-new"),
+                )}
+              >
                 <th scope="row" className="tnum px-4 py-2 font-normal sm:px-5">
                   <Link href={`/units/${u.unit_id}`} className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink">
                     {formatInt(u.unit_id)}

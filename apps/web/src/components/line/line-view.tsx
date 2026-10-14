@@ -52,9 +52,11 @@ export function LineView() {
         </div>
       ) : (
         <div className="grid gap-street">
-          <LineKpis kpis={state.kpis} className="mb-4" />
+          <LineKpis kpis={state.kpis} className="mb-2" />
           <div className="grid gap-street xl:grid-cols-[minmax(0,1fr)_380px]">
             <Panel
+              live={connection === "live"}
+              className="xl:self-start"
               title="Control charts (FDC)"
               description={`Limits at 99% and 99.9% of the reference period. The failure-risk trace is an experimental signal, not a claim of predictive skill; Methods compares its precision with the no-skill rate. Its threshold is ${formatProbability(state.operating_point.threshold)}, ${state.operating_point.label}.`}
               actions={

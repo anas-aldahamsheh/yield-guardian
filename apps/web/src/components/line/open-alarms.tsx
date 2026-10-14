@@ -4,6 +4,7 @@ import type { Alarm } from "@yield-guardian/contracts";
 import Link from "next/link";
 import { useState } from "react";
 
+import { useNewIds } from "@/components/motion";
 import { Panel } from "@/components/page";
 import { EmptyState } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
   const guest = useStartGuestSession();
   const start = useStartInvestigation();
   const shown = all ? alarms : alarms.slice(0, SHOWN);
+  const fresh = useNewIds(alarms.map((a) => a.alarm_id));
 
   return (
     <Panel
@@ -51,7 +53,10 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
           ) : null}
           <ol className="divide-y divide-hairline border-t border-hairline">
             {shown.map((alarm) => (
-              <li key={alarm.alarm_id} className="px-4 py-3 sm:px-5">
+              <li
+                key={alarm.alarm_id}
+                className={cn("px-4 py-3 sm:px-5", fresh.has(alarm.alarm_id) && (alarm.severity === "alarm" ? "flash-alarm" : "flash-new"))}
+              >
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="flex min-w-0 items-baseline gap-2 text-[14px] leading-5">
                     <span

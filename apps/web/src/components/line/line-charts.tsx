@@ -139,11 +139,21 @@ export function LineCharts({
               points={t2.points}
               yMax={t2.max}
               limits={t2.lines}
+              alarmAbove={limits?.t2_999}
               formatTick={(v) => formatInt(v)}
               rug={rug}
-              height={166}
+              height={200}
             />
-            <ControlChart {...shared} label="SPE (Q)" points={spe.points} yMax={spe.max} limits={spe.lines} formatTick={(v) => formatInt(v)} />
+            <ControlChart
+              {...shared}
+              label="SPE (Q)"
+              points={spe.points}
+              yMax={spe.max}
+              limits={spe.lines}
+              alarmAbove={limits?.spe_999}
+              formatTick={(v) => formatInt(v)}
+              height={176}
+            />
           </>
         ) : (
           <p className="py-6 pl-[52px] text-sm text-ink-3">Control limits are loading.</p>
@@ -156,7 +166,7 @@ export function LineCharts({
           limits={risk.lines}
           formatTick={(v) => `${Math.round(v * 100)}%`}
           showXAxis
-          height={166}
+          height={196}
         />
       </div>
       <Legend />
@@ -240,6 +250,14 @@ function Legend() {
       <li className={item}>
         <svg width="10" height="12" aria-hidden="true"><line x1="5" x2="5" y1="4" y2="11" stroke="var(--pass)" strokeOpacity="0.55" /></svg>
         Passed
+      </li>
+      <li className={item}>
+        <svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--safelight)" strokeWidth="1.5" /></svg>
+        Newest unit
+      </li>
+      <li className={item}>
+        <svg width="14" height="10" aria-hidden="true"><rect width="14" height="10" fill="var(--fail-wash)" /></svg>
+        Alarm zone, beyond the 99.9% limit
       </li>
     </ul>
   );
