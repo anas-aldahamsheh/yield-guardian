@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:11 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:23 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -124,7 +124,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ✅ | App factory, settings, logs, problem+json, health and readiness (37e271d); resources start and stop with the app (a99afd3); at startup the newest verified bundle is loaded and /ready names any reason it could not be (f224cec) |
-| A2 | Database schema and Alembic migrations | Cloud | ✅ | SQLAlchemy models and Alembic migration 0001, applied at startup and tested on PostgreSQL 16 with pgvector; CI runs them on pgvector/pg17 (b8ae0b3) |
+| A2 | Database schema and Alembic migrations | Cloud | ✅ | Migrations 0001 (sessions, investigations, jobs, work orders, audit, alarm states) and 0002 (model calls, response cache, role choices, chat routes, evaluations, knowledge chunks with full-text search); tested on PostgreSQL with pgvector (d89d6b0) |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
@@ -211,6 +211,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
 | 2026-10-14 11:09 | Literature on wafer-pattern causes checked and extended (K1, K3 done); a wrong attribution in one quote was corrected |
 | 2026-10-14 11:07 | AI layer merged: investigator, writer, verifier, router, chat, knowledge search (L1 to L9, K2, A7 done). README written with measured results |
 | 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
