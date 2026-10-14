@@ -44,7 +44,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM ${PYTHON_IMAGE} AS artifacts
 
 COPY deploy/fetch_artifacts.py deploy/artifacts.lock.json /fetch/
-RUN python3 /fetch/fetch_artifacts.py --lock /fetch/artifacts.lock.json --dest /artifacts
+# Bundles committed to the repository (artifacts/<name>/<version>/) are verified file by file.
+COPY artifacts/ /artifacts/
+RUN python3 /fetch/fetch_artifacts.py --verify-local /artifacts \
+ && python3 /fetch/fetch_artifacts.py --lock /fetch/artifacts.lock.json --dest /artifacts
 
 # ---------------------------------------------------------------------------------------------
 FROM ${PYTHON_IMAGE} AS runtime

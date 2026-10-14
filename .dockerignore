@@ -12,6 +12,7 @@
 !deploy/fetch_artifacts.py
 !deploy/artifacts.lock.json
 !deploy/docker/api-migrate.sh
+!artifacts/*/v*/
 
 # Secrets, never in an image
 **/.env
@@ -44,8 +45,9 @@ packages/*/coverage
 **/next-env.d.ts
 **/.DS_Store
 
-# Raw data, training and local artifacts/ stay out through the allowlist above: model bundles
-# come only from deploy/artifacts.lock.json, verified during the build.
+# Raw data and training stay out through the allowlist above. Model bundles are the committed
+# artifacts/<name>/v<N>/ folders and any listed in deploy/artifacts.lock.json; both are verified
+# against their MANIFEST.json during the build.
 
 # Development fixtures, mocks, tests and dev-only pages never reach an image
 packages/contracts/fixtures

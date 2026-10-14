@@ -319,3 +319,21 @@ def test_symlink_in_zip_is_refused(tmp_path: Path, dest: Path) -> None:
     lock = write_lock(tmp_path, archive)
     with pytest.raises(fa.ArtifactError, match="not a regular file"):
         fa.fetch_all(lock, dest, log=quiet)
+
+
+def test_committed_bundles_are_verified_in_place(tmp_path: Path) -> None:
+    bundle = tmp_path / "secom" / "v1"
+    bundle.mkdir(parents=True)
+    for name, data in bundle_members().items():
+        (bundle / name).parent.mkdir(parents=True, exist_ok=True)
+        (bundle / name).write_bytes(data)
+    assert fa.verify_local(tmp_path, log=quiet) == [bundle]
+    (bundle / next(iter(FILES))).write_bytes(b"changed")
+    with pytest.raises(fa.ArtifactError):
+        fa.verify_local(tmp_path, log=quiet)
+    assert fa.main(["--verify-local", str(tmp_path)]) == 1
+
+
+def test_the_repository_bundles_verify() -> None:
+    root = Path(__file__).resolve().parents[2] / "artifacts"
+    assert fa.verify_local(root, log=quiet)

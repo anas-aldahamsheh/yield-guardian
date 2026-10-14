@@ -387,13 +387,34 @@ def fetch_all(lock: Path, dest: Path, log: Any = print) -> list[Path]:
     return [fetch_bundle(entry, dest, log) for entry in entries]
 
 
+def verify_local(root: Path, log: Any = print) -> list[Path]:
+    """Verify bundles committed to the repository, laid out as <root>/<name>/<version>/."""
+    found: list[Path] = []
+    if not root.is_dir():
+        return found
+    for bundle in sorted(p for p in root.glob("*/*") if p.is_dir()):
+        files = verify_bundle(bundle, bundle.parent.name, bundle.name)
+        log(f"{bundle}: verified {files} files against MANIFEST.json")
+        found.append(bundle)
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     here = Path(__file__).resolve().parent
     parser.add_argument("--lock", type=Path, default=here / "artifacts.lock.json")
     parser.add_argument("--dest", type=Path, default=here.parent / "artifacts")
+    parser.add_argument(
+        "--verify-local",
+        type=Path,
+        default=None,
+        help="Only verify the committed bundles under this folder against their manifests.",
+    )
     args = parser.parse_args(argv)
     try:
+        if args.verify_local is not None:
+            verify_local(args.verify_local)
+            return 0
         fetch_all(args.lock, args.dest)
     except ArtifactError as exc:
         print(f"error: {exc}", file=sys.stderr)
