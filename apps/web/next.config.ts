@@ -3,10 +3,10 @@ import type { NextConfig } from "next";
 
 /**
  * Dev-only pages (the component playground) are named `page.dev.tsx`. They are routes only in
- * `next dev`, or in a build made with YG_DEV_PLAYGROUND=1 for screenshots. A normal production
- * build never sees them, so development fixtures cannot reach a user.
+ * `next dev`; `next build` always runs with NODE_ENV=production, never compiles them, and so
+ * cannot ship development fixtures to a user. There is deliberately no switch to include them.
  */
-const devPages = process.env.NODE_ENV !== "production" || process.env.YG_DEV_PLAYGROUND === "1";
+const devPages = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   output: "standalone",

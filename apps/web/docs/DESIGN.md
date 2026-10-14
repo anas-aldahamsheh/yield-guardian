@@ -40,6 +40,12 @@ This page records the plan, the review against the brief, and what the review ch
 - **Contrast (WCAG 2.2):** ink 14.6:1 and 16.4:1; secondary ink 9.1:1 and 7.6:1; muted
   ink 5.8:1 and 5.2:1 on panels. Safelight 11.9:1 on dark panels; the light theme's
   safelight stroke is 3.9:1, used for focus outlines and marks, never for body text.
+  A yellow dark enough for 3:1 on a light panel reads as olive, so the light-theme
+  stroke turns 12° towards orange (OKLCH 0.60 0.123 85). Control edges (`edge`),
+  baseline marks and the elevated-risk step (`concern`) reach 3:1 on every surface.
+  `src/lib/design-tokens.test.ts` reads `globals.css` and fails the build if any of
+  these pairs drops below its minimum, in either theme, or if pass and fail stop
+  being separable under protan, deutan or tritan simulation.
 - **Data colour jobs:** magnitude uses one-hue ramps (fail hue for failure frequency,
   pass hue for counts such as the confusion matrix); polarity (SHAP towards failure or
   towards passing) uses fail and pass around a neutral grey; comparisons use emphasis

@@ -2,23 +2,49 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 /**
- * Production code must never see development data. Mock handlers, development fixtures and
- * MSW itself live under src/mocks and may be imported only by tests, the mock API server and
- * dev-only pages (`*.dev.tsx`).
+ * Production code must never see development data. Mock handlers, the contract fixtures and MSW
+ * itself may be imported only by tests, the mock API server (scripts/) and dev-only pages
+ * (`*.dev.tsx`, which `next build` does not compile, see next.config.ts). CI also scans the build
+ * output for fixture content.
  */
-const mockImportBan = {
+const DEV_DATA_MESSAGE =
+  "Development data stays out of production code. Import mocks, MSW and contract fixtures only from tests, src/mocks, scripts/ or *.dev.tsx pages.";
+
+const devDataImportBan = {
   patterns: [
     {
       group: ["@/mocks", "@/mocks/*", "**/mocks", "**/mocks/*", "msw", "msw/*"],
-      message:
-        "Development data and MSW stay out of production code. Import them only from tests, src/mocks or *.dev.tsx pages.",
+      message: DEV_DATA_MESSAGE,
     },
     {
-      group: ["@yield-guardian/contracts/fixtures/*"],
-      message: "Contract fixtures are synthetic. Import them only from tests or src/mocks.",
+      group: [
+        "@yield-guardian/contracts/fixtures",
+        "@yield-guardian/contracts/fixtures/*",
+        "**/contracts/fixtures",
+        "**/contracts/fixtures/*",
+        "**/fixtures/*.json",
+      ],
+      message: DEV_DATA_MESSAGE,
     },
   ],
 };
+
+/** The same ban for `import()` and `require()`, which no-restricted-imports does not see. */
+const DEV_DATA_SOURCE = "/(^|\\/)(mocks|fixtures)(\\/|$)|^msw(\\/|$)/";
+const devDataDynamicImportBan = [
+  {
+    selector: `ImportExpression[source.value=${DEV_DATA_SOURCE}]`,
+    message: DEV_DATA_MESSAGE,
+  },
+  {
+    selector: "ImportExpression[source.type!='Literal']",
+    message: "Use a string literal in import() so the development-data rule can check it.",
+  },
+  {
+    selector: `CallExpression[callee.name='require'][arguments.0.value=${DEV_DATA_SOURCE}]`,
+    message: DEV_DATA_MESSAGE,
+  },
+];
 
 const config = [
   ...nextVitals,
@@ -29,14 +55,15 @@ const config = [
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",
-      "public/mockServiceWorker.js",
+      "docs/**",
       "next-env.d.ts",
     ],
   },
   {
     files: ["**/*.{ts,tsx,mts,mjs}"],
     rules: {
-      "no-restricted-imports": ["error", mockImportBan],
+      "no-restricted-imports": ["error", devDataImportBan],
+      "no-restricted-syntax": ["error", ...devDataDynamicImportBan],
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
@@ -57,6 +84,7 @@ const config = [
     ],
     rules: {
       "no-restricted-imports": "off",
+      "no-restricted-syntax": "off",
     },
   },
 ];

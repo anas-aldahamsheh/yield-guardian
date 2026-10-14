@@ -48,11 +48,14 @@
     color-mix(in oklab, #c62b44 11%, transparent),
     color-mix(in oklab, #eb556e 16%, transparent)
   );
-  /* Concern between none and fail: a lighter step of the fail hue (always with icon and label). */
-  --concern: light-dark(#d9768a, #a5495a);
+  /* Elevated risk, a quieter step of the fail hue. Always shown with its label, never alone. */
+  --concern: light-dark(#cb6d7a, #ab505f);
 
   /* Context marks in charts (baselines, reference periods), always direct-labelled. */
-  --mark-muted: light-dark(#9ba1a8, #6c6a61);
+  --mark-muted: light-dark(#84888c, #6f6d66);
+
+  /* Edges that identify a control (inputs, switches, radios): 3:1 against every surface. */
+  --edge: light-dark(#84888c, #6f6d66);
 
   /* Motion. */
   --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
@@ -84,7 +87,7 @@
   --accent-foreground: var(--ink);
   --destructive: var(--fail);
   --border: var(--hairline);
-  --input: var(--hairline-strong);
+  --input: var(--edge);
   --ring: var(--safelight);
 }
 
@@ -121,6 +124,7 @@
   --color-fail-wash: var(--fail-wash);
   --color-concern: var(--concern);
   --color-mark-muted: var(--mark-muted);
+  --color-edge: var(--edge);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
