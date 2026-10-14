@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 07:20 UTC
+**Last updated:** 2026-10-14 07:56 UTC
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -17,8 +17,8 @@
 
 | | |
 |---|---|
-| Done | 2 of 86 |
-| Current focus | Repository scaffold, then data download on the PC |
+| Done | 4 of 86 |
+| Current focus | Contracts frozen; workers 2 to 5 building in parallel; data download on the PC |
 | Blocked | Nothing |
 | Waiting on you | Allow the session on your PC when the request appears; put the Token Factory key in `.env` on your PC when asked |
 
@@ -48,16 +48,16 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|---|---|
 | F1 | Implementation plan | Cloud | ✅ | [PLAN.md](PLAN.md) |
 | F2 | Status tracker | Cloud | ✅ | This file |
-| F3 | Monorepo scaffold, MIT licence, editor and lint config, `.env.example` | Cloud | ⏳ | |
+| F3 | Monorepo scaffold, MIT licence, editor and lint config, `.env.example` | Cloud | ✅ | Commits c212301, 9fd5a19: workspace, MIT licence, `.editorconfig`, Ruff and mypy config, `.env.example` |
 | F4 | CI: lint, types, tests, build, secret scan, dependency audit | Cloud | ⏳ | |
-| F5 | Contracts: OpenAPI export and generated TypeScript types, staleness check | Cloud | ⏳ | |
-| F6 | Working copy of the repo in the project folder; toolchain check (Python, uv, Node, pnpm, Docker, CUDA) | PC | ⏳ | |
+| F5 | Contracts: OpenAPI export and generated TypeScript types, staleness check | Cloud | ✅ | [openapi.json](../packages/contracts/openapi.json) (47 operations), [schema.d.ts](../packages/contracts/src/schema.d.ts), 47 fixtures validated in pytest (74 passed); CI wiring is F4 |
+| F6 | Working copy of the repo in the project folder; toolchain check (Python, uv, Node, pnpm, Docker, CUDA) | PC | 🟡 | PC session running (worker 3) |
 
 ### D: Data
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| D1 | Download SECOM from UCI, record SHA-256 and licence | PC | ⏳ | |
+| D1 | Download SECOM from UCI, record SHA-256 and licence | PC | 🟡 | Download running on the PC (worker 3) |
 | D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ⏳ | Kaggle token is on the PC; never committed |
 | D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | ⏳ | Corrects PLAN if any documented number differs |
 | D4 | Validated loaders (pandera schemas) | Cloud | ⏳ | |
@@ -67,7 +67,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | ⏳ | |
+| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | 🟡 | Worker 2 building the SECOM pipeline |
 | S2 | Training-only preprocessing (constants, missingness indicators) | Cloud | ⏳ | |
 | S3 | Baselines: prevalence, logistic regression, random forest | Cloud | ⏳ | |
 | S4 | LightGBM with class weights, Optuna tuning on validation | Cloud | ⏳ | |
@@ -105,13 +105,13 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ⏳ | |
+| A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | 🟡 | App factory, settings, structured logs, problem+json errors, health and readiness (37e271d); bundle loading at startup pending |
 | A2 | Database schema and Alembic migrations | Cloud | ⏳ | |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ⏳ | |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ⏳ | |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ⏳ | |
-| A7 | REST endpoints for every screen | Cloud | ⏳ | |
+| A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes declared on the service interfaces (37e271d); services pending (A5, A6) |
 | A8 | Sessions: "Try as engineer", admin login, roles, CSRF, rate limits | Cloud | ⏳ | |
 | A9 | Work orders and audit log | Cloud | ⏳ | |
 
@@ -119,7 +119,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| L1 | Token Factory client with capability profiles and catalog sync | Cloud | ⏳ | |
+| L1 | Token Factory client with capability profiles and catalog sync | Cloud | 🟡 | Worker 4 building the AI layer |
 | L2 | Rate limiter, retries with jitter, budget guard, response cache | Cloud | ⏳ | |
 | L3 | Model registry: role to model, admin API, validation | Cloud | ⏳ | |
 | L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | ⏳ | |
@@ -135,7 +135,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | ⏳ | |
+| U1 | Next.js app, Tailwind, shadcn/ui, layout shell, navigation | Cloud | 🟡 | Worker 5 building the interface |
 | U2 | Design tokens: typefaces, colour, type scale, motion; reviewed against the brief | Cloud | ⏳ | |
 | U3 | 3D wafer: instanced dies from real maps, thin-film shader, step-and-scan reveal | Cloud | ⏳ | |
 | U4 | Home page with measured results | Cloud | ⏳ | |
@@ -194,4 +194,5 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 07:56 | F3 and F5 done: scaffold, API contracts (47 operations), TypeScript types and validated fixtures |
 | 2026-10-14 07:20 | F1 and F2 done: plan and status written |

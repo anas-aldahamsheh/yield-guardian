@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "lot": "lot47542",
+      "wafers": 25,
+      "labelled": 25,
+      "flagged_labels": [
+        "Edge-Ring"
+      ],
+      "min_q_value": 0.0004
+    },
+    {
+      "lot": "lot31102",
+      "wafers": 25,
+      "labelled": 25,
+      "flagged_labels": [],
+      "min_q_value": 0.21
+    },
+    {
+      "lot": "lot28763",
+      "wafers": 24,
+      "labelled": 24,
+      "flagged_labels": [
+        "Edge-Loc"
+      ],
+      "min_q_value": 0.012
+    }
+  ],
+  "next_cursor": null,
+  "total": 3
+}

@@ -1,0 +1,135 @@
+{
+  "since": "2026-10-14T11:00:00Z",
+  "total": {
+    "requests": 14,
+    "tokens_in": 61200,
+    "tokens_out": 6100,
+    "tokens_reasoning": 1540,
+    "points": 0.0118,
+    "cache_hits": 3
+  },
+  "by_role": [
+    {
+      "role": "investigator",
+      "usage": {
+        "requests": 5,
+        "tokens_in": 17050,
+        "tokens_out": 1430,
+        "tokens_reasoning": 600,
+        "points": 0.0028,
+        "cache_hits": 1
+      }
+    },
+    {
+      "role": "writer",
+      "usage": {
+        "requests": 4,
+        "tokens_in": 24480,
+        "tokens_out": 3248,
+        "tokens_reasoning": 0,
+        "points": 0.0044,
+        "cache_hits": 1
+      }
+    },
+    {
+      "role": "verifier",
+      "usage": {
+        "requests": 4,
+        "tokens_in": 19670,
+        "tokens_out": 1422,
+        "tokens_reasoning": 940,
+        "points": 0.0046,
+        "cache_hits": 1
+      }
+    }
+  ],
+  "by_model": [
+    {
+      "model_id": "DeepSeek-V4.1-Flash",
+      "usage": {
+        "requests": 5,
+        "tokens_in": 17050,
+        "tokens_out": 1430,
+        "tokens_reasoning": 600,
+        "points": 0.0028,
+        "cache_hits": 1
+      }
+    },
+    {
+      "model_id": "MiMo-V2.6-Flash",
+      "usage": {
+        "requests": 4,
+        "tokens_in": 24480,
+        "tokens_out": 3248,
+        "tokens_reasoning": 0,
+        "points": 0.0044,
+        "cache_hits": 1
+      }
+    },
+    {
+      "model_id": "GLM-5.3-Flash",
+      "usage": {
+        "requests": 4,
+        "tokens_in": 19670,
+        "tokens_out": 1422,
+        "tokens_reasoning": 940,
+        "points": 0.0046,
+        "cache_hits": 1
+      }
+    }
+  ],
+  "quota": {
+    "limit": 1.0,
+    "used": 0.0118,
+    "remaining": 0.9882,
+    "resets_at": "2026-10-15T11:00:00Z",
+    "rpm_limit": 20,
+    "source": "usage_endpoint",
+    "checked_at": "2026-10-13T23:48:00Z"
+  },
+  "guard": {
+    "active": false,
+    "threshold": 0.3,
+    "reason": null
+  },
+  "deterministic_answers": 9,
+  "model_answers": 2,
+  "recent": [
+    {
+      "at": "2026-10-13T23:39:18Z",
+      "role": "verifier",
+      "model_id": "GLM-5.3-Flash",
+      "status": "ok",
+      "tokens_in": 5230,
+      "tokens_out": 402,
+      "tokens_reasoning": 260,
+      "points": 0.00099,
+      "latency_ms": 3870,
+      "error": null
+    },
+    {
+      "at": "2026-10-13T23:39:13Z",
+      "role": "writer",
+      "model_id": "MiMo-V2.6-Flash",
+      "status": "ok",
+      "tokens_in": 6120,
+      "tokens_out": 812,
+      "tokens_reasoning": 0,
+      "points": 0.00109,
+      "latency_ms": 4120,
+      "error": null
+    },
+    {
+      "at": "2026-10-13T23:39:01Z",
+      "role": "investigator",
+      "model_id": "DeepSeek-V4.1-Flash",
+      "status": "cached",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "tokens_reasoning": 0,
+      "points": 0.0,
+      "latency_ms": 3,
+      "error": null
+    }
+  ]
+}

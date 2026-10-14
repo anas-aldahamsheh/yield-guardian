@@ -1,0 +1,888 @@
+{
+  "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+  "title": "Unit 443: T\u00b2 beyond the 99.9% limit",
+  "status": "approved",
+  "trigger": {
+    "kind": "alarm",
+    "ref": "AL-443-t2",
+    "question": null
+  },
+  "created_at": "2026-10-13T23:39:00Z",
+  "updated_at": "2026-10-13T23:43:00Z",
+  "recorded": true,
+  "models": [
+    {
+      "role": "investigator",
+      "model_id": "DeepSeek-V4.1-Flash"
+    },
+    {
+      "role": "writer",
+      "model_id": "MiMo-V2.6-Flash"
+    },
+    {
+      "role": "verifier",
+      "model_id": "GLM-5.3-Flash"
+    }
+  ],
+  "usage": {
+    "requests": 3,
+    "tokens_in": 14760,
+    "tokens_out": 1500,
+    "tokens_reasoning": 380,
+    "points": 0.00264,
+    "cache_hits": 0
+  },
+  "work_order_id": "WO-000012",
+  "steps": [
+    {
+      "index": 0,
+      "node": "triage",
+      "status": "completed",
+      "title": "Read alarm AL-443-t2 on unit 443",
+      "started_at": "2026-10-13T23:39:00Z",
+      "finished_at": "2026-10-13T23:39:01Z",
+      "tool": null,
+      "evidence_ids": [],
+      "llm": []
+    },
+    {
+      "index": 1,
+      "node": "plan",
+      "status": "completed",
+      "title": "Planned four evidence steps",
+      "started_at": "2026-10-13T23:39:01Z",
+      "finished_at": "2026-10-13T23:39:03Z",
+      "tool": null,
+      "evidence_ids": [],
+      "llm": [
+        {
+          "role": "investigator",
+          "model_id": "DeepSeek-V4.1-Flash",
+          "tokens_in": 3410,
+          "tokens_out": 286,
+          "tokens_reasoning": 120,
+          "points": 0.00056,
+          "latency_ms": 2310,
+          "cached": false
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "node": "evidence",
+      "status": "completed",
+      "title": "Read unit 443",
+      "started_at": "2026-10-13T23:39:03Z",
+      "finished_at": "2026-10-13T23:39:04Z",
+      "tool": "get_unit",
+      "evidence_ids": [
+        "E1"
+      ],
+      "llm": []
+    },
+    {
+      "index": 3,
+      "node": "evidence",
+      "status": "completed",
+      "title": "Read the T\u00b2 contributions",
+      "started_at": "2026-10-13T23:39:04Z",
+      "finished_at": "2026-10-13T23:39:07Z",
+      "tool": "get_contributions",
+      "evidence_ids": [
+        "E2"
+      ],
+      "llm": []
+    },
+    {
+      "index": 4,
+      "node": "evidence",
+      "status": "completed",
+      "title": "Read the SHAP explanation",
+      "started_at": "2026-10-13T23:39:07Z",
+      "finished_at": "2026-10-13T23:39:10Z",
+      "tool": "get_shap",
+      "evidence_ids": [
+        "E3"
+      ],
+      "llm": []
+    },
+    {
+      "index": 5,
+      "node": "evidence",
+      "status": "completed",
+      "title": "Read the significant sensor groups",
+      "started_at": "2026-10-13T23:39:10Z",
+      "finished_at": "2026-10-13T23:39:13Z",
+      "tool": "get_feature_groups",
+      "evidence_ids": [
+        "E4"
+      ],
+      "llm": []
+    },
+    {
+      "index": 6,
+      "node": "write",
+      "status": "completed",
+      "title": "Wrote the report",
+      "started_at": "2026-10-13T23:39:13Z",
+      "finished_at": "2026-10-13T23:39:18Z",
+      "tool": null,
+      "evidence_ids": [],
+      "llm": [
+        {
+          "role": "writer",
+          "model_id": "MiMo-V2.6-Flash",
+          "tokens_in": 6120,
+          "tokens_out": 812,
+          "tokens_reasoning": 0,
+          "points": 0.00109,
+          "latency_ms": 4120,
+          "cached": false
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "node": "verify",
+      "status": "completed",
+      "title": "Checked 4 numbers and 3 findings against the evidence",
+      "started_at": "2026-10-13T23:39:18Z",
+      "finished_at": "2026-10-13T23:39:22Z",
+      "tool": null,
+      "evidence_ids": [],
+      "llm": [
+        {
+          "role": "verifier",
+          "model_id": "GLM-5.3-Flash",
+          "tokens_in": 5230,
+          "tokens_out": 402,
+          "tokens_reasoning": 260,
+          "points": 0.00099,
+          "latency_ms": 3870,
+          "cached": false
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E1",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "tool": "get_unit",
+      "arguments": {
+        "unit_id": 443
+      },
+      "data": {
+        "unit_id": 443,
+        "sequence": 471,
+        "timestamp": "2008-08-12T19:35:01.983569Z",
+        "block": "validation",
+        "risk": 0.184,
+        "risk_source": "validation",
+        "risk_band": "high",
+        "t2": 35.8,
+        "spe": 47.6,
+        "fdc_alarm": "alarm",
+        "fdc_period": "monitoring",
+        "ewma_alarm": false,
+        "cusum_alarm": false,
+        "final_test": null,
+        "risk_detail": {
+          "unit_id": 443,
+          "block": "validation",
+          "risk": 0.184,
+          "risk_source": "validation",
+          "risk_band": "high",
+          "operating_point": {
+            "id": "fpr_0.05",
+            "label": "5% false-alarm rate",
+            "threshold": 0.15
+          },
+          "above_threshold": true,
+          "calibration": "platt",
+          "note": null
+        },
+        "sensors_measured": 561,
+        "sensors_missing": 29,
+        "explanation_available": true,
+        "alarms": [
+          {
+            "alarm_id": "AL-443-risk",
+            "unit_id": 443,
+            "sequence": 471,
+            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "kind": "risk",
+            "severity": "alarm",
+            "value": 0.184,
+            "limit": 0.15,
+            "message": "Failure risk 18.4% is above the 5% false-alarm rate threshold.",
+            "status": "open",
+            "investigation_id": null
+          },
+          {
+            "alarm_id": "AL-443-t2",
+            "unit_id": 443,
+            "sequence": 471,
+            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "kind": "t2",
+            "severity": "alarm",
+            "value": 35.8,
+            "limit": 32.9,
+            "message": "T\u00b2 35.8 is beyond the 99.9% limit 32.9.",
+            "status": "investigating",
+            "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+          },
+          {
+            "alarm_id": "AL-443-spe",
+            "unit_id": 443,
+            "sequence": 471,
+            "timestamp": "2008-08-12T19:35:01.983569Z",
+            "kind": "spe",
+            "severity": "warning",
+            "value": 47.6,
+            "limit": 41.0,
+            "message": "SPE 47.6 is beyond the 99% limit 41.0.",
+            "status": "open",
+            "investigation_id": null
+          }
+        ],
+        "investigation_ids": [
+          "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+        ]
+      },
+      "summary": "Unit 443: risk 18.4%, T\u00b2 35.8 (alarm).",
+      "created_at": "2026-10-13T23:39:04Z",
+      "source": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "evidence_id": "E2",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "tool": "get_contributions",
+      "arguments": {
+        "unit_id": 443,
+        "statistic": "t2",
+        "top_k": 6
+      },
+      "data": {
+        "unit_id": 443,
+        "statistic": "t2",
+        "value": 35.8,
+        "limit_99": 26.2,
+        "limit_999": 32.9,
+        "alarm": "alarm",
+        "contributions": [
+          {
+            "sensor": "S060",
+            "contribution": 9.1,
+            "share": 0.254,
+            "value": 37.698,
+            "reference_median": 55.298
+          },
+          {
+            "sensor": "S061",
+            "contribution": 6.3,
+            "share": 0.176,
+            "value": 41.246,
+            "reference_median": 57.202
+          },
+          {
+            "sensor": "S104",
+            "contribution": 4.0,
+            "share": 0.112,
+            "value": 45.887,
+            "reference_median": 51.069
+          },
+          {
+            "sensor": "S026",
+            "contribution": 2.9,
+            "share": 0.081,
+            "value": 51.632,
+            "reference_median": 43.022
+          },
+          {
+            "sensor": "S348",
+            "contribution": 2.2,
+            "share": 0.061,
+            "value": 47.03,
+            "reference_median": 50.992
+          },
+          {
+            "sensor": "S211",
+            "contribution": 1.6,
+            "share": 0.045,
+            "value": 43.037,
+            "reference_median": 52.235
+          }
+        ],
+        "other_share": 0.271,
+        "method": "Per-sensor contributions to Hotelling T\u00b2 of a PCA model fit on the reference period"
+      },
+      "summary": "Top T\u00b2 contributors: S060, S061, S104.",
+      "created_at": "2026-10-13T23:39:07Z",
+      "source": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "evidence_id": "E3",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "tool": "get_shap",
+      "arguments": {
+        "unit_id": 443,
+        "top_k": 15
+      },
+      "data": {
+        "unit_id": 443,
+        "risk": 0.184,
+        "base_value": -2.65,
+        "raw_score": -0.94,
+        "contributions": [
+          {
+            "feature": "S060",
+            "sensor": "S060",
+            "kind": "reading",
+            "value": 84.747,
+            "shap": 0.62,
+            "group_id": "G01"
+          },
+          {
+            "feature": "S104",
+            "sensor": "S104",
+            "kind": "reading",
+            "value": 41.29,
+            "shap": 0.41,
+            "group_id": "G02"
+          },
+          {
+            "feature": "S130",
+            "sensor": "S130",
+            "kind": "reading",
+            "value": 88.409,
+            "shap": -0.33,
+            "group_id": "G03"
+          },
+          {
+            "feature": "S061",
+            "sensor": "S061",
+            "kind": "reading",
+            "value": 113.457,
+            "shap": 0.29,
+            "group_id": "G01"
+          },
+          {
+            "feature": "S026",
+            "sensor": "S026",
+            "kind": "reading",
+            "value": 66.294,
+            "shap": 0.22,
+            "group_id": "G04"
+          },
+          {
+            "feature": "S034",
+            "sensor": "S034",
+            "kind": "reading",
+            "value": 134.796,
+            "shap": 0.18,
+            "group_id": "G05"
+          },
+          {
+            "feature": "S487__missing",
+            "sensor": "S487",
+            "kind": "missing_indicator",
+            "value": 1.0,
+            "shap": -0.15,
+            "group_id": null
+          },
+          {
+            "feature": "S211",
+            "sensor": "S211",
+            "kind": "reading",
+            "value": 159.304,
+            "shap": 0.12,
+            "group_id": null
+          },
+          {
+            "feature": "S348",
+            "sensor": "S348",
+            "kind": "reading",
+            "value": 125.699,
+            "shap": 0.09,
+            "group_id": null
+          },
+          {
+            "feature": "S065",
+            "sensor": "S065",
+            "kind": "reading",
+            "value": 158.839,
+            "shap": -0.08,
+            "group_id": null
+          },
+          {
+            "feature": "S590",
+            "sensor": "S590",
+            "kind": "reading",
+            "value": 86.72,
+            "shap": 0.07,
+            "group_id": null
+          },
+          {
+            "feature": "S435",
+            "sensor": "S435",
+            "kind": "reading",
+            "value": 139.759,
+            "shap": 0.06,
+            "group_id": null
+          },
+          {
+            "feature": "S090",
+            "sensor": "S090",
+            "kind": "reading",
+            "value": 110.965,
+            "shap": -0.05,
+            "group_id": null
+          },
+          {
+            "feature": "S029",
+            "sensor": "S029",
+            "kind": "reading",
+            "value": 140.558,
+            "shap": 0.04,
+            "group_id": null
+          },
+          {
+            "feature": "S511",
+            "sensor": "S511",
+            "kind": "reading",
+            "value": 114.458,
+            "shap": 0.03,
+            "group_id": null
+          }
+        ],
+        "other_features": 401,
+        "other_shap": 0.19,
+        "groups": [
+          {
+            "group_id": "G01",
+            "sensors": [
+              "S060",
+              "S061"
+            ],
+            "shap": 0.91
+          },
+          {
+            "group_id": "G02",
+            "sensors": [
+              "S104"
+            ],
+            "shap": 0.41
+          },
+          {
+            "group_id": "G03",
+            "sensors": [
+              "S130"
+            ],
+            "shap": -0.33
+          }
+        ],
+        "units": "log-odds",
+        "method": "TreeSHAP (LightGBM pred_contrib), exact for tree models"
+      },
+      "summary": "Largest SHAP contribution: S060 (+0.62 log-odds).",
+      "created_at": "2026-10-13T23:39:10Z",
+      "source": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "evidence_id": "E4",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "tool": "get_feature_groups",
+      "arguments": {
+        "significant_only": true,
+        "limit": 8
+      },
+      "data": {
+        "method": {
+          "correlation": "spearman",
+          "threshold": 0.8,
+          "linkage": "average",
+          "stability_refits": 100,
+          "stability_threshold": 0.7,
+          "permutations": 200,
+          "fdr_q": 0.05
+        },
+        "groups": [
+          {
+            "group_id": "G01",
+            "sensors": [
+              "S060",
+              "S061",
+              "S062"
+            ],
+            "representative": "S060",
+            "importance": 0.214,
+            "stability": 0.97,
+            "p_value": 0.004,
+            "q_value": 0.021,
+            "significant": true,
+            "stable": true,
+            "univariate": [
+              {
+                "sensor": "S060",
+                "mann_whitney_p": 0.002,
+                "q_value": 0.0189,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S061",
+                "mann_whitney_p": 0.002,
+                "q_value": 0.0189,
+                "direction": "lower_in_failures"
+              },
+              {
+                "sensor": "S062",
+                "mann_whitney_p": 0.002,
+                "q_value": 0.0189,
+                "direction": "higher_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G02",
+            "sensors": [
+              "S104"
+            ],
+            "representative": "S104",
+            "importance": 0.133,
+            "stability": 0.91,
+            "p_value": 0.009,
+            "q_value": 0.032,
+            "significant": true,
+            "stable": true,
+            "univariate": [
+              {
+                "sensor": "S104",
+                "mann_whitney_p": 0.0045,
+                "q_value": 0.0288,
+                "direction": "higher_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G03",
+            "sensors": [
+              "S130",
+              "S131"
+            ],
+            "representative": "S130",
+            "importance": 0.101,
+            "stability": 0.84,
+            "p_value": 0.012,
+            "q_value": 0.036,
+            "significant": true,
+            "stable": true,
+            "univariate": [
+              {
+                "sensor": "S130",
+                "mann_whitney_p": 0.006,
+                "q_value": 0.0324,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S131",
+                "mann_whitney_p": 0.006,
+                "q_value": 0.0324,
+                "direction": "lower_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G04",
+            "sensors": [
+              "S026",
+              "S027",
+              "S028",
+              "S029"
+            ],
+            "representative": "S026",
+            "importance": 0.088,
+            "stability": 0.78,
+            "p_value": 0.021,
+            "q_value": 0.049,
+            "significant": true,
+            "stable": true,
+            "univariate": [
+              {
+                "sensor": "S026",
+                "mann_whitney_p": 0.0105,
+                "q_value": 0.0441,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S027",
+                "mann_whitney_p": 0.0105,
+                "q_value": 0.0441,
+                "direction": "lower_in_failures"
+              },
+              {
+                "sensor": "S028",
+                "mann_whitney_p": 0.0105,
+                "q_value": 0.0441,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S029",
+                "mann_whitney_p": 0.0105,
+                "q_value": 0.0441,
+                "direction": "lower_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G05",
+            "sensors": [
+              "S034"
+            ],
+            "representative": "S034",
+            "importance": 0.064,
+            "stability": 0.66,
+            "p_value": 0.048,
+            "q_value": 0.101,
+            "significant": false,
+            "stable": false,
+            "univariate": [
+              {
+                "sensor": "S034",
+                "mann_whitney_p": 0.024,
+                "q_value": 0.0909,
+                "direction": "higher_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G06",
+            "sensors": [
+              "S487",
+              "S488"
+            ],
+            "representative": "S487",
+            "importance": 0.051,
+            "stability": 0.52,
+            "p_value": 0.09,
+            "q_value": 0.15,
+            "significant": false,
+            "stable": false,
+            "univariate": [
+              {
+                "sensor": "S487",
+                "mann_whitney_p": 0.045,
+                "q_value": 0.135,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S488",
+                "mann_whitney_p": 0.045,
+                "q_value": 0.135,
+                "direction": "lower_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G07",
+            "sensors": [
+              "S211"
+            ],
+            "representative": "S211",
+            "importance": 0.043,
+            "stability": 0.41,
+            "p_value": 0.16,
+            "q_value": 0.214,
+            "significant": false,
+            "stable": false,
+            "univariate": [
+              {
+                "sensor": "S211",
+                "mann_whitney_p": 0.08,
+                "q_value": 0.1926,
+                "direction": "higher_in_failures"
+              }
+            ]
+          },
+          {
+            "group_id": "G08",
+            "sensors": [
+              "S348",
+              "S349"
+            ],
+            "representative": "S348",
+            "importance": 0.039,
+            "stability": 0.33,
+            "p_value": 0.24,
+            "q_value": 0.27,
+            "significant": false,
+            "stable": false,
+            "univariate": [
+              {
+                "sensor": "S348",
+                "mann_whitney_p": 0.12,
+                "q_value": 0.243,
+                "direction": "higher_in_failures"
+              },
+              {
+                "sensor": "S349",
+                "mann_whitney_p": 0.12,
+                "q_value": 0.243,
+                "direction": "lower_in_failures"
+              }
+            ]
+          }
+        ],
+        "sensors_total": 590,
+        "significant_groups": 4,
+        "sensors_in_significant_groups": 10,
+        "wording": "Statistically associated with failure in held-out data; association, not causation."
+      },
+      "summary": "4 sensor groups are significant at q < 0.05.",
+      "created_at": "2026-10-13T23:39:13Z",
+      "source": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      }
+    }
+  ],
+  "report": {
+    "summary": "Unit 443 crossed the 99.9% T\u00b2 limit and has a failure risk of 18.4%. The readings that move T\u00b2 most belong to sensor group G01 (S060, S061), which is also statistically associated with failure across held-out units.",
+    "findings": [
+      {
+        "claim": "Unit 443 has a calibrated failure risk of 18.4%, above the 5% false-alarm threshold.",
+        "evidence_ids": [
+          "E1"
+        ],
+        "strength": "strong"
+      },
+      {
+        "claim": "S060 explains 25.4% of the unit's T\u00b2, the largest share of any sensor.",
+        "evidence_ids": [
+          "E2"
+        ],
+        "strength": "strong"
+      },
+      {
+        "claim": "Group G01 (S060, S061) is statistically associated with failure (q = 0.021); this is an association, not a cause.",
+        "evidence_ids": [
+          "E3",
+          "E4"
+        ],
+        "strength": "moderate"
+      }
+    ],
+    "actions": [
+      {
+        "action": "Inspect the tool behind sensors S060 and S061 before the next lot.",
+        "rationale": "They dominate the T\u00b2 excursion and form the most important significant group.",
+        "evidence_ids": [
+          "E2",
+          "E4"
+        ]
+      },
+      {
+        "action": "Hold the unit for an extra electrical test.",
+        "rationale": "Its risk is above the operating threshold.",
+        "evidence_ids": [
+          "E1"
+        ]
+      }
+    ],
+    "numbers": [
+      {
+        "value": 18.4,
+        "as_written": "18.4%",
+        "unit": "%",
+        "evidence_id": "E1",
+        "path": "/risk"
+      },
+      {
+        "value": 25.4,
+        "as_written": "25.4%",
+        "unit": "%",
+        "evidence_id": "E2",
+        "path": "/contributions/0/share"
+      },
+      {
+        "value": 0.021,
+        "as_written": "0.021",
+        "unit": null,
+        "evidence_id": "E4",
+        "path": "/groups/0/q_value"
+      },
+      {
+        "value": 99.9,
+        "as_written": "99.9%",
+        "unit": "%",
+        "evidence_id": "E1",
+        "path": "/alarms/0/limit"
+      }
+    ],
+    "limitations": [
+      "SECOM sensors are anonymous, so the tool behind S060 is not named in the data.",
+      "Association, not causation: no work-order outcome confirms a cause yet.",
+      "Synthetic fixture for interface development; not a measured result."
+    ]
+  },
+  "verification": {
+    "passed": false,
+    "rounds": 1,
+    "numbers_checked": 4,
+    "numbers_matched": 3,
+    "issues": [
+      {
+        "code": "number_mismatch",
+        "severity": "warning",
+        "location": "numbers[3]",
+        "message": "99.9 is the limit's confidence level, not the value at /alarms/0/limit (32.9). Synthetic example of a flagged issue."
+      }
+    ],
+    "claims": [
+      {
+        "finding_index": 0,
+        "verdict": "supported",
+        "note": null
+      },
+      {
+        "finding_index": 1,
+        "verdict": "supported",
+        "note": null
+      },
+      {
+        "finding_index": 2,
+        "verdict": "partially_supported",
+        "note": "The group's q-value supports association only."
+      }
+    ],
+    "verifier_model": "GLM-5.3-Flash"
+  },
+  "decision": {
+    "verdict": "approve",
+    "actions": [
+      0,
+      1
+    ],
+    "note": "Tool check booked for the next shift.",
+    "decided_by": "Guest engineer",
+    "decided_at": "2026-10-13T23:43:00Z"
+  },
+  "error": null
+}

@@ -1,0 +1,2898 @@
+{
+  "sensor": "S060",
+  "status": "ok",
+  "group_id": "G01",
+  "reference": {
+    "median": 99.6,
+    "q01": 72.1,
+    "q99": 127.4
+  },
+  "points": [
+    {
+      "unit_id": 99,
+      "sequence": 0,
+      "timestamp": "2008-07-19T17:04:05.311404Z",
+      "value": 99.057
+    },
+    {
+      "unit_id": 137,
+      "sequence": 1,
+      "timestamp": "2008-07-19T18:08:16.487877Z",
+      "value": 100.169
+    },
+    {
+      "unit_id": 15,
+      "sequence": 2,
+      "timestamp": "2008-07-19T18:14:13.993682Z",
+      "value": 85.109
+    },
+    {
+      "unit_id": 514,
+      "sequence": 3,
+      "timestamp": "2008-07-19T20:30:55.314836Z",
+      "value": 108.763
+    },
+    {
+      "unit_id": 526,
+      "sequence": 4,
+      "timestamp": "2008-07-19T21:11:05.638431Z",
+      "value": 98.32
+    },
+    {
+      "unit_id": 181,
+      "sequence": 5,
+      "timestamp": "2008-07-19T21:55:25.786657Z",
+      "value": null
+    },
+    {
+      "unit_id": 404,
+      "sequence": 6,
+      "timestamp": "2008-07-19T22:17:20.759398Z",
+      "value": 107.237
+    },
+    {
+      "unit_id": 161,
+      "sequence": 7,
+      "timestamp": "2008-07-20T01:27:31.240001Z",
+      "value": 105.418
+    },
+    {
+      "unit_id": 131,
+      "sequence": 8,
+      "timestamp": "2008-07-20T03:22:55.720025Z",
+      "value": 103.857
+    },
+    {
+      "unit_id": 279,
+      "sequence": 9,
+      "timestamp": "2008-07-20T04:51:59.715156Z",
+      "value": 93.631
+    },
+    {
+      "unit_id": 232,
+      "sequence": 10,
+      "timestamp": "2008-07-20T05:48:25.253849Z",
+      "value": 108.559
+    },
+    {
+      "unit_id": 577,
+      "sequence": 11,
+      "timestamp": "2008-07-20T06:57:49.061920Z",
+      "value": 111.636
+    },
+    {
+      "unit_id": 483,
+      "sequence": 12,
+      "timestamp": "2008-07-20T08:21:19.565351Z",
+      "value": 90.029
+    },
+    {
+      "unit_id": 236,
+      "sequence": 13,
+      "timestamp": "2008-07-20T08:30:10.721691Z",
+      "value": 114.541
+    },
+    {
+      "unit_id": 518,
+      "sequence": 14,
+      "timestamp": "2008-07-20T11:10:06.552462Z",
+      "value": 86.204
+    },
+    {
+      "unit_id": 480,
+      "sequence": 15,
+      "timestamp": "2008-07-20T11:51:09.479115Z",
+      "value": 108.502
+    },
+    {
+      "unit_id": 274,
+      "sequence": 16,
+      "timestamp": "2008-07-20T12:31:41.855287Z",
+      "value": 96.148
+    },
+    {
+      "unit_id": 317,
+      "sequence": 17,
+      "timestamp": "2008-07-20T16:26:56.702755Z",
+      "value": 94.865
+    },
+    {
+      "unit_id": 381,
+      "sequence": 18,
+      "timestamp": "2008-07-20T18:37:25.605999Z",
+      "value": 87.058
+    },
+    {
+      "unit_id": 189,
+      "sequence": 19,
+      "timestamp": "2008-07-20T20:32:29.146623Z",
+      "value": 92.473
+    },
+    {
+      "unit_id": 176,
+      "sequence": 20,
+      "timestamp": "2008-07-21T00:07:32.759416Z",
+      "value": 104.255
+    },
+    {
+      "unit_id": 472,
+      "sequence": 21,
+      "timestamp": "2008-07-21T01:12:53.204402Z",
+      "value": 113.881
+    },
+    {
+      "unit_id": 515,
+      "sequence": 22,
+      "timestamp": "2008-07-21T01:17:31.424172Z",
+      "value": 108.626
+    },
+    {
+      "unit_id": 41,
+      "sequence": 23,
+      "timestamp": "2008-07-21T03:18:57.155761Z",
+      "value": 100.262
+    },
+    {
+      "unit_id": 278,
+      "sequence": 24,
+      "timestamp": "2008-07-21T05:47:40.362738Z",
+      "value": 99.439
+    },
+    {
+      "unit_id": 295,
+      "sequence": 25,
+      "timestamp": "2008-07-21T06:13:46.758660Z",
+      "value": 100.043
+    },
+    {
+      "unit_id": 285,
+      "sequence": 26,
+      "timestamp": "2008-07-21T07:02:40.235624Z",
+      "value": 110.273
+    },
+    {
+      "unit_id": 174,
+      "sequence": 27,
+      "timestamp": "2008-07-21T07:26:28.244376Z",
+      "value": 87.827
+    },
+    {
+      "unit_id": 338,
+      "sequence": 28,
+      "timestamp": "2008-07-21T07:54:50.349963Z",
+      "value": 68.039
+    },
+    {
+      "unit_id": 533,
+      "sequence": 29,
+      "timestamp": "2008-07-21T08:04:19.635993Z",
+      "value": 92.539
+    },
+    {
+      "unit_id": 192,
+      "sequence": 30,
+      "timestamp": "2008-07-21T10:13:42.281118Z",
+      "value": 98.116
+    },
+    {
+      "unit_id": 120,
+      "sequence": 31,
+      "timestamp": "2008-07-21T15:01:21.442036Z",
+      "value": 76.137
+    },
+    {
+      "unit_id": 376,
+      "sequence": 32,
+      "timestamp": "2008-07-21T15:45:42.278432Z",
+      "value": 106.349
+    },
+    {
+      "unit_id": 66,
+      "sequence": 33,
+      "timestamp": "2008-07-21T17:29:34.693975Z",
+      "value": 99.502
+    },
+    {
+      "unit_id": 73,
+      "sequence": 34,
+      "timestamp": "2008-07-21T17:54:47.818415Z",
+      "value": 110.394
+    },
+    {
+      "unit_id": 197,
+      "sequence": 35,
+      "timestamp": "2008-07-21T18:21:27.146275Z",
+      "value": 117.363
+    },
+    {
+      "unit_id": 551,
+      "sequence": 36,
+      "timestamp": "2008-07-21T18:50:57.638745Z",
+      "value": 98.483
+    },
+    {
+      "unit_id": 364,
+      "sequence": 37,
+      "timestamp": "2008-07-21T23:51:27.039965Z",
+      "value": 103.325
+    },
+    {
+      "unit_id": 320,
+      "sequence": 38,
+      "timestamp": "2008-07-22T00:58:28.447567Z",
+      "value": 95.812
+    },
+    {
+      "unit_id": 397,
+      "sequence": 39,
+      "timestamp": "2008-07-22T01:18:48.553668Z",
+      "value": 95.572
+    },
+    {
+      "unit_id": 108,
+      "sequence": 40,
+      "timestamp": "2008-07-22T03:55:18.468677Z",
+      "value": 86.329
+    },
+    {
+      "unit_id": 444,
+      "sequence": 41,
+      "timestamp": "2008-07-22T05:18:15.556569Z",
+      "value": 121.896
+    },
+    {
+      "unit_id": 341,
+      "sequence": 42,
+      "timestamp": "2008-07-22T06:09:42.975972Z",
+      "value": null
+    },
+    {
+      "unit_id": 535,
+      "sequence": 43,
+      "timestamp": "2008-07-22T06:41:37.748605Z",
+      "value": 111.317
+    },
+    {
+      "unit_id": 58,
+      "sequence": 44,
+      "timestamp": "2008-07-22T07:19:17.053431Z",
+      "value": 89.348
+    },
+    {
+      "unit_id": 488,
+      "sequence": 45,
+      "timestamp": "2008-07-22T07:37:33.927879Z",
+      "value": 120.812
+    },
+    {
+      "unit_id": 453,
+      "sequence": 46,
+      "timestamp": "2008-07-22T08:32:04.466155Z",
+      "value": 109.464
+    },
+    {
+      "unit_id": 32,
+      "sequence": 47,
+      "timestamp": "2008-07-22T11:15:16.384827Z",
+      "value": 86.72
+    },
+    {
+      "unit_id": 355,
+      "sequence": 48,
+      "timestamp": "2008-07-22T12:43:45.688506Z",
+      "value": 98.723
+    },
+    {
+      "unit_id": 160,
+      "sequence": 49,
+      "timestamp": "2008-07-22T14:09:01.486092Z",
+      "value": 105.884
+    },
+    {
+      "unit_id": 456,
+      "sequence": 50,
+      "timestamp": "2008-07-22T15:18:01.964853Z",
+      "value": 114.067
+    },
+    {
+      "unit_id": 581,
+      "sequence": 51,
+      "timestamp": "2008-07-22T15:19:17.477511Z",
+      "value": 91.794
+    },
+    {
+      "unit_id": 496,
+      "sequence": 52,
+      "timestamp": "2008-07-22T16:02:44.492032Z",
+      "value": 104.398
+    },
+    {
+      "unit_id": 382,
+      "sequence": 53,
+      "timestamp": "2008-07-22T16:28:22.837615Z",
+      "value": 118.483
+    },
+    {
+      "unit_id": 82,
+      "sequence": 54,
+      "timestamp": "2008-07-22T17:21:38.019641Z",
+      "value": 92.68
+    },
+    {
+      "unit_id": 51,
+      "sequence": 55,
+      "timestamp": "2008-07-22T18:37:40.360708Z",
+      "value": 88.649
+    },
+    {
+      "unit_id": 455,
+      "sequence": 56,
+      "timestamp": "2008-07-22T20:54:18.566723Z",
+      "value": 108.41
+    },
+    {
+      "unit_id": 521,
+      "sequence": 57,
+      "timestamp": "2008-07-22T21:01:42.926395Z",
+      "value": 98.891
+    },
+    {
+      "unit_id": 259,
+      "sequence": 58,
+      "timestamp": "2008-07-22T21:06:30.077520Z",
+      "value": 103.754
+    },
+    {
+      "unit_id": 489,
+      "sequence": 59,
+      "timestamp": "2008-07-22T21:27:49.447721Z",
+      "value": 90.512
+    },
+    {
+      "unit_id": 123,
+      "sequence": 60,
+      "timestamp": "2008-07-22T23:11:29.947116Z",
+      "value": 82.252
+    },
+    {
+      "unit_id": 22,
+      "sequence": 61,
+      "timestamp": "2008-07-22T23:33:00.557999Z",
+      "value": 102.172
+    },
+    {
+      "unit_id": 97,
+      "sequence": 62,
+      "timestamp": "2008-07-23T02:24:32.686057Z",
+      "value": 84.338
+    },
+    {
+      "unit_id": 393,
+      "sequence": 63,
+      "timestamp": "2008-07-23T02:30:22.595103Z",
+      "value": 112.507
+    },
+    {
+      "unit_id": 579,
+      "sequence": 64,
+      "timestamp": "2008-07-23T03:06:42.807536Z",
+      "value": 103.134
+    },
+    {
+      "unit_id": 127,
+      "sequence": 65,
+      "timestamp": "2008-07-23T03:33:26.215144Z",
+      "value": 103.86
+    },
+    {
+      "unit_id": 360,
+      "sequence": 66,
+      "timestamp": "2008-07-23T04:43:52.184226Z",
+      "value": 98.786
+    },
+    {
+      "unit_id": 150,
+      "sequence": 67,
+      "timestamp": "2008-07-23T05:00:22.002244Z",
+      "value": 85.594
+    },
+    {
+      "unit_id": 494,
+      "sequence": 68,
+      "timestamp": "2008-07-23T07:24:50.826414Z",
+      "value": 105.762
+    },
+    {
+      "unit_id": 580,
+      "sequence": 69,
+      "timestamp": "2008-07-23T08:48:06.223074Z",
+      "value": 103.586
+    },
+    {
+      "unit_id": 524,
+      "sequence": 70,
+      "timestamp": "2008-07-23T10:37:38.262482Z",
+      "value": 88.381
+    },
+    {
+      "unit_id": 276,
+      "sequence": 71,
+      "timestamp": "2008-07-23T12:20:04.252319Z",
+      "value": 105.855
+    },
+    {
+      "unit_id": 80,
+      "sequence": 72,
+      "timestamp": "2008-07-23T12:27:27.007742Z",
+      "value": 91.204
+    },
+    {
+      "unit_id": 442,
+      "sequence": 73,
+      "timestamp": "2008-07-23T12:55:45.958249Z",
+      "value": 92.431
+    },
+    {
+      "unit_id": 177,
+      "sequence": 74,
+      "timestamp": "2008-07-23T14:27:03.075454Z",
+      "value": 86.376
+    },
+    {
+      "unit_id": 242,
+      "sequence": 75,
+      "timestamp": "2008-07-23T14:44:06.157982Z",
+      "value": 100.568
+    },
+    {
+      "unit_id": 39,
+      "sequence": 76,
+      "timestamp": "2008-07-23T18:39:30.229932Z",
+      "value": 94.738
+    },
+    {
+      "unit_id": 118,
+      "sequence": 77,
+      "timestamp": "2008-07-23T18:53:31.341126Z",
+      "value": 95.029
+    },
+    {
+      "unit_id": 310,
+      "sequence": 78,
+      "timestamp": "2008-07-23T19:52:41.295258Z",
+      "value": 119.444
+    },
+    {
+      "unit_id": 148,
+      "sequence": 79,
+      "timestamp": "2008-07-24T00:50:16.187769Z",
+      "value": null
+    },
+    {
+      "unit_id": 459,
+      "sequence": 80,
+      "timestamp": "2008-07-24T01:26:28.786066Z",
+      "value": 102.601
+    },
+    {
+      "unit_id": 582,
+      "sequence": 81,
+      "timestamp": "2008-07-24T01:56:02.622782Z",
+      "value": 108.102
+    },
+    {
+      "unit_id": 403,
+      "sequence": 82,
+      "timestamp": "2008-07-24T02:40:56.630766Z",
+      "value": 96.025
+    },
+    {
+      "unit_id": 156,
+      "sequence": 83,
+      "timestamp": "2008-07-24T02:50:01.739671Z",
+      "value": 106.731
+    },
+    {
+      "unit_id": 585,
+      "sequence": 84,
+      "timestamp": "2008-07-24T04:16:13.934251Z",
+      "value": 101.076
+    },
+    {
+      "unit_id": 430,
+      "sequence": 85,
+      "timestamp": "2008-07-24T04:38:44.721515Z",
+      "value": 78.603
+    },
+    {
+      "unit_id": 18,
+      "sequence": 86,
+      "timestamp": "2008-07-24T05:26:21.681486Z",
+      "value": 100.965
+    },
+    {
+      "unit_id": 237,
+      "sequence": 87,
+      "timestamp": "2008-07-24T10:00:33.078465Z",
+      "value": 116.356
+    },
+    {
+      "unit_id": 303,
+      "sequence": 88,
+      "timestamp": "2008-07-24T10:44:08.155822Z",
+      "value": 97.951
+    },
+    {
+      "unit_id": 539,
+      "sequence": 89,
+      "timestamp": "2008-07-24T13:22:36.160779Z",
+      "value": 106.8
+    },
+    {
+      "unit_id": 4,
+      "sequence": 90,
+      "timestamp": "2008-07-24T13:44:27.918136Z",
+      "value": 111.384
+    },
+    {
+      "unit_id": 556,
+      "sequence": 91,
+      "timestamp": "2008-07-24T13:56:21.271789Z",
+      "value": 110.32
+    },
+    {
+      "unit_id": 292,
+      "sequence": 92,
+      "timestamp": "2008-07-24T14:48:20.602206Z",
+      "value": 100.144
+    },
+    {
+      "unit_id": 190,
+      "sequence": 93,
+      "timestamp": "2008-07-24T14:59:53.646916Z",
+      "value": 93.943
+    },
+    {
+      "unit_id": 473,
+      "sequence": 94,
+      "timestamp": "2008-07-24T15:08:42.280301Z",
+      "value": 94.046
+    },
+    {
+      "unit_id": 23,
+      "sequence": 95,
+      "timestamp": "2008-07-24T15:37:40.758089Z",
+      "value": 90.876
+    },
+    {
+      "unit_id": 144,
+      "sequence": 96,
+      "timestamp": "2008-07-24T17:14:33.709396Z",
+      "value": 120.286
+    },
+    {
+      "unit_id": 91,
+      "sequence": 97,
+      "timestamp": "2008-07-24T18:31:20.904168Z",
+      "value": 105.378
+    },
+    {
+      "unit_id": 482,
+      "sequence": 98,
+      "timestamp": "2008-07-24T19:01:39.410575Z",
+      "value": 112.261
+    },
+    {
+      "unit_id": 375,
+      "sequence": 99,
+      "timestamp": "2008-07-24T20:33:48.202780Z",
+      "value": 85.157
+    },
+    {
+      "unit_id": 34,
+      "sequence": 100,
+      "timestamp": "2008-07-25T00:51:23.807883Z",
+      "value": 98.865
+    },
+    {
+      "unit_id": 356,
+      "sequence": 101,
+      "timestamp": "2008-07-25T01:17:15.662743Z",
+      "value": 89.345
+    },
+    {
+      "unit_id": 199,
+      "sequence": 102,
+      "timestamp": "2008-07-25T01:21:34.959018Z",
+      "value": 115.482
+    },
+    {
+      "unit_id": 226,
+      "sequence": 103,
+      "timestamp": "2008-07-25T02:36:40.571968Z",
+      "value": 102.791
+    },
+    {
+      "unit_id": 512,
+      "sequence": 104,
+      "timestamp": "2008-07-25T02:41:39.026714Z",
+      "value": 114.55
+    },
+    {
+      "unit_id": 357,
+      "sequence": 105,
+      "timestamp": "2008-07-25T02:51:30.035738Z",
+      "value": 108.689
+    },
+    {
+      "unit_id": 59,
+      "sequence": 106,
+      "timestamp": "2008-07-25T03:13:35.770022Z",
+      "value": 93.233
+    },
+    {
+      "unit_id": 304,
+      "sequence": 107,
+      "timestamp": "2008-07-25T03:14:25.062108Z",
+      "value": 99.33
+    },
+    {
+      "unit_id": 218,
+      "sequence": 108,
+      "timestamp": "2008-07-25T04:23:34.916594Z",
+      "value": 81.964
+    },
+    {
+      "unit_id": 7,
+      "sequence": 109,
+      "timestamp": "2008-07-25T04:41:50.541184Z",
+      "value": 98.33
+    },
+    {
+      "unit_id": 307,
+      "sequence": 110,
+      "timestamp": "2008-07-25T04:52:07.235206Z",
+      "value": 87.488
+    },
+    {
+      "unit_id": 447,
+      "sequence": 111,
+      "timestamp": "2008-07-25T07:01:09.859128Z",
+      "value": 107.444
+    },
+    {
+      "unit_id": 525,
+      "sequence": 112,
+      "timestamp": "2008-07-25T08:34:54.280164Z",
+      "value": 86.437
+    },
+    {
+      "unit_id": 504,
+      "sequence": 113,
+      "timestamp": "2008-07-25T09:17:11.041210Z",
+      "value": 90.943
+    },
+    {
+      "unit_id": 260,
+      "sequence": 114,
+      "timestamp": "2008-07-25T11:19:16.733563Z",
+      "value": 138.522
+    },
+    {
+      "unit_id": 170,
+      "sequence": 115,
+      "timestamp": "2008-07-25T11:20:24.925782Z",
+      "value": 94.418
+    },
+    {
+      "unit_id": 358,
+      "sequence": 116,
+      "timestamp": "2008-07-25T11:27:13.181146Z",
+      "value": null
+    },
+    {
+      "unit_id": 427,
+      "sequence": 117,
+      "timestamp": "2008-07-25T12:02:51.584763Z",
+      "value": 96.152
+    },
+    {
+      "unit_id": 348,
+      "sequence": 118,
+      "timestamp": "2008-07-25T14:26:00.223141Z",
+      "value": 84.801
+    },
+    {
+      "unit_id": 182,
+      "sequence": 119,
+      "timestamp": "2008-07-25T14:55:36.877916Z",
+      "value": 96.485
+    },
+    {
+      "unit_id": 564,
+      "sequence": 120,
+      "timestamp": "2008-07-25T15:37:15.266435Z",
+      "value": 115.932
+    },
+    {
+      "unit_id": 530,
+      "sequence": 121,
+      "timestamp": "2008-07-25T17:39:36.333076Z",
+      "value": 99.893
+    },
+    {
+      "unit_id": 141,
+      "sequence": 122,
+      "timestamp": "2008-07-25T19:32:14.940451Z",
+      "value": 61.764
+    },
+    {
+      "unit_id": 167,
+      "sequence": 123,
+      "timestamp": "2008-07-25T20:49:42.009277Z",
+      "value": 110.618
+    },
+    {
+      "unit_id": 328,
+      "sequence": 124,
+      "timestamp": "2008-07-25T21:02:51.194289Z",
+      "value": 95.975
+    },
+    {
+      "unit_id": 233,
+      "sequence": 125,
+      "timestamp": "2008-07-25T21:45:02.587452Z",
+      "value": 113.597
+    },
+    {
+      "unit_id": 222,
+      "sequence": 126,
+      "timestamp": "2008-07-25T22:09:04.292045Z",
+      "value": 84.535
+    },
+    {
+      "unit_id": 305,
+      "sequence": 127,
+      "timestamp": "2008-07-26T03:54:09.312166Z",
+      "value": 101.378
+    },
+    {
+      "unit_id": 77,
+      "sequence": 128,
+      "timestamp": "2008-07-26T04:09:33.756755Z",
+      "value": 100.626
+    },
+    {
+      "unit_id": 288,
+      "sequence": 129,
+      "timestamp": "2008-07-26T04:20:40.841953Z",
+      "value": 102.768
+    },
+    {
+      "unit_id": 481,
+      "sequence": 130,
+      "timestamp": "2008-07-26T04:37:10.278136Z",
+      "value": 89.168
+    },
+    {
+      "unit_id": 84,
+      "sequence": 131,
+      "timestamp": "2008-07-26T05:33:48.865529Z",
+      "value": 81.719
+    },
+    {
+      "unit_id": 432,
+      "sequence": 132,
+      "timestamp": "2008-07-26T05:34:40.492820Z",
+      "value": 86.238
+    },
+    {
+      "unit_id": 332,
+      "sequence": 133,
+      "timestamp": "2008-07-26T06:55:54.078458Z",
+      "value": 103.535
+    },
+    {
+      "unit_id": 560,
+      "sequence": 134,
+      "timestamp": "2008-07-26T07:08:35.546748Z",
+      "value": 109.16
+    },
+    {
+      "unit_id": 554,
+      "sequence": 135,
+      "timestamp": "2008-07-26T07:11:45.866400Z",
+      "value": 98.524
+    },
+    {
+      "unit_id": 229,
+      "sequence": 136,
+      "timestamp": "2008-07-26T08:28:41.856935Z",
+      "value": 110.853
+    },
+    {
+      "unit_id": 538,
+      "sequence": 137,
+      "timestamp": "2008-07-26T08:33:50.089625Z",
+      "value": 103.515
+    },
+    {
+      "unit_id": 400,
+      "sequence": 138,
+      "timestamp": "2008-07-26T09:02:00.278446Z",
+      "value": 124.525
+    },
+    {
+      "unit_id": 333,
+      "sequence": 139,
+      "timestamp": "2008-07-26T09:12:56.890973Z",
+      "value": 113.642
+    },
+    {
+      "unit_id": 96,
+      "sequence": 140,
+      "timestamp": "2008-07-26T10:15:19.358093Z",
+      "value": 100.257
+    },
+    {
+      "unit_id": 25,
+      "sequence": 141,
+      "timestamp": "2008-07-26T11:04:54.487412Z",
+      "value": 101.151
+    },
+    {
+      "unit_id": 326,
+      "sequence": 142,
+      "timestamp": "2008-07-26T12:03:07.971615Z",
+      "value": 88.573
+    },
+    {
+      "unit_id": 464,
+      "sequence": 143,
+      "timestamp": "2008-07-26T12:35:18.564341Z",
+      "value": 101.678
+    },
+    {
+      "unit_id": 149,
+      "sequence": 144,
+      "timestamp": "2008-07-26T12:39:02.938214Z",
+      "value": 104.856
+    },
+    {
+      "unit_id": 424,
+      "sequence": 145,
+      "timestamp": "2008-07-26T15:35:59.710975Z",
+      "value": 98.561
+    },
+    {
+      "unit_id": 475,
+      "sequence": 146,
+      "timestamp": "2008-07-26T15:38:17.364350Z",
+      "value": 109.302
+    },
+    {
+      "unit_id": 194,
+      "sequence": 147,
+      "timestamp": "2008-07-26T16:45:11.220650Z",
+      "value": 110.572
+    },
+    {
+      "unit_id": 590,
+      "sequence": 148,
+      "timestamp": "2008-07-26T17:34:17.768955Z",
+      "value": 116.249
+    },
+    {
+      "unit_id": 309,
+      "sequence": 149,
+      "timestamp": "2008-07-26T18:25:32.793429Z",
+      "value": 112.123
+    },
+    {
+      "unit_id": 248,
+      "sequence": 150,
+      "timestamp": "2008-07-26T21:08:57.423442Z",
+      "value": 102.817
+    },
+    {
+      "unit_id": 545,
+      "sequence": 151,
+      "timestamp": "2008-07-26T21:55:41.843317Z",
+      "value": 101.974
+    },
+    {
+      "unit_id": 74,
+      "sequence": 152,
+      "timestamp": "2008-07-26T23:10:32.248819Z",
+      "value": 111.13
+    },
+    {
+      "unit_id": 253,
+      "sequence": 153,
+      "timestamp": "2008-07-27T02:20:24.532986Z",
+      "value": null
+    },
+    {
+      "unit_id": 423,
+      "sequence": 154,
+      "timestamp": "2008-07-27T02:20:33.653285Z",
+      "value": 81.341
+    },
+    {
+      "unit_id": 196,
+      "sequence": 155,
+      "timestamp": "2008-07-27T10:06:30.895460Z",
+      "value": 116.106
+    },
+    {
+      "unit_id": 474,
+      "sequence": 156,
+      "timestamp": "2008-07-27T12:50:02.738713Z",
+      "value": 96.79
+    },
+    {
+      "unit_id": 553,
+      "sequence": 157,
+      "timestamp": "2008-07-27T14:30:27.859203Z",
+      "value": 103.588
+    },
+    {
+      "unit_id": 277,
+      "sequence": 158,
+      "timestamp": "2008-07-27T15:07:07.210086Z",
+      "value": 94.86
+    },
+    {
+      "unit_id": 318,
+      "sequence": 159,
+      "timestamp": "2008-07-27T16:11:37.667352Z",
+      "value": 95.608
+    },
+    {
+      "unit_id": 595,
+      "sequence": 160,
+      "timestamp": "2008-07-27T16:41:03.782794Z",
+      "value": 91.541
+    },
+    {
+      "unit_id": 325,
+      "sequence": 161,
+      "timestamp": "2008-07-27T17:09:00.233172Z",
+      "value": 93.268
+    },
+    {
+      "unit_id": 501,
+      "sequence": 162,
+      "timestamp": "2008-07-27T19:21:38.092496Z",
+      "value": 96.732
+    },
+    {
+      "unit_id": 342,
+      "sequence": 163,
+      "timestamp": "2008-07-27T20:49:10.293086Z",
+      "value": 106.3
+    },
+    {
+      "unit_id": 152,
+      "sequence": 164,
+      "timestamp": "2008-07-27T20:56:22.094057Z",
+      "value": 96.97
+    },
+    {
+      "unit_id": 589,
+      "sequence": 165,
+      "timestamp": "2008-07-27T21:17:19.159260Z",
+      "value": 123.001
+    },
+    {
+      "unit_id": 299,
+      "sequence": 166,
+      "timestamp": "2008-07-27T22:24:52.367999Z",
+      "value": 105.103
+    },
+    {
+      "unit_id": 584,
+      "sequence": 167,
+      "timestamp": "2008-07-27T22:36:31.967094Z",
+      "value": 104.046
+    },
+    {
+      "unit_id": 75,
+      "sequence": 168,
+      "timestamp": "2008-07-27T22:59:57.121742Z",
+      "value": 118.656
+    },
+    {
+      "unit_id": 271,
+      "sequence": 169,
+      "timestamp": "2008-07-28T01:54:01.031032Z",
+      "value": 115.497
+    },
+    {
+      "unit_id": 462,
+      "sequence": 170,
+      "timestamp": "2008-07-28T02:01:29.062955Z",
+      "value": 90.981
+    },
+    {
+      "unit_id": 146,
+      "sequence": 171,
+      "timestamp": "2008-07-28T02:43:11.062176Z",
+      "value": 107.133
+    },
+    {
+      "unit_id": 559,
+      "sequence": 172,
+      "timestamp": "2008-07-28T04:28:23.217425Z",
+      "value": 107.975
+    },
+    {
+      "unit_id": 345,
+      "sequence": 173,
+      "timestamp": "2008-07-28T04:37:37.560733Z",
+      "value": 96.093
+    },
+    {
+      "unit_id": 576,
+      "sequence": 174,
+      "timestamp": "2008-07-28T04:57:55.921584Z",
+      "value": 113.817
+    },
+    {
+      "unit_id": 241,
+      "sequence": 175,
+      "timestamp": "2008-07-28T06:41:32.258796Z",
+      "value": 81.594
+    },
+    {
+      "unit_id": 63,
+      "sequence": 176,
+      "timestamp": "2008-07-28T07:39:52.272766Z",
+      "value": 83.204
+    },
+    {
+      "unit_id": 245,
+      "sequence": 177,
+      "timestamp": "2008-07-28T09:12:30.598826Z",
+      "value": 98.296
+    },
+    {
+      "unit_id": 351,
+      "sequence": 178,
+      "timestamp": "2008-07-28T12:39:05.771994Z",
+      "value": 106.204
+    },
+    {
+      "unit_id": 29,
+      "sequence": 179,
+      "timestamp": "2008-07-28T13:17:20.217152Z",
+      "value": 90.782
+    },
+    {
+      "unit_id": 529,
+      "sequence": 180,
+      "timestamp": "2008-07-28T14:50:07.623795Z",
+      "value": 92.482
+    },
+    {
+      "unit_id": 371,
+      "sequence": 181,
+      "timestamp": "2008-07-28T14:55:15.034735Z",
+      "value": 104.326
+    },
+    {
+      "unit_id": 130,
+      "sequence": 182,
+      "timestamp": "2008-07-28T16:26:53.376246Z",
+      "value": 90.793
+    },
+    {
+      "unit_id": 231,
+      "sequence": 183,
+      "timestamp": "2008-07-28T17:58:23.986332Z",
+      "value": 81.349
+    },
+    {
+      "unit_id": 193,
+      "sequence": 184,
+      "timestamp": "2008-07-28T18:48:53.174572Z",
+      "value": 90.691
+    },
+    {
+      "unit_id": 224,
+      "sequence": 185,
+      "timestamp": "2008-07-28T20:48:00.717442Z",
+      "value": 90.688
+    },
+    {
+      "unit_id": 207,
+      "sequence": 186,
+      "timestamp": "2008-07-28T23:15:42.373533Z",
+      "value": 98.63
+    },
+    {
+      "unit_id": 359,
+      "sequence": 187,
+      "timestamp": "2008-07-29T00:04:08.582532Z",
+      "value": 110.84
+    },
+    {
+      "unit_id": 124,
+      "sequence": 188,
+      "timestamp": "2008-07-29T00:25:15.608412Z",
+      "value": 86.842
+    },
+    {
+      "unit_id": 426,
+      "sequence": 189,
+      "timestamp": "2008-07-29T00:32:31.969701Z",
+      "value": 102.014
+    },
+    {
+      "unit_id": 142,
+      "sequence": 190,
+      "timestamp": "2008-07-29T04:25:36.264367Z",
+      "value": null
+    },
+    {
+      "unit_id": 262,
+      "sequence": 191,
+      "timestamp": "2008-07-29T04:46:32.274128Z",
+      "value": 92.725
+    },
+    {
+      "unit_id": 422,
+      "sequence": 192,
+      "timestamp": "2008-07-29T04:57:15.763953Z",
+      "value": 85.164
+    },
+    {
+      "unit_id": 322,
+      "sequence": 193,
+      "timestamp": "2008-07-29T05:19:22.095586Z",
+      "value": 65.141
+    },
+    {
+      "unit_id": 410,
+      "sequence": 194,
+      "timestamp": "2008-07-29T06:27:59.433536Z",
+      "value": 93.885
+    },
+    {
+      "unit_id": 298,
+      "sequence": 195,
+      "timestamp": "2008-07-29T07:29:21.754136Z",
+      "value": 86.982
+    },
+    {
+      "unit_id": 573,
+      "sequence": 196,
+      "timestamp": "2008-07-29T07:43:54.559021Z",
+      "value": 106.47
+    },
+    {
+      "unit_id": 413,
+      "sequence": 197,
+      "timestamp": "2008-07-29T09:18:32.610582Z",
+      "value": 112.276
+    },
+    {
+      "unit_id": 164,
+      "sequence": 198,
+      "timestamp": "2008-07-29T09:44:49.707359Z",
+      "value": 112.625
+    },
+    {
+      "unit_id": 158,
+      "sequence": 199,
+      "timestamp": "2008-07-29T10:24:08.873253Z",
+      "value": 98.253
+    },
+    {
+      "unit_id": 420,
+      "sequence": 200,
+      "timestamp": "2008-07-29T13:19:04.702001Z",
+      "value": 102.532
+    },
+    {
+      "unit_id": 419,
+      "sequence": 201,
+      "timestamp": "2008-07-29T13:21:03.413276Z",
+      "value": 79.336
+    },
+    {
+      "unit_id": 209,
+      "sequence": 202,
+      "timestamp": "2008-07-29T13:36:06.596236Z",
+      "value": 118.288
+    },
+    {
+      "unit_id": 446,
+      "sequence": 203,
+      "timestamp": "2008-07-29T14:01:31.164985Z",
+      "value": 104.678
+    },
+    {
+      "unit_id": 121,
+      "sequence": 204,
+      "timestamp": "2008-07-29T15:59:17.052242Z",
+      "value": 109.765
+    },
+    {
+      "unit_id": 8,
+      "sequence": 205,
+      "timestamp": "2008-07-29T16:32:07.915466Z",
+      "value": 105.527
+    },
+    {
+      "unit_id": 235,
+      "sequence": 206,
+      "timestamp": "2008-07-29T16:56:01.164028Z",
+      "value": 105.922
+    },
+    {
+      "unit_id": 373,
+      "sequence": 207,
+      "timestamp": "2008-07-29T17:01:43.797083Z",
+      "value": 110.171
+    },
+    {
+      "unit_id": 1,
+      "sequence": 208,
+      "timestamp": "2008-07-29T21:23:17.790811Z",
+      "value": 85.295
+    },
+    {
+      "unit_id": 200,
+      "sequence": 209,
+      "timestamp": "2008-07-29T21:29:29.757411Z",
+      "value": 97.531
+    },
+    {
+      "unit_id": 335,
+      "sequence": 210,
+      "timestamp": "2008-07-29T22:00:24.462140Z",
+      "value": 102.242
+    },
+    {
+      "unit_id": 135,
+      "sequence": 211,
+      "timestamp": "2008-07-29T22:10:08.377168Z",
+      "value": 104.228
+    },
+    {
+      "unit_id": 87,
+      "sequence": 212,
+      "timestamp": "2008-07-30T00:59:52.127196Z",
+      "value": 112.647
+    },
+    {
+      "unit_id": 198,
+      "sequence": 213,
+      "timestamp": "2008-07-30T01:12:14.119989Z",
+      "value": 90.229
+    },
+    {
+      "unit_id": 9,
+      "sequence": 214,
+      "timestamp": "2008-07-30T01:52:34.226291Z",
+      "value": 81.065
+    },
+    {
+      "unit_id": 597,
+      "sequence": 215,
+      "timestamp": "2008-07-30T02:00:26.167889Z",
+      "value": 89.481
+    },
+    {
+      "unit_id": 290,
+      "sequence": 216,
+      "timestamp": "2008-07-30T03:01:49.297769Z",
+      "value": 130.838
+    },
+    {
+      "unit_id": 210,
+      "sequence": 217,
+      "timestamp": "2008-07-30T05:12:56.969400Z",
+      "value": 95.306
+    },
+    {
+      "unit_id": 508,
+      "sequence": 218,
+      "timestamp": "2008-07-30T05:14:10.765469Z",
+      "value": 79.746
+    },
+    {
+      "unit_id": 572,
+      "sequence": 219,
+      "timestamp": "2008-07-30T06:13:15.983079Z",
+      "value": 91.691
+    },
+    {
+      "unit_id": 62,
+      "sequence": 220,
+      "timestamp": "2008-07-30T06:14:47.062541Z",
+      "value": 123.495
+    },
+    {
+      "unit_id": 534,
+      "sequence": 221,
+      "timestamp": "2008-07-30T07:03:30.952276Z",
+      "value": 72.879
+    },
+    {
+      "unit_id": 31,
+      "sequence": 222,
+      "timestamp": "2008-07-30T07:46:44.285281Z",
+      "value": 105.718
+    },
+    {
+      "unit_id": 247,
+      "sequence": 223,
+      "timestamp": "2008-07-30T07:57:49.697325Z",
+      "value": 100.538
+    },
+    {
+      "unit_id": 212,
+      "sequence": 224,
+      "timestamp": "2008-07-30T09:08:38.447395Z",
+      "value": 89.911
+    },
+    {
+      "unit_id": 314,
+      "sequence": 225,
+      "timestamp": "2008-07-30T09:33:15.849644Z",
+      "value": 94.635
+    },
+    {
+      "unit_id": 147,
+      "sequence": 226,
+      "timestamp": "2008-07-30T10:28:54.648575Z",
+      "value": 93.788
+    },
+    {
+      "unit_id": 434,
+      "sequence": 227,
+      "timestamp": "2008-07-30T11:28:47.839633Z",
+      "value": null
+    },
+    {
+      "unit_id": 319,
+      "sequence": 228,
+      "timestamp": "2008-07-30T13:19:16.171039Z",
+      "value": 106.511
+    },
+    {
+      "unit_id": 79,
+      "sequence": 229,
+      "timestamp": "2008-07-30T15:48:34.690550Z",
+      "value": 104.989
+    },
+    {
+      "unit_id": 110,
+      "sequence": 230,
+      "timestamp": "2008-07-30T20:27:50.953786Z",
+      "value": 83.883
+    },
+    {
+      "unit_id": 28,
+      "sequence": 231,
+      "timestamp": "2008-07-30T21:00:38.755171Z",
+      "value": 107.395
+    },
+    {
+      "unit_id": 114,
+      "sequence": 232,
+      "timestamp": "2008-07-30T21:03:09.686089Z",
+      "value": 98.88
+    },
+    {
+      "unit_id": 183,
+      "sequence": 233,
+      "timestamp": "2008-07-30T21:10:42.034501Z",
+      "value": 106.818
+    },
+    {
+      "unit_id": 323,
+      "sequence": 234,
+      "timestamp": "2008-07-30T21:40:11.977762Z",
+      "value": 83.023
+    },
+    {
+      "unit_id": 465,
+      "sequence": 235,
+      "timestamp": "2008-07-30T22:03:53.309595Z",
+      "value": 94.504
+    },
+    {
+      "unit_id": 243,
+      "sequence": 236,
+      "timestamp": "2008-07-30T23:14:20.771362Z",
+      "value": 95.381
+    },
+    {
+      "unit_id": 26,
+      "sequence": 237,
+      "timestamp": "2008-07-31T02:16:28.258251Z",
+      "value": 90.962
+    },
+    {
+      "unit_id": 343,
+      "sequence": 238,
+      "timestamp": "2008-07-31T04:06:15.655637Z",
+      "value": 97.92
+    },
+    {
+      "unit_id": 261,
+      "sequence": 239,
+      "timestamp": "2008-07-31T04:15:09.062536Z",
+      "value": 94.272
+    },
+    {
+      "unit_id": 466,
+      "sequence": 240,
+      "timestamp": "2008-07-31T05:41:57.048382Z",
+      "value": 91.808
+    },
+    {
+      "unit_id": 282,
+      "sequence": 241,
+      "timestamp": "2008-07-31T07:21:37.550157Z",
+      "value": 96.083
+    },
+    {
+      "unit_id": 435,
+      "sequence": 242,
+      "timestamp": "2008-07-31T07:25:03.723198Z",
+      "value": 96.158
+    },
+    {
+      "unit_id": 104,
+      "sequence": 243,
+      "timestamp": "2008-07-31T08:28:12.726069Z",
+      "value": 104.825
+    },
+    {
+      "unit_id": 339,
+      "sequence": 244,
+      "timestamp": "2008-07-31T10:12:30.361872Z",
+      "value": 96.935
+    },
+    {
+      "unit_id": 88,
+      "sequence": 245,
+      "timestamp": "2008-07-31T10:54:24.309427Z",
+      "value": 107.376
+    },
+    {
+      "unit_id": 520,
+      "sequence": 246,
+      "timestamp": "2008-07-31T12:23:39.184811Z",
+      "value": 93.644
+    },
+    {
+      "unit_id": 468,
+      "sequence": 247,
+      "timestamp": "2008-07-31T12:54:29.537246Z",
+      "value": 102.958
+    },
+    {
+      "unit_id": 566,
+      "sequence": 248,
+      "timestamp": "2008-07-31T12:57:03.682368Z",
+      "value": 90.46
+    },
+    {
+      "unit_id": 505,
+      "sequence": 249,
+      "timestamp": "2008-07-31T14:33:47.685060Z",
+      "value": 105.862
+    },
+    {
+      "unit_id": 16,
+      "sequence": 250,
+      "timestamp": "2008-07-31T16:05:42.052958Z",
+      "value": 110.81
+    },
+    {
+      "unit_id": 478,
+      "sequence": 251,
+      "timestamp": "2008-07-31T17:01:14.981857Z",
+      "value": 99.919
+    },
+    {
+      "unit_id": 188,
+      "sequence": 252,
+      "timestamp": "2008-07-31T17:19:40.992817Z",
+      "value": 104.915
+    },
+    {
+      "unit_id": 574,
+      "sequence": 253,
+      "timestamp": "2008-07-31T18:09:36.854357Z",
+      "value": 90.932
+    },
+    {
+      "unit_id": 484,
+      "sequence": 254,
+      "timestamp": "2008-07-31T18:40:34.293184Z",
+      "value": 101.067
+    },
+    {
+      "unit_id": 19,
+      "sequence": 255,
+      "timestamp": "2008-07-31T19:16:47.796591Z",
+      "value": 112.985
+    },
+    {
+      "unit_id": 406,
+      "sequence": 256,
+      "timestamp": "2008-07-31T21:31:42.568744Z",
+      "value": 101.988
+    },
+    {
+      "unit_id": 211,
+      "sequence": 257,
+      "timestamp": "2008-07-31T21:56:27.910266Z",
+      "value": 83.343
+    },
+    {
+      "unit_id": 203,
+      "sequence": 258,
+      "timestamp": "2008-07-31T23:00:46.620029Z",
+      "value": 110.752
+    },
+    {
+      "unit_id": 250,
+      "sequence": 259,
+      "timestamp": "2008-07-31T23:19:30.415716Z",
+      "value": 101.912
+    },
+    {
+      "unit_id": 543,
+      "sequence": 260,
+      "timestamp": "2008-08-01T00:48:03.728820Z",
+      "value": 111.482
+    },
+    {
+      "unit_id": 33,
+      "sequence": 261,
+      "timestamp": "2008-08-01T01:11:12.041360Z",
+      "value": 110.766
+    },
+    {
+      "unit_id": 215,
+      "sequence": 262,
+      "timestamp": "2008-08-01T01:57:44.184528Z",
+      "value": 93.55
+    },
+    {
+      "unit_id": 223,
+      "sequence": 263,
+      "timestamp": "2008-08-01T06:13:04.207793Z",
+      "value": 104.162
+    },
+    {
+      "unit_id": 454,
+      "sequence": 264,
+      "timestamp": "2008-08-01T07:42:30.620970Z",
+      "value": null
+    },
+    {
+      "unit_id": 463,
+      "sequence": 265,
+      "timestamp": "2008-08-01T08:24:50.574722Z",
+      "value": 99.254
+    },
+    {
+      "unit_id": 487,
+      "sequence": 266,
+      "timestamp": "2008-08-01T08:31:38.180763Z",
+      "value": 67.123
+    },
+    {
+      "unit_id": 163,
+      "sequence": 267,
+      "timestamp": "2008-08-01T10:13:06.881568Z",
+      "value": 101.438
+    },
+    {
+      "unit_id": 532,
+      "sequence": 268,
+      "timestamp": "2008-08-01T10:31:05.133535Z",
+      "value": 94.89
+    },
+    {
+      "unit_id": 544,
+      "sequence": 269,
+      "timestamp": "2008-08-01T17:02:16.218597Z",
+      "value": 103.193
+    },
+    {
+      "unit_id": 316,
+      "sequence": 270,
+      "timestamp": "2008-08-01T17:09:59.989555Z",
+      "value": 87.366
+    },
+    {
+      "unit_id": 257,
+      "sequence": 271,
+      "timestamp": "2008-08-01T17:59:52.131086Z",
+      "value": 110.52
+    },
+    {
+      "unit_id": 102,
+      "sequence": 272,
+      "timestamp": "2008-08-01T18:11:58.316064Z",
+      "value": 105.217
+    },
+    {
+      "unit_id": 347,
+      "sequence": 273,
+      "timestamp": "2008-08-01T22:44:35.319015Z",
+      "value": 105.375
+    },
+    {
+      "unit_id": 587,
+      "sequence": 274,
+      "timestamp": "2008-08-01T23:04:05.335986Z",
+      "value": 95.481
+    },
+    {
+      "unit_id": 596,
+      "sequence": 275,
+      "timestamp": "2008-08-01T23:40:43.514946Z",
+      "value": 113.418
+    },
+    {
+      "unit_id": 567,
+      "sequence": 276,
+      "timestamp": "2008-08-02T00:09:14.989895Z",
+      "value": 98.226
+    },
+    {
+      "unit_id": 61,
+      "sequence": 277,
+      "timestamp": "2008-08-02T04:06:31.324814Z",
+      "value": 105.323
+    },
+    {
+      "unit_id": 40,
+      "sequence": 278,
+      "timestamp": "2008-08-02T05:24:44.246551Z",
+      "value": 128.227
+    },
+    {
+      "unit_id": 401,
+      "sequence": 279,
+      "timestamp": "2008-08-02T08:35:58.446541Z",
+      "value": 88.565
+    },
+    {
+      "unit_id": 206,
+      "sequence": 280,
+      "timestamp": "2008-08-02T08:57:30.061801Z",
+      "value": 99.553
+    },
+    {
+      "unit_id": 154,
+      "sequence": 281,
+      "timestamp": "2008-08-02T09:23:23.330448Z",
+      "value": 119.266
+    },
+    {
+      "unit_id": 281,
+      "sequence": 282,
+      "timestamp": "2008-08-02T09:35:55.366057Z",
+      "value": 127.766
+    },
+    {
+      "unit_id": 280,
+      "sequence": 283,
+      "timestamp": "2008-08-02T09:47:05.055028Z",
+      "value": 101.549
+    },
+    {
+      "unit_id": 437,
+      "sequence": 284,
+      "timestamp": "2008-08-02T10:19:59.074640Z",
+      "value": 108.218
+    },
+    {
+      "unit_id": 175,
+      "sequence": 285,
+      "timestamp": "2008-08-02T11:00:28.029187Z",
+      "value": 87.511
+    },
+    {
+      "unit_id": 452,
+      "sequence": 286,
+      "timestamp": "2008-08-02T12:11:30.151033Z",
+      "value": 88.624
+    },
+    {
+      "unit_id": 312,
+      "sequence": 287,
+      "timestamp": "2008-08-02T12:24:10.623457Z",
+      "value": 106.891
+    },
+    {
+      "unit_id": 565,
+      "sequence": 288,
+      "timestamp": "2008-08-02T12:43:28.269148Z",
+      "value": 111.363
+    },
+    {
+      "unit_id": 467,
+      "sequence": 289,
+      "timestamp": "2008-08-02T12:52:38.891270Z",
+      "value": 94.952
+    },
+    {
+      "unit_id": 337,
+      "sequence": 290,
+      "timestamp": "2008-08-02T13:06:42.690979Z",
+      "value": 131.285
+    },
+    {
+      "unit_id": 143,
+      "sequence": 291,
+      "timestamp": "2008-08-02T15:09:53.897549Z",
+      "value": 90.311
+    },
+    {
+      "unit_id": 132,
+      "sequence": 292,
+      "timestamp": "2008-08-02T15:57:44.154177Z",
+      "value": 117.599
+    },
+    {
+      "unit_id": 497,
+      "sequence": 293,
+      "timestamp": "2008-08-02T19:17:01.071457Z",
+      "value": 108.019
+    },
+    {
+      "unit_id": 263,
+      "sequence": 294,
+      "timestamp": "2008-08-02T19:30:12.956433Z",
+      "value": 85.414
+    },
+    {
+      "unit_id": 294,
+      "sequence": 295,
+      "timestamp": "2008-08-02T22:28:10.271855Z",
+      "value": 109.834
+    },
+    {
+      "unit_id": 425,
+      "sequence": 296,
+      "timestamp": "2008-08-03T00:08:31.264676Z",
+      "value": 114.941
+    },
+    {
+      "unit_id": 377,
+      "sequence": 297,
+      "timestamp": "2008-08-03T01:14:17.051902Z",
+      "value": 94.639
+    },
+    {
+      "unit_id": 562,
+      "sequence": 298,
+      "timestamp": "2008-08-03T02:15:19.906739Z",
+      "value": 106.051
+    },
+    {
+      "unit_id": 145,
+      "sequence": 299,
+      "timestamp": "2008-08-03T03:49:09.771145Z",
+      "value": 100.755
+    },
+    {
+      "unit_id": 49,
+      "sequence": 300,
+      "timestamp": "2008-08-03T05:56:17.923750Z",
+      "value": 102.218
+    },
+    {
+      "unit_id": 361,
+      "sequence": 301,
+      "timestamp": "2008-08-03T06:22:59.832628Z",
+      "value": null
+    },
+    {
+      "unit_id": 14,
+      "sequence": 302,
+      "timestamp": "2008-08-03T07:50:28.419952Z",
+      "value": 108.956
+    },
+    {
+      "unit_id": 50,
+      "sequence": 303,
+      "timestamp": "2008-08-03T08:54:09.247587Z",
+      "value": 92.575
+    },
+    {
+      "unit_id": 86,
+      "sequence": 304,
+      "timestamp": "2008-08-03T11:11:50.239986Z",
+      "value": 99.764
+    },
+    {
+      "unit_id": 471,
+      "sequence": 305,
+      "timestamp": "2008-08-03T13:33:39.485827Z",
+      "value": 73.708
+    },
+    {
+      "unit_id": 55,
+      "sequence": 306,
+      "timestamp": "2008-08-03T13:40:09.756327Z",
+      "value": 104.223
+    },
+    {
+      "unit_id": 246,
+      "sequence": 307,
+      "timestamp": "2008-08-03T13:59:04.983769Z",
+      "value": 96.042
+    },
+    {
+      "unit_id": 68,
+      "sequence": 308,
+      "timestamp": "2008-08-03T14:41:49.769219Z",
+      "value": 115.383
+    },
+    {
+      "unit_id": 476,
+      "sequence": 309,
+      "timestamp": "2008-08-03T17:30:37.672297Z",
+      "value": 100.18
+    },
+    {
+      "unit_id": 439,
+      "sequence": 310,
+      "timestamp": "2008-08-03T17:43:08.235783Z",
+      "value": 92.832
+    },
+    {
+      "unit_id": 103,
+      "sequence": 311,
+      "timestamp": "2008-08-03T18:21:02.497970Z",
+      "value": 112.062
+    },
+    {
+      "unit_id": 448,
+      "sequence": 312,
+      "timestamp": "2008-08-03T19:07:09.626012Z",
+      "value": 78.18
+    },
+    {
+      "unit_id": 165,
+      "sequence": 313,
+      "timestamp": "2008-08-03T21:05:54.861000Z",
+      "value": 99.49
+    },
+    {
+      "unit_id": 336,
+      "sequence": 314,
+      "timestamp": "2008-08-03T22:15:21.616162Z",
+      "value": 85.313
+    },
+    {
+      "unit_id": 324,
+      "sequence": 315,
+      "timestamp": "2008-08-04T00:07:53.524248Z",
+      "value": 79.337
+    },
+    {
+      "unit_id": 270,
+      "sequence": 316,
+      "timestamp": "2008-08-04T02:08:20.956225Z",
+      "value": 94.194
+    },
+    {
+      "unit_id": 599,
+      "sequence": 317,
+      "timestamp": "2008-08-04T02:32:48.172836Z",
+      "value": 100.168
+    },
+    {
+      "unit_id": 42,
+      "sequence": 318,
+      "timestamp": "2008-08-04T03:31:49.019818Z",
+      "value": 85.316
+    },
+    {
+      "unit_id": 349,
+      "sequence": 319,
+      "timestamp": "2008-08-04T03:32:27.492270Z",
+      "value": 73.466
+    },
+    {
+      "unit_id": 254,
+      "sequence": 320,
+      "timestamp": "2008-08-04T04:04:33.274641Z",
+      "value": 108.613
+    },
+    {
+      "unit_id": 390,
+      "sequence": 321,
+      "timestamp": "2008-08-04T05:35:22.940155Z",
+      "value": 108.719
+    },
+    {
+      "unit_id": 449,
+      "sequence": 322,
+      "timestamp": "2008-08-04T08:16:37.652045Z",
+      "value": 97.526
+    },
+    {
+      "unit_id": 477,
+      "sequence": 323,
+      "timestamp": "2008-08-04T09:08:36.131452Z",
+      "value": 104.127
+    },
+    {
+      "unit_id": 71,
+      "sequence": 324,
+      "timestamp": "2008-08-04T09:28:15.494010Z",
+      "value": 93.314
+    },
+    {
+      "unit_id": 379,
+      "sequence": 325,
+      "timestamp": "2008-08-04T12:36:03.884694Z",
+      "value": 96.145
+    },
+    {
+      "unit_id": 540,
+      "sequence": 326,
+      "timestamp": "2008-08-04T13:11:11.498657Z",
+      "value": 98.204
+    },
+    {
+      "unit_id": 440,
+      "sequence": 327,
+      "timestamp": "2008-08-04T14:06:30.383198Z",
+      "value": 100.759
+    },
+    {
+      "unit_id": 83,
+      "sequence": 328,
+      "timestamp": "2008-08-04T16:35:33.116771Z",
+      "value": 102.702
+    },
+    {
+      "unit_id": 258,
+      "sequence": 329,
+      "timestamp": "2008-08-04T18:27:04.196045Z",
+      "value": 98.666
+    },
+    {
+      "unit_id": 57,
+      "sequence": 330,
+      "timestamp": "2008-08-04T20:46:04.906644Z",
+      "value": 109.599
+    },
+    {
+      "unit_id": 506,
+      "sequence": 331,
+      "timestamp": "2008-08-04T21:48:54.751390Z",
+      "value": 107.151
+    },
+    {
+      "unit_id": 43,
+      "sequence": 332,
+      "timestamp": "2008-08-05T03:18:01.517230Z",
+      "value": 93.311
+    },
+    {
+      "unit_id": 502,
+      "sequence": 333,
+      "timestamp": "2008-08-05T03:51:10.792991Z",
+      "value": 103.635
+    },
+    {
+      "unit_id": 583,
+      "sequence": 334,
+      "timestamp": "2008-08-05T05:08:44.581696Z",
+      "value": 110.672
+    },
+    {
+      "unit_id": 301,
+      "sequence": 335,
+      "timestamp": "2008-08-05T07:01:36.456757Z",
+      "value": 92.803
+    },
+    {
+      "unit_id": 436,
+      "sequence": 336,
+      "timestamp": "2008-08-05T07:14:52.575119Z",
+      "value": 108.433
+    },
+    {
+      "unit_id": 187,
+      "sequence": 337,
+      "timestamp": "2008-08-05T08:11:25.105954Z",
+      "value": 98.536
+    },
+    {
+      "unit_id": 417,
+      "sequence": 338,
+      "timestamp": "2008-08-05T08:34:50.746353Z",
+      "value": null
+    },
+    {
+      "unit_id": 6,
+      "sequence": 339,
+      "timestamp": "2008-08-05T10:49:42.710956Z",
+      "value": 92.939
+    },
+    {
+      "unit_id": 490,
+      "sequence": 340,
+      "timestamp": "2008-08-05T13:00:24.678161Z",
+      "value": 101.815
+    },
+    {
+      "unit_id": 441,
+      "sequence": 341,
+      "timestamp": "2008-08-05T14:53:51.349393Z",
+      "value": 92.218
+    },
+    {
+      "unit_id": 30,
+      "sequence": 342,
+      "timestamp": "2008-08-05T15:03:32.773370Z",
+      "value": 74.096
+    },
+    {
+      "unit_id": 537,
+      "sequence": 343,
+      "timestamp": "2008-08-05T16:59:00.529102Z",
+      "value": 107.555
+    },
+    {
+      "unit_id": 486,
+      "sequence": 344,
+      "timestamp": "2008-08-05T19:39:04.339659Z",
+      "value": 104.844
+    },
+    {
+      "unit_id": 470,
+      "sequence": 345,
+      "timestamp": "2008-08-05T20:25:23.656592Z",
+      "value": 100.621
+    },
+    {
+      "unit_id": 396,
+      "sequence": 346,
+      "timestamp": "2008-08-05T20:45:25.441701Z",
+      "value": 118.158
+    },
+    {
+      "unit_id": 344,
+      "sequence": 347,
+      "timestamp": "2008-08-05T21:01:16.403346Z",
+      "value": 97.373
+    },
+    {
+      "unit_id": 286,
+      "sequence": 348,
+      "timestamp": "2008-08-06T02:08:02.981376Z",
+      "value": 70.449
+    },
+    {
+      "unit_id": 561,
+      "sequence": 349,
+      "timestamp": "2008-08-06T03:24:52.084848Z",
+      "value": 92.061
+    },
+    {
+      "unit_id": 450,
+      "sequence": 350,
+      "timestamp": "2008-08-06T04:01:16.187354Z",
+      "value": 70.759
+    },
+    {
+      "unit_id": 346,
+      "sequence": 351,
+      "timestamp": "2008-08-06T06:46:45.360956Z",
+      "value": 111.462
+    },
+    {
+      "unit_id": 67,
+      "sequence": 352,
+      "timestamp": "2008-08-06T13:43:05.873791Z",
+      "value": 84.721
+    },
+    {
+      "unit_id": 592,
+      "sequence": 353,
+      "timestamp": "2008-08-06T15:17:47.886335Z",
+      "value": 89.271
+    },
+    {
+      "unit_id": 100,
+      "sequence": 354,
+      "timestamp": "2008-08-06T15:58:07.548641Z",
+      "value": 100.013
+    },
+    {
+      "unit_id": 27,
+      "sequence": 355,
+      "timestamp": "2008-08-06T16:09:33.539723Z",
+      "value": 77.677
+    },
+    {
+      "unit_id": 363,
+      "sequence": 356,
+      "timestamp": "2008-08-06T16:13:45.871547Z",
+      "value": 127.07
+    },
+    {
+      "unit_id": 234,
+      "sequence": 357,
+      "timestamp": "2008-08-06T16:35:48.530197Z",
+      "value": 97.467
+    },
+    {
+      "unit_id": 17,
+      "sequence": 358,
+      "timestamp": "2008-08-06T16:45:58.288982Z",
+      "value": 98.639
+    },
+    {
+      "unit_id": 578,
+      "sequence": 359,
+      "timestamp": "2008-08-06T20:45:36.802465Z",
+      "value": 78.791
+    },
+    {
+      "unit_id": 217,
+      "sequence": 360,
+      "timestamp": "2008-08-06T20:56:39.069729Z",
+      "value": 79.214
+    },
+    {
+      "unit_id": 219,
+      "sequence": 361,
+      "timestamp": "2008-08-06T23:23:31.126485Z",
+      "value": 105.688
+    },
+    {
+      "unit_id": 266,
+      "sequence": 362,
+      "timestamp": "2008-08-06T23:27:23.593330Z",
+      "value": 112.374
+    },
+    {
+      "unit_id": 291,
+      "sequence": 363,
+      "timestamp": "2008-08-07T03:21:32.849434Z",
+      "value": 108.842
+    },
+    {
+      "unit_id": 492,
+      "sequence": 364,
+      "timestamp": "2008-08-07T03:26:56.045778Z",
+      "value": 106.183
+    },
+    {
+      "unit_id": 558,
+      "sequence": 365,
+      "timestamp": "2008-08-07T04:18:47.772299Z",
+      "value": 109.789
+    },
+    {
+      "unit_id": 368,
+      "sequence": 366,
+      "timestamp": "2008-08-07T08:39:36.943491Z",
+      "value": 103.969
+    },
+    {
+      "unit_id": 128,
+      "sequence": 367,
+      "timestamp": "2008-08-07T08:47:00.438988Z",
+      "value": 88.668
+    },
+    {
+      "unit_id": 438,
+      "sequence": 368,
+      "timestamp": "2008-08-07T09:09:59.300069Z",
+      "value": 123.103
+    },
+    {
+      "unit_id": 366,
+      "sequence": 369,
+      "timestamp": "2008-08-07T09:23:28.478098Z",
+      "value": 91.371
+    },
+    {
+      "unit_id": 45,
+      "sequence": 370,
+      "timestamp": "2008-08-07T11:36:08.299740Z",
+      "value": 102.61
+    },
+    {
+      "unit_id": 56,
+      "sequence": 371,
+      "timestamp": "2008-08-07T11:59:39.608475Z",
+      "value": 87.054
+    },
+    {
+      "unit_id": 44,
+      "sequence": 372,
+      "timestamp": "2008-08-07T12:43:43.380084Z",
+      "value": 80.733
+    },
+    {
+      "unit_id": 65,
+      "sequence": 373,
+      "timestamp": "2008-08-07T13:58:08.974010Z",
+      "value": 82.362
+    },
+    {
+      "unit_id": 92,
+      "sequence": 374,
+      "timestamp": "2008-08-07T14:12:29.186370Z",
+      "value": 81.25
+    },
+    {
+      "unit_id": 255,
+      "sequence": 375,
+      "timestamp": "2008-08-07T15:11:24.337830Z",
+      "value": null
+    },
+    {
+      "unit_id": 214,
+      "sequence": 376,
+      "timestamp": "2008-08-07T18:05:17.150525Z",
+      "value": 94.216
+    },
+    {
+      "unit_id": 594,
+      "sequence": 377,
+      "timestamp": "2008-08-07T19:43:05.811701Z",
+      "value": 93.284
+    },
+    {
+      "unit_id": 267,
+      "sequence": 378,
+      "timestamp": "2008-08-07T19:46:02.996055Z",
+      "value": 116.591
+    },
+    {
+      "unit_id": 275,
+      "sequence": 379,
+      "timestamp": "2008-08-07T20:21:44.035412Z",
+      "value": 113.094
+    },
+    {
+      "unit_id": 268,
+      "sequence": 380,
+      "timestamp": "2008-08-07T20:27:58.132662Z",
+      "value": 88.694
+    },
+    {
+      "unit_id": 302,
+      "sequence": 381,
+      "timestamp": "2008-08-07T22:18:27.390880Z",
+      "value": 123.977
+    },
+    {
+      "unit_id": 101,
+      "sequence": 382,
+      "timestamp": "2008-08-08T00:12:05.264349Z",
+      "value": 96.499
+    },
+    {
+      "unit_id": 588,
+      "sequence": 383,
+      "timestamp": "2008-08-08T01:30:00.603201Z",
+      "value": 113.394
+    },
+    {
+      "unit_id": 273,
+      "sequence": 384,
+      "timestamp": "2008-08-08T01:57:00.814401Z",
+      "value": 111.157
+    },
+    {
+      "unit_id": 485,
+      "sequence": 385,
+      "timestamp": "2008-08-08T03:16:59.232084Z",
+      "value": 105.175
+    },
+    {
+      "unit_id": 153,
+      "sequence": 386,
+      "timestamp": "2008-08-08T03:47:19.137583Z",
+      "value": 105.925
+    },
+    {
+      "unit_id": 395,
+      "sequence": 387,
+      "timestamp": "2008-08-08T04:19:36.121446Z",
+      "value": 95.543
+    },
+    {
+      "unit_id": 173,
+      "sequence": 388,
+      "timestamp": "2008-08-08T04:49:01.899457Z",
+      "value": 101.211
+    },
+    {
+      "unit_id": 541,
+      "sequence": 389,
+      "timestamp": "2008-08-08T06:31:30.680822Z",
+      "value": 84.827
+    },
+    {
+      "unit_id": 372,
+      "sequence": 390,
+      "timestamp": "2008-08-08T07:17:12.226057Z",
+      "value": 136.989
+    },
+    {
+      "unit_id": 115,
+      "sequence": 391,
+      "timestamp": "2008-08-08T07:32:14.438522Z",
+      "value": 81.882
+    },
+    {
+      "unit_id": 240,
+      "sequence": 392,
+      "timestamp": "2008-08-08T08:30:41.272682Z",
+      "value": 91.154
+    },
+    {
+      "unit_id": 411,
+      "sequence": 393,
+      "timestamp": "2008-08-08T08:45:33.801750Z",
+      "value": 66.583
+    },
+    {
+      "unit_id": 64,
+      "sequence": 394,
+      "timestamp": "2008-08-08T09:29:55.476686Z",
+      "value": 131.114
+    },
+    {
+      "unit_id": 60,
+      "sequence": 395,
+      "timestamp": "2008-08-08T10:41:57.137880Z",
+      "value": 95.962
+    },
+    {
+      "unit_id": 548,
+      "sequence": 396,
+      "timestamp": "2008-08-08T11:52:06.173006Z",
+      "value": 87.322
+    },
+    {
+      "unit_id": 369,
+      "sequence": 397,
+      "timestamp": "2008-08-08T11:55:24.093694Z",
+      "value": 107.32
+    },
+    {
+      "unit_id": 405,
+      "sequence": 398,
+      "timestamp": "2008-08-08T13:51:31.749421Z",
+      "value": 100.828
+    },
+    {
+      "unit_id": 353,
+      "sequence": 399,
+      "timestamp": "2008-08-08T15:18:35.642882Z",
+      "value": 95.305
+    },
+    {
+      "unit_id": 202,
+      "sequence": 400,
+      "timestamp": "2008-08-08T15:57:02.883989Z",
+      "value": 83.991
+    },
+    {
+      "unit_id": 220,
+      "sequence": 401,
+      "timestamp": "2008-08-08T16:22:15.238454Z",
+      "value": 100.808
+    },
+    {
+      "unit_id": 383,
+      "sequence": 402,
+      "timestamp": "2008-08-08T18:03:24.900988Z",
+      "value": 120.58
+    },
+    {
+      "unit_id": 151,
+      "sequence": 403,
+      "timestamp": "2008-08-08T23:28:47.025784Z",
+      "value": 101.675
+    },
+    {
+      "unit_id": 306,
+      "sequence": 404,
+      "timestamp": "2008-08-08T23:37:23.045419Z",
+      "value": 109.025
+    },
+    {
+      "unit_id": 321,
+      "sequence": 405,
+      "timestamp": "2008-08-09T04:06:47.577504Z",
+      "value": 67.935
+    },
+    {
+      "unit_id": 479,
+      "sequence": 406,
+      "timestamp": "2008-08-09T05:47:44.341508Z",
+      "value": 96.657
+    },
+    {
+      "unit_id": 493,
+      "sequence": 407,
+      "timestamp": "2008-08-09T06:51:06.451588Z",
+      "value": 104.41
+    },
+    {
+      "unit_id": 48,
+      "sequence": 408,
+      "timestamp": "2008-08-09T08:15:33.543557Z",
+      "value": 99.969
+    },
+    {
+      "unit_id": 72,
+      "sequence": 409,
+      "timestamp": "2008-08-09T09:51:22.682305Z",
+      "value": 105.378
+    },
+    {
+      "unit_id": 0,
+      "sequence": 410,
+      "timestamp": "2008-08-09T09:52:07.785228Z",
+      "value": 122.348
+    },
+    {
+      "unit_id": 272,
+      "sequence": 411,
+      "timestamp": "2008-08-09T10:55:25.514137Z",
+      "value": 110.366
+    },
+    {
+      "unit_id": 133,
+      "sequence": 412,
+      "timestamp": "2008-08-09T13:10:00.773269Z",
+      "value": null
+    },
+    {
+      "unit_id": 409,
+      "sequence": 413,
+      "timestamp": "2008-08-09T14:56:18.027660Z",
+      "value": 132.691
+    },
+    {
+      "unit_id": 313,
+      "sequence": 414,
+      "timestamp": "2008-08-09T18:14:26.966289Z",
+      "value": 122.334
+    },
+    {
+      "unit_id": 536,
+      "sequence": 415,
+      "timestamp": "2008-08-09T20:32:02.936507Z",
+      "value": 109.392
+    },
+    {
+      "unit_id": 251,
+      "sequence": 416,
+      "timestamp": "2008-08-09T22:10:06.148306Z",
+      "value": 107.248
+    },
+    {
+      "unit_id": 116,
+      "sequence": 417,
+      "timestamp": "2008-08-09T22:58:03.779136Z",
+      "value": 105.557
+    },
+    {
+      "unit_id": 461,
+      "sequence": 418,
+      "timestamp": "2008-08-09T23:39:58.493852Z",
+      "value": 120.914
+    },
+    {
+      "unit_id": 507,
+      "sequence": 419,
+      "timestamp": "2008-08-09T23:47:35.953263Z",
+      "value": 132.596
+    },
+    {
+      "unit_id": 227,
+      "sequence": 420,
+      "timestamp": "2008-08-10T00:47:25.856062Z",
+      "value": 124.899
+    },
+    {
+      "unit_id": 252,
+      "sequence": 421,
+      "timestamp": "2008-08-10T03:45:11.038485Z",
+      "value": 102.993
+    },
+    {
+      "unit_id": 287,
+      "sequence": 422,
+      "timestamp": "2008-08-10T03:52:35.656886Z",
+      "value": 108.222
+    },
+    {
+      "unit_id": 46,
+      "sequence": 423,
+      "timestamp": "2008-08-10T04:54:51.315314Z",
+      "value": 128.567
+    },
+    {
+      "unit_id": 571,
+      "sequence": 424,
+      "timestamp": "2008-08-10T06:39:25.475194Z",
+      "value": 97.658
+    },
+    {
+      "unit_id": 528,
+      "sequence": 425,
+      "timestamp": "2008-08-10T07:27:00.950105Z",
+      "value": 126.326
+    },
+    {
+      "unit_id": 550,
+      "sequence": 426,
+      "timestamp": "2008-08-10T14:30:36.201836Z",
+      "value": 114.922
+    },
+    {
+      "unit_id": 557,
+      "sequence": 427,
+      "timestamp": "2008-08-10T15:37:27.727793Z",
+      "value": 118.674
+    },
+    {
+      "unit_id": 169,
+      "sequence": 428,
+      "timestamp": "2008-08-10T16:41:00.757287Z",
+      "value": 114.108
+    },
+    {
+      "unit_id": 38,
+      "sequence": 429,
+      "timestamp": "2008-08-10T16:45:49.177318Z",
+      "value": 148.021
+    },
+    {
+      "unit_id": 213,
+      "sequence": 430,
+      "timestamp": "2008-08-10T18:08:16.557667Z",
+      "value": 127.458
+    },
+    {
+      "unit_id": 591,
+      "sequence": 431,
+      "timestamp": "2008-08-10T21:00:06.929541Z",
+      "value": 114.7
+    },
+    {
+      "unit_id": 204,
+      "sequence": 432,
+      "timestamp": "2008-08-11T00:12:17.979549Z",
+      "value": 136.082
+    },
+    {
+      "unit_id": 95,
+      "sequence": 433,
+      "timestamp": "2008-08-11T01:31:51.395131Z",
+      "value": 119.151
+    },
+    {
+      "unit_id": 418,
+      "sequence": 434,
+      "timestamp": "2008-08-11T02:28:41.680731Z",
+      "value": 120.185
+    },
+    {
+      "unit_id": 78,
+      "sequence": 435,
+      "timestamp": "2008-08-11T02:34:37.969468Z",
+      "value": 142.349
+    },
+    {
+      "unit_id": 76,
+      "sequence": 436,
+      "timestamp": "2008-08-11T04:28:54.683012Z",
+      "value": 137.147
+    },
+    {
+      "unit_id": 109,
+      "sequence": 437,
+      "timestamp": "2008-08-11T04:55:12.356172Z",
+      "value": 121.053
+    },
+    {
+      "unit_id": 122,
+      "sequence": 438,
+      "timestamp": "2008-08-11T07:20:57.823174Z",
+      "value": 146.527
+    },
+    {
+      "unit_id": 527,
+      "sequence": 439,
+      "timestamp": "2008-08-11T07:40:33.657599Z",
+      "value": 146.719
+    },
+    {
+      "unit_id": 205,
+      "sequence": 440,
+      "timestamp": "2008-08-11T09:08:39.686795Z",
+      "value": 125.372
+    },
+    {
+      "unit_id": 186,
+      "sequence": 441,
+      "timestamp": "2008-08-11T09:41:19.894465Z",
+      "value": 137.741
+    },
+    {
+      "unit_id": 117,
+      "sequence": 442,
+      "timestamp": "2008-08-11T11:10:06.346057Z",
+      "value": 122.774
+    },
+    {
+      "unit_id": 586,
+      "sequence": 443,
+      "timestamp": "2008-08-11T11:26:22.010258Z",
+      "value": 125.202
+    },
+    {
+      "unit_id": 180,
+      "sequence": 444,
+      "timestamp": "2008-08-11T12:19:00.905462Z",
+      "value": 129.409
+    },
+    {
+      "unit_id": 331,
+      "sequence": 445,
+      "timestamp": "2008-08-11T12:41:29.532096Z",
+      "value": 101.536
+    },
+    {
+      "unit_id": 98,
+      "sequence": 446,
+      "timestamp": "2008-08-11T14:11:18.905992Z",
+      "value": 106.829
+    },
+    {
+      "unit_id": 511,
+      "sequence": 447,
+      "timestamp": "2008-08-11T15:51:32.798537Z",
+      "value": 96.438
+    },
+    {
+      "unit_id": 37,
+      "sequence": 448,
+      "timestamp": "2008-08-11T16:50:28.643693Z",
+      "value": 94.249
+    },
+    {
+      "unit_id": 265,
+      "sequence": 449,
+      "timestamp": "2008-08-11T17:01:24.840814Z",
+      "value": null
+    },
+    {
+      "unit_id": 498,
+      "sequence": 450,
+      "timestamp": "2008-08-11T18:53:25.025373Z",
+      "value": 110.841
+    },
+    {
+      "unit_id": 531,
+      "sequence": 451,
+      "timestamp": "2008-08-11T19:06:19.182842Z",
+      "value": 86.192
+    },
+    {
+      "unit_id": 10,
+      "sequence": 452,
+      "timestamp": "2008-08-11T19:26:43.709385Z",
+      "value": 122.931
+    },
+    {
+      "unit_id": 542,
+      "sequence": 453,
+      "timestamp": "2008-08-12T00:17:31.315707Z",
+      "value": 94.797
+    },
+    {
+      "unit_id": 81,
+      "sequence": 454,
+      "timestamp": "2008-08-12T00:58:56.508262Z",
+      "value": 86.302
+    },
+    {
+      "unit_id": 5,
+      "sequence": 455,
+      "timestamp": "2008-08-12T01:17:49.773597Z",
+      "value": 96.547
+    },
+    {
+      "unit_id": 269,
+      "sequence": 456,
+      "timestamp": "2008-08-12T06:47:02.357055Z",
+      "value": 87.237
+    },
+    {
+      "unit_id": 184,
+      "sequence": 457,
+      "timestamp": "2008-08-12T06:47:17.601197Z",
+      "value": 114.264
+    },
+    {
+      "unit_id": 569,
+      "sequence": 458,
+      "timestamp": "2008-08-12T06:55:42.706465Z",
+      "value": 109.063
+    },
+    {
+      "unit_id": 35,
+      "sequence": 459,
+      "timestamp": "2008-08-12T09:43:21.099123Z",
+      "value": 117.063
+    },
+    {
+      "unit_id": 374,
+      "sequence": 460,
+      "timestamp": "2008-08-12T09:56:04.539521Z",
+      "value": 107.068
+    },
+    {
+      "unit_id": 89,
+      "sequence": 461,
+      "timestamp": "2008-08-12T12:05:11.168170Z",
+      "value": 102.691
+    },
+    {
+      "unit_id": 570,
+      "sequence": 462,
+      "timestamp": "2008-08-12T12:08:42.375548Z",
+      "value": 92.838
+    },
+    {
+      "unit_id": 327,
+      "sequence": 463,
+      "timestamp": "2008-08-12T12:10:32.925774Z",
+      "value": 88.894
+    },
+    {
+      "unit_id": 168,
+      "sequence": 464,
+      "timestamp": "2008-08-12T12:13:33.246408Z",
+      "value": 94.998
+    },
+    {
+      "unit_id": 179,
+      "sequence": 465,
+      "timestamp": "2008-08-12T12:56:35.188002Z",
+      "value": 102.34
+    },
+    {
+      "unit_id": 563,
+      "sequence": 466,
+      "timestamp": "2008-08-12T15:09:06.252582Z",
+      "value": 98.504
+    },
+    {
+      "unit_id": 172,
+      "sequence": 467,
+      "timestamp": "2008-08-12T15:32:23.972751Z",
+      "value": 107.256
+    },
+    {
+      "unit_id": 392,
+      "sequence": 468,
+      "timestamp": "2008-08-12T15:55:16.493118Z",
+      "value": 80.663
+    },
+    {
+      "unit_id": 378,
+      "sequence": 469,
+      "timestamp": "2008-08-12T17:06:51.036647Z",
+      "value": 111.534
+    },
+    {
+      "unit_id": 522,
+      "sequence": 470,
+      "timestamp": "2008-08-12T17:17:34.360024Z",
+      "value": 100.188
+    },
+    {
+      "unit_id": 443,
+      "sequence": 471,
+      "timestamp": "2008-08-12T19:35:01.983569Z",
+      "value": 125.266
+    },
+    {
+      "unit_id": 69,
+      "sequence": 472,
+      "timestamp": "2008-08-12T19:53:35.739542Z",
+      "value": 82.035
+    },
+    {
+      "unit_id": 402,
+      "sequence": 473,
+      "timestamp": "2008-08-12T20:40:11.204746Z",
+      "value": 122.127
+    },
+    {
+      "unit_id": 119,
+      "sequence": 474,
+      "timestamp": "2008-08-12T20:49:41.422179Z",
+      "value": 102.108
+    },
+    {
+      "unit_id": 408,
+      "sequence": 475,
+      "timestamp": "2008-08-12T22:53:50.533628Z",
+      "value": 115.937
+    },
+    {
+      "unit_id": 216,
+      "sequence": 476,
+      "timestamp": "2008-08-12T23:59:25.647596Z",
+      "value": 116.184
+    },
+    {
+      "unit_id": 315,
+      "sequence": 477,
+      "timestamp": "2008-08-13T01:24:35.352457Z",
+      "value": 118.633
+    },
+    {
+      "unit_id": 166,
+      "sequence": 478,
+      "timestamp": "2008-08-13T01:56:17.438279Z",
+      "value": 81.792
+    },
+    {
+      "unit_id": 21,
+      "sequence": 479,
+      "timestamp": "2008-08-13T05:09:31.803233Z",
+      "value": 119.724
+    },
+    {
+      "unit_id": 370,
+      "sequence": 480,
+      "timestamp": "2008-08-13T05:42:59.539150Z",
+      "value": 81.667
+    }
+  ]
+}

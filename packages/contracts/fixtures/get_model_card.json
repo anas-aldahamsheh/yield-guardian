@@ -1,0 +1,5 @@
+{
+  "name": "secom",
+  "title": "SECOM failure-risk model",
+  "markdown": "# SECOM failure-risk model\n\nSynthetic fixture for interface development. The real card is written by the training pipeline.\n\n## Intended use\n\nRank units by failure risk so engineers can act before final test.\n\n| Metric | Value | 95% CI |\n|---|---|---|\n| PR-AUC | 0.21 | 0.12 to 0.30 |\n"
+}

@@ -1,0 +1,33 @@
+{
+  "app_name": "Yield Guardian",
+  "version": "0.1.0",
+  "git_commit": null,
+  "started_at": "2026-10-13T20:48:00Z",
+  "bundles": [
+    {
+      "bundle": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      },
+      "files": 14,
+      "verified": true
+    },
+    {
+      "bundle": {
+        "name": "wafermap",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      },
+      "files": 11,
+      "verified": true
+    }
+  ],
+  "features": {
+    "live_investigations": true,
+    "chat": true,
+    "admin_login": true
+  }
+}
