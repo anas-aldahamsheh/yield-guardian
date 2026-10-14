@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 07:56 UTC
+**Last updated:** 2026-10-14 08:00 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -17,10 +17,10 @@
 
 | | |
 |---|---|
-| Done | 4 of 86 |
-| Current focus | Contracts frozen; workers 2 to 5 building in parallel; data download on the PC |
+| Done | 8 of 86 |
+| Current focus | SECOM pipeline (worker 2), wafer-map training setup (worker 3 on the PC), AI layer (worker 4), interface (worker 5), CI (lead) |
 | Blocked | Nothing |
-| Waiting on you | Allow the session on your PC when the request appears; put the Token Factory key in `.env` on your PC when asked |
+| Waiting on you | Put the Token Factory key in `.env` on your PC when asked |
 
 ## Measured results
 
@@ -51,23 +51,23 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | F3 | Monorepo scaffold, MIT licence, editor and lint config, `.env.example` | Cloud | ✅ | Commits c212301, 9fd5a19: workspace, MIT licence, `.editorconfig`, Ruff and mypy config, `.env.example` |
 | F4 | CI: lint, types, tests, build, secret scan, dependency audit | Cloud | ⏳ | |
 | F5 | Contracts: OpenAPI export and generated TypeScript types, staleness check | Cloud | ✅ | [openapi.json](../packages/contracts/openapi.json) (47 operations), [schema.d.ts](../packages/contracts/src/schema.d.ts), 47 fixtures validated in pytest (74 passed); CI wiring is F4 |
-| F6 | Working copy of the repo in the project folder; toolchain check (Python, uv, Node, pnpm, Docker, CUDA) | PC | 🟡 | PC session running (worker 3) |
+| F6 | Working copy of the repo in the project folder; toolchain check (Python, uv, Node, pnpm, Docker, CUDA) | PC | ✅ | PC working copy and toolchain checked (worker 3); PyTorch 2.14.1+cu130 sees the RTX 3060 (compute 8.6) |
 
 ### D: Data
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| D1 | Download SECOM from UCI, record SHA-256 and licence | PC | 🟡 | Download running on the PC (worker 3) |
-| D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ⏳ | Kaggle token is on the PC; never committed |
-| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | ⏳ | Corrects PLAN if any documented number differs |
+| D1 | Download SECOM from UCI, record SHA-256 and licence | PC | ✅ | Byte-identical to the UCI archive; SHA-256 in [manifest.json](../data/manifest.json); CC BY 4.0, DOI 10.24432/C54305; committed with [ATTRIBUTION.md](../data/secom/ATTRIBUTION.md) (78ba1f3) |
+| D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ✅ | MIR Lab returned HTTP 404, so the Kaggle mirror was used; LSWMD.pkl 2,095,505,977 bytes, SHA-256 in the manifest; mirror lists CC0-1.0 set by the uploader, recorded with that caveat; raw data not committed |
+| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | 🟡 | WM-811K facts done ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)): 811,457 wafers, 46,293 lots (PLAN corrected from 46,393), 172,950 labelled. SECOM EDA with worker 2 |
 | D4 | Validated loaders (pandera schemas) | Cloud | ⏳ | |
-| D5 | Official-split lot-overlap check for WM-811K | PC | ⏳ | |
+| D5 | Official-split lot-overlap check for WM-811K | PC | ✅ | Official split has 0 lots in both training (5,809 lots) and test (4,953 lots). Class mix differs: "none" is 67.6% of training, 93.3% of test; reported as a limitation |
 
 ### S: SECOM science
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | 🟡 | Worker 2 building the SECOM pipeline |
+| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | 🟡 | Worker 2: statistics toolkit done (bootstrap, metrics, BH, provenance); SECOM data delivered, pipeline running next |
 | S2 | Training-only preprocessing (constants, missingness indicators) | Cloud | ⏳ | |
 | S3 | Baselines: prevalence, logistic regression, random forest | Cloud | ⏳ | |
 | S4 | LightGBM with class weights, Optuna tuning on validation | Cloud | ⏳ | |
@@ -82,9 +82,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| W1 | Preprocessing: label parsing, nearest-neighbour resize, one-hot | Cloud + PC | ⏳ | |
-| W2 | Official and lot-grouped splits | PC | ⏳ | |
-| W3 | Residual CNN, focal loss, dihedral augmentations | Cloud | ⏳ | |
+| W1 | Preprocessing: label parsing, nearest-neighbour resize, one-hot | Cloud + PC | 🟡 | Conversion and preprocessing code written (f50e461); worker 3 |
+| W2 | Official and lot-grouped splits | PC | 🟡 | Lot-grouped split written ([splits.json](../training/wafermap/reports/splits.json)); worker 3 |
+| W3 | Residual CNN, focal loss, dihedral augmentations | Cloud | 🟡 | Residual CNN and training loop written (f50e461); worker 3 |
 | W4 | Training on the RTX 3060 (3 seeds, MLflow) | PC | ⏳ | Final training location to be decided (D-003) |
 | W5 | Evaluation: macro-F1, per-class, confusion matrix, CIs, temperature scaling | PC | ⏳ | |
 | W6 | Embeddings and unknown-pattern score, leave-one-class-out test | PC | ⏳ | |
@@ -119,9 +119,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| L1 | Token Factory client with capability profiles and catalog sync | Cloud | 🟡 | Worker 4 building the AI layer |
-| L2 | Rate limiter, retries with jitter, budget guard, response cache | Cloud | ⏳ | |
-| L3 | Model registry: role to model, admin API, validation | Cloud | ⏳ | |
+| L1 | Token Factory client with capability profiles and catalog sync | Cloud | 🟡 | Worker 4: client core, capability profiles and request builder written (branch w4/ai) |
+| L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | 🟡 | Worker 4: removing the limiters per D-009; keeps retries, cache and usage records |
+| L3 | Model registry: role to model, admin API, validation | Cloud | 🟡 | Worker 4: registry written (branch w4/ai) |
 | L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | ⏳ | |
 | L5 | Report writer with strict schema | Cloud | ⏳ | |
 | L6 | Verifier: number check, citation check, wording check, model check | Cloud | ⏳ | |
@@ -187,12 +187,13 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
-| 2026-10-14 | Allow the session on your PC when the request appears | Data download, GPU training and Docker run there |
 | 2026-10-14 | Put the Token Factory key in `.env` on your PC when asked | The key never goes through chat or the repository |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 08:00 | Decision D-009: no request limits anywhere in the product; plan and contracts updated |
+| 2026-10-14 08:00 | F6, D1, D2, D5 done on the PC: SECOM and WM-811K downloaded with checksums, no lot overlap in the official split; SECOM merged to main |
 | 2026-10-14 07:56 | F3 and F5 done: scaffold, API contracts (47 operations), TypeScript types and validated fixtures |
 | 2026-10-14 07:20 | F1 and F2 done: plan and status written |
