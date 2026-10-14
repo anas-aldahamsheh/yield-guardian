@@ -1,0 +1,77 @@
+{
+  "method": "energy",
+  "score": "-logsumexp(logits); higher is less familiar; flag when score > threshold",
+  "threshold": -2.6177380084991455,
+  "in_distribution_recall": 0.9499749489343662,
+  "in_distribution_recall_test": 0.9473298913462279,
+  "mahalanobis": {
+    "threshold": 272.64637145996073,
+    "in_distribution_recall_validation": 0.9499749489343662,
+    "in_distribution_recall_test": 0.945095168374817,
+    "covariance": "shared within-class, Ledoit-Wolf shrinkage, L2-normalised embeddings",
+    "parameters": "ood_mahalanobis.npz",
+    "score": "min over classes of (z - mean_c)^T precision (z - mean_c)"
+  },
+  "agreement_test": {
+    "both": 0.015758649919087618,
+    "energy_only": 0.03691145873468444,
+    "mahalanobis_only": 0.0391461817060954,
+    "spearman_rho": -0.22158233267058589
+  },
+  "test_share_flagged_by_class": {
+    "Center": {
+      "energy": 0.02332814930015552,
+      "mahalanobis": 0.24727838258164853,
+      "energy_class_thresholds": 0.04510108864696734,
+      "mahalanobis_class_thresholds": 0.08087091757387248
+    },
+    "Donut": {
+      "energy": 0.0975609756097561,
+      "mahalanobis": 0.573170731707317,
+      "energy_class_thresholds": 0.10975609756097561,
+      "mahalanobis_class_thresholds": 0.17073170731707318
+    },
+    "Edge-Loc": {
+      "energy": 0.08483290488431877,
+      "mahalanobis": 0.2532133676092545,
+      "energy_class_thresholds": 0.07969151670951156,
+      "mahalanobis_class_thresholds": 0.10282776349614396
+    },
+    "Edge-Ring": {
+      "energy": 0.0048209366391184574,
+      "mahalanobis": 0.14600550964187328,
+      "energy_class_thresholds": 0.04132231404958678,
+      "mahalanobis_class_thresholds": 0.05371900826446281
+    },
+    "Loc": {
+      "energy": 0.15427509293680297,
+      "mahalanobis": 0.30855018587360594,
+      "energy_class_thresholds": 0.09851301115241635,
+      "mahalanobis_class_thresholds": 0.10408921933085502
+    },
+    "Near-full": {
+      "energy": 0.17391304347826086,
+      "mahalanobis": 0.21739130434782608,
+      "energy_class_thresholds": 0.13043478260869565,
+      "mahalanobis_class_thresholds": 0.13043478260869565
+    },
+    "Random": {
+      "energy": 0.4076923076923077,
+      "mahalanobis": 0.6923076923076923,
+      "energy_class_thresholds": 0.13076923076923078,
+      "mahalanobis_class_thresholds": 0.13846153846153847
+    },
+    "Scratch": {
+      "energy": 0.08426966292134831,
+      "mahalanobis": 0.25842696629213485,
+      "energy_class_thresholds": 0.07865168539325842,
+      "mahalanobis_class_thresholds": 0.11235955056179775
+    },
+    "none": {
+      "energy": 0.05042928151830095,
+      "mahalanobis": 0.02272932670582919,
+      "energy_class_thresholds": 0.05079078174423859,
+      "mahalanobis_class_thresholds": 0.05038409399005874
+    }
+  }
+}
