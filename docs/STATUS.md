@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 12:08 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 12:13 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -205,15 +205,18 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
-| 2026-10-14 12:08 | API tests (Q2) and web tests (Q3) closed with evidence; live site runs 249300b with results and every screen |
-| 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
-| 2026-10-14 11:48 | Methods service: home page results and the methods page now show the bundles' measured numbers. Merged W4: recorder, evaluation import, router scope rules (ffe9da1) |
-| 2026-10-14 | Put the Token Factory key in `.env` on your PC when asked | The key never goes through chat or the repository |
+| 2026-10-14 12:12 | Go-ahead to record 3 demo investigations (L11), on the decision card in the thread | It spends Token Factory points: the ceiling is about 3 points per run, above the 1-point daily budget in PLAN 7.2, and a real run costs far less (the evaluation spent 0.0019). Recommended: record one, check its real cost, then the rest |
+| 2026-10-14 | Rotate the Token Factory key after the event | It was pasted in chat |
+| at the end | Submit on lablab (X6) | It must come from your account |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 12:13 | "Waiting on you" cleaned: changelog rows moved back here; open asks are L11 go-ahead, key rotation and the lablab submission |
+| 2026-10-14 12:08 | API tests (Q2) and web tests (Q3) closed with evidence; live site runs 249300b with results and every screen |
+| 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
+| 2026-10-14 11:48 | Methods service: home page results and the methods page now show the bundles' measured numbers. Merged W4: recorder, evaluation import, router scope rules (ffe9da1) |
 | 2026-10-14 11:36 | Owner found the interface visually weak: a dedicated design helper started on the visual system, motion and 3D (U14), in parallel with worker 5's screens |
 | 2026-10-14 11:32 | Model evaluation run once with the owner's approval (L10 done): router 0.857, verifier 1.000, 0.0019 points. Statistics tests against known values (Q1 done) |
 | 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
