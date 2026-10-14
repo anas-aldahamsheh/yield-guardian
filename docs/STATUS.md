@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 13:00 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 13:07 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 75 of 81 done (93%), 4 in progress, 2 not started
+## Progress: 75 of 82 done (91%), 5 in progress, 2 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 1 | 0 |
 | L: AI layer | 10 of 11 | 1 | 0 |
-| U: Interface | 12 of 14 | 2 | 0 |
+| U: Interface | 12 of 15 | 3 | 0 |
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 3 of 5 | 0 | 2 |
 | X: Submission | 2 of 2 | 0 | 0 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 75 of 81 |
+| Done | 75 of 82 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -167,6 +167,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | 🟡 | Empty, loading and not-ready states on every screen, checked against an API that answers 503; one more pass after the design work |
 | U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design system, motion and 3D hero merged (af225fe): step-and-scan wafer exposure, live control-chart motion, reduced motion respected, no horizontal scroll at 390 px; axe and Lighthouse not run yet |
+| U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | 🟡 | Requested by the owner at 13:06; built in its own thread |
 
 ### P: Packaging and deployment
 
@@ -212,6 +213,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 13:07 | New item U15: an Arabic usage guide page, built in its own thread. Chart widths fixed on phones (1086c92) |
 | 2026-10-14 13:00 | README finished (X1 done). P3 replaced by committed bundles verified at build and start (a Release was not possible from here) |
 | 2026-10-14 12:58 | Mobile overflow fixed on /line, /methods and the home results table. Recorder reads data as of the alarm. Chat answers "what can you do?" from code instead of refusing (8329e4d) |
 | 2026-10-14 12:50 | Owner cut the submission material: video (X2), slides (X3), cover (X4) and the lablab submission (X6). Cut items no longer count toward the total. Recorder bug found on the live server (tools read the live cursor, not the alarm time); 0 points spent, fix in progress |
