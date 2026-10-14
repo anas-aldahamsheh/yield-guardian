@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:59 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:00 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 46 of 86 done (53%), 14 in progress, 26 not started
+## Progress: 46 of 86 done (53%), 16 in progress, 24 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | D: Data | 4 of 5 | 1 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
-| K: Knowledge base | 0 of 3 | 0 | 3 |
+| K: Knowledge base | 0 of 3 | 2 | 1 |
 | A: API | 7 of 9 | 1 | 1 |
 | L: AI layer | 0 of 11 | 9 | 2 |
 | U: Interface | 4 of 14 | 1 | 9 |
@@ -115,9 +115,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | ⏳ | |
+| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
 | K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ⏳ | Costs points; run once |
-| K3 | Pattern-to-cause table with citations | Cloud | ⏳ | |
+| K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
 
 ### A: API
 
