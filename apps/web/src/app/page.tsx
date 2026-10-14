@@ -4,7 +4,6 @@ import { Hero } from "@/components/home/hero";
 import { InvestigationSequence } from "@/components/home/investigation-sequence";
 import { Provenance } from "@/components/home/provenance";
 import { ResultsLedger } from "@/components/home/results-ledger";
-import { SmoothScroll } from "@/components/home/smooth-scroll";
 import { q } from "@/lib/api/queries";
 import { serverApi, serverQueryClient } from "@/lib/api/server";
 
@@ -20,7 +19,6 @@ export default async function HomePage() {
 
   return (
     <HydrationBoundary state={dehydrate(client)}>
-      <SmoothScroll />
       <Hero />
       <ResultsLedger />
       <InvestigationSequence />
