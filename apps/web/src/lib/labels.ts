@@ -92,3 +92,43 @@ export const WORK_ORDER_STATUS: Record<string, string> = {
   done: "Done",
   cancelled: "Cancelled",
 };
+
+export const STEP_NODE: Record<string, string> = {
+  triage: "Triage",
+  plan: "Plan",
+  evidence: "Evidence",
+  write: "Write",
+  verify: "Verify",
+  decision: "Decision",
+};
+
+export const STRENGTH: Record<string, string> = {
+  strong: "Strong evidence",
+  moderate: "Moderate evidence",
+  weak: "Weak evidence",
+};
+
+export const CLAIM_VERDICT: Record<string, string> = {
+  supported: "Supported",
+  partially_supported: "Partly supported",
+  unsupported: "Not supported",
+  not_checked: "Not checked",
+};
+
+export const ISSUE_CODE: Record<string, string> = {
+  schema: "Report format",
+  number_not_listed: "Number not listed",
+  number_mismatch: "Number does not match its evidence",
+  unknown_evidence: "Unknown evidence",
+  missing_citation: "Missing citation",
+  causal_wording: "Causal wording",
+  unsupported_claim: "Unsupported claim",
+  verifier_unavailable: "Verifier unavailable",
+};
+
+export const TRIGGER_KIND: Record<string, string> = {
+  alarm: "Alarm",
+  unit: "Unit",
+  wafer: "Wafer",
+  lot: "Lot",
+};
