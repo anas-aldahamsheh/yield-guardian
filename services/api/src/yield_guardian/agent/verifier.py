@@ -29,10 +29,13 @@ from pydantic import BaseModel, ConfigDict, Field
 from yield_guardian.agent.grounding import EvidenceFacts, redact_unverified
 from yield_guardian.agent.numbers import (
     NumberMention,
+    appears_in_text,
     magnitude_matches,
     matches,
+    names_a_level,
     parse_number,
     scan,
+    written_value_matches,
 )
 from yield_guardian.agent.pointer import PointerError, resolve
 from yield_guardian.agent.prompts import VERIFIER_SYSTEM, data_message
@@ -139,6 +142,32 @@ def trigger_facts(trigger: InvestigationTrigger | None) -> tuple[list[str], list
     return strings, units
 
 
+@dataclass(frozen=True, slots=True)
+class EvidenceText:
+    """A string leaf a number cites (a label such as ``"5% false-alarm rate"``)."""
+
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceList:
+    """A list a count cites ("15 sensors" with the path of the group's sensor list)."""
+
+    length: int
+
+
+def _resolve_cited(item: Evidence, path: str) -> object:
+    """The value at a number's path: in the evidence data, or, for a path starting with
+    ``/arguments/``, in the tool arguments the evidence echoes (the model is shown both)."""
+    try:
+        return resolve(item.data, path)
+    except PointerError:
+        for prefix, source in (("/arguments/", item.arguments), ("/data/", item.data)):
+            if path.startswith(prefix):
+                return resolve(source, path[len(prefix) - 1 :])
+        raise
+
+
 class _NumberCheck:
     """Checks one text number against the references listed in ``numbers[]``."""
 
@@ -162,17 +191,21 @@ class _NumberCheck:
                 out.append(ref)
         return out
 
-    def evidence_value(self, ref: NumberRef) -> float | str:
-        """The number at the reference, or why there is none."""
+    def evidence_value(self, ref: NumberRef) -> float | EvidenceText | EvidenceList | str:
+        """The number at the reference, the evidence text there, or why there is neither."""
         item = self.evidence.get(ref.evidence_id)
         if item is None:
             return f"evidence {ref.evidence_id} does not exist"
         try:
-            value = resolve(item.data, ref.path)
+            value = _resolve_cited(item, ref.path)
         except PointerError as exc:
             return f"{ref.path} is not in {ref.evidence_id} ({exc})"
+        if isinstance(value, str):
+            return EvidenceText(value)
+        if isinstance(value, list):
+            return EvidenceList(len(value))
         if isinstance(value, bool) or not isinstance(value, int | float):
-            return f"{ref.path} in {ref.evidence_id} is not a number"
+            return f"{ref.path} in {ref.evidence_id} is not a number or text"
         return float(value)
 
 
@@ -204,7 +237,9 @@ def check_numbers_and_citations(
                     "number_mismatch", location, f"as_written {ref.as_written!r} is not one number"
                 )
             )
-        elif abs(written.value - ref.value) > 1e-9 * max(1.0, abs(ref.value)):
+        elif not written_value_matches(
+            written, ref.value, percent=ref.unit == "%" or written.percent
+        ):
             issues.append(
                 _issue(
                     "number_mismatch",
@@ -264,7 +299,7 @@ def check_numbers_and_citations(
                 )
         for mention in found.numbers:
             checked += 1
-            outcome = _check_mention(mention, text_field, numbers)
+            outcome = _check_mention(mention, text_field, numbers, facts)
             if outcome is None:
                 matched += 1
             else:
@@ -286,9 +321,29 @@ def check_numbers_and_citations(
 
 
 def _check_mention(
+    mention: NumberMention, text_field: TextField, numbers: _NumberCheck, facts: EvidenceFacts
+) -> VerificationIssue | None:
+    """None when the number is listed and matches its evidence; else the issue. A percentage
+    that names a level ("the 99% limit") is a name: the evidence must name that level."""
+    outcome = _check_quantity(mention, text_field, numbers)
+    if outcome is None or not names_a_level(text_field.text, mention):
+        return outcome
+    if facts.names_level(mention):
+        return None
+    return _issue(
+        "number_mismatch",
+        text_field.location,
+        f"{mention.text} names a level that no evidence names",
+    )
+
+
+def _is_count(mention: NumberMention) -> bool:
+    return not mention.percent and mention.decimals == 0 and mention.value >= 0
+
+
+def _check_quantity(
     mention: NumberMention, text_field: TextField, numbers: _NumberCheck
 ) -> VerificationIssue | None:
-    """None when the number is listed and matches its evidence; else the issue."""
     candidates = numbers.candidates(mention)
     if not candidates:
         return _issue(
@@ -303,6 +358,18 @@ def _check_mention(
         value = numbers.evidence_value(ref)
         if isinstance(value, str):
             reasons.append(value)
+            continue
+        if isinstance(value, EvidenceList):
+            if _is_count(mention) and matches(mention, float(value.length), percent=False):
+                supported.append(ref)
+            else:
+                reasons.append(f"{ref.path} in {ref.evidence_id} is a list of {value.length} items")
+            continue
+        if isinstance(value, EvidenceText):
+            if appears_in_text(mention, value.text):
+                supported.append(ref)
+            else:
+                reasons.append(f"{ref.evidence_id} has the text {value.text[:80]!r} at {ref.path}")
             continue
         percent = ref.unit == "%" or mention.percent
         if matches(mention, value, percent=percent):

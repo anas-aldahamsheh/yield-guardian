@@ -5,7 +5,10 @@ number of API processes can work the same queue. A job of an investigation waits
 job of the same investigation runs. Every claimed job runs in its own task: there is no
 concurrency cap (PLAN D-009). Running jobs send a heartbeat; a job whose heartbeat stops (its
 process died) is recovered by any worker: a run is failed with an error event, a resume is queued
-again because the engineer's decision must be applied.
+again because the engineer's decision must be applied. An investigation left queued or running
+with no live job (its job ended without closing it) is failed the same way, its alarm reopened.
+A run is also bounded in wall time (``run_timeout_s``): past it, it fails with
+:data:`TIMED_OUT` and its alarm reopens.
 """
 
 import asyncio
@@ -27,7 +30,7 @@ from yield_guardian.contracts.base import Problem
 from yield_guardian.contracts.services import InvestigationRunner, ServiceError
 from yield_guardian.contracts.workorders import ActorRole
 from yield_guardian.db.notify import JOBS_CHANNEL, Notifier
-from yield_guardian.db.tables import InvestigationJobRow
+from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
 from yield_guardian.services import audit
 from yield_guardian.services.investigations import INTERRUPTED, DbInvestigationStore, close_run_in
 
@@ -41,6 +44,23 @@ NO_RUNNER_DETAIL = (
 NO_RUNNER = Problem(
     title="Investigator not available", status=503, code="not_ready", detail=NO_RUNNER_DETAIL
 )
+INVESTIGATION_TIMEOUT_S = 1200.0
+"""Wall-time bound of one investigation run (20 minutes); each model call has its own deadline
+in the gateway, so this only stops a run that keeps going call after call."""
+
+
+def timed_out(limit_s: float) -> Problem:
+    return Problem(
+        title="Investigation timed out",
+        status=504,
+        code="upstream_error",
+        detail=(
+            f"The investigation did not finish within {limit_s / 60:g} minutes, so it was "
+            "stopped. The alarm is open again; start a new investigation."
+        ),
+    )
+
+
 RUN_FAILED = Problem(
     title="Investigation failed",
     status=500,
@@ -73,7 +93,9 @@ class JobWorker:
         heartbeat_s: float = 10.0,
         stale_after_s: float = 60.0,
         resume_attempts: int = 3,
+        run_timeout_s: float = INVESTIGATION_TIMEOUT_S,
     ) -> None:
+        self._run_timeout_s = run_timeout_s
         self._sessionmaker = sessionmaker
         self._store = store
         self._runner_provider = runner_provider
@@ -193,7 +215,25 @@ class JobWorker:
                     job.status, job.error = "failed", "interrupted"
                     job.finished_at = datetime.now(UTC)
                     await close_run_in(db, job.investigation_id, INTERRUPTED)
-            if stale:
+            live_job = exists().where(
+                InvestigationJobRow.investigation_id == InvestigationRow.investigation_id,
+                InvestigationJobRow.status.in_(("queued", "running")),
+            )
+            orphans = (
+                await db.scalars(
+                    select(InvestigationRow.investigation_id)
+                    .where(
+                        InvestigationRow.status.in_(("queued", "running")),
+                        InvestigationRow.updated_at < func.now() - self._stale_after,
+                        ~live_job,
+                    )
+                    .with_for_update(skip_locked=True)
+                )
+            ).all()
+            for investigation_id in orphans:
+                log.warning("investigation_orphan_closed", investigation_id=investigation_id)
+                await close_run_in(db, investigation_id, INTERRUPTED)
+            if stale or orphans:
                 await db.execute(select(func.pg_notify(JOBS_CHANNEL, "")))
 
     async def _finish(self, job: Job, status: str, error: str | None = None) -> None:
@@ -270,12 +310,17 @@ class JobWorker:
         # Only DbInvestigationStore.create_recorded puts a position in the payload.
         as_of = job.payload.get("as_of")
         try:
-            await runner.run(
-                investigation_id,
-                trigger,
-                self._store.sink(investigation_id),
-                as_of=as_of if isinstance(as_of, int) else None,
-            )
+            async with asyncio.timeout(self._run_timeout_s):
+                await runner.run(
+                    investigation_id,
+                    trigger,
+                    self._store.sink(investigation_id),
+                    as_of=as_of if isinstance(as_of, int) else None,
+                )
+        except TimeoutError:
+            log.warning("run_timed_out", investigation_id=investigation_id)
+            await self._store.close_run(investigation_id, timed_out(self._run_timeout_s))
+            return
         except ServiceError as exc:
             log.warning("runner_error", investigation_id=investigation_id, detail=exc.detail)
             await self._store.close_run(investigation_id, exc.problem())
@@ -298,7 +343,8 @@ class JobWorker:
             decision = await self._store.decision(investigation_id)
             sink = self._store.sink(investigation_id, resuming=True)
             try:
-                await runner.resume(investigation_id, decision, sink)
+                async with asyncio.timeout(self._run_timeout_s):
+                    await runner.resume(investigation_id, decision, sink)
             except Exception:
                 log.exception("runner_resume_failed", investigation_id=investigation_id)
         actor = audit.Actor(

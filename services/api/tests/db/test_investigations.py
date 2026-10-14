@@ -17,7 +17,7 @@ from yield_guardian.contracts.investigation import (
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
 from yield_guardian.contracts.session import GuestSessionCreate
 from yield_guardian.core.settings import Settings
-from yield_guardian.db.tables import InvestigationJobRow
+from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
 from yield_guardian.services.alarms import AlarmStateStore
 from yield_guardian.services.errors import ConflictError
 from yield_guardian.services.investigations import new_investigation_id, trigger_title
@@ -427,3 +427,69 @@ async def test_investigations_are_found_by_unit(persistence: Persistence) -> Non
     found = await persistence.investigations.for_unit(1043)
     assert set(found) == {alarm.investigation_id, unit.investigation_id}
     assert await persistence.investigations.for_unit(104) == []
+
+
+async def test_a_run_past_its_wall_time_is_failed_and_its_alarm_reopened(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    runner.behaviour = "block"  # a run that never ends (the live run waited on hung calls)
+    await persistence.jobs.stop()
+    worker = JobWorker(
+        persistence.database.sessionmaker,
+        persistence.investigations,
+        _provider(runner),
+        persistence.notifier,
+        run_timeout_s=0.5,
+    )
+    await worker.start()
+    try:
+        created = await persistence.investigations.create(
+            ALARM, session=await _engineer(persistence)
+        )
+        events = await _collect(persistence, created.investigation_id)
+    finally:
+        await worker.stop()
+        runner.release.set()
+    assert _types(events)[-3:] == ["error", "status", "end"]
+    investigation = await persistence.investigations.get(created.investigation_id)
+    assert investigation.status == "failed"
+    assert investigation.error is not None
+    assert investigation.error.title == "Investigation timed out"
+    assert "did not finish within" in (investigation.error.detail or "")
+    alarm = await persistence.alarms.get("AL-1043-t2")
+    assert (alarm.status, alarm.investigation_id) == ("open", None)
+
+
+async def test_a_run_left_running_without_a_live_job_is_failed_at_startup(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    # The container stopped between the job's end and the run's close: no job is live.
+    await persistence.jobs.stop()
+    created = await persistence.investigations.create(ALARM, session=await _engineer(persistence))
+    long_ago = datetime.now(UTC) - timedelta(minutes=10)
+    async with persistence.database.sessionmaker() as db, db.begin():
+        await db.execute(update(InvestigationJobRow).values(status="done"))
+        await db.execute(
+            update(InvestigationRow)
+            .where(InvestigationRow.investigation_id == created.investigation_id)
+            .values(status="running", updated_at=long_ago)
+        )
+    worker = JobWorker(
+        persistence.database.sessionmaker,
+        persistence.investigations,
+        _provider(runner),
+        persistence.notifier,
+        stale_after_s=1,
+    )
+    await worker.start()
+    try:
+        events = await _collect(persistence, created.investigation_id)
+    finally:
+        await worker.stop()
+    assert _types(events)[-3:] == ["error", "status", "end"]
+    assert runner.runs == []  # closed by the sweep, not run
+    investigation = await persistence.investigations.get(created.investigation_id)
+    assert investigation.status == "failed"
+    assert investigation.error is not None
+    assert investigation.error.title == "Investigation interrupted"
+    assert (await persistence.alarms.get("AL-1043-t2")).status == "open"

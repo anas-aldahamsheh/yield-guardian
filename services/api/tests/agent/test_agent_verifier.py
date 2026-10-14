@@ -418,3 +418,135 @@ def test_evidence_is_a_mapping_of_ids() -> None:
     found = codes(check_numbers_and_citations(r, lone).issues)
     assert ("unknown_evidence", "error", "findings[0].evidence_ids") in found
     assert ("unknown_evidence", "error", "numbers[0]") in found
+
+
+# -- live recording 2026-10-14 (AL-1303-risk): rounding and numbers inside evidence text -----
+
+LIVE = evidence(
+    "E7",
+    {
+        "shap": 0.802666,
+        "share": 0.1021,
+        "risk_detail": {"operating_point": {"label": "5% false-alarm rate", "threshold": 0.31}},
+        "limit": {"label": "99% control limit", "value": 12.4},
+    },
+)
+LIVE_EVIDENCE = {"E7": LIVE}
+
+
+def live_check(text: str, *refs: dict[str, Any]) -> list[VerificationIssue]:
+    r = report(text, claims=[(text, ["E7"])], numbers=list(refs))
+    return check_numbers_and_citations(r, LIVE_EVIDENCE).issues
+
+
+def test_a_value_agrees_with_as_written_to_the_written_precision() -> None:
+    # The writer put the unrounded evidence value in "value": accepted to the written precision.
+    plus = {**num("+0.80", "/shap", "E7"), "value": 0.802666}
+    assert live_check("The sensor adds +0.80 log-odds.", plus) == []
+    fraction = {**num("10.2%", "/share", "E7"), "value": 0.1021}  # the fraction the data holds
+    assert live_check("The sensor holds 10.2% of the score.", fraction) == []
+    percentage = {**num("10.2%", "/share", "E7"), "value": 10.21}
+    assert live_check("The sensor holds 10.2% of the score.", percentage) == []
+
+
+@pytest.mark.parametrize(
+    ("as_written", "value", "path"),
+    [
+        ("+0.85", 0.802666, "/shap"),  # wrong at the written precision
+        ("-0.80", 0.802666, "/shap"),  # wrong sign
+        ("10.5%", 0.1021, "/share"),
+        ("10.2%", 0.0102, "/share"),  # percent scaling off by 10
+        ("0.80", 0.0802666, "/shap"),
+    ],
+)
+def test_a_value_that_disagrees_with_as_written_is_still_an_error(
+    as_written: str, value: float, path: str
+) -> None:
+    ref = {**num(as_written, path, "E7"), "value": value}
+    issues = live_check(f"The figure is {as_written}.", ref)
+    assert any(
+        i.location == "numbers[0]" and "differs from as_written" in i.message for i in issues
+    )
+
+
+def test_a_number_inside_an_evidence_label_is_supported_literally() -> None:
+    five = num("5%", "/risk_detail/operating_point/label", "E7")
+    ninety_nine = num("99%", "/limit/label", "E7")
+    text = "At the 5% false-alarm operating point the 99% limit is exceeded."
+    assert live_check(text, five, ninety_nine) == []
+
+
+@pytest.mark.parametrize(
+    ("written", "path"),
+    [
+        ("6%", "/risk_detail/operating_point/label"),  # not in the text
+        ("5", "/risk_detail/operating_point/label"),  # the label says 5%, not 5
+        ("0.05", "/risk_detail/operating_point/label"),
+        ("9%", "/limit/label"),  # "99%" does not contain the number 9%
+    ],
+)
+def test_a_number_not_written_in_the_label_is_rejected(written: str, path: str) -> None:
+    issues = live_check(f"The rate is {written} here.", num(written, path, "E7"))
+    mismatches = [i for i in issues if i.code == "number_mismatch" and i.severity == "error"]
+    assert mismatches
+    assert "has the text" in mismatches[0].message
+
+
+FDC = evidence(
+    "E8",
+    {
+        "limits": {"t2_99": 22833.1, "t2_999": 30100.4},
+        "points": [{"unit_id": 1290, "sequence": 1288}, {"unit_id": 1303, "sequence": 1315}],
+        "ci_level": 0.95,
+    },
+    tool="get_fdc_window",
+    from_seq=1288,
+    to_seq=1325,
+)
+GROUPS = evidence(
+    "E9",
+    {"groups": [{"group_id": 3, "sensors": [f"S{n:03d}" for n in range(15)], "q_value": 0.004}]},
+    tool="get_feature_groups",
+)
+MORE = {"E8": FDC, "E9": GROUPS}
+
+
+def more_check(text: str, *refs: dict[str, Any], cites: list[str] | None = None) -> list[str]:
+    r = report("Summary.", claims=[(text, cites or ["E8", "E9"])], numbers=list(refs))
+    return [i.message for i in check_numbers_and_citations(r, MORE).issues]
+
+
+def test_a_percentage_naming_a_limit_level_is_a_name_the_evidence_must_name() -> None:
+    # Live case: "99%" was listed against the limit's value; the level is named by t2_99.
+    wrong_value = num("99%", "/limits/t2_99", "E8")
+    assert more_check("Unit 1303 exceeded the 99% control limit.", wrong_value) == []
+    assert more_check("Unit 1303 exceeded the 99.9% limit and the 95% CI.") == []
+    unnamed = more_check("Unit 1303 exceeded the 97% limit.")
+    assert unnamed == ["97% names a level that no evidence names"]
+    # A percentage that is a quantity is still checked as one.
+    quantity = more_check("99% of units exceeded it.", num("99%", "/limits/t2_99", "E8"))
+    assert quantity
+    assert "does not match its evidence" in quantity[0]
+
+
+def test_a_tool_argument_can_be_cited_under_arguments() -> None:
+    # Live case: the window's requested end, 1325, is an argument the evidence echoes.
+    to_seq = num("1325", "/arguments/to_seq", "E8")
+    assert more_check("The window ran to 1325.", to_seq) == []
+    in_data = num("1325", "/to_seq", "E8")  # not in the data: still an error
+    assert any("is not in E8" in m for m in more_check("The window ran to 1325.", in_data))
+    wrong = num("1326", "/arguments/to_seq", "E8")
+    assert any("does not match" in m for m in more_check("The window ran to 1326.", wrong))
+    prefixed = num("22833.1", "/data/limits/t2_99", "E8")  # the view nests data under "data"
+    assert more_check("The limit is 22833.1.", prefixed) == []
+
+
+def test_a_count_is_checked_as_the_length_of_the_cited_list() -> None:
+    # Live case: "15" sensors counted from a group's list.
+    count = num("15", "/groups/0/sensors", "E9")
+    assert more_check("The group holds 15 sensors.", count) == []
+    wrong = num("14", "/groups/0/sensors", "E9")
+    messages = more_check("The group holds 14 sensors.", wrong)
+    assert any("is a list of 15 items" in m for m in messages)
+    fraction = num("15.0", "/groups/0/sensors", "E9")  # a count has no decimals
+    assert any("is a list of 15 items" in m for m in more_check("It holds 15.0.", fraction))

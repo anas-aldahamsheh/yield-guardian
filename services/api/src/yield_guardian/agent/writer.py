@@ -31,8 +31,19 @@ WRITER_MAX_TOKENS = 16384
 off; "low" is its lowest effort) used all of 4096 on reasoning in the first live run."""
 REPORT_SCHEMA_NAME = "investigation_report"
 REPORT_SCHEMA_TEXT = json.dumps(strict_json_schema(Report), separators=(",", ":"))
+TEXT_NUMBER_NOTE = (
+    "Where a number's path may point: cite a numeric field when the evidence has one. When a "
+    'number appears only inside a text value (such as a label "5% false-alarm rate"), give that '
+    "text's path; the number must appear in it exactly as you write it. A number the tool was "
+    'asked for (such as a window bound) is cited as "/arguments/<name>". A count of items (such '
+    "as 15 sensors in a group) gives the path of the list; code checks its length. A level such "
+    'as "the 99% control limit" is a name, not a quantity: do not list it in "numbers", and '
+    "never give the limit's value as the level."
+)
+"""Kept here, not in prompts.py, while the chat prompts there are being rewritten. Each case
+matches a rule of the verifier (text leaves, ``/arguments/`` paths, list lengths, levels)."""
 WRITER_INSTRUCTIONS = (
-    f"{WRITER_SYSTEM}\n\nThe JSON object must match this JSON Schema exactly (every key "
+    f"{WRITER_SYSTEM}\n\n{TEXT_NUMBER_NOTE}\n\nThe JSON object must match this JSON Schema exactly (every key "
     f"required, no other keys; use null for a number without a unit):\n{REPORT_SCHEMA_TEXT}"
 )
 """The writer's system message: the rules, then the exact schema, because json_object mode

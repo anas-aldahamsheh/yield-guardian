@@ -207,3 +207,56 @@ def test_the_recorder_prints_points_from_the_reported_usage() -> None:
     assert "points 0.001230" in text
     assert "1 request(s) reported no usage" in text
     assert "investigator DeepSeek-V4.1-Flash" in text
+
+
+def test_the_recorder_says_where_a_run_is_when_it_gives_up() -> None:
+    from datetime import UTC, datetime
+
+    from tests.agent.test_agent_graph import UNIT as TRIGGER
+    from yield_guardian.contracts.investigation import Investigation
+
+    def step(index: int, node: str, title: str, finished: str | None) -> dict[str, object]:
+        return {
+            "index": index,
+            "node": node,
+            "status": "completed" if finished else "running",
+            "title": title,
+            "started_at": "2026-10-14T14:50:00Z",
+            "finished_at": finished,
+            "tool": None,
+            "evidence_ids": [],
+            "llm": [],
+        }
+
+    base = {
+        "investigation_id": "inv_0000000000000000000000000b",
+        "title": "Unit 1062",
+        "status": "running",
+        "trigger": TRIGGER.model_dump(mode="json"),
+        "created_at": "2026-10-14T14:40:00Z",
+        "updated_at": "2026-10-14T14:52:15Z",
+        "recorded": True,
+        "models": [],
+        "usage": None,
+        "work_order_id": None,
+        "steps": [
+            step(0, "triage", "Triage", "2026-10-14T14:45:00Z"),
+            step(9, "write", "Revise the report (round 2)", None),
+        ],
+        "evidence": [],
+        "report": None,
+        "verification": None,
+        "decision": None,
+        "error": None,
+    }
+    current = load("record_investigations").current_step
+    now = datetime(2026, 10, 14, 15, 10, tzinfo=UTC)
+    text = current(Investigation.model_validate(base), now)
+    assert text == "current step 9 (write): 'Revise the report (round 2)', running for 1200 s"
+    done = base | {"steps": [step(0, "triage", "Triage", "2026-10-14T15:00:00Z")]}
+    assert current(Investigation.model_validate(done), now) == (
+        "current step 0 (triage): 'Triage', completed, then nothing for 600 s"
+    )
+    assert current(Investigation.model_validate(base | {"steps": []}), now) == (
+        "no step has started"
+    )

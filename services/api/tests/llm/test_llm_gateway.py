@@ -562,3 +562,52 @@ async def test_an_http_error_body_is_logged_without_the_key(
     assert "bad schema" in warnings[0]["body"]
     assert all(secret not in str(e) for e in logs)
     assert all(secret not in (r.error_body or "") for r in stack.call_log.records)
+
+
+async def test_a_call_past_the_role_deadline_moves_down_the_chain(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    import asyncio
+
+    from yield_guardian.llm.gateway import ROLE_TIMEOUT_S
+
+    assert ROLE_TIMEOUT_S[Role.WRITER] == ROLE_TIMEOUT_S[Role.INVESTIGATOR] == 180.0
+    assert ROLE_TIMEOUT_S[Role.VERIFIER] < 180.0
+    assert ROLE_TIMEOUT_S[Role.ROUTER] < ROLE_TIMEOUT_S[Role.VERIFIER]
+    stack.gateway.timeouts[Role.WRITER] = 0.05
+    calls: list[str] = []
+
+    async def answer(request: httpx.Request) -> httpx.Response:
+        model = json.loads(request.content)["model"]
+        calls.append(model)
+        if model == "MiMo-V2.6-Flash":
+            await asyncio.sleep(5)  # a server that never answers
+        return completion(model, '{"label": "x", "count": 1}')
+
+    respx_mock.post(host=HOST).mock(side_effect=answer)
+    out = await stack.gateway.complete_structured(
+        Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+    )
+    assert out.result.model == "Qwen3.8-27B"
+    assert calls == ["MiMo-V2.6-Flash", "Qwen3.8-27B"]
+    first = stack.call_log.records[0]
+    assert (first.status, first.error_kind) == (CallStatus.ERROR, "TransportError")
+    assert "no answer within 0.05 s" in (first.error_message or "")
+
+
+async def test_when_every_model_times_out_the_reason_names_the_deadline(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    import asyncio
+
+    stack.gateway.timeouts[Role.VERIFIER] = 0.02
+
+    async def hang(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return completion("x", "{}")
+
+    respx_mock.post(host=HOST).mock(side_effect=hang)
+    with pytest.raises(NoModelAvailableError, match=r"no answer within 0\.02 s"):
+        await stack.gateway.complete_structured(
+            Role.VERIFIER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+        )

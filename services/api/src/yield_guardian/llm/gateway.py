@@ -14,12 +14,19 @@ The next entry is tried only for failures specific to a model (refused by its pr
 unknown or unavailable model, invalid or empty answer). Account-wide failures
 (authentication, a rate limit that outlived the retries, missing credits) stop the chain at
 once, because another model on the same account would fail the same way.
+
+Every non-streaming call has a wall-clock deadline per role (:data:`ROLE_TIMEOUT_S`), retries
+included: a call that has not answered by then is abandoned as a :class:`TransportError` and the
+next model of the chain is tried, like any other model-specific failure. (The client's own
+timeouts are 15 s to connect and 10 minutes between bytes, the documented server limit; the
+first live writer revision waited on two such reads.)
 """
 
 from __future__ import annotations
 
+import asyncio
 import time
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Mapping
 from contextlib import aclosing
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -131,6 +138,18 @@ class _OutputSpec:
     schema: dict[str, Any]
 
 
+ROLE_TIMEOUT_S: dict[Role, float] = {
+    Role.INVESTIGATOR: 180.0,
+    Role.WRITER: 180.0,
+    Role.VERIFIER: 90.0,
+    Role.ROUTER: 30.0,
+    Role.CHAT: 120.0,
+    Role.VISION: 120.0,
+    Role.OCR: 180.0,
+}
+"""Seconds one call of the role may take, retries included, before the next model is tried."""
+
+
 class LlmGateway:
     def __init__(
         self,
@@ -142,7 +161,9 @@ class LlmGateway:
         quota: QuotaMonitor,
         clock: Callable[[], float] = time.monotonic,
         wall_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        timeouts: Mapping[Role, float] | None = None,
     ) -> None:
+        self.timeouts: dict[Role, float] = {**ROLE_TIMEOUT_S, **(timeouts or {})}
         self.client = client
         self.registry = registry
         self.cache = cache
@@ -295,8 +316,13 @@ class LlmGateway:
             hit = await self._from_cache(key, log, parse)
             if hit is not None:
                 return hit
+        limit = self.timeouts[role]
         try:
-            reply = await self.client.chat_completion(built.body)
+            try:
+                async with asyncio.timeout(limit):
+                    reply = await self.client.chat_completion(built.body)
+            except TimeoutError as exc:
+                raise TransportError(f"no answer within {limit:g} s (role deadline)") from exc
             parsed = parse_chat_completion(reply.payload)
         except TokenFactoryHttpError as exc:
             await log.http_error(exc, key=key)
