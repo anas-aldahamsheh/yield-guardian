@@ -1,7 +1,25 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:57 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:59 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
+
+<!-- progress:start -->
+## Progress: 46 of 86 done (53%), 14 in progress, 26 not started
+
+| Area | Done | In progress | Not started |
+|---|---|---|---|
+| F: Foundations | 6 of 6 | 0 | 0 |
+| D: Data | 4 of 5 | 1 | 0 |
+| S: SECOM science | 10 of 10 | 0 | 0 |
+| W: Wafer maps | 10 of 10 | 0 | 0 |
+| K: Knowledge base | 0 of 3 | 0 | 3 |
+| A: API | 7 of 9 | 1 | 1 |
+| L: AI layer | 0 of 11 | 9 | 2 |
+| U: Interface | 4 of 14 | 1 | 9 |
+| P: Packaging and deployment | 5 of 7 | 2 | 0 |
+| Q: Quality | 0 of 5 | 0 | 5 |
+| X: Submission | 0 of 6 | 0 | 6 |
+<!-- progress:end -->
 
 | Symbol | Meaning |
 |---|---|
@@ -12,19 +30,6 @@
 | ✂️ | Cut (reason given) |
 
 **Where:** Cloud = this session writes and tests it. PC = runs on the owner's PC. You = needs the owner.
-
-## Resume points (last pause)
-
-Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, all workers continuing from these points. Nothing half done is on main; each worker's work is on its own branch. To resume, say "continue" in the lead's thread.
-
-| Who | Branch | State at pause | Next step |
-|---|---|---|---|
-| Lead | main | API core done: registry built at startup from the newest verified bundle (f224cec), database, sessions, work orders, audit (b8ae0b3); 167 tests pass with PostgreSQL | Unit to investigation links from the investigations table; declare 400 responses on investigation, work order and cursor routes and regenerate contracts; wafer service (A6) from worker 3's bundle; methods service |
-| Worker 2 | w2/secom | Pipeline, bundle export, schemas, root cause, FDC, sensor health; WIP pushed | Was changing the stuck-value rule to use each sensor's own reference repeat rate, plus a synchronised-run diagnostic; then build the bundle with the ARTIFACTS.md fields |
-| Worker 3 | w3/pc (your PC) | Paused at 55e9d5a: 6 training runs and both evaluations pushed (lot-grouped 0.900 ± 0.006, official 0.604 ± 0.043). The final pipeline (unknown-class runs, similarity, ONNX, lot tests, bundle) keeps running on the PC; its output stays there uncommitted | On continue: commit and push the pipeline output and bundle; then the lead wires A6 |
-| Worker 4 | w4/ai | Agent foundations and the investigator graph (triage, plan, evidence, write, verify, decision) pushed (cb12237) | Graph tests; then merge main and wire runner, chat, llm and knowledge in bootstrap.py |
-| Worker 5 | w5/web | Shell, API client, P7 headers, theme fix, 3D wafer, home page (c2dea39, 151 tests); Line screen half done (bbc8cec) | Finish Line: KPIs, open alarms, recent units, line-view and page; delete stray export in line-charts.tsx; then U6 to U14. Drop upgrade-insecure-requests from the CSP on plain HTTP |
-| Helper | w1/packaging | Images, verified artifact fetch (34 tests), compose with Caddy, all healthy locally; main merged, WIP 19b0ba8 | Fix api-migrate.sh to use /app/services/api/alembic.ini and fail if missing; MIGRATE_ON_START=false in compose; finish .env.example; rebuild, CI green. Lead: env_ignore_empty=True in settings |
 
 ## Summary
 
