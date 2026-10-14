@@ -27,7 +27,7 @@ export function usePrefersReducedMotion(): boolean {
 let webgl: boolean | undefined;
 
 /** Probes WebGL 2 once per page and releases the probe's context straight away. */
-function webglAvailable(): boolean {
+export function webglAvailable(): boolean {
   if (webgl !== undefined) return webgl;
   try {
     const gl = document.createElement("canvas").getContext("webgl2");
