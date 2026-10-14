@@ -25,6 +25,7 @@ import os
 import sys
 import time
 from collections.abc import Mapping
+from datetime import UTC, datetime
 
 from yield_guardian.agent.recording import (
     SELECTION_RULE,
@@ -99,6 +100,20 @@ def usage_line(investigation: Investigation) -> str:
     )
 
 
+def current_step(investigation: Investigation, now: datetime | None = None) -> str:
+    """Where a run that has not settled is: its open step (or last step), and for how long."""
+    if not investigation.steps:
+        return "no step has started"
+    open_steps = [s for s in investigation.steps if s.finished_at is None]
+    step = open_steps[-1] if open_steps else investigation.steps[-1]
+    since = (now or datetime.now(UTC)) - (step.finished_at or step.started_at)
+    state = "running" if step.finished_at is None else f"{step.status}, then nothing"
+    return (
+        f"current step {step.index} ({step.node}): {step.title!r}, {state} for "
+        f"{since.total_seconds():.0f} s"
+    )
+
+
 async def wait_for(store: DbInvestigationStore, investigation_id: str, limit_s: float) -> str:
     start = time.monotonic()
     warned = False
@@ -111,7 +126,9 @@ async def wait_for(store: DbInvestigationStore, investigation_id: str, limit_s: 
             print("  still queued: is the API (and its job worker) running?", file=sys.stderr)
             warned = True
         if waited > limit_s:
-            return f"still {investigation.status} after {limit_s:.0f} s"
+            return (
+                f"still {investigation.status} after {limit_s:.0f} s; {current_step(investigation)}"
+            )
         await asyncio.sleep(POLL_SECONDS)
 
 
