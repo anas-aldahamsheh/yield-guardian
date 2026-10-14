@@ -7,10 +7,13 @@ import { toast } from "sonner";
 
 import { unwrap } from "./client";
 import { useApi } from "./context";
-import { ApiError, describeError } from "./errors";
+import { describeError } from "./errors";
 import { NOT_CONFIGURED } from "./features";
 import { q } from "./queries";
 import { useSession } from "./session";
+
+/** The server runs without a language model key, so it cannot run an investigation. */
+class NotConfigured extends Error {}
 
 /** Starts an investigation from an alarm, unit, wafer or lot and opens it. */
 export function useStartInvestigation() {
@@ -19,23 +22,20 @@ export function useStartInvestigation() {
   const router = useRouter();
   const { csrf } = useSession();
   return useMutation({
-    mutationFn: (trigger: InvestigationTrigger) =>
-      unwrap(api.POST("/api/v1/investigations", { body: { trigger }, headers: csrf })),
+    mutationFn: async (trigger: InvestigationTrigger) => {
+      // Without a language model key the API would accept the run and fail it at once: say so
+      // instead, and leave no failed run behind. When /meta is unreadable, let the API decide.
+      const meta = await client.fetchQuery(q.meta(api)).catch(() => null);
+      if (meta && !meta.features.live_investigations) throw new NotConfigured();
+      return unwrap(api.POST("/api/v1/investigations", { body: { trigger }, headers: csrf }));
+    },
     onSuccess: (investigation) => {
       void client.invalidateQueries({ queryKey: ["investigations"] });
       void client.invalidateQueries({ queryKey: ["alarms"] });
       router.push(`/investigations/${investigation.investigation_id}`);
     },
-    onError: async (error) => {
-      // A 503 from a server without a language model key is not "still starting": say what it is.
-      if (error instanceof ApiError && error.code === "not_ready") {
-        const meta = await client.fetchQuery(q.meta(api)).catch(() => null);
-        if (meta && !meta.features.live_investigations) {
-          toast.error(NOT_CONFIGURED.investigations.title, { description: NOT_CONFIGURED.investigations.detail });
-          return;
-        }
-      }
-      const copy = describeError(error);
+    onError: (error) => {
+      const copy = error instanceof NotConfigured ? NOT_CONFIGURED.investigations : describeError(error);
       toast.error(copy.title, { description: copy.detail });
     },
   });

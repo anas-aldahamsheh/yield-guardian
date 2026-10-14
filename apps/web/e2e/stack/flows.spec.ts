@@ -114,13 +114,18 @@ test("methods: every model card renders", async ({ page, request }) => {
   expect(methods.model_cards.length).toBeGreaterThan(0);
   await page.goto("/methods");
   await expect(page.locator("h1")).toHaveText("Methods");
-  const panel = page.locator("section, div").filter({ has: page.getByRole("heading", { name: "Model cards", exact: true }) }).last();
+  await expect(page.getByRole("heading", { name: "Model cards", exact: true })).toBeVisible();
+  const seen = new Set<string>();
   for (const card of methods.model_cards) {
     if (methods.model_cards.length > 1) await page.getByRole("radio", { name: card.title }).click();
-    // The card's markdown has its own headings once it loads.
-    await expect(panel.getByRole("heading").nth(1)).toBeVisible();
-    await expect(panel.getByText("Loading the model card")).toHaveCount(0);
+    // Each card is the bundle's own markdown, headed "Model card: …".
+    const heading = page.getByRole("heading", { name: /^Model card: / });
+    await expect(heading).toBeVisible();
+    await expect(page.getByText("Loading the model card")).toHaveCount(0);
+    await expect.poll(async () => seen.has((await heading.textContent()) ?? "")).toBe(false);
+    seen.add((await heading.textContent()) ?? "");
   }
+  expect(seen.size).toBe(methods.model_cards.length);
   expect(problems).toEqual([]);
 });
 
@@ -140,12 +145,14 @@ test("investigation without a key: not-configured state, no Token Factory call",
 
   await page.goto(`/units/${ids.unit}`);
   await page.getByRole("button", { name: "Try as engineer", exact: true }).first().click();
-  const start = page.waitForResponse((r) => r.url().endsWith("/api/v1/investigations") && r.request().method() === "POST");
+  const posts: string[] = [];
+  page.on("request", (r) => r.url().endsWith("/api/v1/investigations") && r.method() === "POST" && posts.push(r.url()));
   await page.getByRole("button", { name: "Investigate this unit" }).click();
-  expect((await start).status()).toBe(503);
   await expect(page.locator("[data-sonner-toast]").filter({ hasText: "not configured" })).toContainText(
     "Live investigations are not configured on this server",
   );
+  // The web checks /meta first, so no run is created only to fail.
+  expect(posts).toEqual([]);
   await expect(page).toHaveURL(new RegExp(`/units/${ids.unit}$`));
   expect(outbound).toEqual([]);
 });

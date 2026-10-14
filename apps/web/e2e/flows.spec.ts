@@ -43,3 +43,9 @@ test("sensor field moves with the arrow keys", async ({ page }) => {
   await page.keyboard.press("ArrowRight");
   await expect(page).toHaveURL(/sensor=S061/);
 });
+
+test("a recorded run says which data it read", async ({ page }) => {
+  await page.goto("/investigations/inv_01jae5x9k3m2q7r8s0t1v2w3x4");
+  await expect(page.getByText("Recorded run: generated once, replayed without calling a model")).toBeVisible();
+  await expect(page.getByText(/^Data as of unit 1062, \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)).toBeVisible();
+});

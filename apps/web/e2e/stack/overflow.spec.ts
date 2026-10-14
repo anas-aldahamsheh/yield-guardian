@@ -3,16 +3,11 @@ import { expect, test } from "@playwright/test";
 import { discover } from "./api";
 
 /**
- * At 375 px no route may scroll sideways. Three known overflows belong to the design work on
- * w1/design and are marked expected-fail here until that branch fixes them; when one is fixed
- * Playwright reports the case as "unexpectedly passed" and the mark comes off.
+ * At 375 px no route may scroll sideways. The design work (w1/design, merged into main at
+ * 06717b8) fixed the overflows on /line, /methods and the home results table, so no case is
+ * marked expected-fail. If a known overflow comes back, mark that case with
+ * test.fail(true, "<bug, owner>") rather than loosening the check.
  */
-const KNOWN: Record<string, string> = {
-  "/": "w1/design bug: the home results table overflows at 375 px",
-  "/line": "w1/design bug: /line overflows at 375 px",
-  "/methods": "w1/design bug: /methods overflows at 375 px",
-};
-
 type Ids = Awaited<ReturnType<typeof discover>>;
 const ROUTES: { name: string; path: (ids: Ids) => string | null }[] = [
   { name: "home", path: () => "/" },
@@ -42,8 +37,6 @@ test.describe("375 px, no horizontal scroll", () => {
       const path = route.path(ids);
       test.skip(path === null, "no such record in this database");
       info.annotations.push({ type: "path", description: path! });
-      const bug = KNOWN[path!.split("?")[0]!];
-      test.fail(bug !== undefined, bug);
       const response = await page.goto(path!);
       expect(response?.status()).toBe(200);
       await page.waitForLoadState("networkidle").catch(() => undefined);
