@@ -6,6 +6,7 @@ import { Fragment, useState } from "react";
 import { formatNumber, formatPercent, formatPValue } from "@/lib/format";
 import { UNIVARIATE_DIRECTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { ScrollRegion } from "@/components/scroll-region";
 
 /** How the groups were made, written from the API's method fields. */
 export function groupingMethodText(m: Groups["method"]): string {
@@ -32,7 +33,7 @@ export function SensorGroupsTable({
   const [open, setOpen] = useState<string | null>(null);
   const max = Math.max(0.0001, ...data.groups.map((g) => g.importance));
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Sensor groups by importance">
       <table className="w-full min-w-[640px] border-collapse text-left text-[13px] leading-5">
         <caption className="sr-only">Sensor groups by importance</caption>
         <thead>
@@ -101,7 +102,7 @@ export function SensorGroupsTable({
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 

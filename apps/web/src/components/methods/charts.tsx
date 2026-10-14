@@ -8,6 +8,7 @@ import { useWidth } from "@/components/charts/use-width";
 import { formatInt, formatPercent, formatPlantTime } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const M = { left: 48, right: 16, top: 14, bottom: 40 };
 
@@ -161,7 +162,7 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
   const [hover, setHover] = useState<[number, number] | null>(null);
   const n = matrix.labels.length;
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Confusion matrix">
       <table className="border-collapse text-[11px] leading-4" onMouseLeave={() => setHover(null)}>
         <caption className="sr-only">Confusion matrix: rows are true patterns, columns predicted patterns. Cells give counts.</caption>
         <thead>
@@ -198,8 +199,11 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
                       title={`True ${patternName(matrix.labels[i] as PatternLabel)}, predicted ${patternName(matrix.labels[j] as PatternLabel)}: ${formatInt(c)} (${formatPercent(share)} of the row)`}
                       className="tnum relative size-10 border border-die p-0 text-center"
                       style={{
+                        // Cells with light text are pulled toward the ink so the count keeps 4.5:1.
                         background: c
-                          ? `color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--die-2))`
+                          ? share > 0.5
+                            ? `color-mix(in oklab, color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--die-2)), var(--ink) 25%)`
+                            : `color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--die-2))`
                           : "var(--die-2)",
                         color: share > 0.5 ? "var(--die)" : "var(--ink-2)",
                       }}
@@ -216,7 +220,7 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
       <p className="mt-2 text-[12px] leading-4 text-ink-3">
         Shade is the share of the true pattern&rsquo;s wafers: blue on the diagonal (correct), red off it. {n} patterns.
       </p>
-    </div>
+    </ScrollRegion>
   );
 }
 

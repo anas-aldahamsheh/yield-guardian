@@ -1,11 +1,12 @@
 "use client";
 
 import type { Evidence, NumberRef, VerificationIssue } from "@yield-guardian/contracts";
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 
 import { readPointer } from "@/lib/investigation/events";
 import { formatDateTime } from "@/lib/format";
 import { TOOL_NAME } from "@/lib/labels";
+import { useScrollFocus } from "@/lib/use-scroll-focus";
 import { cn } from "@/lib/utils";
 
 import type { EvidenceSelection } from "./report";
@@ -93,10 +94,20 @@ export function EvidencePanel({
           </div>
         ) : null}
 
-        <div data-json-scroll className="mt-4 max-h-[420px] overflow-auto rounded-sm border border-hairline bg-die-2 p-3">
+        <JsonScroll label={`Data of ${current.evidence_id}`}>
           <JsonNode value={current.data} path="" highlight={path} />
-        </div>
+        </JsonScroll>
       </div>
+    </div>
+  );
+}
+
+/** The evidence data; while it scrolls it is a named region in the tab order. */
+function JsonScroll({ label, children }: { label: string; children: ReactNode }) {
+  const ref = useScrollFocus<HTMLDivElement>(label);
+  return (
+    <div ref={ref} data-json-scroll className="mt-4 max-h-[420px] overflow-auto rounded-sm border border-hairline bg-die-2 p-3">
+      {children}
     </div>
   );
 }

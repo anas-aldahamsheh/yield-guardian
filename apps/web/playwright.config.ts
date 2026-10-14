@@ -27,8 +27,9 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "desktop", testMatch: /.*\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "desktop", testMatch: /^(?!.*a11y).*\.spec\.ts$/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
     { name: "mobile", testMatch: /smoke\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    { name: "a11y", testMatch: /a11y\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
     { name: "screenshots", testMatch: /screenshots\.shot\.ts/, use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {

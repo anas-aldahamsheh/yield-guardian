@@ -12,6 +12,7 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatPValue } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
+import { ScrollRegion } from "@/components/scroll-region";
 
 export function LotsList() {
   const api = useApi();
@@ -45,7 +46,7 @@ export function LotsList() {
             {flaggedOnly ? "Every pattern occurs at about its expected rate. Show all lots to browse them." : "The wafer bundle has no lots."}
           </EmptyState>
         ) : (
-          <div className="overflow-x-auto">
+          <ScrollRegion label="Lots">
             <table className="w-full min-w-[560px] border-collapse text-left text-[14px] leading-5">
               <caption className="sr-only">Lots</caption>
               <thead>
@@ -79,7 +80,7 @@ export function LotsList() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         )}
       </Panel>
     </PageFrame>

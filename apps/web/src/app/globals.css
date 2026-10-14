@@ -605,3 +605,10 @@
     display: none;
   }
 }
+
+/* Tertiary text loses contrast on the safelight wash and on a new row's flash: lift it. Unlayered,
+   so it wins over the text-ink-3 utility. */
+.lit .text-ink-3,
+.flash-new .text-ink-3 {
+  color: var(--ink-2);
+}

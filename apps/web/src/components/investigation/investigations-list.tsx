@@ -15,6 +15,7 @@ import { formatDateTime, formatInt, formatNumber } from "@/lib/format";
 import { TRIGGER_KIND } from "@/lib/labels";
 
 import { StatusLabel } from "./status-label";
+import { ScrollRegion } from "@/components/scroll-region";
 
 type Status = InvestigationSummary["status"];
 const FILTERS: { value: Status | "all"; label: string }[] = [
@@ -78,7 +79,7 @@ export function InvestigationsList() {
             Start one from an open alarm on the line, or from a unit, wafer or lot.
           </EmptyState>
         ) : (
-          <div className="overflow-x-auto">
+          <ScrollRegion label="Investigations">
             <table className="w-full min-w-[760px] border-collapse text-left text-[14px] leading-5">
               <caption className="sr-only">Investigations</caption>
               <thead>
@@ -124,7 +125,7 @@ export function InvestigationsList() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         )}
       </Panel>
     </PageFrame>

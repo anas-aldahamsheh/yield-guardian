@@ -12,6 +12,7 @@ import { formatInt, formatNumber, formatPValue, formatSigned } from "@/lib/forma
 import { cn } from "@/lib/utils";
 
 import { BlocksBar, PrCurve, ReliabilityDiagram } from "./charts";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const metricOf = (m: ModelResult, id: string) => m.metrics.find((x) => x.metric === id)?.estimate;
 
@@ -77,7 +78,7 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
         {reading ? (
           <p className="mx-4 mb-4 max-w-[90ch] rounded-sm border-l-2 border-safelight bg-die-2 px-3 py-2 text-[14px] leading-6 text-ink sm:mx-5">{reading}</p>
         ) : null}
-        <div className="overflow-x-auto">
+        <ScrollRegion label="SECOM model metrics">
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">SECOM model metrics with confidence intervals</caption>
             <thead>
@@ -123,13 +124,13 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <EstimateFootnote estimate={metricOf(metrics.models[0]!, metricIds[0] ?? "pr_auc")} />
       </Panel>
 
       {metrics.comparisons.length ? (
         <Panel title="Main model against each baseline" description="Paired on the same test units: main model minus baseline." bodyClassName="px-0 sm:px-0">
-          <div className="overflow-x-auto">
+          <ScrollRegion label="Paired comparisons">
             <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-5">
               <caption className="sr-only">Paired comparisons</caption>
               <thead>
@@ -160,7 +161,7 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
           <EstimateFootnote estimate={metrics.comparisons[0]?.difference} />
         </Panel>
       ) : null}
@@ -177,10 +178,10 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
         </Panel>
         <Panel title="Calibration" description={`Platt scaling, fitted on validation: a = ${formatNumber(metrics.calibration.a, 3)}, b = ${formatNumber(metrics.calibration.b, 3)}.`}>
           <ReliabilityDiagram bins={metrics.calibration.bins} />
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <dl className="mt-3 grid grid-cols-2 gap-4">
             <Reading label="Brier score" value={<EstimateText estimate={metrics.calibration.brier} digits={3} />} />
             <Reading label="Expected calibration error" value={<EstimateText estimate={metrics.calibration.ece} digits={3} />} />
-          </div>
+          </dl>
           <p className="mt-3 text-[13px] leading-5 text-ink-3">{metrics.calibration.caveat}</p>
         </Panel>
       </div>
@@ -188,10 +189,10 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         {metrics.fdc ? (
           <Panel title="Control charts (FDC) on held-out reference units" description={`${formatInt(metrics.fdc.holdout_units)} units the limits were not fitted on.`}>
-            <div className="grid grid-cols-2 gap-4">
+            <dl className="grid grid-cols-2 gap-4">
               <Reading label="False alarms at the 99% limit" value={<EstimateText estimate={metrics.fdc.false_alarm_rate_99} format="percent" />} />
               <Reading label="False alarms at the 99.9% limit" value={<EstimateText estimate={metrics.fdc.false_alarm_rate_999} format="percent" />} />
-            </div>
+            </dl>
             <dl className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-2 text-[13px] leading-5">
               <div>
                 <dt className="text-ink-3">EWMA</dt>
@@ -210,7 +211,9 @@ function SecomContent({ metrics, points, pointsError }: { metrics: SecomMetrics;
         )}
         {metrics.tuning ? (
           <Panel title="Tuning" description={`${metrics.tuning.sampler}, ${formatInt(metrics.tuning.trials)} trials. Objective: ${metrics.tuning.objective}.`}>
-            <Reading label="Best objective value" value={formatNumber(metrics.tuning.best_value, 3)} />
+            <dl>
+              <Reading label="Best objective value" value={formatNumber(metrics.tuning.best_value, 3)} />
+            </dl>
             <dl className="tnum mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[13px] leading-5 sm:grid-cols-3">
               {Object.entries(metrics.tuning.best_params).map(([k, v]) => (
                 <div key={k} className="min-w-0">
@@ -262,7 +265,7 @@ function OperatingPointsView({ data }: { data: OperatingPoints }) {
         {formatInt(data.units)} {data.block} units, {formatInt(data.failures)} failed.
       </p>
       <PrCurve curve={data.curve} points={data.points} prevalence={data.prevalence} defaultId={data.default} />
-      <div className="mt-3 overflow-x-auto">
+      <ScrollRegion label="Operating points on the test block" className="mt-3">
         <table className="w-full min-w-[480px] border-collapse text-left text-[12px] leading-5">
           <caption className="sr-only">Operating points on the test block</caption>
           <thead>
@@ -291,7 +294,7 @@ function OperatingPointsView({ data }: { data: OperatingPoints }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
     </>
   );
 }

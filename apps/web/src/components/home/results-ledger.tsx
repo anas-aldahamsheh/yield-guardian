@@ -9,6 +9,7 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { ciLabel, formatDateTime, formatInt, formatInterval, formatMetric } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const onUnitScale = (r: MeasuredResult) => r.format === "ratio" || r.format === "percent";
 
@@ -39,7 +40,7 @@ export function ResultsLedger() {
 
         <QueryView query={results} loading={<Placeholder className="h-96" label="Loading results" />}>
           {(data) => (
-            <div className="panel overflow-x-auto">
+            <ScrollRegion label="Measured results table" className="panel">
               <table className="w-full border-collapse text-left">
                 <caption className="sr-only">Measured results with confidence intervals</caption>
                 <thead>
@@ -59,7 +60,7 @@ export function ResultsLedger() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRegion>
           )}
         </QueryView>
       </div>
