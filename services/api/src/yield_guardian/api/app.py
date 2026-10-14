@@ -26,7 +26,7 @@ from yield_guardian.api.routes import (
 )
 from yield_guardian.core.logging import configure_logging
 from yield_guardian.core.settings import Settings, get_settings
-from yield_guardian.services.registry import ServiceRegistry
+from yield_guardian.services.registry import Resource, ServiceRegistry
 
 API_PREFIX = "/api/v1"
 
@@ -53,7 +53,15 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        yield
+        started: list[Resource] = []
+        try:
+            for resource in registry.resources:
+                await resource.start()
+                started.append(resource)
+            yield
+        finally:
+            for resource in reversed(started):
+                await resource.stop()
 
     app = FastAPI(
         title=APP_NAME,
