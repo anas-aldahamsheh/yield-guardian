@@ -14,9 +14,24 @@ const COPY: Record<LineConnection, { label: string; detail: string }> = {
   },
 };
 
+const NO_STATE: Partial<Record<LineConnection, string>> = {
+  reconnecting: "The live feed is not answering yet; it connects as soon as it can.",
+  offline: "This device is offline.",
+};
+
 /** Whether the line on screen is current. Text first; the dot only repeats it. */
-export function ConnectionStatus({ connection, className }: { connection: LineConnection; className?: string }) {
-  const copy = COPY[connection];
+export function ConnectionStatus({
+  connection,
+  hasState = true,
+  className,
+}: {
+  connection: LineConnection;
+  /** False until a line state has been received, so the copy does not promise one. */
+  hasState?: boolean;
+  className?: string;
+}) {
+  const base = COPY[connection];
+  const copy = !hasState && NO_STATE[connection] ? { ...base, detail: NO_STATE[connection]! } : base;
   return (
     <p role="status" className={cn("flex items-center gap-2 text-[13px] leading-5", className)} title={copy.detail}>
       <span
