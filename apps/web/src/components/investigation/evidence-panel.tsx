@@ -57,7 +57,7 @@ export function EvidencePanel({
         ))}
       </div>
 
-      <div role="tabpanel" aria-label={`Evidence ${current.evidence_id}`} className="mt-4">
+      <div key={current.evidence_id} role="tabpanel" aria-label={`Evidence ${current.evidence_id}`} className="swap-in mt-4">
         <p className="text-[15px] leading-6 text-ink">{current.summary}</p>
         <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-[13px] leading-5">
           <dt className="text-ink-3">Tool</dt>

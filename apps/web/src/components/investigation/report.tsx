@@ -50,12 +50,12 @@ export function Report({
       <h2 id="report-summary" className="sr-only">
         Report
       </h2>
-      <p className="written max-w-[68ch] text-ink">
+      <p className="written max-w-[60ch] text-[21px] leading-[33px] text-ink">
         <WrittenText text={report.summary} {...shared} />
       </p>
       <Flags issues={shared.issues.get("summary")} />
 
-      <h3 className="mt-8 text-[15px] leading-6 font-semibold text-ink">Findings</h3>
+      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Findings</h3>
       <ol className="mt-2 grid gap-5">
         {report.findings.map((finding, i) => {
           const verdict = verdicts.get(i);
@@ -91,7 +91,7 @@ export function Report({
         })}
       </ol>
 
-      <h3 className="mt-8 text-[15px] leading-6 font-semibold text-ink">Proposed actions</h3>
+      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Proposed actions</h3>
       {actionsSlot ?? (
         <ol className="mt-2 grid gap-4">
           {report.actions.map((action, i) => (
@@ -105,7 +105,7 @@ export function Report({
 
       {report.limitations.length ? (
         <>
-          <h3 className="mt-8 text-[15px] leading-6 font-semibold text-ink">Limitations</h3>
+          <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Limitations</h3>
           <ul className="mt-2 grid max-w-[68ch] list-disc gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
             {report.limitations.map((l, i) => (
               <li key={i}>{l}</li>
@@ -153,7 +153,7 @@ function WrittenText({ text, numbers, issues, selection, onSelect }: { text: str
             type="button"
             onClick={() => onSelect({ evidenceId: ref.evidence_id, path: ref.path, number: segment.number })}
             className={cn(
-              "tnum cursor-pointer rounded-[2px] px-0.5 underline decoration-1 underline-offset-[5px]",
+              "tnum inline cursor-pointer rounded-[2px] px-0.5 underline decoration-1 underline-offset-[5px]",
               flagged
                 ? "bg-fail-wash decoration-fail decoration-wavy"
                 : "decoration-hairline-strong decoration-dotted hover:decoration-ink",

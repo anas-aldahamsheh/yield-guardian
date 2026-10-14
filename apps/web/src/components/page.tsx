@@ -65,7 +65,7 @@ export function Panel({
             {title ? <h2 className="text-[15px] leading-6 font-semibold text-ink">{title}</h2> : null}
             {description ? <p className="text-[13px] leading-5 text-ink-3">{description}</p> : null}
           </div>
-          {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+          {actions ? <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
       <div className={cn("px-4 pb-4 sm:px-5", !(title || actions) && "pt-4", bodyClassName)}>{children}</div>

@@ -21,6 +21,7 @@ import { type PatternLabel, patternName } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 import { DieMap } from "./die-map";
+import { WaferAttribution } from "./wafer-attribution";
 
 export const PATTERN_LABELS: PatternLabel[] = ["Center", "Donut", "Edge-Loc", "Edge-Ring", "Loc", "Near-full", "Random", "Scratch", "none"];
 
@@ -185,8 +186,8 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
             <span className="flex items-center gap-1.5">
               <span aria-hidden="true" className="size-2.5 rounded-[1px] bg-fail" /> Failed ({formatInt(n.fail)})
             </span>
-            <span className="text-ink-3">{detail.attribution}</span>
           </figcaption>
+          <WaferAttribution attribution={detail.attribution} className="mt-2 text-[12px] leading-4" />
         </figure>
         <div className="min-w-0">
           <dl className="grid grid-cols-2 gap-x-6 gap-y-4">

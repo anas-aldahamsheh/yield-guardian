@@ -2,24 +2,19 @@
 
 import { decodeWaferCells, type WaferHero } from "@yield-guardian/contracts";
 import { useQuery } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, useMemo } from "react";
 
 import { Placeholder, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { HeroWafer } from "@/components/wafer/hero-wafer";
+import { WaferAttribution } from "@/components/wafer/wafer-attribution";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { formatInt, formatPValue, formatProbability } from "@/lib/format";
 import { patternName } from "@/lib/labels";
 import { FILM, layoutDies } from "@/lib/wafer/geometry";
-
-/** The attribution is Markdown; its renderer loads only when someone opens it. */
-const Markdown = dynamic(() => import("@/components/markdown").then((m) => m.Markdown), {
-  loading: () => <p className="text-[13px] text-ink-3">Loading the attribution…</p>,
-});
 
 const HEADLINE = ["Catch failing", "units before", "final test does."];
 const stagger = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -115,7 +110,6 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
   const grid = useHeroGrid(hero);
   const counts = useMemo(() => layoutDies(grid), [grid]);
   const { wafer, prediction, spatial } = hero;
-  const [open, setOpen] = useState(false);
 
   return (
     <div className="border-t border-hairline">
@@ -150,30 +144,9 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
             of a silicon-oxide film, computed from its optics for an assumed {FILM.centreNm} nm film
             (the dataset records only pass and fail).
           </p>
-          <details className="max-w-[72ch]" onToggle={(e) => setOpen(e.currentTarget.open)}>
-            <summary className="w-fit cursor-pointer rounded-sm marker:text-ink-3">
-              Wafer map from WM-811K, MIR Lab (
-              <a
-                href="https://doi.org/10.1109/TSM.2014.2364237"
-                className="text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
-                rel="noreferrer"
-              >
-                Wu, Jang and Chen, 2015
-              </a>
-              ).{" "}
-              <span className="text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
-                How it was chosen, licence and full attribution
-              </span>
-            </summary>
-            <div className="swap-in mt-3 grid gap-3">
-              <p>{hero.selection}</p>
-              {open ? (
-                <Markdown className="[&_h2]:text-[14px] [&_li]:text-[13px] [&_li]:leading-5 [&_p]:text-[13px] [&_p]:leading-5 [&_ul]:text-[13px]">
-                  {hero.attribution}
-                </Markdown>
-              ) : null}
-            </div>
-          </details>
+          <WaferAttribution attribution={hero.attribution} className="max-w-[72ch]">
+            <p>{hero.selection}</p>
+          </WaferAttribution>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import type { InvestigationStep } from "@yield-guardian/contracts";
 
+import { useNewIds } from "@/components/motion";
 import { formatDuration, formatInt, formatNumber, formatReported } from "@/lib/format";
 import { ROLE_NAMES, STEP_NODE, TOOL_NAME } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export function Steps({
   selection: EvidenceSelection | null;
   onSelect: (selection: EvidenceSelection) => void;
 }) {
+  const fresh = useNewIds(steps.map((s) => String(s.index)));
   if (!steps.length) {
     return <p className="text-[14px] leading-5 text-ink-3">{running ? "Waiting for the first step." : "No steps were recorded."}</p>;
   }
@@ -35,8 +37,14 @@ export function Steps({
         const last = i === steps.length - 1;
         const ms = duration(step);
         return (
-          <li key={step.index} className="relative grid grid-cols-[20px_minmax(0,1fr)] gap-x-3 pb-4">
-            {!last ? <span aria-hidden="true" className="absolute top-5 bottom-0 left-[9.5px] w-px bg-hairline-strong" /> : null}
+          <li
+            key={step.index}
+            className={cn(
+              "relative -mx-2 grid grid-cols-[20px_minmax(0,1fr)] gap-x-3 rounded-sm px-2 pt-1 pb-4",
+              fresh.has(String(step.index)) && "flash-new",
+            )}
+          >
+            {!last ? <span aria-hidden="true" className="absolute top-6 bottom-0 left-[17.5px] w-px bg-hairline-strong" /> : null}
             <StepMark status={step.status} />
             <div className="min-w-0">
               <p className="text-[14px] leading-5 text-ink">

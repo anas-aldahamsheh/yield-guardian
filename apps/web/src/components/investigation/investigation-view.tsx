@@ -120,6 +120,7 @@ export function InvestigationView({ id }: { id: string }) {
 
         <div className="grid min-w-0 content-start gap-street">
           <Panel
+            live={running}
             title="Run"
             description={<RunDescription investigation={inv} />}
             actions={running ? <span className="text-[13px] text-ink-2">{state === "reconnecting" ? "Reconnecting…" : "Running"}</span> : null}
@@ -175,22 +176,42 @@ function RunDescription({ investigation }: { investigation: Investigation }) {
   );
 }
 
+/** One result of the checks as a readout: "3/4". The sentence below states it in words. */
+function CheckFigure({ label, value, of }: { label: string; value: number; of: number }) {
+  return (
+    <span className="flex items-baseline gap-2">
+      <span className="readout text-[28px] leading-8">
+        {formatInt(value)}
+        <span className="text-ink-3">/{formatInt(of)}</span>
+      </span>
+      <span className="max-w-[11ch] text-[12px] leading-4 text-ink-2">{label}</span>
+    </span>
+  );
+}
+
 function VerificationSummary({ investigation }: { investigation: Investigation }) {
   const v = investigation.verification!;
   const remaining = v.issues.length;
+  const supported = v.claims.filter((c) => c.verdict === "supported").length;
   return (
     <div
       className={cn(
-        "mb-6 rounded-sm border-l-2 px-4 py-3",
+        "mb-7 rounded-sm border-l-2 px-4 py-3.5",
         remaining ? "border-fail bg-fail-wash" : "border-pass bg-pass-wash",
       )}
     >
-      <p className="text-[15px] leading-6 font-medium text-ink">
-        {remaining
-          ? `${plural(remaining, "issue")} left after the checks, flagged where ${remaining === 1 ? "it applies" : "they apply"}`
-          : "Every check passed"}
-      </p>
-      <p className="tnum mt-0.5 text-[13px] leading-5 text-ink-2">
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+        <p className="text-[15px] leading-6 font-medium text-ink">
+          {remaining
+            ? `${plural(remaining, "issue")} left after the checks, flagged where ${remaining === 1 ? "it applies" : "they apply"}`
+            : "Every check passed"}
+        </p>
+        <div aria-hidden="true" className="tnum flex gap-x-6 text-ink">
+          <CheckFigure label="numbers match evidence" value={v.numbers_matched} of={v.numbers_checked} />
+          <CheckFigure label="findings supported" value={supported} of={v.claims.length} />
+        </div>
+      </div>
+      <p className="tnum mt-1.5 text-[13px] leading-5 text-ink-2">
         {formatInt(v.numbers_matched)} of {formatInt(v.numbers_checked)} numbers match their evidence.{" "}
         {plural(v.claims.length, "finding")} checked by {v.verifier_model ?? "no verifier model"}.{" "}
         {v.rounds === 0 ? "No revision was needed." : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}

@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDecideInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { formatDateTime, plural } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 import { ActionBody, type Shared } from "./report";
 
@@ -84,7 +85,7 @@ export function DecisionActions({
       </ol>
 
       {decision ? (
-        <div className="mt-6 rounded-sm border-l-2 border-ink bg-die-2 px-4 py-3">
+        <div className={cn("swap-in mt-6 rounded-sm border-l-2 px-4 py-3", decision.verdict === "approve" ? "border-pass bg-pass-wash" : "border-ink bg-die-2")}>
           <p className="text-[15px] leading-6 text-ink">
             {decision.verdict === "approve"
               ? `Approved ${plural(decision.actions.length, "action")}`
