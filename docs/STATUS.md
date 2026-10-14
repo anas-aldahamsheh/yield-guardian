@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:52 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 12:13 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 71 of 86 done (83%), 9 in progress, 6 not started
+## Progress: 73 of 86 done (85%), 8 in progress, 5 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -17,7 +17,7 @@
 | L: AI layer | 10 of 11 | 1 | 0 |
 | U: Interface | 11 of 14 | 3 | 0 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
-| Q: Quality | 1 of 5 | 1 | 3 |
+| Q: Quality | 3 of 5 | 0 | 2 |
 | X: Submission | 1 of 6 | 2 | 3 |
 <!-- progress:end -->
 
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 71 of 86 |
+| Done | 73 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -185,8 +185,8 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ✅ | Statistics checked against known values: bootstrap coverage on simulated truth, Benjamini-Hochberg 1995 example, exact ECE, Mann-Whitney and binomial tests equal scipy, T² and SPE limits against the formulas, join-count null mean and calibration, Wilson and Mahalanobis; no bug found, no reported number changed |
-| Q2 | API tests | Cloud | 🟡 | API: 230 tests including PostgreSQL, real-bundle tests for SECOM and wafer services; green in CI |
-| Q3 | Web tests, type check, lint | Cloud | ⏳ | |
+| Q2 | API tests | Cloud | ✅ | About 890 API tests pass on main with PostgreSQL (unit, database, science on the real bundles, methods); ruff and mypy strict clean; run in CI |
+| Q3 | Web tests, type check, lint | Cloud | ✅ | Web: type check (both configs), lint 0 warnings, 184 unit tests, 35 Playwright tests at 1440 and 390 px on the production build (72c1e9d) |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
 | Q5 | Final review pass and performance check | Cloud | ⏳ | |
 
@@ -205,14 +205,18 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
-| 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
-| 2026-10-14 11:48 | Methods service: home page results and the methods page now show the bundles' measured numbers. Merged W4: recorder, evaluation import, router scope rules (ffe9da1) |
-| 2026-10-14 | Put the Token Factory key in `.env` on your PC when asked | The key never goes through chat or the repository |
+| 2026-10-14 12:12 | Go-ahead to record 3 demo investigations (L11), on the decision card in the thread | It spends Token Factory points: the ceiling is about 3 points per run, above the 1-point daily budget in PLAN 7.2, and a real run costs far less (the evaluation spent 0.0019). Recommended: record one, check its real cost, then the rest |
+| 2026-10-14 | Rotate the Token Factory key after the event | It was pasted in chat |
+| at the end | Submit on lablab (X6) | It must come from your account |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 12:13 | "Waiting on you" cleaned: changelog rows moved back here; open asks are L11 go-ahead, key rotation and the lablab submission |
+| 2026-10-14 12:08 | API tests (Q2) and web tests (Q3) closed with evidence; live site runs 249300b with results and every screen |
+| 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
+| 2026-10-14 11:48 | Methods service: home page results and the methods page now show the bundles' measured numbers. Merged W4: recorder, evaluation import, router scope rules (ffe9da1) |
 | 2026-10-14 11:36 | Owner found the interface visually weak: a dedicated design helper started on the visual system, motion and 3D (U14), in parallel with worker 5's screens |
 | 2026-10-14 11:32 | Model evaluation run once with the owner's approval (L10 done): router 0.857, verifier 1.000, 0.0019 points. Statistics tests against known values (Q1 done) |
 | 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
