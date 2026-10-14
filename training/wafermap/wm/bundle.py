@@ -318,6 +318,7 @@ def model_card(m: dict, deployed: str) -> str:
 
 
 def main() -> None:
+    commit = git_commit()  # before this script rewrites the tracked model card
     deployed = choose_model()
     run = RUNS / deployed
     out = ARTIFACTS
@@ -367,7 +368,7 @@ def main() -> None:
     )
 
     metrics = {
-        "git_commit": git_commit(),
+        "git_commit": commit,
         "deployed_model": deployed,
         "splits": load("splits.json"),
         "lot_split": load("metrics_lot.json"),
@@ -407,7 +408,7 @@ def main() -> None:
         "name": "wafermap",
         "version": "v1",
         "created_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
-        "git_commit": git_commit(),
+        "git_commit": commit,
         "data": data,
         "environment": {
             "python": env["python"],
