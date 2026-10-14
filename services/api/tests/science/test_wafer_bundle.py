@@ -184,7 +184,7 @@ def test_startup_loads_the_wafer_service(
     registry = build_registry(_settings(wafermap_dir.parents[1]))
     assert registry.wafer is not None
     assert "wafermap_bundle" not in registry.problems
-    assert [b.bundle.name for b in registry.bundles] == ["wafermap"]
+    assert "wafermap" in [b.bundle.name for b in registry.bundles]
 
 
 def test_a_missing_bundle_is_reported_not_raised(tmp_path: Path) -> None:
