@@ -74,6 +74,9 @@ def selective(
     running = np.cumsum(correct_val[order]) / np.arange(1, len(order) + 1)
     conf = probs.max(1)
     correct = (probs.argmax(1) == y).astype(float)
+    # "none" dominates, so overall precision says little about defects: also report the
+    # wafers whose true class is a defect pattern.
+    defect = (y != CLASSES.index("none")).astype(float)
     for target in PRECISION_TARGETS:
         ok = np.nonzero(running >= target)[0]
         if len(ok) == 0:
@@ -89,6 +92,14 @@ def selective(
             ww = a if w is None else a * w
             return float(np.average(correct, weights=ww)) if ww.sum() else np.nan
 
+        def defect_coverage(w: np.ndarray | None, a: np.ndarray = accepted) -> float:
+            ww = defect if w is None else defect * w
+            return float(np.average(a, weights=ww))
+
+        def defect_precision(w: np.ndarray | None, a: np.ndarray = accepted) -> float:
+            ww = a * defect if w is None else a * defect * w
+            return float(np.average(correct, weights=ww)) if ww.sum() else np.nan
+
         out.append(
             {
                 "target_precision": target,
@@ -96,6 +107,9 @@ def selective(
                 "validation_coverage": float((conf_val >= threshold).mean()),
                 "test_coverage": stats.bootstrap(coverage, lots),
                 "test_precision": stats.bootstrap(precision, lots),
+                "test_defect_wafers": int(defect.sum()),
+                "test_defect_coverage": stats.bootstrap(defect_coverage, lots),
+                "test_defect_accuracy_of_accepted": stats.bootstrap(defect_precision, lots),
             }
         )
     return out

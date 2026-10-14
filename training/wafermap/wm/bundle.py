@@ -195,15 +195,17 @@ def model_card(m: dict, deployed: str) -> str:
         "threshold chosen on validation for the target precision; the rest go to an "
         "engineer. Deployed model, lot-grouped test set:",
         "",
-        "| Target precision | Threshold | Share auto-classified | Precision achieved |",
-        "|---|---|---|---|",
+        "| Target precision | Threshold | Share auto-classified | Precision achieved | "
+        "Share of true defect wafers auto-classified | Accuracy on those |",
+        "|---|---|---|---|---|---|",
     ]
     for a in dep["auto_classification"]:
         if a["threshold"] is None:
             continue
         lines.append(
             f"| {a['target_precision']} | {a['threshold']:.4f} | "
-            f"{fmt(a['test_coverage'])} | {fmt(a['test_precision'])} |"
+            f"{fmt(a['test_coverage'])} | {fmt(a['test_precision'])} | "
+            f"{fmt(a['test_defect_coverage'])} | {fmt(a['test_defect_accuracy_of_accepted'])} |"
         )
     lines += [
         "",
