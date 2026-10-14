@@ -17,6 +17,7 @@ import { LineCharts } from "./line-charts";
 import { LineKpis } from "./line-kpis";
 import { OpenAlarms } from "./open-alarms";
 import { RecentUnits } from "./recent-units";
+import { RootCause } from "./root-cause";
 
 export function LineView() {
   const api = useApi();
@@ -30,7 +31,7 @@ export function LineView() {
     <PageFrame>
       <PageHeader
         title="Line"
-        description="Every unit as it leaves the line, scored for failure risk and checked against multivariate control limits fitted on a reference period."
+        description="Every unit as it leaves the line, checked against multivariate control limits fitted on a reference period, with the sensors behind each excursion."
         meta={
           state ? (
             <span className="tnum">
@@ -54,8 +55,8 @@ export function LineView() {
           <LineKpis kpis={state.kpis} className="mb-4" />
           <div className="grid gap-street xl:grid-cols-[minmax(0,1fr)_380px]">
             <Panel
-              title="Risk and control charts"
-              description={`Threshold at ${formatProbability(state.operating_point.threshold)}: ${state.operating_point.label}. Limits at 99% and 99.9% of the reference period.`}
+              title="Control charts (FDC)"
+              description={`Limits at 99% and 99.9% of the reference period. The failure-risk trace is an experimental signal, not a claim of predictive skill; Methods compares its precision with the no-skill rate. Its threshold is ${formatProbability(state.operating_point.threshold)}, ${state.operating_point.label}.`}
               actions={
                 <ToggleGroup
                   type="single"
@@ -84,7 +85,10 @@ export function LineView() {
                 </p>
               ) : null}
             </Panel>
-            <OpenAlarms alarms={state.open_alarms} />
+            <div className="grid min-w-0 content-start gap-street">
+              <RootCause alarms={state.open_alarms} />
+              <OpenAlarms alarms={state.open_alarms} />
+            </div>
           </div>
           <RecentUnits units={state.recent} lag={state.clock.final_test_lag_units} />
         </div>

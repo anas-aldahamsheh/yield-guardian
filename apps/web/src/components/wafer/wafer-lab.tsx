@@ -235,13 +235,13 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
               <h3 className="mt-6 text-[14px] leading-5 font-semibold text-ink">Like the training patterns?</h3>
               <p className="mt-1 text-[14px] leading-5 text-ink-2">
                 {p.unknown.is_unknown
-                  ? "No: the energy score is above the threshold, so the map is reported as an unknown pattern."
-                  : "Yes: the energy score is below the threshold."}{" "}
+                  ? "No: the unknown-pattern score (Mahalanobis) is above the threshold, so the map is reported as an unknown pattern."
+                  : "Yes: the unknown-pattern score (Mahalanobis) is below the threshold."}{" "}
                 <span className="tnum text-ink-3">
-                  Score {formatReading(p.unknown.score, 3)} against {formatReading(p.unknown.threshold, 3)}; the threshold keeps{" "}
+                  Score {formatReading(p.unknown.score, 3)} against {formatReading(p.unknown.threshold, 3)}, a threshold set on the validation set that keeps{" "}
                   {formatPercent(p.unknown.in_distribution_recall, 0)} of known patterns.
-                  {p.unknown.mahalanobis_distance != null
-                    ? ` Mahalanobis distance ${formatReading(p.unknown.mahalanobis_distance, 3)}${p.unknown.mahalanobis_flag ? ", flagged" : ""}.`
+                  {p.unknown.energy_score != null
+                    ? ` Energy score ${formatReading(p.unknown.energy_score, 3)}, a cross-check that does not set the flag.`
                     : ""}
                 </span>
               </p>

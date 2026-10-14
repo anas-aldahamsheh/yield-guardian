@@ -6,11 +6,11 @@ import { cn } from "@/lib/utils";
 /** Counts over the units in the window, as the API defines them. Marks carry the chart colours. */
 export function LineKpis({ kpis, className }: { kpis: Kpis; className?: string }) {
   const items: { label: string; value: number; mark?: string }[] = [
-    { label: "High risk", value: kpis.high_risk, mark: "var(--fail)" },
-    { label: "Elevated risk", value: kpis.elevated_risk, mark: "var(--concern)" },
     { label: "Control-chart alarms", value: kpis.fdc_alarms, mark: "var(--fail)" },
     { label: "Control-chart warnings", value: kpis.fdc_warnings, mark: "var(--concern)" },
     { label: "Failed final test", value: kpis.failures_revealed, mark: "var(--fail)" },
+    { label: "High risk, experimental", value: kpis.high_risk, mark: "var(--fail)" },
+    { label: "Elevated risk, experimental", value: kpis.elevated_risk, mark: "var(--concern)" },
   ];
   return (
     <section aria-label={`Counts over the last ${kpis.window_units} units`} className={cn("min-w-0", className)}>

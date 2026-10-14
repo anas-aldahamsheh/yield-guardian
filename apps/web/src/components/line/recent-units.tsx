@@ -33,7 +33,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
             <tr className="border-y border-hairline text-[12px] text-ink-3">
               <th scope="col" className="px-4 py-2 font-normal sm:px-5">Unit</th>
               <th scope="col" className="px-3 py-2 font-normal">Plant time</th>
-              <th scope="col" className="px-3 py-2 text-right font-normal">Failure risk</th>
+              <th scope="col" className="px-3 py-2 text-right font-normal">Risk, experimental</th>
               <th scope="col" className="px-3 py-2 font-normal">Band</th>
               <th scope="col" className="px-3 py-2 text-right font-normal">T²</th>
               <th scope="col" className="px-3 py-2 text-right font-normal">SPE</th>

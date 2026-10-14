@@ -24,7 +24,7 @@ const limitTone = (value: number, warn: number, alarm: number): MarkTone =>
   value > alarm ? "fail" : value > warn ? "concern" : "neutral";
 
 /**
- * Failure risk, Hotelling T² and SPE for the units in the window, stacked on one time axis with
+ * Hotelling T², SPE and the experimental failure risk for the units in the window, stacked on one time axis with
  * one cursor. Hover or use the arrow keys to read a unit; click or Enter pins it.
  */
 export function LineCharts({
@@ -131,37 +131,37 @@ export function LineCharts({
         onKeyDown={onKeyDown}
         className="mt-3 rounded-sm"
       >
-        <ControlChart
-          {...shared}
-          label="Failure risk"
-          points={risk.points}
-          yMax={risk.max}
-          limits={risk.lines}
-          formatTick={(v) => `${Math.round(v * 100)}%`}
-          rug={rug}
-          height={166}
-        />
         {t2 && spe ? (
           <>
-            <ControlChart {...shared} label="Hotelling T²" points={t2.points} yMax={t2.max} limits={t2.lines} formatTick={(v) => formatInt(v)} />
             <ControlChart
               {...shared}
-              label="SPE (Q)"
-              points={spe.points}
-              yMax={spe.max}
-              limits={spe.lines}
+              label="Hotelling T²"
+              points={t2.points}
+              yMax={t2.max}
+              limits={t2.lines}
               formatTick={(v) => formatInt(v)}
-              showXAxis
+              rug={rug}
               height={166}
             />
+            <ControlChart {...shared} label="SPE (Q)" points={spe.points} yMax={spe.max} limits={spe.lines} formatTick={(v) => formatInt(v)} />
           </>
         ) : (
           <p className="py-6 pl-[52px] text-sm text-ink-3">Control limits are loading.</p>
         )}
+        <ControlChart
+          {...shared}
+          label="Failure risk, experimental"
+          points={risk.points}
+          yMax={risk.max}
+          limits={risk.lines}
+          formatTick={(v) => `${Math.round(v * 100)}%`}
+          showXAxis
+          height={166}
+        />
       </div>
       <Legend />
       <p className="sr-only" aria-live="polite">
-        {pinnedUnit ? `Unit ${pinnedUnit.unit_id}: risk ${formatProbability(pinnedUnit.risk)}, T² ${formatReading(pinnedUnit.t2)}, SPE ${formatReading(pinnedUnit.spe)}.` : ""}
+        {pinnedUnit ? `Unit ${pinnedUnit.unit_id}: T² ${formatReading(pinnedUnit.t2)}, SPE ${formatReading(pinnedUnit.spe)}, experimental risk ${formatProbability(pinnedUnit.risk)}.` : ""}
       </p>
     </div>
   );
@@ -182,13 +182,13 @@ function Readout({ unit, pinned, lag }: { unit: UnitSummary | undefined; pinned:
       <dl className="grid grow grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 lg:grid-cols-6">
         <ReadoutItem label="Unit" value={formatInt(unit.unit_id)} />
         <ReadoutItem label="Plant time" value={formatPlantTime(unit.timestamp)} />
+        <ReadoutItem label="T²" value={formatReading(unit.t2)} />
+        <ReadoutItem label="SPE" value={formatReading(unit.spe)} />
         <ReadoutItem
-          label="Failure risk"
+          label="Risk, experimental"
           value={unit.risk == null ? "Warm-up" : formatProbability(unit.risk)}
           detail={unit.risk_band ? BAND_NAME[unit.risk_band] : undefined}
         />
-        <ReadoutItem label="T²" value={formatReading(unit.t2)} />
-        <ReadoutItem label="SPE" value={formatReading(unit.spe)} />
         <ReadoutItem
           label="Final test"
           value={finalTest}
@@ -223,11 +223,11 @@ function Legend() {
     <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 pl-[52px] text-[12px] leading-4 text-ink-2" aria-label="Legend">
       <li className={item}>
         <svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3.5" fill="var(--fail)" /></svg>
-        High risk, or beyond the 99.9% limit
+        Beyond the 99.9% limit, or high risk
       </li>
       <li className={item}>
         <svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3.5" fill="var(--concern)" /></svg>
-        Elevated risk, or beyond the 99% limit
+        Beyond the 99% limit, or elevated risk
       </li>
       <li className={item}>
         <svg width="10" height="10" aria-hidden="true"><path d="M5,1 l4,7 h-8z" fill="var(--ink-3)" /></svg>
