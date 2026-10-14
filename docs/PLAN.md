@@ -54,7 +54,7 @@ These rules decide every trade-off in this plan.
 
 Judging criteria and our answer:
 
-- **Application of technology:** one model per role, chosen by a measured evaluation; deterministic-first routing; quota-aware AMD inference.
+- **Application of technology:** one model per role, chosen by a measured evaluation; deterministic-first routing; cached AMD inference with recorded runs.
 - **Presentation:** the "Yellow Room" interface (§9) and a demo that runs on real data.
 - **Business value:** measured early-detection and time savings, with a cost calculator that uses the fab's own numbers.
 - **Originality:** physically computed wafer rendering, statistical lot excursion tests, an investigator whose every sentence is verifiable.
@@ -123,7 +123,7 @@ yield-guardian/
 | Dataset | What it is | Source | Licence | Committed? |
 |---|---|---|---|---|
 | SECOM | 1,567 production units, 590 anonymous sensor features, pass/fail result and timestamp (as documented by UCI; verified at load) | UCI Machine Learning Repository, dataset 179 | Verify on the UCI page at download; expected CC BY 4.0 | Only if the licence allows redistribution |
-| WM-811K | 811,457 wafer maps from 46,393 lots, about 172,950 labelled with one of 9 classes (Wu et al., 2015; verified at load) | MIR Lab (original), Kaggle mirror as fallback | Research dataset; licence recorded at download | No. Only a small derived demo subset, with attribution |
+| WM-811K | 811,457 wafer maps from 46,293 lots, 172,950 labelled with one of 9 classes (Wu et al., 2015; counts verified at load, D2) | Kaggle mirror `qingyi/wm811k-wafer-map` (the MIR Lab page returned HTTP 404 on 2026-10-14) | Research dataset. The mirror lists CC0-1.0, set by the uploader, not the authors | No. Only a small derived demo subset, with attribution |
 
 - Downloads run on the owner's PC (this cloud environment cannot reach UCI or MIR Lab).
 - Every file gets a SHA-256 entry in `data/manifest.json` with source URL, download time and licence text.
@@ -222,16 +222,17 @@ Money appears only through a calculator where the engineer enters their own cost
 - The live catalog is read from `GET /v1/models` at startup, because it changes. Each model has a capability profile taken from the Token Factory docs: system-message rules (Qwen: one system message, first), accepted `reasoning_effort` values (GLM rejects `xhigh`, Qwen3.8-27B rejects `high`), image input, `json_schema` support. Requests are built from the profile, so invalid combinations are never sent.
 - The client is provider-agnostic (OpenAI-compatible). A real fab points it at its own vLLM endpoint on AMD Instinct hardware and no data leaves the site.
 
-### 7.2 Quota and rate policy
+### 7.2 Calls and quota
 
-Limits from the Token Factory dashboard and docs: daily cap of 1 point shared by the team, 20 requests per minute per account, 8 concurrent requests per key, reset at 19:00 Asia/Shanghai.
+Token Factory facts (dashboard and docs): daily cap of 1 point shared by the team, 20 requests per minute per account, 8 concurrent requests per key, reset at 19:00 Asia/Shanghai.
 
-- **Client limits:** token bucket at 15 RPM, at most 4 requests in flight.
-- **Retries:** only on 429, 502 and 503, with exponential backoff and full jitter, honouring `Retry-After`, at most 3 retries.
-- **Budget guard:** reads `X-RateLimit-*` headers and `/v1/usage`. Below 30% of the daily budget, non-essential calls are refused and recorded runs are served instead.
+- **No request limits in the product (D-009).** The product never throttles, queues, delays or refuses a model call to protect the quota: no token bucket, no in-flight cap, no budget guard, no per-visitor or per-IP limits.
+- **Quota is protected by how we build and test,** not by limiters: zero live calls in tests, as few manual checks as possible, each one small (`max_tokens: 64` for the smoke script).
+- **Retries:** only when the AMD server answers 429, 502 or 503, with exponential backoff and full jitter, honouring `Retry-After`, at most 3 retries. This is error handling, not a limit.
+- **Usage display:** `X-RateLimit-*` headers and `/v1/usage` are read only to show tokens, points and the remaining quota on the Models page.
 - **Cache:** responses keyed by SHA-256 of model, messages, tools and parameters.
-- **Recorded runs:** demo investigations are generated once and shown as "Recorded run" with model and time. A live re-run is available and rate-limited per visitor.
-- **Tests:** zero live calls. Recorded fixtures stand in for the API in CI. One manual smoke script uses `max_tokens: 64`.
+- **Recorded runs:** demo investigations are generated once and shown as "Recorded run" with model and time, so the demo is instant. A live run is always available.
+- **Tests:** zero live calls. Recorded fixtures stand in for the API in CI.
 - **Thinking costs tokens:** every role sets `reasoning_effort` explicitly.
 - **Estimate to verify:** about 0.01 point per full investigation.
 
@@ -338,11 +339,11 @@ Lithography bays in real fabs are lit amber, because photoresist reacts to blue 
 
 | Threat | Control |
 |---|---|
-| Quota drain by public visitors | Per-IP rate limits, budget guard, recorded runs, no open model proxy (also required by Token Factory terms) |
+| Quota drain by public visitors | Recorded runs and the response cache; no open model proxy (also required by Token Factory terms). No request limits, by decision D-009 |
 | Prompt injection (chat, documents) | Tools are read-only and typed; the model cannot act; knowledge is ingested offline from curated sources; user text is passed as data |
 | Secret leakage | Keys only on the server, never in `NEXT_PUBLIC_*`; secret scanning in CI; `.env` never committed |
 | XSS, CSRF, clickjacking | Strict CSP, escaped rendering, CSRF tokens on cookie sessions, `SameSite=Lax`, `frame-ancestors 'none'` |
-| Account attacks | scrypt password hash, lockout after repeated failures, short session lifetime |
+| Account attacks | scrypt password hash, a long random admin password, short session lifetime (no attempt limits, D-009) |
 | Container compromise | Non-root users, minimal images, read-only root filesystem where possible, healthchecks |
 | Vulnerable dependencies | Locked versions, `pip-audit` and `pnpm audit` in CI |
 
@@ -395,7 +396,7 @@ If time runs short, the last slices are cut and listed as cut in STATUS. Quality
 | Risk | Mitigation |
 |---|---|
 | Token Factory outage or model withdrawn | Recorded runs, per-role fallback chain, provider-agnostic client |
-| Daily quota exhausted | Budget guard, cache, zero-call tests |
+| Daily quota exhausted | Zero-call tests, minimal manual checks, cache, recorded runs; the Models page shows the remaining quota |
 | SECOM signal is weak | Honest metrics with CIs; the value is in methodology and time saved, not an inflated score |
 | WM-811K licence unclear | Raw data never redistributed; only a small derived demo subset with attribution |
 | Official WM-811K split leaks lots | Lot-grouped split reported alongside |
@@ -414,6 +415,7 @@ If time runs short, the last slices are cut and listed as cut in STATUS. Quality
 | D-006 | 2026-10-14 | No synthetic data of any kind |
 | D-007 | 2026-10-14 | Name: Yield Guardian, held in one config value so it can be renamed |
 | D-008 | 2026-10-14 | Paper search by PostgreSQL full-text search (no embedding model on Token Factory) |
+| D-009 | 2026-10-14 | No request limits of any kind in the product (owner's decision). The quota is protected only by minimal testing calls, the cache and recorded runs |
 
 ## 17. References
 

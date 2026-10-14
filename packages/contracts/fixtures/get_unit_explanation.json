@@ -1,0 +1,156 @@
+{
+  "unit_id": 1062,
+  "risk": 0.184,
+  "base_value": -2.65,
+  "raw_score": -0.94,
+  "contributions": [
+    {
+      "feature": "S060",
+      "sensor": "S060",
+      "kind": "reading",
+      "value": 1.0027,
+      "shap": 0.62,
+      "group_id": "G01"
+    },
+    {
+      "feature": "S104",
+      "sensor": "S104",
+      "kind": "reading",
+      "value": -0.0139,
+      "shap": 0.41,
+      "group_id": "G02"
+    },
+    {
+      "feature": "S130",
+      "sensor": "S130",
+      "kind": "reading",
+      "value": 0.0,
+      "shap": -0.33,
+      "group_id": "G03"
+    },
+    {
+      "feature": "S061",
+      "sensor": "S061",
+      "kind": "reading",
+      "value": 352.6027,
+      "shap": 0.29,
+      "group_id": "G01"
+    },
+    {
+      "feature": "S026",
+      "sensor": "S026",
+      "kind": "reading",
+      "value": 1.3185,
+      "shap": 0.22,
+      "group_id": "G04"
+    },
+    {
+      "feature": "S034",
+      "sensor": "S034",
+      "kind": "reading",
+      "value": 8.9132,
+      "shap": 0.18,
+      "group_id": "G05"
+    },
+    {
+      "feature": "S487__missing",
+      "sensor": "S487",
+      "kind": "missing_indicator",
+      "value": 0.0,
+      "shap": -0.15,
+      "group_id": null
+    },
+    {
+      "feature": "S211",
+      "sensor": "S211",
+      "kind": "reading",
+      "value": 0.0706,
+      "shap": 0.12,
+      "group_id": null
+    },
+    {
+      "feature": "S348",
+      "sensor": "S348",
+      "kind": "reading",
+      "value": 0.0,
+      "shap": 0.09,
+      "group_id": null
+    },
+    {
+      "feature": "S065",
+      "sensor": "S065",
+      "kind": "reading",
+      "value": 18.9973,
+      "shap": -0.08,
+      "group_id": null
+    },
+    {
+      "feature": "S590",
+      "sensor": "S590",
+      "kind": "reading",
+      "value": 31.0252,
+      "shap": 0.07,
+      "group_id": null
+    },
+    {
+      "feature": "S435",
+      "sensor": "S435",
+      "kind": "reading",
+      "value": 2.5787,
+      "shap": 0.06,
+      "group_id": null
+    },
+    {
+      "feature": "S090",
+      "sensor": "S090",
+      "kind": "reading",
+      "value": 0.1834,
+      "shap": -0.05,
+      "group_id": null
+    },
+    {
+      "feature": "S029",
+      "sensor": "S029",
+      "kind": "reading",
+      "value": 72.2333,
+      "shap": 0.04,
+      "group_id": null
+    },
+    {
+      "feature": "S511",
+      "sensor": "S511",
+      "kind": "reading",
+      "value": 38.9189,
+      "shap": 0.03,
+      "group_id": null
+    }
+  ],
+  "other_features": 401,
+  "other_shap": 0.19,
+  "groups": [
+    {
+      "group_id": "G01",
+      "sensors": [
+        "S060",
+        "S061"
+      ],
+      "shap": 0.91
+    },
+    {
+      "group_id": "G02",
+      "sensors": [
+        "S104"
+      ],
+      "shap": 0.41
+    },
+    {
+      "group_id": "G03",
+      "sensors": [
+        "S130"
+      ],
+      "shap": -0.33
+    }
+  ],
+  "units": "log-odds",
+  "method": "TreeSHAP (LightGBM pred_contrib), exact for tree models"
+}

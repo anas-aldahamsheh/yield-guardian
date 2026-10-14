@@ -1,0 +1,16 @@
+{
+  "name": "yield-guardian",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "contracts:generate": "pnpm --filter @yield-guardian/contracts generate",
+    "web:dev": "pnpm --filter @yield-guardian/web dev",
+    "web:build": "pnpm --filter @yield-guardian/web build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}

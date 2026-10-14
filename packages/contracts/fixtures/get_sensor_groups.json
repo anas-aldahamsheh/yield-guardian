@@ -1,0 +1,241 @@
+{
+  "method": {
+    "correlation": "spearman",
+    "threshold": 0.8,
+    "linkage": "average",
+    "stability_refits": 100,
+    "stability_threshold": 0.7,
+    "permutations": 200,
+    "fdr_q": 0.05
+  },
+  "groups": [
+    {
+      "group_id": "G01",
+      "sensors": [
+        "S060",
+        "S061",
+        "S062"
+      ],
+      "representative": "S060",
+      "importance": 0.214,
+      "stability": 0.97,
+      "p_value": 0.004,
+      "q_value": 0.021,
+      "significant": true,
+      "stable": true,
+      "univariate": [
+        {
+          "sensor": "S060",
+          "mann_whitney_p": 0.002,
+          "q_value": 0.0189,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S061",
+          "mann_whitney_p": 0.002,
+          "q_value": 0.0189,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S062",
+          "mann_whitney_p": 0.002,
+          "q_value": 0.0189,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G02",
+      "sensors": [
+        "S104"
+      ],
+      "representative": "S104",
+      "importance": 0.133,
+      "stability": 0.91,
+      "p_value": 0.009,
+      "q_value": 0.032,
+      "significant": true,
+      "stable": true,
+      "univariate": [
+        {
+          "sensor": "S104",
+          "mann_whitney_p": 0.0045,
+          "q_value": 0.0288,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G03",
+      "sensors": [
+        "S130",
+        "S131"
+      ],
+      "representative": "S130",
+      "importance": 0.101,
+      "stability": 0.84,
+      "p_value": 0.012,
+      "q_value": 0.036,
+      "significant": true,
+      "stable": true,
+      "univariate": [
+        {
+          "sensor": "S130",
+          "mann_whitney_p": 0.006,
+          "q_value": 0.0324,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S131",
+          "mann_whitney_p": 0.006,
+          "q_value": 0.0324,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G04",
+      "sensors": [
+        "S026",
+        "S027",
+        "S028",
+        "S029"
+      ],
+      "representative": "S026",
+      "importance": 0.088,
+      "stability": 0.78,
+      "p_value": 0.021,
+      "q_value": 0.049,
+      "significant": true,
+      "stable": true,
+      "univariate": [
+        {
+          "sensor": "S026",
+          "mann_whitney_p": 0.0105,
+          "q_value": 0.0441,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S027",
+          "mann_whitney_p": 0.0105,
+          "q_value": 0.0441,
+          "direction": "lower_in_failures"
+        },
+        {
+          "sensor": "S028",
+          "mann_whitney_p": 0.0105,
+          "q_value": 0.0441,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S029",
+          "mann_whitney_p": 0.0105,
+          "q_value": 0.0441,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G05",
+      "sensors": [
+        "S034"
+      ],
+      "representative": "S034",
+      "importance": 0.064,
+      "stability": 0.66,
+      "p_value": 0.048,
+      "q_value": 0.101,
+      "significant": false,
+      "stable": false,
+      "univariate": [
+        {
+          "sensor": "S034",
+          "mann_whitney_p": 0.024,
+          "q_value": 0.0909,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G06",
+      "sensors": [
+        "S487",
+        "S488"
+      ],
+      "representative": "S487",
+      "importance": 0.051,
+      "stability": 0.52,
+      "p_value": 0.09,
+      "q_value": 0.15,
+      "significant": false,
+      "stable": false,
+      "univariate": [
+        {
+          "sensor": "S487",
+          "mann_whitney_p": 0.045,
+          "q_value": 0.135,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S488",
+          "mann_whitney_p": 0.045,
+          "q_value": 0.135,
+          "direction": "lower_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G07",
+      "sensors": [
+        "S211"
+      ],
+      "representative": "S211",
+      "importance": 0.043,
+      "stability": 0.41,
+      "p_value": 0.16,
+      "q_value": 0.214,
+      "significant": false,
+      "stable": false,
+      "univariate": [
+        {
+          "sensor": "S211",
+          "mann_whitney_p": 0.08,
+          "q_value": 0.1926,
+          "direction": "higher_in_failures"
+        }
+      ]
+    },
+    {
+      "group_id": "G08",
+      "sensors": [
+        "S348",
+        "S349"
+      ],
+      "representative": "S348",
+      "importance": 0.039,
+      "stability": 0.33,
+      "p_value": 0.24,
+      "q_value": 0.27,
+      "significant": false,
+      "stable": false,
+      "univariate": [
+        {
+          "sensor": "S348",
+          "mann_whitney_p": 0.12,
+          "q_value": 0.243,
+          "direction": "higher_in_failures"
+        },
+        {
+          "sensor": "S349",
+          "mann_whitney_p": 0.12,
+          "q_value": 0.243,
+          "direction": "lower_in_failures"
+        }
+      ]
+    }
+  ],
+  "sensors_total": 590,
+  "significant_groups": 4,
+  "sensors_in_significant_groups": 10,
+  "wording": "Statistically associated with failure in held-out data; association, not causation."
+}

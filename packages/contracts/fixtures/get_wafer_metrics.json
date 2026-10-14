@@ -1,0 +1,1499 @@
+{
+  "bundle": {
+    "name": "wafermap",
+    "version": "v1",
+    "created_at": "2026-10-14T11:17:24Z",
+    "git_commit": "0000000000000000000000000000000000000000"
+  },
+  "splits": [
+    {
+      "split": "official",
+      "test_wafers": 25519,
+      "macro_f1": {
+        "value": 0.86,
+        "ci_low": 0.85,
+        "ci_high": 0.87,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "accuracy": {
+        "value": 0.91,
+        "ci_low": 0.9,
+        "ci_high": 0.92,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "per_class": [
+        {
+          "label": "Center",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 500
+        },
+        {
+          "label": "Donut",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 537
+        },
+        {
+          "label": "Edge-Loc",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 574
+        },
+        {
+          "label": "Edge-Ring",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 611
+        },
+        {
+          "label": "Loc",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 648
+        },
+        {
+          "label": "Near-full",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 685
+        },
+        {
+          "label": "Random",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 722
+        },
+        {
+          "label": "Scratch",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 759
+        },
+        {
+          "label": "none",
+          "precision": {
+            "value": 0.88,
+            "ci_low": 0.85,
+            "ci_high": 0.91,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.84,
+            "ci_low": 0.81,
+            "ci_high": 0.87,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.86,
+            "ci_low": 0.83,
+            "ci_high": 0.89,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 796
+        }
+      ],
+      "confusion": {
+        "labels": [
+          "Center",
+          "Donut",
+          "Edge-Loc",
+          "Edge-Ring",
+          "Loc",
+          "Near-full",
+          "Random",
+          "Scratch",
+          "none"
+        ],
+        "counts": [
+          [
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480
+          ]
+        ]
+      },
+      "seeds": [
+        {
+          "seed": 1,
+          "macro_f1": 0.856
+        },
+        {
+          "seed": 2,
+          "macro_f1": 0.862
+        },
+        {
+          "seed": 3,
+          "macro_f1": 0.863
+        }
+      ],
+      "seed_mean": 0.86,
+      "seed_sd": 0.0036,
+      "lots_in_both": 112
+    },
+    {
+      "split": "lot_grouped",
+      "test_wafers": 25519,
+      "macro_f1": {
+        "value": 0.83,
+        "ci_low": 0.82,
+        "ci_high": 0.84,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "accuracy": {
+        "value": 0.88,
+        "ci_low": 0.87,
+        "ci_high": 0.89,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "per_class": [
+        {
+          "label": "Center",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 500
+        },
+        {
+          "label": "Donut",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 537
+        },
+        {
+          "label": "Edge-Loc",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 574
+        },
+        {
+          "label": "Edge-Ring",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 611
+        },
+        {
+          "label": "Loc",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 648
+        },
+        {
+          "label": "Near-full",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 685
+        },
+        {
+          "label": "Random",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 722
+        },
+        {
+          "label": "Scratch",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 759
+        },
+        {
+          "label": "none",
+          "precision": {
+            "value": 0.85,
+            "ci_low": 0.82,
+            "ci_high": 0.88,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.81,
+            "ci_low": 0.78,
+            "ci_high": 0.84,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.83,
+            "ci_low": 0.8,
+            "ci_high": 0.86,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 796
+        }
+      ],
+      "confusion": {
+        "labels": [
+          "Center",
+          "Donut",
+          "Edge-Loc",
+          "Edge-Ring",
+          "Loc",
+          "Near-full",
+          "Random",
+          "Scratch",
+          "none"
+        ],
+        "counts": [
+          [
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480
+          ]
+        ]
+      },
+      "seeds": [
+        {
+          "seed": 1,
+          "macro_f1": 0.826
+        },
+        {
+          "seed": 2,
+          "macro_f1": 0.832
+        },
+        {
+          "seed": 3,
+          "macro_f1": 0.833
+        }
+      ],
+      "seed_mean": 0.83,
+      "seed_sd": 0.0036,
+      "lots_in_both": 0
+    }
+  ],
+  "baseline": [
+    {
+      "split": "official",
+      "test_wafers": 25519,
+      "macro_f1": {
+        "value": 0.71,
+        "ci_low": 0.7,
+        "ci_high": 0.72,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "accuracy": {
+        "value": 0.76,
+        "ci_low": 0.75,
+        "ci_high": 0.77,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 25519,
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
+      },
+      "per_class": [
+        {
+          "label": "Center",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 500
+        },
+        {
+          "label": "Donut",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 537
+        },
+        {
+          "label": "Edge-Loc",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 574
+        },
+        {
+          "label": "Edge-Ring",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 611
+        },
+        {
+          "label": "Loc",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 648
+        },
+        {
+          "label": "Near-full",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 685
+        },
+        {
+          "label": "Random",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 722
+        },
+        {
+          "label": "Scratch",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 759
+        },
+        {
+          "label": "none",
+          "precision": {
+            "value": 0.73,
+            "ci_low": 0.7,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "recall": {
+            "value": 0.69,
+            "ci_low": 0.66,
+            "ci_high": 0.72,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "f1": {
+            "value": 0.71,
+            "ci_low": 0.68,
+            "ci_high": 0.74,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 500,
+            "note": "Placeholder model output for interface development; replaced by the real bundle."
+          },
+          "support": 796
+        }
+      ],
+      "confusion": {
+        "labels": [
+          "Center",
+          "Donut",
+          "Edge-Loc",
+          "Edge-Ring",
+          "Loc",
+          "Near-full",
+          "Random",
+          "Scratch",
+          "none"
+        ],
+        "counts": [
+          [
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            480
+          ]
+        ]
+      },
+      "seeds": [
+        {
+          "seed": 1,
+          "macro_f1": 0.706
+        },
+        {
+          "seed": 2,
+          "macro_f1": 0.712
+        },
+        {
+          "seed": 3,
+          "macro_f1": 0.713
+        }
+      ],
+      "seed_mean": 0.71,
+      "seed_sd": 0.0036,
+      "lots_in_both": 112
+    }
+  ],
+  "calibration": {
+    "method": "temperature",
+    "temperature": 1.42,
+    "ece_before": {
+      "value": 0.061,
+      "ci_low": 0.055,
+      "ci_high": 0.067,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 25519,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    },
+    "ece_after": {
+      "value": 0.014,
+      "ci_low": 0.01,
+      "ci_high": 0.018,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 25519,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    }
+  },
+  "ood": {
+    "method": "energy",
+    "threshold": -4.6,
+    "in_distribution_recall": 0.95,
+    "leave_one_class_out": [
+      {
+        "held_out": "Center",
+        "auroc": {
+          "value": 0.7,
+          "ci_low": 0.66,
+          "ci_high": 0.74,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Donut",
+        "auroc": {
+          "value": 0.73,
+          "ci_low": 0.69,
+          "ci_high": 0.77,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Edge-Loc",
+        "auroc": {
+          "value": 0.76,
+          "ci_low": 0.72,
+          "ci_high": 0.8,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Edge-Ring",
+        "auroc": {
+          "value": 0.79,
+          "ci_low": 0.75,
+          "ci_high": 0.83,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Loc",
+        "auroc": {
+          "value": 0.82,
+          "ci_low": 0.78,
+          "ci_high": 0.86,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Near-full",
+        "auroc": {
+          "value": 0.85,
+          "ci_low": 0.81,
+          "ci_high": 0.89,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Random",
+        "auroc": {
+          "value": 0.88,
+          "ci_low": 0.84,
+          "ci_high": 0.92,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      },
+      {
+        "held_out": "Scratch",
+        "auroc": {
+          "value": 0.91,
+          "ci_low": 0.87,
+          "ci_high": 0.95,
+          "ci_level": 0.95,
+          "method": "stratified bootstrap, 2000 resamples",
+          "n": 2000,
+          "note": "Placeholder model output for interface development; replaced by the real bundle."
+        }
+      }
+    ],
+    "mean_auroc": {
+      "value": 0.8,
+      "ci_low": 0.77,
+      "ci_high": 0.83,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 8,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    },
+    "mahalanobis_mean_auroc": {
+      "value": 0.77,
+      "ci_low": 0.74,
+      "ci_high": 0.8,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 8,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    }
+  },
+  "similarity_precision_at_10": {
+    "value": 0.88,
+    "ci_low": 0.86,
+    "ci_high": 0.9,
+    "ci_level": 0.95,
+    "method": "stratified bootstrap, 2000 resamples",
+    "n": 25519,
+    "note": "Placeholder model output for interface development; replaced by the real bundle."
+  },
+  "auto_classification": {
+    "precision_target": 0.95,
+    "confidence_threshold": 0.9,
+    "share": {
+      "value": 0.72,
+      "ci_low": 0.71,
+      "ci_high": 0.73,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 25519,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    },
+    "precision": {
+      "value": 0.951,
+      "ci_low": 0.947,
+      "ci_high": 0.955,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 18374,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    }
+  },
+  "published": [
+    {
+      "source": "Synthetic fixture source",
+      "metric": "accuracy",
+      "value": 0.9,
+      "note": "Placeholder model output for interface development; replaced by the real bundle."
+    }
+  ],
+  "limitations": [
+    "Placeholder model output for interface development; replaced by the real bundle."
+  ]
+}

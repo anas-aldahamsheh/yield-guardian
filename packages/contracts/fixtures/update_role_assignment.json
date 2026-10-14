@@ -1,0 +1,10 @@
+{
+  "role": "verifier",
+  "model_id": "GLM-5.3-Flash",
+  "reasoning_effort": "low",
+  "fallbacks": [
+    "DeepSeek-V4-Flash"
+  ],
+  "updated_at": "2026-10-14T10:53:24Z",
+  "updated_by": "admin"
+}
