@@ -221,19 +221,31 @@ def model_card(m: dict, deployed: str) -> str:
         "every labelled wafer of that class (unseen) against the in-distribution test wafers.",
         "",
         "| Held-out class | Unseen wafers | AUROC energy (95% CI, 500 resamples) | "
-        "AUROC Mahalanobis | Unseen flagged at the 95% threshold (energy) |",
-        "|---|---|---|---|---|",
+        "AUROC Mahalanobis | Unseen flagged at the 95% threshold: energy | Mahalanobis |",
+        "|---|---|---|---|---|---|",
     ]
     for c in CLASSES[:-1]:
         e = loco["classes"][c]
         lines.append(
             f"| {c} | {e['unseen_wafers']:,} | {fmt(e['energy']['auroc'])} | "
             f"{fmt(e['mahalanobis']['auroc'])} | "
-            f"{e['energy']['unseen_flagged_at_threshold']:.3f} |"
+            f"{e['energy']['unseen_flagged_at_threshold']:.3f} | "
+            f"{e['mahalanobis']['unseen_flagged_at_threshold']:.3f} |"
         )
     lines.append(
-        f"| **Mean** | | {loco['mean_auroc_energy']:.3f} | {loco['mean_auroc_mahalanobis']:.3f} | |"
+        f"| **Mean** | | {loco['mean_auroc_energy']:.3f} | {loco['mean_auroc_mahalanobis']:.3f} | | |"
     )
+    lines += [
+        "",
+        f"**Finding.** The energy score barely separates unseen classes (mean AUROC "
+        f"{loco['mean_auroc_energy']:.3f}; below 0.5 for Edge-Ring and Near-full, whose unseen "
+        "wafers get more confident logits than in-distribution ones). Mahalanobis distance on the embeddings does "
+        f"(mean AUROC {loco['mean_auroc_mahalanobis']:.3f}). Energy remains in this bundle "
+        "because `ood.json` v1 fixes it as the method; Mahalanobis parameters ship in "
+        "`ood_mahalanobis.npz` and should be the primary unknown score. This recommendation is "
+        "itself informed by the leave-one-class-out results, so those AUROCs are not an "
+        "independent estimate for the chosen method.",
+    ]
     s0 = sim["seeds"][seed]
     lines += [
         "",
