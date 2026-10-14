@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { RoleAssignment, RoleAssignmentUpdate } from "@yield-guardian/contracts";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { unwrap } from "./client";
 import { useApi } from "./context";

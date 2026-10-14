@@ -17,10 +17,15 @@ function TooltipProvider({
   )
 }
 
+// Each tooltip brings its own provider, so pages without tooltips never load Radix Tooltip.
 function Tooltip({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+  return (
+    <TooltipPrimitive.Provider delayDuration={300}>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipPrimitive.Provider>
+  )
 }
 
 function TooltipTrigger({

@@ -8,19 +8,55 @@ import type { Estimate } from "@yield-guardian/contracts";
 export const DASH = "–";
 const LOCALE = "en-US";
 
-const intFmt = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 0 });
+/** The decimal digits of a non-negative number as written in the shortest round-trip form. */
+function shortestDigits(abs: number): [integer: string, fraction: string] {
+  const m = /^(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(abs))!;
+  let digits = m[1]! + (m[2] ?? "");
+  let point = m[1]!.length + (m[3] ? Number(m[3]) : 0);
+  if (point <= 0) {
+    digits = "0".repeat(1 - point) + digits;
+    point = 1;
+  }
+  if (point > digits.length) digits += "0".repeat(point - digits.length);
+  return [digits.slice(0, point), digits.slice(point)];
+}
+
+/**
+ * en-US with a fixed number of decimals, exactly as Intl.NumberFormat writes it: the shortest
+ * round-trip decimal rounded half away from zero, comma-grouped, "-" before negatives (and -0).
+ * Written out because the first Intl.NumberFormat a page makes costs tens of milliseconds of
+ * ICU set-up on a phone, inside the hydration task. format.test.ts checks it against Intl.
+ */
+export function formatFixed(value: number, digits: number): string {
+  if (Math.abs(value) >= 1e21) {
+    return new Intl.NumberFormat(LOCALE, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+  }
+  let [int, frac] = shortestDigits(Math.abs(value));
+  if (frac.length > digits) {
+    const kept = (int + frac.slice(0, digits)).split("");
+    if (frac.charCodeAt(digits) >= 53 /* "5" */) {
+      let k = kept.length - 1;
+      while (k >= 0 && kept[k] === "9") kept[k--] = "0";
+      if (k < 0) kept.unshift("1");
+      else kept[k] = String(Number(kept[k]) + 1);
+    }
+    int = kept.slice(0, kept.length - digits).join("");
+    frac = kept.slice(kept.length - digits).join("");
+  } else {
+    frac += "0".repeat(digits - frac.length);
+  }
+  const grouped = int.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${value < 0 || Object.is(value, -0) ? "-" : ""}${grouped}${digits ? `.${frac}` : ""}`;
+}
 
 export function formatInt(value: number | null | undefined): string {
-  return value == null || !Number.isFinite(value) ? DASH : intFmt.format(value);
+  return value == null || !Number.isFinite(value) ? DASH : formatFixed(value, 0);
 }
 
 /** A decimal with a fixed number of digits (default 2). */
 export function formatNumber(value: number | null | undefined, digits = 2): string {
   if (value == null || !Number.isFinite(value)) return DASH;
-  return new Intl.NumberFormat(LOCALE, {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(value);
+  return formatFixed(value, digits);
 }
 
 /** Significant figures for values whose scale varies (sensor readings, T², test statistics). */
@@ -138,10 +174,10 @@ export function formatDuration(ms: number | null | undefined): string {
 /** Large counts in a compact form: 12.4k, 3.1M. */
 export function formatCompact(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return DASH;
-  return new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 }).format(
-    value,
-  );
+  compactFmt ??= new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 });
+  return compactFmt.format(value);
 }
+let compactFmt: Intl.NumberFormat | undefined;
 
 /** "1 unit", "3 units". */
 export function plural(count: number, one: string, many = `${one}s`): string {

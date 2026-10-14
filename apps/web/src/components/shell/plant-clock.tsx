@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useApi } from "@/lib/api/context";
+import { useAfterLoad } from "@/lib/idle";
 import { q } from "@/lib/api/queries";
 import { formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,16 @@ export function clockPosition(clock: Clock, offsetMs: number, nowMs = Date.now()
   };
 }
 
+/**
+ * The line state the clock reads. The API's smallest window is still a 39 KB snapshot, so the
+ * top bar asks for it once the page is idle rather than during the first load.
+ */
+function useClockState() {
+  const api = useApi();
+  const idle = useAfterLoad();
+  return useQuery({ ...q.lineState(api, 10), staleTime: 5 * 60_000, enabled: idle });
+}
+
 export function usePlantClock(clock: Clock | undefined, fetchedAt: number) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -38,8 +49,7 @@ export function usePlantClock(clock: Clock | undefined, fetchedAt: number) {
 }
 
 export function PlantClockLink({ className }: { className?: string }) {
-  const api = useApi();
-  const state = useQuery({ ...q.lineState(api, 10), staleTime: 5 * 60_000 });
+  const state = useClockState();
   const live = usePlantClock(state.data?.clock, state.dataUpdatedAt);
 
   return (
@@ -73,8 +83,7 @@ export function PlantClockLink({ className }: { className?: string }) {
  * It repeats the position the clock link states in words, so it is hidden from assistive tech.
  */
 export function ReplayTrack({ className }: { className?: string }) {
-  const api = useApi();
-  const state = useQuery({ ...q.lineState(api, 10), staleTime: 5 * 60_000 });
+  const state = useClockState();
   const live = usePlantClock(state.data?.clock, state.dataUpdatedAt);
   if (!live) return null;
   const share = live.total > 1 ? live.position / (live.total - 1) : 0;

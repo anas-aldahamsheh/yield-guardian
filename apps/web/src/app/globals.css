@@ -331,6 +331,14 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Italic reading text takes the italic family, which is not preloaded (see layout.tsx). */
+  :is(em, i, .italic) {
+    font-family: var(--font-reading-italic), var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+  }
+  :is(.font-serif, .written) :is(em, i, .italic) {
+    font-family: inherit;
+  }
+
   /* Text a language model wrote. Serif means: check its evidence links. */
   .written {
     font-family: var(--font-written), ui-serif, Georgia, serif;

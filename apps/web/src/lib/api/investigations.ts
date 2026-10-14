@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DecisionCreate, Investigation, InvestigationTrigger } from "@yield-guardian/contracts";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { unwrap } from "./client";
 import { useApi } from "./context";

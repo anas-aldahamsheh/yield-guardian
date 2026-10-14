@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "d3"],
     // The stylesheet (16 KB compressed) goes into the HTML: no render-blocking request before the
     // first paint. style-src already allows inline styles.
-    inlineCss: true,
+    inlineCss: false,
   },
   async headers() {
     return [{ source: "/:path*", headers: [...STATIC_SECURITY_HEADERS] }];

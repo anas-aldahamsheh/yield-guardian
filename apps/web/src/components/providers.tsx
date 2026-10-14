@@ -4,8 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, type ReactNode } from "react";
 
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { LazyToaster } from "@/components/ui/lazy-toaster";
 import { ApiProvider } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
 
@@ -29,10 +28,8 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
     <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
       <ApiProvider>
         <QueryClientProvider client={client}>
-          <TooltipProvider delayDuration={300}>
-            {children}
-            <Toaster position="bottom-right" />
-          </TooltipProvider>
+          {children}
+          <LazyToaster />
         </QueryClientProvider>
       </ApiProvider>
     </ThemeProvider>

@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 import { usePrefersReducedMotion } from "@/components/motion";
+import { useAfterLoad } from "@/lib/idle";
 import { formatInt } from "@/lib/format";
 import { type DieGrid, layoutDies, planExposure } from "@/lib/wafer/geometry";
 import { cn } from "@/lib/utils";
@@ -41,30 +42,6 @@ const noop = () => () => {};
 function autoplayAllowed(): boolean {
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
   return window.matchMedia("(pointer: fine)").matches && !saveData;
-}
-
-/** True once the page has loaded and the browser is idle, so the 3D scene never delays it. */
-function useAfterLoad(): boolean {
-  const [idle, setIdle] = useState(false);
-  useEffect(() => {
-    let cancel = () => {};
-    const go = () => {
-      if (typeof window.requestIdleCallback === "function") {
-        const id = window.requestIdleCallback(() => setIdle(true), { timeout: 2000 });
-        cancel = () => window.cancelIdleCallback(id);
-      } else {
-        const id = window.setTimeout(() => setIdle(true), 200);
-        cancel = () => window.clearTimeout(id);
-      }
-    };
-    if (document.readyState === "complete") go();
-    else window.addEventListener("load", go, { once: true });
-    return () => {
-      window.removeEventListener("load", go);
-      cancel();
-    };
-  }, []);
-  return idle;
 }
 
 /**
@@ -106,12 +83,16 @@ export function HeroWafer({
   className?: string;
 }) {
   const reducedMotion = usePrefersReducedMotion();
-  const canRender3d = useSyncExternalStore(noop, webglAvailable, () => false);
-  const autoplay = useSyncExternalStore(noop, autoplayAllowed, () => false);
   const idle = useAfterLoad();
+  const autoplay = useSyncExternalStore(noop, autoplayAllowed, () => false);
   const [requested, setRequested] = useState(false);
   // Reduced motion draws one still frame, which is cheap: it loads when idle on any device.
-  const mount3d = canRender3d && (requested || (idle && (autoplay || reducedMotion)));
+  const wanted = requested || (idle && (autoplay || reducedMotion));
+  // Probing creates a WebGL context, a long task on a slow phone, so it runs only once the scene
+  // is wanted. Until then the button is offered wherever the browser has WebGL 2 at all.
+  const canRender3d = useMemo(() => wanted && webglAvailable(), [wanted]);
+  const mount3d = canRender3d;
+  const mayRender3d = idle && typeof window.WebGL2RenderingContext === "function" && !(wanted && !canRender3d);
   const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(true);
   const [playKey, setPlayKey] = useState(0);
@@ -183,7 +164,7 @@ export function HeroWafer({
             <dd className="text-fail">{formatInt(failed)}</dd>
           </div>
         </dl>
-        {canRender3d && !reducedMotion && !mount3d ? (
+        {mayRender3d && !reducedMotion && !mount3d ? (
           <button
             type="button"
             onClick={() => {

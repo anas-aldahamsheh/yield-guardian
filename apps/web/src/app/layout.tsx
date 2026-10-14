@@ -15,13 +15,25 @@ import "./globals.css";
  */
 /** Readings, data and interface. Glyphs that are easy to confuse (0 O, 1 l I, 5 S) differ. */
 const reading = localFont({
-  src: [
-    { path: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2", style: "normal" },
-    { path: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-italic.woff2", style: "italic" },
-  ],
+  src: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2",
+  style: "normal",
   weight: "200 800",
   variable: "--font-reading",
   display: "swap",
+  adjustFontFallback: "Arial",
+});
+
+/**
+ * Its italic, as a family of its own so that only the upright face is preloaded: no screen sets
+ * interface text in italic, and emphasis in Markdown (below the fold) fetches it when it appears.
+ */
+const readingItalic = localFont({
+  src: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-italic.woff2",
+  style: "italic",
+  weight: "200 800",
+  variable: "--font-reading-italic",
+  display: "swap",
+  preload: false,
   adjustFontFallback: "Arial",
 });
 
@@ -63,7 +75,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${reading.variable} ${written.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <Providers nonce={nonce}>
           <a href="#main" className="skip-link">

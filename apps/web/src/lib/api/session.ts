@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SessionInfo } from "@yield-guardian/contracts";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { csrfHeaders, unwrap } from "./client";
 import { useApi } from "./context";

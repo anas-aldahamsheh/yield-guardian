@@ -1,19 +1,12 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef, useState } from "react";
+import { type ComponentProps, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import { ChatLauncher } from "@/components/chat/chat-launcher";
@@ -24,9 +17,38 @@ import { SessionControl } from "./session-control";
 import { ThemeMenu } from "./theme-menu";
 import { Wordmark } from "./wordmark";
 
+/** The narrow-screen menu button. */
+export function MenuButton(props: ComponentProps<typeof Button>) {
+  return (
+    <Button variant="ghost" size="icon-sm" className="xl:hidden" aria-label="Open the menu" {...props}>
+      <Menu className="size-4" aria-hidden="true" />
+    </Button>
+  );
+}
+
+const loadNav = () => import("./mobile-nav");
+const MobileNavSheet = dynamic(loadNav, { ssr: false, loading: () => <MenuButton aria-haspopup="dialog" disabled /> });
+
+/**
+ * The menu on narrow screens. Its sheet (Radix Dialog, focus trap and scroll lock) is fetched
+ * when someone points at or focuses the button and mounts, already open, when they press it.
+ */
+function MobileNav({ pathname }: { pathname: string }) {
+  const [opened, setOpened] = useState(false);
+  if (opened) return <MobileNavSheet pathname={pathname} />;
+  return (
+    <MenuButton
+      aria-haspopup="dialog"
+      aria-expanded={false}
+      onClick={() => setOpened(true)}
+      onPointerEnter={() => void loadNav()}
+      onFocus={() => void loadNav()}
+    />
+  );
+}
+
 export function TopBar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-room">
@@ -41,56 +63,7 @@ export function TopBar() {
           <ChatLauncher />
           <ThemeMenu />
           <SessionControl className="hidden md:flex" />
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="xl:hidden"
-                aria-label="Open the menu"
-              >
-                <Menu className="size-4" aria-hidden="true" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[min(360px,100vw)] gap-0 border-hairline bg-die p-0"
-            >
-              <SheetHeader className="border-b border-hairline px-5 py-4">
-                <SheetTitle className="text-base">Menu</SheetTitle>
-                <SheetDescription className="sr-only">Pages of Yield Guardian</SheetDescription>
-              </SheetHeader>
-              <nav aria-label="Main" className="overflow-y-auto">
-                <ul className="py-2">
-                  {NAV_ITEMS.map((item) => {
-                    const active = isActive(pathname, item.href);
-                    return (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          aria-current={active ? "page" : undefined}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "block border-l-2 px-5 py-2.5 no-underline",
-                            active
-                              ? "border-safelight bg-safelight-wash text-ink"
-                              : "border-transparent text-ink hover:bg-accent",
-                          )}
-                        >
-                          <span className="block text-[15px] font-medium">{item.label}</span>
-                          <span className="block text-[13px] text-ink-3">{item.hint}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-              <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-3 border-t border-hairline px-5 py-4">
-                <PlantClockLink className="sm:hidden" />
-                <SessionControl stacked className="md:hidden" />
-              </div>
-            </SheetContent>
-          </Sheet>
+          <MobileNav pathname={pathname} />
         </div>
       </div>
     </header>
