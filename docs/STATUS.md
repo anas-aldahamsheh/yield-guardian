@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:31 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:40 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -30,7 +30,7 @@ Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, al
 
 | | |
 |---|---|
-| Done | 23 of 86 |
+| Done | 25 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Put the Token Factory key in `.env` on your PC when asked |
@@ -167,9 +167,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | 🟡 | Helper: API and web images built and healthy locally (read-only, no capabilities); migrate path being fixed (w1/packaging) |
-| P2 | Standalone compose with optional Caddy profile | Cloud | 🟡 | Helper: compose with PostgreSQL, migrate, API, web, Caddy; all healthy locally (w1/packaging) |
-| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Lead's helper: artifact download with SHA-256 and manifest verification at image build; release published when the bundles exist |
+| P1 | API and web Dockerfiles (non-root, healthchecks) | Cloud | ✅ | API and web images, non-root, read-only, healthchecks; CI builds them and runs the stack ([run](https://github.com/anas-aldahamsheh/yield-guardian/actions/runs/38549871531), merged da8e318) |
+| P2 | Standalone compose with optional Caddy profile | Cloud | ✅ | Compose with PostgreSQL, migrate, API, web and Caddy; migrations apply 0001 and /ready reports the database ok in CI (merged da8e318) |
+| P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | 🟡 | Worker 3: compose.yaml backed up (byte-identical); Traefik, Sablier and the Cloudflare wildcard checked read-only; the domain already reaches Traefik. Services are added once the images pass CI |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ⏳ | |
 | P6 | Live at `yield-guardian.anaslabs.com` | PC | ⏳ | |
@@ -206,6 +206,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 10:40 | Docker images and compose merged with CI green (P1, P2 done). Committed bundles are verified and baked into the API image |
 | 2026-10-14 10:29 | Statuses reconciled with the branches. Wafer-map W6 to W10 done and merged (unknown score switched to Mahalanobis, AUROC 0.922; energy 0.545). SECOM test-block results measured: PR-AUC 0.075 vs 0.054 no-skill, so SECOM risk is weak and the product leans on FDC and root cause. Unit pages list their investigations (30f1747) |
 | 2026-10-14 10:25 | Resumed after the pause: all workers continue from their branches. Empty environment variables now count as unset |
 | 2026-10-14 08:51 | Database, sessions, work orders and audit merged and tested on PostgreSQL (A2, A8, A9 done). The API now loads the newest verified SECOM bundle at startup and /ready says why when it can't (A1 done) |
