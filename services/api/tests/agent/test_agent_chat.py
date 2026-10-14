@@ -23,7 +23,7 @@ from tests.agent.helpers import (
 from tests.llm.helpers import make_stack
 from yield_guardian.agent.chat import CAUSAL_NOTE, ChatAnswerer, SentenceGate, question_facts
 from yield_guardian.agent.grounding import REDACTED
-from yield_guardian.agent.router import ACTION_REFUSAL
+from yield_guardian.agent.router import ACTION_REFUSAL, CAPABILITIES, is_capability_question
 from yield_guardian.contracts.chat import ChatContext, ChatEventPayload, ChatRequest
 from yield_guardian.contracts.session import SessionInfo
 from yield_guardian.llm.admin import InMemoryRouteLog
@@ -249,3 +249,29 @@ def test_the_gate_waits_for_whole_sentences() -> None:
     assert gate.flush() == [f"And {REDACTED}"]
     assert gate.numbers_checked == 2
     assert gate.unverified == ["7"]
+
+
+async def test_what_can_you_do_is_answered_by_code(respx_mock: respx.Router) -> None:
+    model = ScriptedModel().mount(respx_mock)
+    for question in (
+        "What can you help me with?",
+        "hi, what can you do?",
+        "How can you help me",
+        "help",
+        "شو بتقدر تساعدني فيه؟",
+    ):
+        chat, log = answerer()
+        events = await collect(chat, ask(question))
+        assert types(events) == ["route", "token", "done"], question
+        assert text(events) == CAPABILITIES
+        assert [i for _, _, i in log.entries] == ["general"]
+    assert model.requests == []
+
+
+def test_questions_about_data_are_not_capability_questions() -> None:
+    for question in (
+        "What can you tell me about unit 1303?",
+        "Help me understand alarm AL-1303-risk",
+        "What can you do about dead sensors?",
+    ):
+        assert not is_capability_question(question), question

@@ -26,7 +26,7 @@ from yield_guardian.agent.graph import llm_problem
 from yield_guardian.agent.grounding import EvidenceFacts, redact_unverified
 from yield_guardian.agent.numbers import scan
 from yield_guardian.agent.prompts import CHAT_SYSTEM, data_message
-from yield_guardian.agent.router import ChatRouter, Route
+from yield_guardian.agent.router import CAPABILITIES, ChatRouter, Route, is_capability_question
 from yield_guardian.agent.tools import (
     EvidenceLedger,
     ToolExecutor,
@@ -250,6 +250,16 @@ class ChatAnswerer:
         ]
         records: list[LlmCallRecord] = []
         options = CallOptions(on_record=records.append)
+
+        if is_capability_question(question):
+            # Answered by code: what the chat can do is a fact about the product, not a guess.
+            await self.route_log.record("deterministic", "general", self.wall_clock())
+            yield ChatRouteEvent(
+                type="route", route="deterministic", intent="general", model_id=None
+            )
+            yield ChatTokenEvent(type="token", text=CAPABILITIES)
+            yield ChatDoneEvent(type="done", usage=None, numbers_checked=0, numbers_unverified=[])
+            return
 
         route = await self.router.route(question, request.context, options=options)
         await self.route_log.record(route.kind, route.intent, self.wall_clock())
