@@ -3,8 +3,9 @@
 Built directly on httpx so that the request body is exactly what
 :func:`~yield_guardian.llm.request_builder.build_chat_request` produced: no SDK adds fields,
 and ``stream_options`` is never relied on (the gateway drops unknown fields, so usage may be
-missing from a stream). Every attempt goes through the :class:`RateLimiter`; only 429, 502
-and 503 are retried (see :mod:`yield_guardian.llm.limits`).
+missing from a stream). The client sets no request limits of its own (owner decision of
+2026-10-14); only a busy or unreachable server's 429, 502 and 503 answers are retried, as
+described in :mod:`yield_guardian.llm.retry`.
 
 The key is held as a :class:`~pydantic.SecretStr` and never logged.
 """
@@ -15,7 +16,7 @@ import asyncio
 import json
 import random
 import time
-from collections.abc import AsyncIterator, Callable, Mapping
+from collections.abc import AsyncGenerator, Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,8 +32,8 @@ from yield_guardian.llm.errors import (
     TransportError,
     parse_error_body,
 )
-from yield_guardian.llm.limits import Clock, RateLimiter, RetryPolicy, Sleep, parse_retry_after
 from yield_guardian.llm.profiles import CatalogEntry, parse_catalog
+from yield_guardian.llm.retry import Clock, RetryPolicy, Sleep, parse_retry_after
 from yield_guardian.llm.sse import DONE_SENTINEL, SseEvent, SseParser
 
 log = structlog.get_logger(__name__)
@@ -121,7 +122,6 @@ class TokenFactoryClient:
         api_key: SecretStr | str | None,
         base_url: str = DEFAULT_BASE_URL,
         http: httpx.AsyncClient | None = None,
-        limiter: RateLimiter | None = None,
         retry: RetryPolicy | None = None,
         rng: random.Random | None = None,
         sleep: Sleep = asyncio.sleep,
@@ -134,7 +134,6 @@ class TokenFactoryClient:
         self.base_url = base_url.rstrip("/")
         self._owns_http = http is None
         self._http = http or httpx.AsyncClient(timeout=timeout)
-        self.limiter = limiter or RateLimiter()
         self.retry = retry or RetryPolicy()
         self._rng = rng or random.Random()  # noqa: S311 - jitter, not cryptography
         self._sleep = sleep
@@ -158,7 +157,7 @@ class TokenFactoryClient:
         await self.aclose()
 
     def add_header_observer(self, observer: HeaderObserver) -> None:
-        """Called with the lower-cased headers of every response (the budget guard)."""
+        """Called with the lower-cased headers of every response (for the quota display)."""
         self._observers.append(observer)
 
     def _url(self, path: str) -> str:
@@ -179,8 +178,6 @@ class TokenFactoryClient:
         if not self.retry.should_retry(status, retries_done):
             return False
         retry_after = parse_retry_after(headers.get("retry-after"))
-        if status == 429 and retry_after is not None:
-            self.limiter.bucket.pause_until(self._clock() + min(retry_after, 3600.0))
         delay = self.retry.delay(retries_done, retry_after, self._rng)
         if delay is None:
             return False
@@ -211,22 +208,19 @@ class TokenFactoryClient:
         retries = 0
         started = self._clock()
         while True:
-            async with self.limiter.slot():
-                try:
-                    response = await self._http.request(
-                        method,
-                        self._url(path),
-                        json=json_body,
-                        params=params,
-                        headers=self._headers(),
-                        timeout=self._timeout,
-                    )
-                except httpx.TimeoutException as exc:
-                    raise TransportError(
-                        f"timeout on {method} {path}: {type(exc).__name__}"
-                    ) from exc
-                except httpx.HTTPError as exc:
-                    raise TransportError(f"{method} {path} failed: {type(exc).__name__}") from exc
+            try:
+                response = await self._http.request(
+                    method,
+                    self._url(path),
+                    json=json_body,
+                    params=params,
+                    headers=self._headers(),
+                    timeout=self._timeout,
+                )
+            except httpx.TimeoutException as exc:
+                raise TransportError(f"timeout on {method} {path}: {type(exc).__name__}") from exc
+            except httpx.HTTPError as exc:
+                raise TransportError(f"{method} {path} failed: {type(exc).__name__}") from exc
             headers = _lower_headers(response.headers)
             self._notify(headers)
             payload = _json_or_none(response)
@@ -252,7 +246,7 @@ class TokenFactoryClient:
 
     async def stream_chat_completion(
         self, body: Mapping[str, Any]
-    ) -> AsyncIterator[dict[str, Any]]:
+    ) -> AsyncGenerator[dict[str, Any]]:
         """Yield each ``chat.completion.chunk`` object until ``data: [DONE]``.
 
         Retries (429, 502, 503) happen only before the first chunk. A stream that ends
@@ -265,39 +259,38 @@ class TokenFactoryClient:
         retries = 0
         while True:
             failure: TokenFactoryHttpError | None = None
-            async with self.limiter.slot():
-                try:
-                    async with self._http.stream(
-                        "POST",
-                        self._url("/chat/completions"),
-                        json=body,
-                        headers={**self._headers(), "Accept": "text/event-stream"},
-                        timeout=self._timeout,
-                    ) as response:
-                        headers = _lower_headers(response.headers)
-                        self._notify(headers)
-                        if response.is_success:
-                            async for chunk in self._read_stream(response):
-                                yield chunk
-                            return
-                        await response.aread()
-                        failure = self._error(
-                            response.status_code,
-                            _json_or_none(response),
-                            response.text,
-                            headers,
-                            retries + 1,
-                        )
-                except httpx.TimeoutException as exc:
-                    raise TransportError(f"stream timeout: {type(exc).__name__}") from exc
-                except httpx.HTTPError as exc:
-                    raise TransportError(f"stream failed: {type(exc).__name__}") from exc
+            try:
+                async with self._http.stream(
+                    "POST",
+                    self._url("/chat/completions"),
+                    json=body,
+                    headers={**self._headers(), "Accept": "text/event-stream"},
+                    timeout=self._timeout,
+                ) as response:
+                    headers = _lower_headers(response.headers)
+                    self._notify(headers)
+                    if response.is_success:
+                        async for chunk in self._read_stream(response):
+                            yield chunk
+                        return
+                    await response.aread()
+                    failure = self._error(
+                        response.status_code,
+                        _json_or_none(response),
+                        response.text,
+                        headers,
+                        retries + 1,
+                    )
+            except httpx.TimeoutException as exc:
+                raise TransportError(f"stream timeout: {type(exc).__name__}") from exc
+            except httpx.HTTPError as exc:
+                raise TransportError(f"stream failed: {type(exc).__name__}") from exc
             assert failure is not None  # a successful stream returned above
             if not await self._backoff(failure.status, failure.headers, retries):
                 raise failure
             retries += 1
 
-    async def _read_stream(self, response: httpx.Response) -> AsyncIterator[dict[str, Any]]:
+    async def _read_stream(self, response: httpx.Response) -> AsyncGenerator[dict[str, Any]]:
         parser = SseParser()
         async for raw in response.aiter_bytes():
             for event in parser.feed(raw):

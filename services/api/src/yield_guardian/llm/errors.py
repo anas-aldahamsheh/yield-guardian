@@ -201,15 +201,6 @@ class EmptyCompletionError(LlmError):
         self.finish_reason = finish_reason
 
 
-class BudgetRefusedError(LlmError):
-    """The budget guard refused the call before it was sent."""
-
-    def __init__(self, reason: str, remaining_fraction: float | None) -> None:
-        super().__init__(reason)
-        self.reason = reason
-        self.remaining_fraction = remaining_fraction
-
-
 class InvalidStructuredOutputError(LlmError):
     """A structured (JSON) answer that does not parse or does not validate."""
 

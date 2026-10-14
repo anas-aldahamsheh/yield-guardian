@@ -28,9 +28,11 @@ from typing import Annotated, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from yield_guardian.contracts.models import RoleName
 from yield_guardian.llm.errors import LlmError
 from yield_guardian.llm.messages import ReasoningEffort
 from yield_guardian.llm.profiles import (
+    EFFORT_ORDER,
     Availability,
     ModelKind,
     ModelProfile,
@@ -115,6 +117,57 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
 }
 
 _STRUCTURED_ROLES = frozenset({Role.WRITER, Role.VERIFIER, Role.ROUTER})
+
+ROLE_EFFORT_POLICY: dict[Role, ReasoningEffort | None] = {
+    Role.INVESTIGATOR: "low",
+    Role.WRITER: "low",
+    Role.VERIFIER: "low",
+    Role.CHAT: "none",
+    Role.ROUTER: "none",
+    Role.VISION: "low",
+    Role.OCR: None,
+}
+"""Reasoning effort per role (PLAN 7.1); a model that does not accept the role's value gets
+the nearest value it accepts (the lower one on a tie)."""
+
+
+def role_name(role: Role) -> RoleName:
+    return role.value
+
+
+def policy_effort(role: Role, profile: ModelProfile) -> ReasoningEffort | None:
+    if role is Role.OCR or profile.reasoning_control is ReasoningControl.NOT_APPLICABLE:
+        return None
+    accepted = [e for e in EFFORT_ORDER if e in profile.reasoning_efforts]
+    if not accepted:
+        return None
+    wanted = ROLE_EFFORT_POLICY[role] or "none"
+    if wanted in accepted:
+        return wanted
+    target = EFFORT_ORDER.index(wanted)
+    return min(accepted, key=lambda e: (abs(EFFORT_ORDER.index(e) - target), EFFORT_ORDER.index(e)))
+
+
+def default_mode(role: Role, profile: ModelProfile) -> ResponseMode:
+    if role in _STRUCTURED_ROLES or role is Role.VISION:
+        return (
+            ResponseMode.JSON_SCHEMA if profile.supports_json_schema else ResponseMode.JSON_OBJECT
+        )
+    return ResponseMode.TEXT
+
+
+def choice_for(
+    role: Role, profile: ModelProfile, *, existing: ModelChoice | None = None
+) -> ModelChoice:
+    """The chain entry for ``profile`` in ``role``: the existing entry if there is one, else
+    the role's policy effort and response mode adapted to the profile."""
+    if existing is not None:
+        return existing
+    return ModelChoice(
+        model=profile.id,
+        reasoning_effort=policy_effort(role, profile),
+        response_mode=default_mode(role, profile),
+    )
 
 
 def _effort_problems(choice: ModelChoice, profile: ModelProfile) -> list[str]:

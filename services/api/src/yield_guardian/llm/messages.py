@@ -13,8 +13,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-ReasoningEffort = Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
-"""Every ``reasoning_effort`` value documented for at least one Token Factory model."""
+# One definition of the documented reasoning_effort values, shared with the API contracts.
+from yield_guardian.contracts.models import ReasoningEffort as ReasoningEffort
 
 ALL_REASONING_EFFORTS: frozenset[ReasoningEffort] = frozenset(
     ("none", "minimal", "low", "medium", "high", "xhigh", "max")

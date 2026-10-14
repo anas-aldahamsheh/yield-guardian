@@ -128,7 +128,7 @@ class ModelProfile(_Frozen):
     supports_streaming: bool
     reports_reasoning_tokens: bool
     pricing: Pricing | None
-    source: Literal["documented", "conservative"]
+    source: Literal["documented", "catalog_only"]
     notes: tuple[str, ...] = ()
 
     @property
@@ -382,7 +382,7 @@ def conservative_profile(model_id: str, context_length: int | None) -> ModelProf
         supports_streaming=True,
         reports_reasoning_tokens=False,
         pricing=None,
-        source="conservative",
+        source="catalog_only",
         notes=(
             "Not in the documentation: text only, one system message first, reasoning_effort "
             "low or medium, json_object only, pricing unknown.",

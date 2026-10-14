@@ -1,21 +1,15 @@
-"""Budget guard: keep the shared daily quota for essential calls (PLAN section 7.2).
+"""Quota readings for display on the Models page. Never used to refuse, delay or queue a call.
 
-Sources, in order of authority:
+By owner decision (2026-10-14) the product sets no request limits: this module only reports
+what the server says about the shared quota. Sources:
 
 1. ``GET /v1/usage`` ("quota, used, remaining, reset time, RPM limit and recent requests"),
-   fetched at most once per ``ttl`` seconds (60 by default). Its field names are not
-   documented, so :func:`parse_usage_snapshot` looks for the usual names and keeps the raw
-   payload for inspection.
-2. Points this process spent since the last snapshot (estimated from usage and pricing), so
-   the guard does not wait a minute to notice its own spend.
-3. ``X-RateLimit-*`` headers. Their names are not documented either: every one seen is
-   recorded verbatim; only the common request-rate names are interpreted.
-
-Below ``threshold`` (30%) of the daily budget, non-essential calls are refused. When the
-remaining budget cannot be determined, non-essential calls are refused too unless the guard
-is configured with ``unknown_policy="allow"`` (for example against a fab's own endpoint,
-which has no quota). Essential calls are refused only when a fresh server snapshot says the
-budget is exhausted.
+   read on demand when the Models page asks, at most once per ``ttl_seconds`` (60). Its field
+   names are not documented, so :func:`parse_usage_snapshot` looks for the usual names and
+   keeps the raw payload for inspection.
+2. Points this process spent since that reading (estimated from usage and pricing).
+3. ``X-RateLimit-*`` response headers, whose names are not documented either: every one seen
+   is recorded verbatim, and the common request-rate names are interpreted for display.
 """
 
 from __future__ import annotations
@@ -27,27 +21,24 @@ import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Literal
+from typing import Any
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
 
-from yield_guardian.llm.errors import BudgetRefusedError, LlmError
-from yield_guardian.llm.limits import Clock
+from yield_guardian.llm.errors import LlmError
+from yield_guardian.llm.retry import Clock
 
 log = structlog.get_logger(__name__)
 
-UnknownPolicy = Literal["refuse", "allow"]
-
-DEFAULT_THRESHOLD = 0.30
 DEFAULT_TTL_SECONDS = 60.0
-MAX_HEADER_PAUSE_SECONDS = 60.0
 
 _QUOTA_KEYS = ("quota", "daily_quota", "spend_cap", "limit", "cap", "budget", "total")
 _USED_KEYS = ("used", "spent", "consumed", "usage")
 _REMAINING_KEYS = ("remaining", "left", "balance", "available")
 _RESET_KEYS = ("reset_at", "resets_at", "reset_time", "next_reset", "reset")
 _RPM_KEYS = ("rpm_limit", "requests_per_minute", "rpm")
+_RATE_PATH_MARKERS = ("rpm", "rate", "request", "minute", "concurren", "token")
 
 
 def _number(value: object) -> float | None:
@@ -81,9 +72,6 @@ def _datetime(value: object) -> datetime | None:
     return None
 
 
-_RATE_PATH_MARKERS = ("rpm", "rate", "request", "minute", "concurren", "token")
-
-
 @dataclass(frozen=True, slots=True)
 class _Leaf:
     depth: int
@@ -101,8 +89,8 @@ class _Leaf:
 
 
 def _leaves(payload: Mapping[str, Any], path: tuple[str, ...] = ()) -> list[_Leaf]:
-    """Scalar leaves of nested objects (two levels deep). Lists are not entered, so
-    per-request records under ``recent`` are never mistaken for totals."""
+    """Scalar leaves of nested objects (three levels). Lists are not entered, so per-request
+    records under ``recent`` are never mistaken for totals."""
     out: list[_Leaf] = []
     for key, value in payload.items():
         here = (*path, str(key).lower())
@@ -152,11 +140,12 @@ class UsageSnapshot(BaseModel):
         return None
 
     @property
-    def remaining_fraction(self) -> float | None:
-        remaining = self.remaining_points
-        if self.quota is None or self.quota <= 0 or remaining is None:
-            return None
-        return min(1.0, max(0.0, remaining / self.quota))
+    def used_points(self) -> float | None:
+        if self.used is not None:
+            return self.used
+        if self.quota is not None and self.remaining is not None:
+            return self.quota - self.remaining
+        return None
 
 
 def parse_usage_snapshot(payload: object) -> UsageSnapshot:
@@ -209,45 +198,41 @@ class HeaderObservation:
     requests_reset_seconds: float | None = None
 
 
-class BudgetState(BaseModel):
-    """What the Models page shows about the budget."""
+class QuotaState(BaseModel):
+    """What the Models page shows about the shared quota."""
 
     model_config = ConfigDict(frozen=True)
 
-    threshold: float
-    remaining_fraction: float | None
     quota: float | None
+    used_points: float | None
     remaining_points: float | None
     local_spend_since_snapshot: float
     reset_at: datetime | None
+    rpm_limit: int | None
     snapshot_at: datetime | None
     last_error: str | None
     headers_seen: dict[str, str]
     header_names_ever_seen: list[str]
+    requests_remaining: float | None
 
 
-class BudgetGuard:
+class QuotaMonitor:
+    """Reads and remembers quota information; it never refuses or delays a call."""
+
     def __init__(
         self,
         fetch_usage: Callable[[], Awaitable[object]] | None,
         *,
-        threshold: float = DEFAULT_THRESHOLD,
         ttl_seconds: float = DEFAULT_TTL_SECONDS,
-        unknown_policy: UnknownPolicy = "refuse",
         clock: Clock = time.monotonic,
         wall_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
-        if not 0.0 <= threshold <= 1.0:
-            raise ValueError("threshold must be within [0, 1]")
         self._fetch = fetch_usage
-        self.threshold = threshold
         self.ttl_seconds = ttl_seconds
-        self.unknown_policy: UnknownPolicy = unknown_policy
         self._clock = clock
         self._wall_clock = wall_clock
         self._snapshot: UsageSnapshot | None = None
         self._snapshot_at: datetime | None = None
-        self._fetched_monotonic: float | None = None
         self._attempted_monotonic: float | None = None
         self._local_spend = 0.0
         self._last_error: str | None = None
@@ -255,7 +240,7 @@ class BudgetGuard:
         self.headers = HeaderObservation()
 
     async def refresh(self, *, force: bool = False) -> UsageSnapshot | None:
-        """Fetch ``/v1/usage`` unless the last attempt is younger than the TTL."""
+        """Read ``/v1/usage`` unless the last attempt is younger than the TTL."""
         if self._fetch is None:
             return None
         async with self._lock:
@@ -271,65 +256,28 @@ class BudgetGuard:
                 payload = await self._fetch()
             except LlmError as exc:
                 self._last_error = f"usage endpoint failed: {exc}"
-                log.warning("llm.budget.usage_failed", error=str(exc))
+                log.warning("llm.usage.read_failed", error=str(exc))
                 return self._snapshot
             snapshot = parse_usage_snapshot(payload)
             self._snapshot = snapshot
             self._snapshot_at = self._wall_clock()
-            self._fetched_monotonic = now
             self._local_spend = 0.0
             self._last_error = (
                 None
-                if snapshot.remaining_fraction is not None
+                if snapshot.quota is not None and snapshot.remaining_points is not None
                 else "usage payload has no recognisable quota and remaining fields"
             )
             return snapshot
-
-    def remaining_fraction(self) -> float | None:
-        snapshot = self._snapshot
-        if snapshot is None or snapshot.quota is None or snapshot.quota <= 0:
-            return None
-        remaining = snapshot.remaining_points
-        if remaining is None:
-            return None
-        return min(1.0, max(0.0, (remaining - self._local_spend) / snapshot.quota))
-
-    async def check(self, *, essential: bool) -> float | None:
-        """Raise :class:`BudgetRefusedError` if the call may not be sent; return the remaining
-        fraction used for the decision (None when unknown)."""
-        await self.refresh()
-        fraction = self.remaining_fraction()
-        server_remaining = self._snapshot.remaining_points if self._snapshot else None
-        if server_remaining is not None and server_remaining <= 0:
-            raise BudgetRefusedError("the daily budget is exhausted (usage endpoint)", 0.0)
-        if essential:
-            return fraction
-        if fraction is None:
-            if self.unknown_policy == "allow":
-                return None
-            raise BudgetRefusedError(
-                "the remaining daily budget is unknown, so non-essential calls are refused"
-                + (f" ({self._last_error})" if self._last_error else ""),
-                None,
-            )
-        if fraction < self.threshold:
-            raise BudgetRefusedError(
-                f"{fraction:.0%} of the daily budget remains, below the {self.threshold:.0%} "
-                "reserved for essential calls",
-                fraction,
-            )
-        return fraction
 
     def record_spend(self, points: float | None) -> None:
         if points is not None and points > 0:
             self._local_spend += points
 
-    def observe_headers(self, headers: Mapping[str, str]) -> float | None:
-        """Record every ``X-RateLimit-*`` header. Returns a pause in seconds (capped at 60)
-        when the headers say no request is left in the current window."""
+    def observe_headers(self, headers: Mapping[str, str]) -> None:
+        """Record every ``X-RateLimit-*`` header of a response, for display."""
         seen = {k.lower(): v for k, v in headers.items() if k.lower().startswith("x-ratelimit-")}
         if not seen:
-            return None
+            return
         obs = self.headers
         obs.seen = seen
         obs.names_ever_seen.update(seen)
@@ -340,26 +288,21 @@ class BudgetGuard:
         obs.requests_limit = _number(limit) if limit is not None else None
         obs.requests_remaining = _number(remaining) if remaining is not None else None
         obs.requests_reset_seconds = parse_reset_seconds(reset) if reset is not None else None
-        if obs.requests_remaining is not None and obs.requests_remaining <= 0:
-            wait = obs.requests_reset_seconds
-            return min(wait, MAX_HEADER_PAUSE_SECONDS) if wait is not None else None
-        return None
 
-    def state(self) -> BudgetState:
+    def state(self) -> QuotaState:
         snapshot = self._snapshot
-        return BudgetState(
-            threshold=self.threshold,
-            remaining_fraction=self.remaining_fraction(),
+        remaining = snapshot.remaining_points if snapshot else None
+        used = snapshot.used_points if snapshot else None
+        return QuotaState(
             quota=snapshot.quota if snapshot else None,
-            remaining_points=(
-                snapshot.remaining_points - self._local_spend
-                if snapshot and snapshot.remaining_points is not None
-                else None
-            ),
+            used_points=None if used is None else used + self._local_spend,
+            remaining_points=None if remaining is None else remaining - self._local_spend,
             local_spend_since_snapshot=self._local_spend,
             reset_at=snapshot.reset_at if snapshot else None,
+            rpm_limit=snapshot.rpm_limit if snapshot else None,
             snapshot_at=self._snapshot_at,
             last_error=self._last_error,
             headers_seen=dict(self.headers.seen),
             header_names_ever_seen=sorted(self.headers.names_ever_seen),
+            requests_remaining=self.headers.requests_remaining,
         )
