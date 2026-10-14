@@ -1,4 +1,4 @@
-"""The report writer: request contents, strict schema on MiMo, fallback with validation."""
+"""The report writer: request contents, the schema in the prompt, json_object with validation."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from tests.llm.helpers import make_stack
 from yield_guardian.agent.prompts import REVISION_NOTE, WRITER_SYSTEM
 from yield_guardian.agent.writer import (
     REPORT_SCHEMA_NAME,
+    REPORT_SCHEMA_TEXT,
     WRITER_MAX_TOKENS,
     ReportWriter,
     WriterInput,
@@ -24,6 +25,7 @@ from yield_guardian.contracts.investigation import (
 )
 from yield_guardian.llm.calllog import LlmCallRecord
 from yield_guardian.llm.gateway import CallOptions
+from yield_guardian.llm.structured import strict_json_schema
 
 TRIGGER = InvestigationTrigger(kind="unit", ref="1062", question="Why is it risky?")
 E1 = evidence("E1", {"unit_id": 1062, "risk": 0.184}, unit_id=1062)
@@ -45,7 +47,11 @@ def payload(request_text: str) -> dict[str, Any]:
 
 def test_first_draft_request_carries_trigger_and_evidence_as_data() -> None:
     request = writer_request(WriterInput(TRIGGER, [E1]))
-    assert request.messages[0].text() == WRITER_SYSTEM
+    system = request.messages[0].text()
+    assert system.startswith(WRITER_SYSTEM)
+    # json_object mode does not pass the schema to the model, so the prompt carries it.
+    schema = json.loads(system.rsplit("\n", 1)[1])
+    assert schema == strict_json_schema(Report)
     data = payload(request.messages[1].text())
     assert data["trigger"]["question"] == "Why is it risky?"
     assert [e["evidence_id"] for e in data["evidence"]] == ["E1"]
@@ -75,16 +81,20 @@ def test_a_question_cannot_break_out_of_the_data() -> None:
     assert payload(text)["trigger"]["question"] == hostile.question
 
 
-async def test_mimo_gets_the_strict_schema(respx_mock: respx.Router) -> None:
+async def test_mimo_answers_in_json_object_with_the_schema_in_the_prompt(
+    respx_mock: respx.Router,
+) -> None:
     stack = make_stack()
     model = ScriptedModel().mount(respx_mock).add("writer", json_reply(REPORT))
     out = await ReportWriter(stack.gateway).write(WriterInput(TRIGGER, [E1]), options=CallOptions())
     assert out.value == Report.model_validate(REPORT)
     (body,) = model.bodies("writer")
     assert body["model"] == "MiMo-V2.6-Flash"
-    assert body["response_format"]["type"] == "json_schema"
-    assert body["response_format"]["json_schema"]["name"] == REPORT_SCHEMA_NAME
-    assert body["response_format"]["json_schema"]["strict"] is True
+    assert body["reasoning_effort"] == "none"
+    # MiMo refused strict json_schema live (HTTP 400, 2026-10-14).
+    assert body["response_format"] == {"type": "json_object"}
+    assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
+    assert REPORT_SCHEMA_NAME == "investigation_report"
 
 
 async def test_an_invalid_report_falls_back_to_json_object_with_validation(
@@ -99,7 +109,7 @@ async def test_an_invalid_report_falls_back_to_json_object_with_validation(
     )
     assert out.result.model == "Qwen3.8-27B"
     assert [b["response_format"]["type"] for b in model.bodies("writer")] == [
-        "json_schema",
+        "json_object",
         "json_object",
     ]
     assert [str(r.status) for r in records] == ["invalid_output", "ok"]

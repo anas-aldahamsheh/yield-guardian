@@ -85,7 +85,7 @@ def _c(model: str, effort: ReasoningEffort | None, mode: ResponseMode) -> ModelC
     return ModelChoice(model=model, reasoning_effort=effort, response_mode=mode)
 
 
-_T, _S, _O = ResponseMode.TEXT, ResponseMode.JSON_SCHEMA, ResponseMode.JSON_OBJECT
+_T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
     Role.INVESTIGATOR: (
@@ -94,9 +94,10 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         _c("Qwen3.8-Flash-Next", "low", _T),
     ),
     Role.WRITER: (
-        # "none" is the one MiMo value the docs name ("none turns it off"); "low" was never
-        # verified and the first live writer call on MiMo answered 400 (2026-10-14).
-        _c("MiMo-V2.6-Flash", "none", _S),
+        # "none" is the one MiMo value the docs name ("none turns it off"). MiMo refuses strict
+        # json_schema live (HTTP 400, measured 2026-10-14), so it answers in json_object and
+        # the report is validated in code, like every other structured role.
+        _c("MiMo-V2.6-Flash", "none", _O),
         _c("Qwen3.8-27B", "low", _O),
     ),
     Role.VERIFIER: (
@@ -327,7 +328,14 @@ class ModelRegistry:
         and reported."""
         warnings: list[str] = []
         stored = {a.role: a for a in await self._store.load()}
-        for role, assignment in stored.items():
+        for role, saved in stored.items():
+            assignment, coerced = self._coerce_schema(saved)
+            if coerced:
+                warnings.append(
+                    f"stored chain for {role}: json_schema changed to json_object for "
+                    + ", ".join(coerced)
+                    + " (the model does not accept strict json_schema)"
+                )
             problems = validate_chain(role, assignment.chain, self.catalog)
             if problems:
                 warnings.append(f"stored chain for {role} ignored: " + "; ".join(problems))
@@ -344,6 +352,26 @@ class ModelRegistry:
             warnings.append("writer and verifier reset to defaults: " + "; ".join(cross))
         self.load_warnings = warnings
         return warnings
+
+    def _coerce_schema(self, assignment: RoleAssignment) -> tuple[RoleAssignment, list[str]]:
+        """A stored json_schema entry for a model now known to refuse it (MiMo-V2.6-Flash,
+        measured live) becomes json_object; the rest of the chain is kept as saved."""
+        coerced: list[str] = []
+        chain: list[ModelChoice] = []
+        for choice in assignment.chain:
+            profile = self.catalog.get(choice.model)
+            if (
+                choice.response_mode is ResponseMode.JSON_SCHEMA
+                and profile is not None
+                and not profile.supports_json_schema
+                and profile.supports_json_object
+            ):
+                choice = choice.model_copy(update={"response_mode": ResponseMode.JSON_OBJECT})
+                coerced.append(choice.model)
+            chain.append(choice)
+        if not coerced:
+            return assignment, []
+        return assignment.model_copy(update={"chain": tuple(chain)}), coerced
 
     def assignment(self, role: Role) -> RoleAssignment:
         return self._assignments[role]

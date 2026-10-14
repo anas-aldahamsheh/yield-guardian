@@ -1,13 +1,15 @@
 """Report writer (PLAN 7.4): one structured report from the evidence, revised on request.
 
 The writer role answers with the :class:`~yield_guardian.contracts.investigation.Report`
-contract: strict ``json_schema`` on MiMo-V2.6-Flash (the only model documented to accept it),
-``json_object`` plus Pydantic validation on any fallback. The writer sees the evidence only
-through :func:`~yield_guardian.agent.tools.model_view`, as data.
+contract in ``json_object`` mode, validated by Pydantic in code. No model on the live endpoint
+is known to accept strict ``json_schema`` (MiMo-V2.6-Flash refused it with HTTP 400 on
+2026-10-14), so the system message carries the report's JSON Schema itself. The writer sees
+the evidence only through :func:`~yield_guardian.agent.tools.model_view`, as data.
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -22,11 +24,19 @@ from yield_guardian.contracts.investigation import (
 from yield_guardian.llm.gateway import CallOptions, LlmGateway, Structured
 from yield_guardian.llm.messages import ChatMessage, ChatRequest
 from yield_guardian.llm.registry import Role
+from yield_guardian.llm.structured import strict_json_schema
 
 WRITER_MAX_TOKENS = 16384
 """Room for a thinking model's reasoning and the report: Qwen3.8-27B (it cannot turn thinking
 off; "low" is its lowest effort) used all of 4096 on reasoning in the first live run."""
 REPORT_SCHEMA_NAME = "investigation_report"
+REPORT_SCHEMA_TEXT = json.dumps(strict_json_schema(Report), separators=(",", ":"))
+WRITER_INSTRUCTIONS = (
+    f"{WRITER_SYSTEM}\n\nThe JSON object must match this JSON Schema exactly (every key "
+    f"required, no other keys; use null for a number without a unit):\n{REPORT_SCHEMA_TEXT}"
+)
+"""The writer's system message: the rules, then the exact schema, because json_object mode
+does not pass the schema to the model."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,7 +59,7 @@ def writer_request(data: WriterInput, *, max_tokens: int = WRITER_MAX_TOKENS) ->
             {"location": i.location, "code": i.code, "message": i.message} for i in data.issues
         ]
     return ChatRequest(
-        messages=(ChatMessage.system(WRITER_SYSTEM), ChatMessage.user(data_message(payload))),
+        messages=(ChatMessage.system(WRITER_INSTRUCTIONS), ChatMessage.user(data_message(payload))),
         max_tokens=max_tokens,
     )
 

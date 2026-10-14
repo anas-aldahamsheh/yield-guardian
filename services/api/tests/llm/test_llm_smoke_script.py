@@ -79,16 +79,23 @@ async def test_a_refused_call_prints_the_error_body(
     monkeypatch.setenv("TOKEN_FACTORY_API_KEY", PLACEHOLDER_KEY)
     route = respx_mock.post(url__regex=r".*/chat/completions$").mock(
         return_value=httpx.Response(
-            400, json={"error": {"message": "bad", "param": "reasoning_effort"}}
+            400,
+            json={
+                "error": {
+                    "message": "Model MiMo-V2.6-Flash does not support JSON schema output mode",
+                    "type": "invalid_request_error",
+                }
+            },
         )
     )
     script = load_script()
     args = script.parse_args(
-        ["--yes", "--model", "MiMo-V2.6-Flash", "--effort", "low", "--response-format",
+        ["--yes", "--model", "MiMo-V2.6-Flash", "--effort", "none", "--response-format",
          "writer-schema"]
     )  # fmt: skip
     assert await script.run(args, Settings()) == 2
     out = capsys.readouterr()
     assert "Upper bound for this call: 0.000" in out.out
-    assert 'Error body: {"error":{"message":"bad","param":"reasoning_effort"}}' in out.out
+    assert "recorded as refusing strict json_schema; sending it to check" in out.out
+    assert "does not support JSON schema output mode" in out.out.split("Error body: ", 1)[1]
     assert route.call_count == 1

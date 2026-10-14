@@ -12,8 +12,9 @@ Usage (from ``services/api``)::
     TOKEN_FACTORY_API_KEY=... uv run python scripts/smoke_token_factory.py --yes --with-usage
 
 ``--response-format json_object`` asks for a JSON object; ``--response-format writer-schema``
-sends the writer's strict ``json_schema`` (the investigation report), to check whether a model
-accepts it. With 64 tokens the answer is cut short; only the HTTP status matters then::
+sends the report's strict ``json_schema`` (the shape the writer used to send), to check whether
+a model accepts it, even one whose profile records it as refused (MiMo-V2.6-Flash answered 400 on
+2026-10-14). With 64 tokens the answer is cut short; only the HTTP status matters then::
 
     uv run python scripts/smoke_token_factory.py --yes --model MiMo-V2.6-Flash \
         --effort none --response-format writer-schema
@@ -97,6 +98,12 @@ async def run(args: argparse.Namespace, settings: Settings) -> int:
         return fail(f"{args.model} is not a chat model")
     effort = None if args.effort == "omit" else cast(ReasoningEffort, args.effort)
     request = smoke_request(args.response_format, effort)
+    if args.response_format == "writer-schema" and not profile.supports_json_schema:
+        # A probe re-checks what the profile records as refused, so it may send it anyway.
+        print(
+            f"Note: {profile.id} is recorded as refusing strict json_schema; sending it to check."
+        )
+        profile = profile.model_copy(update={"supports_json_schema": True})
     built = build_chat_request(profile, request)  # refuses a combination the model rejects
     pricing = profile.pricing
     if pricing is not None:

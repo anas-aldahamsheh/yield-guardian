@@ -1,8 +1,8 @@
 """Report verification (PLAN 7.4), in the plan's order.
 
-1. Schema: the report is a validated :class:`Report` before it gets here (strict
-   ``json_schema`` on MiMo, Pydantic for every other model; an answer that fails is retried on
-   the next writer model by the gateway).
+1. Schema: the report is a validated :class:`Report` before it gets here (``json_object``
+   answers validated by Pydantic; MiMo refused strict ``json_schema`` live on 2026-10-14; an
+   answer that fails is retried on the next writer model by the gateway).
 2. Numbers: every number in every text field must be listed in ``numbers[]`` and match the
    cited evidence at its JSON Pointer, within the rounding the text shows; a finding or action
    must cite the evidence its numbers come from. Identifiers (units, sensors, wafers, lots,

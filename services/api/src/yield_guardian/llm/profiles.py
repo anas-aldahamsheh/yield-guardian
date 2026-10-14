@@ -190,7 +190,9 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
             developer_role=DeveloperRole.ACCEPTED,
             supports_tools=True,
             supports_json_object=True,
-            supports_json_schema=True,
+            # Measured live on 2026-10-14: HTTP 400 "Model MiMo-V2.6-Flash does not support
+            # JSON schema output mode", although the docs list it as the one model that does.
+            supports_json_schema=False,
             supports_streaming=True,
             reports_reasoning_tokens=True,
             pricing=_FLASH_PRICING,
@@ -199,7 +201,8 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
                 "'none' turns thinking off.",
                 "Docs say 'none and the usual tiers'; read as low, medium and high. Other "
                 "values are refused until verified.",
-                "The only model documented to accept strict json_schema.",
+                "Strict json_schema is refused live (HTTP 400, measured 2026-10-14) although "
+                "the docs list it; json_object is used and the answer is validated in code.",
             ),
         ),
         ModelProfile(

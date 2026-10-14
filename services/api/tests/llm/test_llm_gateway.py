@@ -19,7 +19,7 @@ from yield_guardian.llm.errors import (
 )
 from yield_guardian.llm.gateway import CallOptions
 from yield_guardian.llm.messages import ChatMessage, ChatRequest, FunctionSpec, ToolSpec
-from yield_guardian.llm.registry import ModelChoice, ResponseMode, Role
+from yield_guardian.llm.registry import ModelChoice, ResponseMode, Role, RoleAssignment
 from yield_guardian.llm.results import ChatResult, StreamDelta
 
 
@@ -164,11 +164,8 @@ async def test_writer_falls_back_from_mimo_prose_to_qwen_json_object(
     first, second = player.bodies()
     assert isinstance(first, dict)
     assert isinstance(second, dict)
-    schema_format = first["response_format"]
-    assert schema_format["type"] == "json_schema"
-    assert schema_format["json_schema"]["name"] == "fixture_answer"
-    assert schema_format["json_schema"]["strict"] is True
-    assert schema_format["json_schema"]["schema"]["additionalProperties"] is False
+    # MiMo refused strict json_schema live (2026-10-14): both models answer in json_object.
+    assert first["response_format"] == {"type": "json_object"}
     assert second["response_format"] == {"type": "json_object"}
     statuses = [(r.model, r.status) for r in stack.call_log.records]
     assert statuses == [
@@ -444,9 +441,31 @@ SCHEMA_400 = {
 }
 
 
+def schema_writer_chain(stack: Stack) -> None:
+    """A writer chain whose MiMo entry asks for strict json_schema, as a chain saved before the
+    live refusal (or a future model) would; set directly, since validation now refuses it."""
+    stack.registry._assignments[Role.WRITER] = RoleAssignment(
+        role=Role.WRITER,
+        chain=(
+            ModelChoice(
+                model="MiMo-V2.6-Flash",
+                reasoning_effort="none",
+                response_mode=ResponseMode.JSON_SCHEMA,
+            ),
+            ModelChoice(
+                model="Qwen3.8-27B", reasoning_effort="low", response_mode=ResponseMode.JSON_OBJECT
+            ),
+        ),
+    )
+    stack.catalog._profiles["MiMo-V2.6-Flash"] = stack.catalog.require(
+        "MiMo-V2.6-Flash"
+    ).model_copy(update={"supports_json_schema": True})
+
+
 async def test_a_refused_schema_is_retried_on_the_same_model_as_json_object(
     respx_mock: respx.Router, stack: Stack
 ) -> None:
+    schema_writer_chain(stack)
     route = respx_mock.post(host=HOST).mock(
         side_effect=[
             httpx.Response(400, json=SCHEMA_400),
@@ -478,6 +497,7 @@ async def test_a_refused_schema_is_retried_on_the_same_model_as_json_object(
 async def test_when_both_shapes_fail_the_chain_moves_on_and_names_both_reasons(
     respx_mock: respx.Router, stack: Stack
 ) -> None:
+    schema_writer_chain(stack)
     respx_mock.post(host=HOST).mock(
         side_effect=[
             httpx.Response(400, json=SCHEMA_400),
