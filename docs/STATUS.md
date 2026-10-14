@@ -4,7 +4,7 @@
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 48 of 86 done (56%), 16 in progress, 22 not started
+## Progress: 48 of 86 done (56%), 17 in progress, 21 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -18,7 +18,7 @@
 | U: Interface | 4 of 14 | 1 | 9 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 0 of 5 | 2 | 3 |
-| X: Submission | 0 of 6 | 0 | 6 |
+| X: Submission | 0 of 6 | 1 | 5 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -194,7 +194,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | ⏳ | |
+| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
 | X2 | Demo video script and shot list | Cloud | ⏳ | |
 | X3 | Slide deck | Cloud | ⏳ | |
 | X4 | Cover image | Cloud | ⏳ | |

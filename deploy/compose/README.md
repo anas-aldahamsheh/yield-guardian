@@ -58,7 +58,7 @@ The API and the migration receive the whole `.env` file; the web app receives on
 
 ## Model bundles
 
-The API image downloads the bundles listed in `deploy/artifacts.lock.json` while it builds, checks each archive's SHA-256 and every file in the bundle's `MANIFEST.json`, and fails the build on any mismatch (`deploy/fetch_artifacts.py`). With an empty lock the image has no bundles: `/api/v1/ready` reports them missing and model routes answer 503 `not_ready`. To publish a bundle, attach the archive to a GitHub Release and add its `name`, `version`, `url` and `sha256` to the lock.
+The bundles are committed under `artifacts/<name>/<version>/`. While the API image builds, `deploy/fetch_artifacts.py --verify-local` checks every file against the bundle's `MANIFEST.json` and fails the build on any mismatch; the API checks them again when it starts. Bundles can also be published as release archives: add their `name`, `version`, `url` and `sha256` to `deploy/artifacts.lock.json` and the build downloads and verifies them the same way. `/api/v1/ready` reports any bundle that is missing, and its routes answer 503 `not_ready`.
 
 ## Security
 
