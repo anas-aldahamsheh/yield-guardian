@@ -24,7 +24,7 @@ Measured by `uv run python -m wm.facts` from `data/interim/wm811k/wm811k.parquet
 
 - The official split is already lot-disjoint, so it does not leak lots. We still report the
   lot-grouped random split (PLAN §6.5 b) because the official test set has a very different class
-  mix (74% `none` in training labels vs 93% in test) and covers mostly higher-numbered lots.
+  mix (`none` is 67.6% of official training wafers and 93.3% of test wafers) and covers mostly higher-numbered lots.
 - Lot numbers are not documented as time, so "training-period rate" for the lot excursion test
   (W8) means the rate in the training split.
 - `Near-full` has 149 labelled wafers in total (54 in official training), so its per-class metrics
