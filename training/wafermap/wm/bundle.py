@@ -327,7 +327,9 @@ def main() -> None:
     (out / "demo").mkdir(parents=True)
     shutil.copy(run / "model.onnx", out / "model.onnx")
     shutil.copy(run / "ood_mahalanobis.npz", out / "ood_mahalanobis.npz")
-    (out / "labels.json").write_text(json.dumps(CLASSES, indent=2) + "\n", encoding="utf-8")
+    (out / "labels.json").write_text(
+        json.dumps(CLASSES, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     (out / "preprocess.json").write_text(
         json.dumps(
             {
@@ -342,6 +344,7 @@ def main() -> None:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     shutil.copy(run / "calibration.json", out / "calibration.json")
     ood = json.loads((run / "ood.json").read_text(encoding="utf-8"))
@@ -365,6 +368,7 @@ def main() -> None:
         )
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
 
     metrics = {
@@ -382,7 +386,9 @@ def main() -> None:
         "ood": ood,
         "onnx_parity": json.loads((run / "parity.json").read_text(encoding="utf-8")),
     }
-    (out / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+    (out / "metrics.json").write_text(
+        json.dumps(metrics, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
 
     demo = demo_wafers(out / "demo")
     manifest_data = json.loads((REPO / "data" / "manifest.json").read_text(encoding="utf-8"))
@@ -390,11 +396,11 @@ def main() -> None:
         f["sha256"] for f in manifest_data["wm811k"]["files"] if f["path"].endswith("LSWMD.pkl")
     )
     (out / "demo" / "ATTRIBUTION.md").write_text(
-        ATTRIBUTION.format(pickle_sha=pickle_sha, **demo), encoding="utf-8"
+        ATTRIBUTION.format(pickle_sha=pickle_sha, **demo), encoding="utf-8", newline="\n"
     )
 
     card = model_card(metrics, deployed)
-    (out / "model_card.md").write_text(card, encoding="utf-8")
+    (out / "model_card.md").write_text(card, encoding="utf-8", newline="\n")
     CARD.parent.mkdir(parents=True, exist_ok=True)
     CARD.write_text(card, encoding="utf-8", newline="\n")
 
@@ -421,7 +427,9 @@ def main() -> None:
             for p in files
         ],
     }
-    (out / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (out / "MANIFEST.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     print(json.dumps({"deployed": deployed, "files": len(files), **demo}))
     assert np.isfinite(metrics["lot_split"]["across_seeds"]["macro_f1"]["mean"])
 
