@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:07 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:09 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 59 of 86 done (69%), 8 in progress, 19 not started
+## Progress: 61 of 86 done (71%), 6 in progress, 19 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
-| K: Knowledge base | 1 of 3 | 2 | 0 |
+| K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 0 | 1 |
 | L: AI layer | 9 of 11 | 1 | 1 |
 | U: Interface | 4 of 14 | 1 | 9 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 59 of 86 |
+| Done | 61 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -115,9 +115,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
+| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | ✅ | 7 open-access sources, each fetched and checked; quotes kept only when two reads agree; licences in [docs/knowledge/README.md](knowledge/README.md) |
 | K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ✅ | Chunking with page and section, BM25 search, MinerU ingestion for open-access files (not run); merged (578712c) |
-| K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
+| K3 | Pattern-to-cause table with citations | Cloud | ✅ | [Pattern-to-cause table](knowledge/pattern_causes.md): 12 entries, 4 medium and 8 low evidence, cautious wording; Loc and Near-full rest on one preprint, marked low |
 
 ### A: API
 
@@ -211,6 +211,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:09 | Literature on wafer-pattern causes checked and extended (K1, K3 done); a wrong attribution in one quote was corrected |
 | 2026-10-14 11:07 | AI layer merged: investigator, writer, verifier, router, chat, knowledge search (L1 to L9, K2, A7 done). README written with measured results |
 | 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
 | 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |
