@@ -413,3 +413,17 @@ async def test_two_processes_share_the_queue_and_the_streams(database_url: str) 
                 await resource.stop()
     runs = runners[0].runs + runners[1].runs
     assert sorted(runs) == sorted(i.investigation_id for i in created)
+
+
+async def test_investigations_are_found_by_unit(persistence: Persistence) -> None:
+    session = await _engineer(persistence)
+    alarm = await persistence.investigations.create(ALARM, session=session)
+    unit = await persistence.investigations.create(
+        InvestigationTrigger(kind="unit", ref="1043"), session=session
+    )
+    await persistence.investigations.create(
+        InvestigationTrigger(kind="unit", ref="10430"), session=session
+    )
+    found = await persistence.investigations.for_unit(1043)
+    assert set(found) == {alarm.investigation_id, unit.investigation_id}
+    assert await persistence.investigations.for_unit(104) == []

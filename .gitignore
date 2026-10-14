@@ -6,7 +6,7 @@
 *.pem
 *.key
 
-# Data and artifacts (published as GitHub Release assets, never committed)
+# Data and local artifacts. Released model bundles are force-added (git add -f artifacts/<name>/vN), verified by MANIFEST.json
 data/raw/
 data/interim/
 data/processed/

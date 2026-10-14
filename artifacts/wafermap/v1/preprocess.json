@@ -1,0 +1,15 @@
+{
+  "size": 64,
+  "resize": "nearest",
+  "channels": [
+    "no_die",
+    "pass",
+    "fail"
+  ],
+  "source_values": {
+    "no_die": 0,
+    "pass": 1,
+    "fail": 2
+  },
+  "resize_rule": "output cell (i, j) samples source cell (min(floor((i + 0.5) * H / 64), H - 1), same for j with W)"
+}
