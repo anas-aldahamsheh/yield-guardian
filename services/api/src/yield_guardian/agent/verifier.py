@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -92,11 +92,27 @@ def text_fields(report: Report) -> Iterator[TextField]:
         yield TextField(f"limitations[{i}]", limitation, None)
 
 
+REPORT_REDACTION = "[unverified]"
+"""Stands in, in the report shown to the engineer, for a number or identifier code could not
+verify (the verification lists what it was and why)."""
+
+_TEXT_LIMITS = {"summary": 1200, "claim": 600, "action": 300, "rationale": 600}
+
+
+@dataclass(frozen=True, slots=True)
+class Redaction:
+    location: str
+    start: int
+    end: int
+
+
 @dataclass
 class CodeCheck:
     issues: list[VerificationIssue]
     numbers_checked: int
     numbers_matched: int
+    redactions: list[Redaction] = field(default_factory=list)
+    """Spans of text that failed a check: hidden in the report shown to the engineer."""
 
     @property
     def has_errors(self) -> bool:
@@ -218,58 +234,66 @@ def check_numbers_and_citations(
                     )
                 )
 
-    for field in text_fields(report):
-        found = scan(field.text, known_identifiers=facts.known_identifiers)
+    redactions: list[Redaction] = []
+    for text_field in text_fields(report):
+        location = text_field.location
+        found = scan(text_field.text, known_identifiers=facts.known_identifiers)
         for spelled in found.spelled:
+            redactions.append(Redaction(location, spelled.start, spelled.end))
             issues.append(
                 _issue(
                     "number_not_listed",
-                    field.location,
+                    location,
                     f"'{spelled.text}' is a number in words; write it in digits and list it in numbers[]",
                 )
             )
         for identifier in found.identifiers:
-            for value in facts.unsupported_values(identifier):
+            unsupported = facts.unsupported_values(identifier)
+            if unsupported:
+                redactions.append(Redaction(location, identifier.start, identifier.end))
+            for value in unsupported:
                 code: IssueCode = (
                     "unknown_evidence" if identifier.kind == "evidence" else "unsupported_claim"
                 )
                 issues.append(
                     _issue(
                         code,
-                        field.location,
+                        location,
                         f"mentions {identifier.kind} {value}, which no evidence contains",
                     )
                 )
         for mention in found.numbers:
             checked += 1
-            outcome = _check_mention(mention, field, numbers)
+            outcome = _check_mention(mention, text_field, numbers)
             if outcome is None:
                 matched += 1
             else:
                 issues.append(outcome)
+                if outcome.severity == "error" and outcome.code != "missing_citation":
+                    redactions.append(Redaction(location, mention.start, mention.end))
                 if outcome.code == "missing_citation" or outcome.severity == "warning":
                     matched += 1
-        for phrase in causal_phrases(field.text):
+        for phrase in causal_phrases(text_field.text):
             issues.append(
                 _issue(
                     "causal_wording",
-                    field.location,
+                    location,
                     f"causal wording {phrase.text!r}: the evidence shows association, not "
                     f"cause. {ASSOCIATION_HINT}",
                 )
             )
-    return CodeCheck(issues, checked, matched)
+    return CodeCheck(issues, checked, matched, redactions)
 
 
 def _check_mention(
-    mention: NumberMention, field: TextField, numbers: _NumberCheck
+    mention: NumberMention, text_field: TextField, numbers: _NumberCheck
 ) -> VerificationIssue | None:
     """None when the number is listed and matches its evidence; else the issue."""
     candidates = numbers.candidates(mention)
     if not candidates:
         return _issue(
             "number_not_listed",
-            field.location,
+            text_field.location,
             f"{mention.text} is not listed in numbers[] with an evidence ID and path",
         )
     supported: list[NumberRef] = []
@@ -289,26 +313,72 @@ def _check_mention(
             shown = f"{value * 100:g}%" if percent else f"{value:g}"
             reasons.append(f"{ref.evidence_id} holds {shown} at {ref.path}")
     if supported:
-        if field.cites is not None and not any(ref.evidence_id in field.cites for ref in supported):
+        if text_field.cites is not None and not any(
+            ref.evidence_id in text_field.cites for ref in supported
+        ):
             sources = ", ".join(sorted({ref.evidence_id for ref in supported}))
             return _issue(
                 "missing_citation",
-                field.location,
-                f"{mention.text} comes from {sources}, which {field.location} does not cite",
+                text_field.location,
+                f"{mention.text} comes from {sources}, which {text_field.location} does not cite",
             )
         return None
     if sign_only:
         return _issue(
             "number_mismatch",
-            field.location,
+            text_field.location,
             f"{mention.text} matches the evidence only without its sign; check the wording "
             "says the direction",
             severity="warning",
         )
     return _issue(
         "number_mismatch",
-        field.location,
+        text_field.location,
         f"{mention.text} does not match its evidence: " + "; ".join(reasons),
+    )
+
+
+def _redact(text: str, spans: Sequence[Redaction], limit: int | None) -> str:
+    out = text
+    for span in sorted(spans, key=lambda r: r.start, reverse=True):
+        out = out[: span.start] + REPORT_REDACTION + out[span.end :]
+    return out if limit is None else out[:limit]
+
+
+def shown_report(report: Report, redactions: Sequence[Redaction]) -> Report:
+    """The report as the engineer sees it: every number or identifier that failed a check is
+    replaced by :data:`REPORT_REDACTION`, so no unverified value reaches a reader."""
+    if not redactions:
+        return report
+    by_location: dict[str, list[Redaction]] = {}
+    for span in redactions:
+        by_location.setdefault(span.location, []).append(span)
+
+    def fix(location: str, text: str, limit: int | None) -> str:
+        spans = by_location.get(location)
+        return _redact(text, spans, limit) if spans else text
+
+    findings = [
+        f.model_copy(update={"claim": fix(f"findings[{i}].claim", f.claim, _TEXT_LIMITS["claim"])})
+        for i, f in enumerate(report.findings)
+    ]
+    actions = [
+        a.model_copy(
+            update={
+                "action": fix(f"actions[{i}].action", a.action, _TEXT_LIMITS["action"]),
+                "rationale": fix(f"actions[{i}].rationale", a.rationale, _TEXT_LIMITS["rationale"]),
+            }
+        )
+        for i, a in enumerate(report.actions)
+    ]
+    limitations = [fix(f"limitations[{i}]", t, None) for i, t in enumerate(report.limitations)]
+    return report.model_copy(
+        update={
+            "summary": fix("summary", report.summary, _TEXT_LIMITS["summary"]),
+            "findings": findings,
+            "actions": actions,
+            "limitations": limitations,
+        }
     )
 
 
@@ -331,6 +401,13 @@ class ModelCheck:
     claims: list[ClaimVerdict]
     issues: list[VerificationIssue]
     model: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class VerifyResult:
+    verification: Verification
+    shown: Report
+    """The report with every value that failed a check hidden (:func:`shown_report`)."""
 
 
 class ReportVerifier:
@@ -421,7 +498,7 @@ class ReportVerifier:
         last_round: bool,
         writer_model: str | None,
         options: CallOptions,
-    ) -> Verification:
+    ) -> VerifyResult:
         index = {item.evidence_id: item for item in evidence}
         code = check_numbers_and_citations(report, index, trigger=trigger)
         if code.has_errors and not last_round:
@@ -435,7 +512,7 @@ class ReportVerifier:
                 report, index, writer_model=writer_model, options=options
             )
         issues = code.issues + model.issues
-        return Verification(
+        verification = Verification(
             passed=not any(issue.severity == "error" for issue in issues),
             rounds=revision_round,
             numbers_checked=code.numbers_checked,
@@ -444,3 +521,4 @@ class ReportVerifier:
             claims=model.claims,
             verifier_model=model.model,
         )
+        return VerifyResult(verification, shown_report(report, code.redactions))

@@ -2,8 +2,7 @@
 
 The product's statistics show association with failure; nothing in the evidence establishes a
 physical cause. A sentence that states a cause ("S060 caused the failure", "due to drift", "the
-root cause is ...") is therefore rejected, unless the evidence it rests on is a confirmed
-work-order outcome. No tool returns such outcomes yet, so in practice the rule always applies.
+root cause is ...") is therefore rejected, whatever evidence it cites.
 
 The list is deliberately small and explicit, so a reviewer can see exactly what is refused.
 "Causal", "causation" and "association" are not on it: a limitation may say "association, not
