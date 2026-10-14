@@ -3685,11 +3685,21 @@ export interface components {
        * Direction
        * @enum {string}
        */
-      direction: "higher_in_failures" | "lower_in_failures";
-      /** Mann Whitney P */
-      mann_whitney_p: number;
-      /** Q Value */
-      q_value: number;
+      direction:
+        | "higher_in_failures"
+        | "lower_in_failures"
+        | "no_difference"
+        | "not_tested";
+      /**
+       * Mann Whitney P
+       * @description Null when the test was not run.
+       */
+      mann_whitney_p: number | null;
+      /**
+       * Q Value
+       * @description Null when the test was not run.
+       */
+      q_value: number | null;
       /**
        * Sensor
        * @description Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.
