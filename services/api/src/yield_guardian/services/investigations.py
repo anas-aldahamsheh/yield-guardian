@@ -359,14 +359,20 @@ class DbInvestigationStore:
         return await self._create(trigger, audit.Actor.of(session), recorded=False)
 
     async def create_recorded(
-        self, trigger: InvestigationTrigger, *, actor: audit.Actor
+        self, trigger: InvestigationTrigger, *, actor: audit.Actor, as_of: int
     ) -> Investigation:
         """As :meth:`create`, for a run made once to be kept and shown as recorded
-        (``scripts/record_investigations.py``); it runs through the same job queue."""
-        return await self._create(trigger, actor, recorded=True)
+        (``scripts/record_investigations.py``); it runs through the same job queue, with its
+        tools reading the line as of position ``as_of`` (the alarm's sequence)."""
+        return await self._create(trigger, actor, recorded=True, as_of=as_of)
 
     async def _create(
-        self, trigger: InvestigationTrigger, actor: audit.Actor, *, recorded: bool
+        self,
+        trigger: InvestigationTrigger,
+        actor: audit.Actor,
+        *,
+        recorded: bool,
+        as_of: int | None = None,
     ) -> Investigation:
         title = trigger_title(trigger)
         now = datetime.now(UTC)
@@ -404,7 +410,8 @@ class DbInvestigationStore:
             await _append(
                 db, row, lambda seq, at: StatusEvent(type="status", seq=seq, at=at, status="queued")
             )
-            await self._enqueue(db, row.investigation_id, "run", {})
+            payload: dict[str, object] = {} if as_of is None else {"as_of": as_of}
+            await self._enqueue(db, row.investigation_id, "run", payload)
             if trigger.kind == "alarm":
                 await alarms.set_state(db, trigger.ref, "investigating", row.investigation_id)
             audit.record(

@@ -267,8 +267,15 @@ class JobWorker:
             await self._store.close_run(investigation_id, NO_RUNNER)
             return
         trigger = await self._store.trigger(investigation_id)
+        # Only DbInvestigationStore.create_recorded puts a position in the payload.
+        as_of = job.payload.get("as_of")
         try:
-            await runner.run(investigation_id, trigger, self._store.sink(investigation_id))
+            await runner.run(
+                investigation_id,
+                trigger,
+                self._store.sink(investigation_id),
+                as_of=as_of if isinstance(as_of, int) else None,
+            )
         except ServiceError as exc:
             log.warning("runner_error", investigation_id=investigation_id, detail=exc.detail)
             await self._store.close_run(investigation_id, exc.problem())

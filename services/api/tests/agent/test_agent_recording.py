@@ -162,3 +162,48 @@ def test_the_import_scripts_need_the_database(
 ) -> None:
     assert load(script).main(argv) == 2
     assert "DATABASE_URL is not set" in capsys.readouterr().err
+
+
+def test_the_recorder_prints_points_from_the_reported_usage() -> None:
+    from tests.agent.test_agent_graph import UNIT as TRIGGER
+    from yield_guardian.contracts.investigation import Investigation
+
+    base = {
+        "investigation_id": "inv_0000000000000000000000000a",
+        "title": "Unit 1062",
+        "status": "failed",
+        "trigger": TRIGGER.model_dump(mode="json"),
+        "created_at": "2026-10-14T12:00:00Z",
+        "updated_at": "2026-10-14T12:00:01Z",
+        "recorded": True,
+        "models": [],
+        "usage": None,
+        "work_order_id": None,
+        "steps": [],
+        "evidence": [],
+        "report": None,
+        "verification": None,
+        "decision": None,
+        "error": None,
+    }
+    line = load("record_investigations").usage_line
+    assert "no model call was made: 0 points" in line(Investigation.model_validate(base))
+    used = Investigation.model_validate(
+        base
+        | {
+            "models": [{"role": "investigator", "model_id": "DeepSeek-V4.1-Flash"}],
+            "usage": {
+                "requests": 3,
+                "tokens_in": 1200,
+                "tokens_out": 300,
+                "tokens_reasoning": 40,
+                "points": 0.00123,
+                "cache_hits": 0,
+                "requests_without_usage": 1,
+            },
+        }
+    )
+    text = line(used)
+    assert "points 0.001230" in text
+    assert "1 request(s) reported no usage" in text
+    assert "investigator DeepSeek-V4.1-Flash" in text
