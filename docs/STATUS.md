@@ -172,7 +172,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ✅ | Worker 3: yield-guardian-api and -web in anaslabs compose (Pino Yard pattern, Sablier group, hardened), own always-on PostgreSQL with pgvector; compose.yaml and .env backed up first; secrets generated without printing |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ✅ | Hub card in apps.js and <noscript> (anaslabs-src 4fcfb48); hub rebuilt, Sablier restarted |
-| P6 | Live at `yield-guardian.anaslabs.com` | PC | 🟡 | API live at https://yield-guardian.anaslabs.com (/api/v1/ready answers, database ok, wakes in about 10 s); web merged to main (b7f321d) and being deployed; ready turns true when the SECOM bundle and wafer service land |
+| P6 | Live at `yield-guardian.anaslabs.com` | PC | 🟡 | Live at https://yield-guardian.anaslabs.com: home and /line answer 200 (about 10 s cold wake through Sablier), API and database healthy; ready turns true when the SECOM bundle and wafer service land; remaining screens follow as they merge |
 | P7 | Security headers and CSP | Cloud | ✅ | CSP with per-request nonce, upgrade-insecure-requests only behind HTTPS, security headers; merged (b7f321d) |
 
 ### Q: Quality
