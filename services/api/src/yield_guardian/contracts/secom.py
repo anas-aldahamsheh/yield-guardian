@@ -31,7 +31,7 @@ from yield_guardian.contracts.line import (
 FdcStatistic = Literal["t2", "spe"]
 SensorStatus = Literal["ok", "watch", "maintenance", "dead"]
 FeatureKind = Literal["reading", "missing_indicator"]
-Direction = Literal["higher_in_failures", "lower_in_failures"]
+Direction = Literal["higher_in_failures", "lower_in_failures", "no_difference", "not_tested"]
 
 
 class UnitPage(Contract):
@@ -162,8 +162,8 @@ class FdcContributions(Contract):
 
 class UnivariateTest(Contract):
     sensor: SensorId
-    mann_whitney_p: Probability
-    q_value: Probability
+    mann_whitney_p: Probability | None = Field(description="Null when the test was not run.")
+    q_value: Probability | None = Field(description="Null when the test was not run.")
     direction: Direction
 
 

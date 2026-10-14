@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Protocol
 
 from yield_guardian.contracts.methods import BundleInfo
 from yield_guardian.contracts.services import (
@@ -23,6 +24,17 @@ from yield_guardian.services.protocols import (
 )
 
 
+class Resource(Protocol):
+    """Something with a lifetime (database pool, job worker, replay ticker).
+
+    The app starts resources in list order when it starts and stops them in reverse order.
+    """
+
+    async def start(self) -> None: ...
+
+    async def stop(self) -> None: ...
+
+
 @dataclass(slots=True)
 class ServiceRegistry:
     settings: Settings
@@ -39,5 +51,7 @@ class ServiceRegistry:
     chat: ChatResponder | None = None
     llm: LlmAdmin | None = None
     bundles: list[BundleInfo] = field(default_factory=list)
+    resources: list[Resource] = field(default_factory=list)
+    problems: dict[str, str] = field(default_factory=dict)
     database_ok: bool | None = None
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
