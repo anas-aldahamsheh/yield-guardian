@@ -1,0 +1,251 @@
+[
+  {
+    "model_id": "DeepSeek-V4-Flash",
+    "kind": "llm",
+    "context_length": 1048576,
+    "inputs": [
+      "text"
+    ],
+    "thinks_by_default": false,
+    "reasoning_efforts": [
+      "none",
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "system_message_rule": "any position, several allowed; system or developer",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.14,
+      "output": 0.28,
+      "cache_read": 0.0028
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "DeepSeek-V4.1-Flash",
+    "kind": "vlm",
+    "context_length": 1048576,
+    "inputs": [
+      "text",
+      "image"
+    ],
+    "thinks_by_default": false,
+    "reasoning_efforts": [
+      "none",
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "system_message_rule": "any position, several allowed; system or developer",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.14,
+      "output": 0.28,
+      "cache_read": 0.0028
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "DeepSeek-V4-Flash-Vision-Exp",
+    "kind": "vlm",
+    "context_length": 1048576,
+    "inputs": [
+      "text",
+      "image"
+    ],
+    "thinks_by_default": false,
+    "reasoning_efforts": [
+      "none",
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "system_message_rule": "any position, several allowed; system or developer",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.14,
+      "output": 0.28,
+      "cache_read": 0.0028
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "MiMo-V2.6-Flash",
+    "kind": "vlm",
+    "context_length": 1048576,
+    "inputs": [
+      "text",
+      "image",
+      "audio"
+    ],
+    "thinks_by_default": true,
+    "reasoning_efforts": [
+      "none",
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "system_message_rule": "any position; developer accepted",
+    "json_schema": true,
+    "tools": true,
+    "pricing": {
+      "input": 0.14,
+      "output": 0.28,
+      "cache_read": 0.0028
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "GLM-5.3-Flash",
+    "kind": "llm",
+    "context_length": 262144,
+    "inputs": [
+      "text"
+    ],
+    "thinks_by_default": true,
+    "reasoning_efforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "system_message_rule": "any position; system only (developer is rejected)",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.15,
+      "output": 0.5,
+      "cache_read": 0.03
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "Qwen3.8-Flash-Next",
+    "kind": "vlm",
+    "context_length": 262144,
+    "inputs": [
+      "text",
+      "image"
+    ],
+    "thinks_by_default": true,
+    "reasoning_efforts": [
+      "none",
+      "low",
+      "medium",
+      "xhigh"
+    ],
+    "system_message_rule": "exactly one system message, first",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.15,
+      "output": 0.47,
+      "cache_read": 0.016
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "Qwen3.8-27B",
+    "kind": "vlm",
+    "context_length": 131072,
+    "inputs": [
+      "text",
+      "image"
+    ],
+    "thinks_by_default": true,
+    "reasoning_efforts": [
+      "low",
+      "medium",
+      "xhigh"
+    ],
+    "system_message_rule": "at most one system message, first",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.5,
+      "output": 3.0,
+      "cache_read": 0.05
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "MiniCPM5-2B",
+    "kind": "llm",
+    "context_length": 131072,
+    "inputs": [
+      "text"
+    ],
+    "thinks_by_default": false,
+    "reasoning_efforts": [],
+    "system_message_rule": "any position; system",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.124,
+      "output": 0.7425,
+      "cache_read": 0.124
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "Gemma-4-31B-IT",
+    "kind": "vlm",
+    "context_length": 262144,
+    "inputs": [
+      "text",
+      "image"
+    ],
+    "thinks_by_default": false,
+    "reasoning_efforts": [],
+    "system_message_rule": "system as the first message",
+    "json_schema": false,
+    "tools": true,
+    "pricing": {
+      "input": 0.5,
+      "output": 3.0,
+      "cache_read": 0.05
+    },
+    "available": true,
+    "profile": "documented"
+  },
+  {
+    "model_id": "MinerU2.5-Pro",
+    "kind": "ocr",
+    "context_length": null,
+    "inputs": [
+      "document",
+      "image"
+    ],
+    "thinks_by_default": null,
+    "reasoning_efforts": [],
+    "system_message_rule": "not applicable",
+    "json_schema": false,
+    "tools": false,
+    "pricing": null,
+    "available": true,
+    "profile": "documented"
+  }
+]

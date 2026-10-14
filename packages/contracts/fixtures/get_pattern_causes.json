@@ -1,0 +1,115 @@
+{
+  "framing": "Hypotheses to check, drawn from published literature; not conclusions about this fab.",
+  "causes": [
+    {
+      "label": "Center",
+      "hypothesis": "Example hypothesis for Center (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Donut",
+      "hypothesis": "Example hypothesis for Donut (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Loc",
+      "hypothesis": "Example hypothesis for Edge-Loc (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Ring",
+      "hypothesis": "Example hypothesis for Edge-Ring (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Loc",
+      "hypothesis": "Example hypothesis for Loc (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Near-full",
+      "hypothesis": "Example hypothesis for Near-full (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Random",
+      "hypothesis": "Example hypothesis for Random (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    },
+    {
+      "label": "Scratch",
+      "hypothesis": "Example hypothesis for Scratch (synthetic fixture).",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "src_fixture_1",
+          "quote": "Example quote for interface development.",
+          "location": "p. 1"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "src_fixture_1",
+      "title": "Example source title (synthetic fixture)",
+      "authors": [
+        "Example A."
+      ],
+      "venue": "Synthetic fixture",
+      "year": null,
+      "doi": null,
+      "url": null,
+      "open_access": true
+    }
+  ]
+}

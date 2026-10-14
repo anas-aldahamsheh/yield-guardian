@@ -1,0 +1,426 @@
+{
+  "bundle": {
+    "name": "secom",
+    "version": "v1",
+    "created_at": "2026-10-13T23:48:00Z",
+    "git_commit": "0000000000000000000000000000000000000000"
+  },
+  "blocks": [
+    {
+      "block": "train",
+      "start": "2008-07-19T17:04:05.311404Z",
+      "end": "2008-08-06T20:45:36.802465Z",
+      "units": 360,
+      "failures": 24
+    },
+    {
+      "block": "validation",
+      "start": "2008-08-06T20:56:39.069729Z",
+      "end": "2008-08-13T05:09:31.803233Z",
+      "units": 120,
+      "failures": 9
+    },
+    {
+      "block": "test",
+      "start": "2008-08-13T05:42:59.539150Z",
+      "end": "2008-08-20T18:10:30.952382Z",
+      "units": 120,
+      "failures": 8
+    }
+  ],
+  "models": [
+    {
+      "model": "lightgbm",
+      "label": "LightGBM (class weights, Optuna)",
+      "main": true,
+      "metrics": [
+        {
+          "metric": "pr_auc",
+          "label": "PR-AUC",
+          "estimate": {
+            "value": 0.21,
+            "ci_low": 0.12,
+            "ci_high": 0.3,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "roc_auc",
+          "label": "ROC-AUC",
+          "estimate": {
+            "value": 0.74,
+            "ci_low": 0.66,
+            "ci_high": 0.82,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "brier",
+          "label": "Brier score",
+          "estimate": {
+            "value": 0.055,
+            "ci_low": 0.045,
+            "ci_high": 0.065,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        }
+      ]
+    },
+    {
+      "model": "logistic_regression",
+      "label": "Logistic regression (L2)",
+      "main": false,
+      "metrics": [
+        {
+          "metric": "pr_auc",
+          "label": "PR-AUC",
+          "estimate": {
+            "value": 0.14,
+            "ci_low": 0.05,
+            "ci_high": 0.23,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "roc_auc",
+          "label": "ROC-AUC",
+          "estimate": {
+            "value": 0.68,
+            "ci_low": 0.6,
+            "ci_high": 0.76,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "brier",
+          "label": "Brier score",
+          "estimate": {
+            "value": 0.059,
+            "ci_low": 0.049,
+            "ci_high": 0.069,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        }
+      ]
+    },
+    {
+      "model": "random_forest",
+      "label": "Balanced random forest",
+      "main": false,
+      "metrics": [
+        {
+          "metric": "pr_auc",
+          "label": "PR-AUC",
+          "estimate": {
+            "value": 0.16,
+            "ci_low": 0.07,
+            "ci_high": 0.25,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "roc_auc",
+          "label": "ROC-AUC",
+          "estimate": {
+            "value": 0.7,
+            "ci_low": 0.62,
+            "ci_high": 0.78,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "brier",
+          "label": "Brier score",
+          "estimate": {
+            "value": 0.061,
+            "ci_low": 0.051,
+            "ci_high": 0.071,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        }
+      ]
+    },
+    {
+      "model": "prevalence",
+      "label": "No skill (prevalence)",
+      "main": false,
+      "metrics": [
+        {
+          "metric": "pr_auc",
+          "label": "PR-AUC",
+          "estimate": {
+            "value": 0.062,
+            "ci_low": 0.0,
+            "ci_high": 0.152,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "roc_auc",
+          "label": "ROC-AUC",
+          "estimate": {
+            "value": 0.5,
+            "ci_low": 0.42,
+            "ci_high": 0.58,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        },
+        {
+          "metric": "brier",
+          "label": "Brier score",
+          "estimate": {
+            "value": 0.058,
+            "ci_low": 0.048,
+            "ci_high": 0.068,
+            "ci_level": 0.95,
+            "method": "stratified bootstrap, 2000 resamples",
+            "n": 307,
+            "note": null
+          }
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "baseline": "logistic_regression",
+      "metric": "pr_auc",
+      "difference": {
+        "value": 0.07,
+        "ci_low": 0.01,
+        "ci_high": 0.13,
+        "ci_level": 0.95,
+        "method": "paired bootstrap, 2000 resamples",
+        "n": 307,
+        "note": null
+      },
+      "p_value": 0.03
+    },
+    {
+      "baseline": "random_forest",
+      "metric": "pr_auc",
+      "difference": {
+        "value": 0.05,
+        "ci_low": -0.02,
+        "ci_high": 0.12,
+        "ci_level": 0.95,
+        "method": "paired bootstrap, 2000 resamples",
+        "n": 307,
+        "note": null
+      },
+      "p_value": 0.11
+    },
+    {
+      "baseline": "prevalence",
+      "metric": "pr_auc",
+      "difference": {
+        "value": 0.148,
+        "ci_low": 0.068,
+        "ci_high": 0.228,
+        "ci_level": 0.95,
+        "method": "paired bootstrap, 2000 resamples",
+        "n": 307,
+        "note": null
+      },
+      "p_value": 0.002
+    }
+  ],
+  "calibration": {
+    "method": "platt",
+    "a": -1.02,
+    "b": 0.31,
+    "brier": {
+      "value": 0.055,
+      "ci_low": 0.044,
+      "ci_high": 0.066,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 307,
+      "note": null
+    },
+    "ece": {
+      "value": 0.021,
+      "ci_low": 0.009,
+      "ci_high": 0.033,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 307,
+      "note": null
+    },
+    "bins": [
+      {
+        "bin": 0,
+        "mean_predicted": 0.02,
+        "observed_rate": 0.026,
+        "units": 31
+      },
+      {
+        "bin": 1,
+        "mean_predicted": 0.05,
+        "observed_rate": 0.036,
+        "units": 31
+      },
+      {
+        "bin": 2,
+        "mean_predicted": 0.08,
+        "observed_rate": 0.073,
+        "units": 31
+      },
+      {
+        "bin": 3,
+        "mean_predicted": 0.11,
+        "observed_rate": 0.084,
+        "units": 31
+      },
+      {
+        "bin": 4,
+        "mean_predicted": 0.14,
+        "observed_rate": 0.143,
+        "units": 31
+      },
+      {
+        "bin": 5,
+        "mean_predicted": 0.17,
+        "observed_rate": 0.155,
+        "units": 31
+      },
+      {
+        "bin": 6,
+        "mean_predicted": 0.2,
+        "observed_rate": 0.185,
+        "units": 31
+      },
+      {
+        "bin": 7,
+        "mean_predicted": 0.23,
+        "observed_rate": 0.222,
+        "units": 31
+      },
+      {
+        "bin": 8,
+        "mean_predicted": 0.26,
+        "observed_rate": 0.255,
+        "units": 31
+      },
+      {
+        "bin": 9,
+        "mean_predicted": 0.29,
+        "observed_rate": 0.315,
+        "units": 31
+      }
+    ],
+    "caveat": "Few failures per bin, so the reliability diagram has wide uncertainty; bins hold equal numbers of units."
+  },
+  "tuning": {
+    "sampler": "Optuna TPE, seed 20261014",
+    "trials": 80,
+    "objective": "mean average precision over rolling-origin folds",
+    "best_value": 0.19,
+    "best_params": {
+      "num_leaves": 7,
+      "learning_rate": 0.03,
+      "min_child_samples": 40,
+      "feature_fraction": 0.3,
+      "lambda_l2": 8.0
+    },
+    "folds": [
+      {
+        "fold": 0,
+        "train_units": 150,
+        "validation_start": "2008-07-26T21:08:57.423442Z",
+        "validation_end": "2008-07-29T10:24:08.873253Z",
+        "validation_units": 50,
+        "validation_failures": 3,
+        "average_precision": 0.15
+      },
+      {
+        "fold": 1,
+        "train_units": 200,
+        "validation_start": "2008-07-29T13:19:04.702001Z",
+        "validation_end": "2008-07-31T14:33:47.685060Z",
+        "validation_units": 50,
+        "validation_failures": 4,
+        "average_precision": 0.17
+      },
+      {
+        "fold": 2,
+        "train_units": 250,
+        "validation_start": "2008-07-31T16:05:42.052958Z",
+        "validation_end": "2008-08-03T03:49:09.771145Z",
+        "validation_units": 50,
+        "validation_failures": 3,
+        "average_precision": 0.19
+      },
+      {
+        "fold": 3,
+        "train_units": 300,
+        "validation_start": "2008-08-03T05:56:17.923750Z",
+        "validation_end": "2008-08-06T03:24:52.084848Z",
+        "validation_units": 50,
+        "validation_failures": 4,
+        "average_precision": 0.21
+      }
+    ]
+  },
+  "fdc": {
+    "holdout_units": 75,
+    "false_alarm_rate_99": {
+      "value": 0.013,
+      "ci_low": 0.0,
+      "ci_high": 0.026,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 75,
+      "note": null
+    },
+    "false_alarm_rate_999": {
+      "value": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.02,
+      "ci_level": 0.95,
+      "method": "stratified bootstrap, 2000 resamples",
+      "n": 75,
+      "note": null
+    },
+    "ewma": "lambda 0.2, L 2.86; in-control ARL 370",
+    "cusum": "k 0.5, h 4.77; in-control ARL 370"
+  },
+  "limitations": [
+    "Synthetic fixture for interface development; not a measured result.",
+    "SECOM sensors are anonymous, so groups are reported by ID only.",
+    "SECOM has no drift labels; FDC alarms are validated by false-alarm rate only."
+  ]
+}

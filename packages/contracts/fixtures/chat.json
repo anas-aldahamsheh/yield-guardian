@@ -1,0 +1,131 @@
+[
+  {
+    "type": "route",
+    "route": "deterministic",
+    "intent": "unit_risk",
+    "model_id": null
+  },
+  {
+    "type": "tool",
+    "tool": "get_risk",
+    "arguments": {
+      "unit_id": 443
+    }
+  },
+  {
+    "type": "citation",
+    "evidence": {
+      "evidence_id": "E1",
+      "investigation_id": null,
+      "tool": "get_risk",
+      "arguments": {
+        "unit_id": 443
+      },
+      "data": {
+        "unit_id": 443,
+        "block": "validation",
+        "risk": 0.184,
+        "risk_source": "validation",
+        "risk_band": "high",
+        "operating_point": {
+          "id": "fpr_0.05",
+          "label": "5% false-alarm rate",
+          "threshold": 0.15
+        },
+        "above_threshold": true,
+        "calibration": "platt",
+        "note": null
+      },
+      "summary": "Unit 443: risk 18.4% (high).",
+      "created_at": "2026-10-13T23:48:00Z",
+      "source": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      }
+    }
+  },
+  {
+    "type": "token",
+    "text": "Unit "
+  },
+  {
+    "type": "token",
+    "text": "443 "
+  },
+  {
+    "type": "token",
+    "text": "has "
+  },
+  {
+    "type": "token",
+    "text": "a "
+  },
+  {
+    "type": "token",
+    "text": "calibrated "
+  },
+  {
+    "type": "token",
+    "text": "failure "
+  },
+  {
+    "type": "token",
+    "text": "risk "
+  },
+  {
+    "type": "token",
+    "text": "of "
+  },
+  {
+    "type": "token",
+    "text": "18.4% "
+  },
+  {
+    "type": "token",
+    "text": "[E1], "
+  },
+  {
+    "type": "token",
+    "text": "above "
+  },
+  {
+    "type": "token",
+    "text": "the "
+  },
+  {
+    "type": "token",
+    "text": "threshold "
+  },
+  {
+    "type": "token",
+    "text": "of "
+  },
+  {
+    "type": "token",
+    "text": "the "
+  },
+  {
+    "type": "token",
+    "text": "5% "
+  },
+  {
+    "type": "token",
+    "text": "false-alarm "
+  },
+  {
+    "type": "token",
+    "text": "operating "
+  },
+  {
+    "type": "token",
+    "text": "point. "
+  },
+  {
+    "type": "done",
+    "usage": null,
+    "numbers_checked": 1,
+    "numbers_unverified": []
+  }
+]

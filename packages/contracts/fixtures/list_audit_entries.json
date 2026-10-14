@@ -1,0 +1,79 @@
+{
+  "items": [
+    {
+      "audit_id": 6,
+      "at": "2026-10-13T23:43:00Z",
+      "actor_role": "engineer",
+      "actor_name": "Guest engineer",
+      "action": "work_order.created",
+      "target_kind": "work_order",
+      "target_id": "WO-000012",
+      "details": {
+        "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+      }
+    },
+    {
+      "audit_id": 5,
+      "at": "2026-10-13T23:43:00Z",
+      "actor_role": "engineer",
+      "actor_name": "Guest engineer",
+      "action": "investigation.approved",
+      "target_kind": "investigation",
+      "target_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "details": {
+        "actions": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "audit_id": 4,
+      "at": "2026-10-13T23:39:00Z",
+      "actor_role": "system",
+      "actor_name": null,
+      "action": "investigation.created",
+      "target_kind": "investigation",
+      "target_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "details": {
+        "trigger": "AL-443-t2"
+      }
+    },
+    {
+      "audit_id": 3,
+      "at": "2026-10-13T23:35:40Z",
+      "actor_role": "engineer",
+      "actor_name": "Guest engineer",
+      "action": "session.guest",
+      "target_kind": "session",
+      "target_id": "guest",
+      "details": {}
+    },
+    {
+      "audit_id": 2,
+      "at": "2026-10-13T23:29:00Z",
+      "actor_role": "engineer",
+      "actor_name": "Guest engineer",
+      "action": "work_order.updated",
+      "target_kind": "work_order",
+      "target_id": "WO-000011",
+      "details": {
+        "status": "done"
+      }
+    },
+    {
+      "audit_id": 1,
+      "at": "2026-10-13T23:24:00Z",
+      "actor_role": "admin",
+      "actor_name": "admin",
+      "action": "role.updated",
+      "target_kind": "role",
+      "target_id": "verifier",
+      "details": {
+        "model_id": "GLM-5.3-Flash"
+      }
+    }
+  ],
+  "next_cursor": null,
+  "total": 6
+}

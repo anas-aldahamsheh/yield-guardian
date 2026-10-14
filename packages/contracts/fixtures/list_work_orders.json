@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "work_order_id": "WO-000012",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
+      "title": "Inspect the tool behind S060 and S061 (unit 443)",
+      "status": "open",
+      "created_at": "2026-10-13T23:43:00Z",
+      "updated_at": "2026-10-13T23:43:00Z",
+      "created_by": "Guest engineer",
+      "actions": [
+        {
+          "action": "Inspect the tool behind sensors S060 and S061 before the next lot.",
+          "rationale": "They dominate the T\u00b2 excursion and form the most important significant group.",
+          "evidence_ids": [
+            "E2",
+            "E4"
+          ]
+        },
+        {
+          "action": "Hold the unit for an extra electrical test.",
+          "rationale": "Its risk is above the operating threshold.",
+          "evidence_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "note": "Tool check booked for the next shift.",
+      "outcome": null,
+      "outcome_confirmed": false
+    },
+    {
+      "work_order_id": "WO-000011",
+      "investigation_id": "inv_01jae2kq0c4w6f8h1j3m5n7p9r",
+      "title": "Review the edge exposure on lot lot47542",
+      "status": "done",
+      "created_at": "2026-10-13T22:42:20Z",
+      "updated_at": "2026-10-13T23:29:00Z",
+      "created_by": "Guest engineer",
+      "actions": [
+        {
+          "action": "Review the edge bead removal step for lot lot47542.",
+          "rationale": "Edge-Ring is above the expected rate in this lot.",
+          "evidence_ids": [
+            "E1"
+          ]
+        }
+      ],
+      "note": null,
+      "outcome": "Synthetic fixture outcome.",
+      "outcome_confirmed": true
+    }
+  ],
+  "next_cursor": null,
+  "total": 2
+}

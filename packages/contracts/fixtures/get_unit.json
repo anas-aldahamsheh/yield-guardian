@@ -1,0 +1,78 @@
+{
+  "unit_id": 443,
+  "sequence": 471,
+  "timestamp": "2008-08-12T19:35:01.983569Z",
+  "block": "validation",
+  "risk": 0.184,
+  "risk_source": "validation",
+  "risk_band": "high",
+  "t2": 35.8,
+  "spe": 47.6,
+  "fdc_alarm": "alarm",
+  "fdc_period": "monitoring",
+  "ewma_alarm": false,
+  "cusum_alarm": false,
+  "final_test": null,
+  "risk_detail": {
+    "unit_id": 443,
+    "block": "validation",
+    "risk": 0.184,
+    "risk_source": "validation",
+    "risk_band": "high",
+    "operating_point": {
+      "id": "fpr_0.05",
+      "label": "5% false-alarm rate",
+      "threshold": 0.15
+    },
+    "above_threshold": true,
+    "calibration": "platt",
+    "note": null
+  },
+  "sensors_measured": 561,
+  "sensors_missing": 29,
+  "explanation_available": true,
+  "alarms": [
+    {
+      "alarm_id": "AL-443-risk",
+      "unit_id": 443,
+      "sequence": 471,
+      "timestamp": "2008-08-12T19:35:01.983569Z",
+      "kind": "risk",
+      "severity": "alarm",
+      "value": 0.184,
+      "limit": 0.15,
+      "message": "Failure risk 18.4% is above the 5% false-alarm rate threshold.",
+      "status": "open",
+      "investigation_id": null
+    },
+    {
+      "alarm_id": "AL-443-t2",
+      "unit_id": 443,
+      "sequence": 471,
+      "timestamp": "2008-08-12T19:35:01.983569Z",
+      "kind": "t2",
+      "severity": "alarm",
+      "value": 35.8,
+      "limit": 32.9,
+      "message": "T\u00b2 35.8 is beyond the 99.9% limit 32.9.",
+      "status": "investigating",
+      "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+    },
+    {
+      "alarm_id": "AL-443-spe",
+      "unit_id": 443,
+      "sequence": 471,
+      "timestamp": "2008-08-12T19:35:01.983569Z",
+      "kind": "spe",
+      "severity": "warning",
+      "value": 47.6,
+      "limit": 41.0,
+      "message": "SPE 47.6 is beyond the 99% limit 41.0.",
+      "status": "open",
+      "investigation_id": null
+    }
+  ],
+  "investigation_ids": [
+    "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "results": [
+    {
+      "role": "investigator",
+      "model_id": "DeepSeek-V4.1-Flash",
+      "task_set": "tool_calls_v1",
+      "tasks": 24,
+      "success_rate": {
+        "value": 0.88,
+        "ci_low": 0.76,
+        "ci_high": 1.0,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 24,
+        "note": null
+      },
+      "violations": 1,
+      "latency_ms_p50": 2300.0,
+      "tokens_in": 81000,
+      "tokens_out": 6900,
+      "points": 0.0133,
+      "run_at": "2026-10-13T21:39:00Z"
+    },
+    {
+      "role": "investigator",
+      "model_id": "GLM-5.3-Flash",
+      "task_set": "tool_calls_v1",
+      "tasks": 24,
+      "success_rate": {
+        "value": 0.79,
+        "ci_low": 0.64,
+        "ci_high": 0.94,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 24,
+        "note": null
+      },
+      "violations": 3,
+      "latency_ms_p50": 3900.0,
+      "tokens_in": 80400,
+      "tokens_out": 9100,
+      "points": 0.0166,
+      "run_at": "2026-10-13T21:40:40Z"
+    },
+    {
+      "role": "writer",
+      "model_id": "MiMo-V2.6-Flash",
+      "task_set": "report_faithfulness_v1",
+      "tasks": 12,
+      "success_rate": {
+        "value": 0.92,
+        "ci_low": 0.82,
+        "ci_high": 1.0,
+        "ci_level": 0.95,
+        "method": "stratified bootstrap, 2000 resamples",
+        "n": 12,
+        "note": null
+      },
+      "violations": 1,
+      "latency_ms_p50": 4100.0,
+      "tokens_in": 73000,
+      "tokens_out": 9700,
+      "points": 0.0129,
+      "run_at": "2026-10-13T21:42:20Z"
+    }
+  ],
+  "note": "Synthetic fixture for interface development; not a measured result."
+}
