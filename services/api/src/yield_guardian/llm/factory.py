@@ -53,7 +53,7 @@ def key_configured(settings: Settings) -> bool:
     return key is not None and bool(key.get_secret_value().strip())
 
 
-async def build_llm_stack(
+def assemble_llm_stack(
     settings: Settings,
     *,
     http: httpx.AsyncClient | None = None,
@@ -62,10 +62,9 @@ async def build_llm_stack(
     assignments: RoleAssignmentStore | None = None,
     route_log: RouteLog | None = None,
     evaluations: EvaluationStore | None = None,
-    sync_catalog: bool = True,
 ) -> LlmStack:
-    """Build the stack; with a key, read the live catalog once (``GET /v1/models``) so role
-    validation knows which models are served, then load the stored role assignments."""
+    """Build the stack without any I/O (no call, no store read): for synchronous startup code.
+    Call ``await stack.registry.load()`` before serving, to apply the stored role assignments."""
     has_key = key_configured(settings)
     client = TokenFactoryClient(
         api_key=settings.token_factory_api_key,
@@ -91,9 +90,6 @@ async def build_llm_stack(
         key_configured=has_key,
         list_models=client.list_models if has_key else None,
     )
-    if sync_catalog:
-        await admin.sync_catalog()
-    await registry.load()
     return LlmStack(
         client=client,
         catalog=catalog,
@@ -106,3 +102,31 @@ async def build_llm_stack(
         gateway=gateway,
         admin=admin,
     )
+
+
+async def build_llm_stack(
+    settings: Settings,
+    *,
+    http: httpx.AsyncClient | None = None,
+    cache: ResponseCache | None = None,
+    call_log: LlmCallLog | None = None,
+    assignments: RoleAssignmentStore | None = None,
+    route_log: RouteLog | None = None,
+    evaluations: EvaluationStore | None = None,
+    sync_catalog: bool = True,
+) -> LlmStack:
+    """Build the stack; with a key, read the live catalog once (``GET /v1/models``) so role
+    validation knows which models are served, then load the stored role assignments."""
+    stack = assemble_llm_stack(
+        settings,
+        http=http,
+        cache=cache,
+        call_log=call_log,
+        assignments=assignments,
+        route_log=route_log,
+        evaluations=evaluations,
+    )
+    if sync_catalog:
+        await stack.admin.sync_catalog()
+    await stack.registry.load()
+    return stack
