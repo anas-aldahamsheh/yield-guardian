@@ -40,7 +40,7 @@ export function LineView() {
             </span>
           ) : null
         }
-        actions={<ConnectionStatus connection={connection} />}
+        actions={<ConnectionStatus connection={connection} hasState={state != null} />}
       />
 
       {query.isError && !state ? (

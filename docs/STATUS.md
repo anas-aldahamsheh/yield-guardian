@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:32 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:52 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 64 of 86 done (74%), 5 in progress, 17 not started
+## Progress: 71 of 86 done (83%), 9 in progress, 6 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -13,9 +13,9 @@
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
 | K: Knowledge base | 3 of 3 | 0 | 0 |
-| A: API | 8 of 9 | 0 | 1 |
-| L: AI layer | 10 of 11 | 0 | 1 |
-| U: Interface | 4 of 14 | 1 | 9 |
+| A: API | 8 of 9 | 1 | 0 |
+| L: AI layer | 10 of 11 | 1 | 0 |
+| U: Interface | 11 of 14 | 3 | 0 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 1 of 5 | 1 | 3 |
 | X: Submission | 1 of 6 | 2 | 3 |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 64 of 86 |
+| Done | 71 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -125,11 +125,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|---|---|
 | A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ✅ | App factory, settings, logs, problem+json, health and readiness (37e271d); resources start and stop with the app (a99afd3); at startup the newest verified bundle is loaded and /ready names any reason it could not be (f224cec) |
 | A2 | Database schema and Alembic migrations | Cloud | ✅ | Migrations 0001 (sessions, investigations, jobs, work orders, audit, alarm states) and 0002 (model calls, response cache, role choices, chat routes, evaluations, knowledge chunks with full-text search); tested on PostgreSQL with pgvector (d89d6b0) |
-| A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
+| A3 | Idempotent seed from verified artifacts | Cloud | 🟡 | Recorded runs are exported and imported with scripts/import_recorded.py; the API imports missing runs at startup from docs/recorded (code merged ffe9da1, nothing recorded yet) |
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ✅ | Wafer service on the real bundle: ONNX on CPU (parity 0.9986 top-label agreement with the training run), Mahalanobis unknown score, cosine similar-wafer search, lots, measured metrics; 31 tests (merged 5f5c5dd) |
-| A7 | REST endpoints for every screen | Cloud | ✅ | All 47 routes answer from real services: SECOM, wafer, investigations, chat, knowledge, model admin (578712c) |
+| A7 | REST endpoints for every screen | Cloud | ✅ | All routes answer from real services, now including /results and /methods, filled from the loaded bundles' own evaluations (7144b67) |
 | A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ✅ | Guest and admin sessions (only token hashes stored), scrypt admin hash, CSRF, logout; failed logins never lock the account (D-009); tested through the routes (b8ae0b3) |
 | A9 | Work orders and audit log | Cloud | ✅ | Work orders, audit log with filters and pages, alarm states, investigation store with a PostgreSQL job queue; tested (b8ae0b3) |
 
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | ⏳ | Costs points; run once |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Recorder ready: picks alarms from the held-out test block, refuses without --confirm (ffe9da1). Waiting on your go-ahead to spend points; upper bound about 3 points per run |
 
 ### U: Interface
 
@@ -158,15 +158,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U3 | 3D wafer: instanced dies from real maps, thin-film shader, step-and-scan reveal | Cloud | ✅ | 3D wafer with thin-film shader and SVG fallback; merged (b7f321d) |
 | U4 | Home page with measured results | Cloud | ✅ | Home page with measured results; merged (b7f321d) |
 | U5 | Line screen | Cloud | ✅ | Line screen: live charts with one cursor, KPIs, open alarms, units table, reconnecting socket; merged (b7f321d) |
-| U6 | Investigation screen | Cloud | ⏳ | |
-| U7 | Wafer lab | Cloud | ⏳ | |
-| U8 | Lots and 3D lot stack | Cloud | ⏳ | |
-| U9 | Sensor health | Cloud | ⏳ | |
-| U10 | Work orders and audit log | Cloud | ⏳ | |
-| U11 | Models page | Cloud | ⏳ | |
-| U12 | Methods page and model cards | Cloud | ⏳ | |
-| U13 | Empty, loading and error states | Cloud | ⏳ | |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | ⏳ | |
+| U6 | Investigation screen | Cloud | ✅ | Investigations list and detail with live events, approve or reject, work order; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U7 | Wafer lab | Cloud | ✅ | Wafer lab: pattern, Mahalanobis unknown score, similar wafers; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U8 | Lots and 3D lot stack | Cloud | ✅ | Lots list and lot page with a 3D cassette stack; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U9 | Sensor health | Cloud | ✅ | Field of all 590 sensors, series against the reference band, weekly missingness, per-sensor tests; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U10 | Work orders and audit log | Cloud | ✅ | Work orders, outcome form, audit log with filters; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
+| U13 | Empty, loading and error states | Cloud | 🟡 | Empty, loading and not-ready states on every screen, checked against an API that answers 503; one more pass after the design work |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | Design helper: visual system, type, motion module, page transitions, live-line motion, 3D polish, light and dark, accessibility and performance budget (branch w1/design) |
 
 ### P: Packaging and deployment
 
@@ -205,12 +205,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
+| 2026-10-14 11:52 | Merged the remaining screens U6 to U12 and the engineer chat sheet; the line screen leads with control charts, risk is labelled experimental (72c1e9d) |
+| 2026-10-14 11:48 | Methods service: home page results and the methods page now show the bundles' measured numbers. Merged W4: recorder, evaluation import, router scope rules (ffe9da1) |
 | 2026-10-14 | Put the Token Factory key in `.env` on your PC when asked | The key never goes through chat or the repository |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:36 | Owner found the interface visually weak: a dedicated design helper started on the visual system, motion and 3D (U14), in parallel with worker 5's screens |
 | 2026-10-14 11:32 | Model evaluation run once with the owner's approval (L10 done): router 0.857, verifier 1.000, 0.0019 points. Statistics tests against known values (Q1 done) |
 | 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
 | 2026-10-14 11:09 | Literature on wafer-pattern causes checked and extended (K1, K3 done); a wrong attribution in one quote was corrected |
