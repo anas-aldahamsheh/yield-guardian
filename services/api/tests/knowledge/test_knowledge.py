@@ -225,7 +225,7 @@ async def test_pattern_causes_filter_by_label_with_their_sources() -> None:
     cited = {q.source_id for c in scratch.causes for q in c.quotes}
     assert {s.source_id for s in scratch.sources} == cited
     assert len(everything.causes) > len(scratch.causes)
-    assert (await knowledge.pattern_causes("Near-full")).causes == []
+    assert (await knowledge.pattern_causes("none")).causes == []
 
 
 async def test_a_reviewed_corpus_document_is_searchable(tmp_path: Path) -> None:

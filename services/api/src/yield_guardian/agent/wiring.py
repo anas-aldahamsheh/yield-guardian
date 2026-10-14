@@ -7,6 +7,12 @@ when the app starts, applies the stored role assignments, opens the investigatio
 (Postgres when DATABASE_URL is set, memory otherwise) and sets ``registry.chat`` and
 ``registry.runner``.
 
+With a database (``sessions`` given), the call log, response cache, role assignments, chat
+routes and evaluations are the PostgreSQL stores of ``llm.dbstores``, so usage and role choices
+survive a restart, and a :class:`KnowledgeResource` moves the literature search to PostgreSQL
+full-text search. Both resources are placed after the database (which migrates first) and
+before the job worker (which calls ``registry.runner``).
+
 Startup makes no Token Factory call: the live model catalog is not read here (it would be a
 network call to the endpoint before anyone asked for one). Nothing here limits, delays or
 refuses calls (PLAN D-009).
@@ -33,9 +39,19 @@ from yield_guardian.contracts.services import (
     WaferService,
 )
 from yield_guardian.core.settings import Settings
+from yield_guardian.knowledge.postgres import PostgresFullTextIndex
 from yield_guardian.knowledge.service import KnowledgeError, LiteratureKnowledge
+from yield_guardian.llm.dbstores import (
+    DbCallLog,
+    DbEvaluationStore,
+    DbResponseCache,
+    DbRoleAssignmentStore,
+    DbRouteLog,
+    Sessions,
+)
 from yield_guardian.llm.factory import LlmStack, assemble_llm_stack, key_configured
-from yield_guardian.services.registry import ServiceRegistry
+from yield_guardian.services.jobs import JobWorker
+from yield_guardian.services.registry import Resource, ServiceRegistry
 
 log = structlog.get_logger(__name__)
 
@@ -109,11 +125,23 @@ class AgentResource:
         await saver.setup()
         return saver
 
-    async def start(self) -> None:
+    async def _load_roles(self) -> None:
         try:
             warnings = await self.stack.registry.load()
-            if warnings:
-                self.registry.problems["llm_roles"] = "; ".join(warnings)
+        except Exception as error:
+            # The default chains serve; the stored choices apply on the next start.
+            reason = f"stored role assignments not read ({type(error).__name__}: {error})"
+            self.registry.problems["llm_roles"] = reason[:300]
+            log.warning("llm_roles_not_loaded", reason=reason[:300])
+            return
+        if warnings:
+            self.registry.problems["llm_roles"] = "; ".join(warnings)
+        else:
+            self.registry.problems.pop("llm_roles", None)
+
+    async def start(self) -> None:
+        try:
+            await self._load_roles()
             self.registry.chat = ChatAnswerer(
                 gateway=self.stack.gateway,
                 services=science_services(self.registry),
@@ -157,17 +185,74 @@ def install_knowledge(registry: ServiceRegistry, directory: Path | None = None) 
         log.info("knowledge_loaded", directory=str(path))
 
 
-def install_agent(registry: ServiceRegistry, settings: Settings) -> AgentResource | None:
+KNOWLEDGE_IN_MEMORY = "literature search runs in memory: the database copy failed"
+
+
+class KnowledgeResource:
+    """Copies the knowledge chunks into PostgreSQL at startup and searches them there."""
+
+    def __init__(self, registry: ServiceRegistry, sessions: Sessions) -> None:
+        self.registry = registry
+        self.sessions = sessions
+
+    async def start(self) -> None:
+        knowledge = self.registry.knowledge
+        if not isinstance(knowledge, LiteratureKnowledge):
+            return
+        index = PostgresFullTextIndex(self.sessions)
+        try:
+            stored = await index.sync(knowledge.documents)
+        except Exception as error:
+            reason = f"{KNOWLEDGE_IN_MEMORY} ({type(error).__name__}: {error})"[:300]
+            self.registry.problems["knowledge_search"] = reason
+            log.warning("knowledge_search_in_memory", reason=reason)
+            return
+        knowledge.index = index
+        self.registry.problems.pop("knowledge_search", None)
+        log.info("knowledge_search_in_postgres", chunks=stored)
+
+    async def stop(self) -> None:
+        return None
+
+
+def add_before_jobs(registry: ServiceRegistry, resource: Resource) -> None:
+    """Start ``resource`` after the database and before the job worker."""
+    position = next(
+        (i for i, r in enumerate(registry.resources) if isinstance(r, JobWorker)),
+        len(registry.resources),
+    )
+    registry.resources.insert(position, resource)
+
+
+def assemble_stack(settings: Settings, sessions: Sessions | None) -> LlmStack:
+    if sessions is None:
+        return assemble_llm_stack(settings)
+    return assemble_llm_stack(
+        settings,
+        cache=DbResponseCache(sessions),
+        call_log=DbCallLog(sessions),
+        assignments=DbRoleAssignmentStore(sessions),
+        route_log=DbRouteLog(sessions),
+        evaluations=DbEvaluationStore(sessions),
+    )
+
+
+def install_agent(
+    registry: ServiceRegistry, settings: Settings, *, sessions: Sessions | None = None
+) -> AgentResource | None:
     """Load the knowledge base, then wire the model admin, the investigator and the chat when a
-    key is set; record why not otherwise."""
+    key is set; record why not otherwise. ``sessions`` (the database, when DATABASE_URL is set)
+    selects the PostgreSQL stores."""
     install_knowledge(registry)
+    if sessions is not None and registry.knowledge is not None:
+        add_before_jobs(registry, KnowledgeResource(registry, sessions))
     if not key_configured(settings):
         for name in ("llm", "investigator", "chat"):
             registry.problems[name] = NO_KEY
         log.info("language_models_not_configured", reason=NO_KEY)
         return None
     try:
-        stack = assemble_llm_stack(settings)
+        stack = assemble_stack(settings, sessions)
     except Exception as error:
         reason = f"{type(error).__name__}: {error}"[:300]
         for name in ("llm", "investigator", "chat"):
@@ -176,5 +261,5 @@ def install_agent(registry: ServiceRegistry, settings: Settings) -> AgentResourc
         return None
     registry.llm = stack.admin
     resource = AgentResource(registry, stack, settings)
-    registry.resources.append(resource)
+    add_before_jobs(registry, resource)
     return resource

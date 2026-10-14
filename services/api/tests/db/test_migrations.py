@@ -13,7 +13,7 @@ from tests.db.conftest import temporary_database
 from yield_guardian.db import tables  # noqa: F401
 from yield_guardian.db.base import Base
 from yield_guardian.db.engine import Database, asyncpg_dsn
-from yield_guardian.db.migrate import alembic_config
+from yield_guardian.db.migrate import alembic_config, include_name
 
 OWN_TABLES = {
     "alarm_states",
@@ -23,6 +23,12 @@ OWN_TABLES = {
     "investigations",
     "sessions",
     "work_orders",
+    "llm_calls",
+    "llm_response_cache",
+    "llm_role_assignments",
+    "chat_routes",
+    "llm_evaluations",
+    "knowledge_chunks",
 }
 
 
@@ -50,7 +56,8 @@ def test_upgrade_downgrade_upgrade() -> None:
 
 
 def _diff(connection: Connection) -> list[object]:
-    return list(compare_metadata(MigrationContext.configure(connection), Base.metadata))
+    context = MigrationContext.configure(connection, opts={"include_name": include_name})
+    return list(compare_metadata(context, Base.metadata))
 
 
 async def test_migrations_match_the_table_definitions(database_url: str) -> None:

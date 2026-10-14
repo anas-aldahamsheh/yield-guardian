@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 11:07 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:32 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 59 of 86 done (69%), 8 in progress, 19 not started
+## Progress: 64 of 86 done (74%), 5 in progress, 17 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -12,13 +12,13 @@
 | D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
 | W: Wafer maps | 10 of 10 | 0 | 0 |
-| K: Knowledge base | 1 of 3 | 2 | 0 |
+| K: Knowledge base | 3 of 3 | 0 | 0 |
 | A: API | 8 of 9 | 0 | 1 |
-| L: AI layer | 9 of 11 | 1 | 1 |
+| L: AI layer | 10 of 11 | 0 | 1 |
 | U: Interface | 4 of 14 | 1 | 9 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
-| Q: Quality | 0 of 5 | 2 | 3 |
-| X: Submission | 0 of 6 | 1 | 5 |
+| Q: Quality | 1 of 5 | 1 | 3 |
+| X: Submission | 1 of 6 | 2 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 59 of 86 |
+| Done | 64 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -115,16 +115,16 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
+| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | ✅ | 7 open-access sources, each fetched and checked; quotes kept only when two reads agree; licences in [docs/knowledge/README.md](knowledge/README.md) |
 | K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ✅ | Chunking with page and section, BM25 search, MinerU ingestion for open-access files (not run); merged (578712c) |
-| K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
+| K3 | Pattern-to-cause table with citations | Cloud | ✅ | [Pattern-to-cause table](knowledge/pattern_causes.md): 12 entries, 4 medium and 8 low evidence, cautious wording; Loc and Near-full rest on one preprint, marked low |
 
 ### A: API
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ✅ | App factory, settings, logs, problem+json, health and readiness (37e271d); resources start and stop with the app (a99afd3); at startup the newest verified bundle is loaded and /ready names any reason it could not be (f224cec) |
-| A2 | Database schema and Alembic migrations | Cloud | ✅ | SQLAlchemy models and Alembic migration 0001, applied at startup and tested on PostgreSQL 16 with pgvector; CI runs them on pgvector/pg17 (b8ae0b3) |
+| A2 | Database schema and Alembic migrations | Cloud | ✅ | Migrations 0001 (sessions, investigations, jobs, work orders, audit, alarm states) and 0002 (model calls, response cache, role choices, chat routes, evaluations, knowledge chunks with full-text search); tested on PostgreSQL with pgvector (d89d6b0) |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
@@ -146,7 +146,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L7 | Router: deterministic intents first | Cloud | ✅ | Router: rules first, model fallback with a closed intent set; injection and out-of-scope questions refused; merged (578712c) |
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
-| L10 | Model evaluation harness per role, with cost estimate | Cloud | 🟡 | Evaluation harness written (router 28 tasks, verifier 10, Wilson intervals, cost bound printed first: ≤0.02 points in total); live run waits for the owner's go-ahead |
+| L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
 | L11 | Recorded demo investigations | Cloud | ⏳ | Costs points; run once |
 
 ### U: Interface
@@ -184,7 +184,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | 🟡 | Training tests: SECOM statistics, split leakage and smoke run; wafer-map units and data; ONNX parity in the API; all green in CI |
+| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ✅ | Statistics checked against known values: bootstrap coverage on simulated truth, Benjamini-Hochberg 1995 example, exact ECE, Mann-Whitney and binomial tests equal scipy, T² and SPE limits against the formulas, join-count null mean and calibration, Wilson and Mahalanobis; no bug found, no reported number changed |
 | Q2 | API tests | Cloud | 🟡 | API: 230 tests including PostgreSQL, real-bundle tests for SECOM and wafer services; green in CI |
 | Q3 | Web tests, type check, lint | Cloud | ⏳ | |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
@@ -195,10 +195,10 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
-| X2 | Demo video script and shot list | Cloud | ⏳ | |
+| X2 | Demo video script and shot list | Cloud | 🟡 | [Video script](submission/video_script.md): 9 scenes, 185 s; screens U7 to U12 and a recorded investigation needed before recording |
 | X3 | Slide deck | Cloud | ⏳ | |
 | X4 | Cover image | Cloud | ⏳ | |
-| X5 | Submission form texts (title, short and long description, tags) | Cloud | ⏳ | |
+| X5 | Submission form texts (title, short and long description, tags) | Cloud | ✅ | [Form texts](submission/form.md): title 56 chars, short 243 chars, long 483 words, 7 tags; only measured numbers, SECOM weakness stated; checked by check_form.py |
 | X6 | Submit on lablab | You | ⏳ | |
 
 ## Waiting on you
@@ -211,6 +211,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:32 | Model evaluation run once with the owner's approval (L10 done): router 0.857, verifier 1.000, 0.0019 points. Statistics tests against known values (Q1 done) |
+| 2026-10-14 11:23 | Model usage, role choices and knowledge search now live in PostgreSQL and survive restarts (migration 0002) |
+| 2026-10-14 11:09 | Literature on wafer-pattern causes checked and extended (K1, K3 done); a wrong attribution in one quote was corrected |
 | 2026-10-14 11:07 | AI layer merged: investigator, writer, verifier, router, chat, knowledge search (L1 to L9, K2, A7 done). README written with measured results |
 | 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
 | 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |

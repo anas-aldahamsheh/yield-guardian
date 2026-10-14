@@ -1,167 +1,186 @@
 {
-  "framing": "Causes proposed in open-access papers, each quoted exactly with its location. They are hypotheses for an engineer to check against this fab's own process history, not diagnoses: the papers state them briefly, often by citing older work, and none was established on this data. No open-access source read for this table states a cause for the Loc or Near-full patterns.",
+  "framing": "These are hypotheses to check, not diagnoses. Each row is a cause that open-access papers associate with a WM-811K defect pattern, quoted exactly with its location. The papers state these links briefly, mostly by citing older work; none was tested on this fab's data, and no source read gives direct experimental evidence for a pattern-to-cause link. Confidence rates the support in the literature read: medium = stated by two or more papers that cite different earlier sources; low = stated by one paper, or by an unreviewed preprint without a citation. High is not used.",
   "causes": [
     {
       "label": "Center",
-      "hypothesis": "Associated in the literature with thin-film deposition, plasma or etching problems.",
+      "hypothesis": "Associated in several papers with problems in thin-film deposition (one adds the plasma area).",
       "confidence": "medium",
       "quotes": [
         {
           "source_id": "zheng2021",
-          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
-          "location": "1. Introduction (citing refs. 4 and 5)"
+          "quote": "Center and Edge-Ring are caused by thin film deposition and etching problems, respectively",
+          "location": "Section 1, Introduction (citing refs. 4 and 5: Piao et al. 2018; Jin et al. 2019)"
+        },
+        {
+          "source_id": "chen2023",
+          "quote": "A center often arises due to problems in the thin film deposition",
+          "location": "Section 1, Introduction (citing Wang and Bensmail 2006)"
         },
         {
           "source_id": "jeong2023",
-          "quote": "For example, the center type has the effect of problems in the plasma area or thin-film deposition,",
-          "location": "Results and discussion, Experiment, Data description (citing Hansen and Thyregod 1998, ref. 28)"
+          "quote": "the center type has the effect of problems in the plasma area or thin-film deposition",
+          "location": "Experiment, Data description (citing ref. 28: Hansen and Thyregod 1998)"
         }
       ]
     },
     {
       "label": "Center",
-      "hypothesis": "Associated with uneven mechanical polishing or abnormal liquid pressure.",
+      "hypothesis": "Associated in one paper with uneven mechanical polishing or abnormal liquid pressure.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "xu2022",
           "quote": "For example, the Center pattern means that the mechanical polishing is uneven, or the pressure of the liquid is abnormal.",
-          "location": "1. Introduction"
+          "location": "Section 1, Introduction (no citation)"
         }
       ]
     },
     {
       "label": "Center",
-      "hypothesis": "A circular, center-located pattern is associated with chemical stains or mechanical equipment faults.",
+      "hypothesis": "A circular, center-located pattern is associated in one paper with chemical stains or mechanical equipment faults.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "ezzat2020",
           "quote": "often corresponds to chemical stains or mechanical equipment faults",
-          "location": "I. Introduction (circular-shaped, center-located defect pattern)"
+          "location": "I. Introduction, about a circular-shaped, center-located pattern (citing refs. 2 and 3)"
         }
       ]
     },
     {
       "label": "Donut",
-      "hypothesis": "A center-located donut pattern is associated with possible tooling problems.",
+      "hypothesis": "A center-located donut pattern is associated in one paper with possible tooling problems.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "ezzat2020",
           "quote": "is routinely observed in wafer data due to possible tooling problems",
-          "location": "I. Introduction (center-located, donut-shaped defect pattern)"
+          "location": "I. Introduction, about a center-located, donut-shaped pattern (citing ref. 5)"
         }
       ]
     },
     {
       "label": "Edge-Loc",
-      "hypothesis": "Associated with uneven heating during the diffusion process.",
+      "hypothesis": "Associated in one paper with uneven heating during the diffusion process.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "jeong2023",
-          "quote": "and the edge-loc type has the same effect as uneven heating during the diffusion process.",
-          "location": "Results and discussion, Experiment, Data description (citing Hansen and Thyregod 1998, ref. 28)"
+          "quote": "the edge-loc type has the same effect as uneven heating during the diffusion process.",
+          "location": "Experiment, Data description (sentence citing ref. 28: Hansen and Thyregod 1998)"
         }
       ]
     },
     {
       "label": "Edge-Loc",
-      "hypothesis": "A zone-shaped, edge-located pattern is associated with uneven polishing or edge-die effects (the source describes an edge zone, which corresponds most closely to Edge-Loc).",
+      "hypothesis": "A zone-shaped, edge-located pattern (closest to Edge-Loc) is associated in one paper with uneven polishing or edge-die effects.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "ezzat2020",
           "quote": "can be traced to uneven polishing or edge-die effects",
-          "location": "I. Introduction (zone-shaped, edge-located defect pattern)"
+          "location": "I. Introduction, about a zone-shaped, edge-located pattern (citing ref. 4)"
         }
       ]
     },
     {
       "label": "Edge-Ring",
-      "hypothesis": "Associated in the literature with etching or thin-film deposition problems.",
-      "confidence": "low",
+      "hypothesis": "Associated in two papers with problems in the etching step.",
+      "confidence": "medium",
       "quotes": [
         {
           "source_id": "zheng2021",
-          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
-          "location": "1. Introduction (citing refs. 4 and 5)"
+          "quote": "Center and Edge-Ring are caused by thin film deposition and etching problems, respectively",
+          "location": "Section 1, Introduction (citing refs. 4 and 5: Piao et al. 2018; Jin et al. 2019)"
+        },
+        {
+          "source_id": "chen2023",
+          "quote": "a ring is due to problems in the etching step",
+          "location": "Section 1, Introduction (citing Wang and Bensmail 2006)"
         }
       ]
     },
     {
       "label": "Edge-Ring",
-      "hypothesis": "Associated with abnormal temperature control during annealing.",
+      "hypothesis": "Associated in one paper with abnormal temperature control during annealing.",
       "confidence": "low",
       "quotes": [
         {
           "source_id": "xu2022",
           "quote": "Abnormal temperature control during annealing may lead to an Edge-Ring pattern.",
-          "location": "1. Introduction"
+          "location": "Section 1, Introduction (no citation)"
         }
       ]
     },
     {
-      "label": "Scratch",
-      "hypothesis": "Associated with wafer handling, moving or cutting.",
-      "confidence": "medium",
+      "label": "Loc",
+      "hypothesis": "Associated, in one unreviewed preprint and without a citation, with localized contamination or particles.",
+      "confidence": "low",
       "quotes": [
         {
-          "source_id": "zheng2021",
-          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
-          "location": "1. Introduction (citing refs. 4 and 5)"
-        },
+          "source_id": "nath2025",
+          "quote": "often resulting from localized contamination or particle interference.",
+          "location": "Section III.A, Data Collection, item V (Local); no citation"
+        }
+      ]
+    },
+    {
+      "label": "Near-full",
+      "hypothesis": "Associated, in one unreviewed preprint and without a citation, with major process malfunctions or equipment failures.",
+      "confidence": "low",
+      "quotes": [
         {
-          "source_id": "xu2022",
-          "quote": "The Scratch pattern indicates an exception in the moving or cutting processes.",
-          "location": "1. Introduction"
+          "source_id": "nath2025",
+          "quote": "typically signifying major process malfunctions or equipment failures.",
+          "location": "Section III.A, Data Collection, item VI (Near-Full); no citation"
         }
       ]
     },
     {
       "label": "Random",
-      "hypothesis": "Randomly scattered failing dies are associated with ordinary process variation or a poorly controlled process environment rather than with one assignable source.",
+      "hypothesis": "Randomly scattered failing dies are associated in two papers with ordinary process variation or a poorly controlled process environment, not with one assignable source.",
       "confidence": "medium",
       "quotes": [
         {
           "source_id": "ezzat2020",
-          "quote": "since they are merely artifacts of random process variation",
-          "location": "I. Introduction (randomly scattered defective chips)"
+          "quote": "since they are merely artifacts of random process variation.",
+          "location": "I. Introduction, about randomly scattered defective chips"
         },
         {
           "source_id": "kim2024",
           "quote": "is often due to a lack of process environment management or factors that are difficult to control directly.",
-          "location": "3.2 Random Noise Filtering and Data Augmentation (about random noise, not the Random class)"
+          "location": "Section 3.2, Random Noise Filtering and Data Augmentation (about random noise, not the Random class)"
+        }
+      ]
+    },
+    {
+      "label": "Scratch",
+      "hypothesis": "Associated in several papers with wafer handling by machines, or with the moving or cutting steps.",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "zheng2021",
+          "quote": "Scratch is caused by machine handling",
+          "location": "Section 1, Introduction (citing refs. 4 and 5: Piao et al. 2018; Jin et al. 2019)"
+        },
+        {
+          "source_id": "chen2023",
+          "quote": "a scratch is a result of machine handing problems",
+          "location": "Section 1, Introduction (citing Wang and Bensmail 2006); \"handing\" is as printed"
+        },
+        {
+          "source_id": "xu2022",
+          "quote": "The Scratch pattern indicates an exception in the moving or cutting processes.",
+          "location": "Section 1, Introduction (no citation)"
         }
       ]
     }
   ],
   "sources": [
     {
-      "source_id": "ezzat2020",
-      "title": "A Graph-Theoretic Approach for Spatial Filtering and Its Impact on Mixed-type Spatial Pattern Recognition in Wafer Bin Maps",
-      "authors": [
-        "Ahmed Aziz Ezzat",
-        "Sheng Liu",
-        "Dorit S. Hochbaum",
-        "Yu Ding"
-      ],
-      "venue": "arXiv preprint arXiv:2006.13824",
-      "year": 2020,
-      "doi": null,
-      "url": "https://arxiv.org/abs/2006.13824",
-      "open_access": true
-    },
-    {
       "source_id": "zheng2021",
       "title": "A Deep Convolutional Neural Network-Based Multi-Class Image Classification for Automatic Wafer Map Failure Recognition in Semiconductor Manufacturing",
-      "authors": [
-        "Huilin Zheng",
-        "Syed Waseem Abbas Sherazi",
-        "Sang Hyeok Son",
-        "Jong Yun Lee"
-      ],
+      "authors": ["Huilin Zheng", "Syed Waseem Abbas Sherazi", "Sang Hyeok Son", "Jong Yun Lee"],
       "venue": "Applied Sciences 11(20), 9769",
       "year": 2021,
       "doi": "10.3390/app11209769",
@@ -171,11 +190,7 @@
     {
       "source_id": "xu2022",
       "title": "Improved Wafer Map Inspection Using Attention Mechanism and Cosine Normalization",
-      "authors": [
-        "Qiao Xu",
-        "Naigong Yu",
-        "Firdaous Essaf"
-      ],
+      "authors": ["Qiao Xu", "Naigong Yu", "Firdaous Essaf"],
       "venue": "Machines 10(2), 146",
       "year": 2022,
       "doi": "10.3390/machines10020146",
@@ -185,14 +200,7 @@
     {
       "source_id": "jeong2023",
       "title": "Wafer map failure pattern classification using geometric transformation-invariant convolutional neural network",
-      "authors": [
-        "Iljoo Jeong",
-        "Soo Young Lee",
-        "Keonhyeok Park",
-        "Iljeok Kim",
-        "Hyunsuk Huh",
-        "Seungchul Lee"
-      ],
+      "authors": ["Iljoo Jeong", "Soo Young Lee", "Keonhyeok Park", "Iljeok Kim", "Hyunsuk Huh", "Seungchul Lee"],
       "venue": "Scientific Reports 13, 8127",
       "year": 2023,
       "doi": "10.1038/s41598-023-34147-2",
@@ -200,16 +208,43 @@
       "open_access": true
     },
     {
+      "source_id": "chen2023",
+      "title": "Wafer defect recognition method based on multi-scale feature fusion",
+      "authors": ["Yu Chen", "Meng Zhao", "Zhenyu Xu", "Kaiyue Li", "Jing Ji"],
+      "venue": "Frontiers in Neuroscience 17, 1202985",
+      "year": 2023,
+      "doi": "10.3389/fnins.2023.1202985",
+      "url": "https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2023.1202985",
+      "open_access": true
+    },
+    {
       "source_id": "kim2024",
       "title": "Development of a Wafer Defect Pattern Classifier Using Polar Coordinate System Transformed Inputs and Convolutional Neural Networks",
-      "authors": [
-        "Moo Hyun Kim",
-        "Tae Seon Kim"
-      ],
+      "authors": ["Moo Hyun Kim", "Tae Seon Kim"],
       "venue": "Electronics 13(7), 1360",
       "year": 2024,
       "doi": "10.3390/electronics13071360",
       "url": "https://www.mdpi.com/2079-9292/13/7/1360",
+      "open_access": true
+    },
+    {
+      "source_id": "ezzat2020",
+      "title": "A Graph-Theoretic Approach for Spatial Filtering and Its Impact on Mixed-type Spatial Pattern Recognition in Wafer Bin Maps",
+      "authors": ["Ahmed Aziz Ezzat", "Sheng Liu", "Dorit S. Hochbaum", "Yu Ding"],
+      "venue": "arXiv:2006.13824 (v4); the arXiv page lists the journal DOI 10.1109/TSM.2021.3062943 (IEEE Transactions on Semiconductor Manufacturing)",
+      "year": 2021,
+      "doi": null,
+      "url": "https://arxiv.org/abs/2006.13824",
+      "open_access": true
+    },
+    {
+      "source_id": "nath2025",
+      "title": "A Comparative Analysis of Semiconductor Wafer Map Defect Detection with Image Transformer",
+      "authors": ["Sushmita Nath"],
+      "venue": "arXiv:2512.11977 (v1), preprint, not peer reviewed",
+      "year": 2025,
+      "doi": null,
+      "url": "https://arxiv.org/abs/2512.11977",
       "open_access": true
     }
   ]

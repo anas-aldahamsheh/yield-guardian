@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from yield_guardian.core.settings import Settings
 from yield_guardian.db import tables  # noqa: F401  (registers the tables on Base.metadata)
 from yield_guardian.db.base import Base
+from yield_guardian.db.migrate import include_name
 
 config = context.config
 target_metadata = Base.metadata
@@ -27,7 +28,10 @@ def _url() -> str:
 
 def _run(connection: Connection) -> None:
     context.configure(
-        connection=connection, target_metadata=target_metadata, compare_server_default=True
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_server_default=True,
+        include_name=include_name,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -43,7 +47,9 @@ async def _run_async() -> None:
 
 
 def run_offline() -> None:
-    context.configure(url=_url(), target_metadata=target_metadata, literal_binds=True)
+    context.configure(
+        url=_url(), target_metadata=target_metadata, literal_binds=True, include_name=include_name
+    )
     with context.begin_transaction():
         context.run_migrations()
 

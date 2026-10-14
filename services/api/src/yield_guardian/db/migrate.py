@@ -10,6 +10,22 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 API_ROOT = Path(__file__).resolve().parents[3]
 ALEMBIC_INI = API_ROOT / "alembic.ini"
 
+# Tables another library creates in the same database: LangGraph's AsyncPostgresSaver.setup()
+# makes and migrates its checkpoint tables itself. Autogenerate must neither drop nor diff them.
+EXTERNAL_TABLES = frozenset(
+    {"checkpoints", "checkpoint_blobs", "checkpoint_writes", "checkpoint_migrations"}
+)
+
+
+def include_name(name: str | None, type_: str, parent_names: object) -> bool:
+    """Alembic ``include_name`` hook: leave out the external tables (and their indexes)."""
+    if type_ == "table":
+        return name not in EXTERNAL_TABLES
+    if type_ == "index" and isinstance(parent_names, dict):
+        return parent_names.get("table_name") not in EXTERNAL_TABLES
+    return True
+
+
 # Held while migrating, so several API processes starting together migrate once.
 MIGRATION_LOCK_KEY = 0x59475F4D49475241  # "YG_MIGRA"
 

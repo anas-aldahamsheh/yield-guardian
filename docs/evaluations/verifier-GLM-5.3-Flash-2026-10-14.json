@@ -1,0 +1,98 @@
+{
+  "result": {
+    "role": "verifier",
+    "model_id": "GLM-5.3-Flash",
+    "task_set": "verifier-claims-v1",
+    "tasks": 10,
+    "success_rate": {
+      "value": 1.0,
+      "ci_low": 0.7224672001371109,
+      "ci_high": 1.0,
+      "ci_level": 0.95,
+      "method": "Wilson score interval",
+      "n": 10,
+      "note": "hand-written task set 'verifier-claims-v1', one call per task, cache bypassed"
+    },
+    "violations": 0,
+    "latency_ms_p50": 2542.95951401582,
+    "tokens_in": 2885,
+    "tokens_out": 469,
+    "points": 0.00066725,
+    "run_at": "2026-10-14T11:31:06.356666Z"
+  },
+  "calls": 10,
+  "calls_without_usage": 0,
+  "points_upper_bound": 0.0123886,
+  "outcomes": [
+    {
+      "task_id": "v01",
+      "success": true,
+      "violation": false,
+      "answer": "supported",
+      "expected": "supported"
+    },
+    {
+      "task_id": "v02",
+      "success": true,
+      "violation": false,
+      "answer": "not_supported",
+      "expected": "not_supported"
+    },
+    {
+      "task_id": "v03",
+      "success": true,
+      "violation": false,
+      "answer": "supported,not_supported",
+      "expected": "supported,not_supported"
+    },
+    {
+      "task_id": "v04",
+      "success": true,
+      "violation": false,
+      "answer": "supported",
+      "expected": "supported"
+    },
+    {
+      "task_id": "v05",
+      "success": true,
+      "violation": false,
+      "answer": "not_supported",
+      "expected": "not_supported"
+    },
+    {
+      "task_id": "v06",
+      "success": true,
+      "violation": false,
+      "answer": "supported",
+      "expected": "supported"
+    },
+    {
+      "task_id": "v07",
+      "success": true,
+      "violation": false,
+      "answer": "not_supported",
+      "expected": "not_supported"
+    },
+    {
+      "task_id": "v08",
+      "success": true,
+      "violation": false,
+      "answer": "supported",
+      "expected": "supported"
+    },
+    {
+      "task_id": "v09",
+      "success": true,
+      "violation": false,
+      "answer": "not_supported",
+      "expected": "not_supported"
+    },
+    {
+      "task_id": "v10",
+      "success": true,
+      "violation": false,
+      "answer": "not_supported",
+      "expected": "not_supported"
+    }
+  ]
+}
