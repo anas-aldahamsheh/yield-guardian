@@ -217,7 +217,7 @@ async def test_approval_resumes_and_ends_the_graph(respx_mock: respx.Router) -> 
     await run.run(INV, UNIT, RecordingSink())
     sink = RecordingSink()
     await run.resume(INV, decision(), sink)
-    assert sink.statuses == ["approved"]
+    assert sink.statuses == []  # the API sends approved
     (step,) = sink.steps
     assert (step.index, step.node, step.status) == (7, "decision", "completed")
     assert not await run.waiting_for_decision(INV)
@@ -231,7 +231,10 @@ async def test_rejection_is_recorded(respx_mock: respx.Router) -> None:
     await run.run(INV, UNIT, RecordingSink())
     sink = RecordingSink()
     await run.resume(INV, decision("reject"), sink)
-    assert sink.statuses == ["rejected"]
+    assert sink.statuses == []  # the API sends rejected
+    state = await run.graph.aget_state(run.config(INV))
+    assert state.values["decision"]["verdict"] == "reject"
+    assert [s.status for s in sink.steps] == ["completed"]
 
 
 async def test_a_new_runner_resumes_from_the_checkpoint(respx_mock: respx.Router) -> None:
@@ -242,7 +245,7 @@ async def test_a_new_runner_resumes_from_the_checkpoint(respx_mock: respx.Router
     assert await restarted.waiting_for_decision(INV)
     sink = RecordingSink()
     await restarted.resume(INV, decision(), sink)
-    assert sink.statuses == ["approved"]
+    assert sink.statuses == []  # the API sends approved
 
 
 async def test_resume_without_a_pause_is_a_conflict(respx_mock: respx.Router) -> None:

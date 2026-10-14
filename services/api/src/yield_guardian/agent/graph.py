@@ -20,9 +20,9 @@
   value that failed a check hidden, followed by its verification.
 * **await_decision** marks the investigation as waiting; **decision** pauses
   (:func:`langgraph.types.interrupt`) until :meth:`InvestigatorRunner.resume` delivers the
-  engineer's decision. LangGraph re-runs an interrupted node from its start when it resumes,
-  so ``decision`` does nothing before the interrupt and the waiting side effects live in
-  ``await_decision``.
+  engineer's decision, which it records (the API sends the approved or rejected status).
+  LangGraph re-runs an interrupted node from its start when it resumes, so ``decision`` does
+  nothing before the interrupt and the waiting side effects live in ``await_decision``.
 
 The model recommends; it cannot act. The engineer's decision is the only way out of the graph,
 and opening a work order happens in the API after it.
@@ -456,7 +456,8 @@ async def decision(state: InvestigationState, runtime: Runtime[GraphContext]) ->
     if record["started_at"]:
         step.started_at = datetime.fromisoformat(str(record["started_at"]))
     await step.end("completed")
-    await ctx.sink.status("approved" if decided.verdict == "approve" else "rejected")
+    # The API is the single source of the approved and rejected statuses: the graph only
+    # records the decision.
     return {"decision": decided.model_dump(mode="json")}
 
 
