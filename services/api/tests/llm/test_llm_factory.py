@@ -31,7 +31,7 @@ async def test_without_a_key_the_stack_makes_no_request(respx_mock: respx.Router
     try:
         assert not await stack.admin.live_calls_available()
         assert stack.catalog.availability("GLM-5.3-Flash") is Availability.NOT_SYNCED
-        assert stack.registry.assignment(Role.WRITER).primary.model == "MiMo-V2.6-Flash"
+        assert stack.registry.assignment(Role.WRITER).primary.model == "DeepSeek-V4.1-Flash"
         assert (await stack.admin.usage()).quota.source == "unknown"
         assert not respx_mock.calls
     finally:

@@ -67,6 +67,8 @@ VERIFIED_EFFORTS: dict[str, frozenset[str]] = {
     # The one value the docs name for MiMo ("none turns thinking off"); "low" was never verified
     # and the first live writer request with it answered 400.
     "MiMo-V2.6-Flash": frozenset({"none"}),
+    # Used live by the investigator role on DeepSeek-V4.1-Flash (plan calls, 2026-10-14).
+    "DeepSeek-V4.1-Flash": frozenset({"low"}),
     # Documented for Qwen3.8-27B; it cannot switch thinking off.
     "Qwen3.8-27B": frozenset({"low", "medium", "xhigh"}),
 }

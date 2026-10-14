@@ -211,7 +211,7 @@ Money appears only through a calculator where the engineer enters their own cost
 | Role | Default model | Why | Reasoning effort |
 |---|---|---|---|
 | Investigator (plans, calls tools) | DeepSeek-V4.1-Flash | Tool calling, 1M context, lowest price | low |
-| Report writer | MiMo-V2.6-Flash | JSON output validated in code (the live endpoint refused strict `json_schema` for MiMo on 2026-10-14) | none |
+| Report writer | DeepSeek-V4.1-Flash, then MiMo-V2.6-Flash as fallback | Speed measured live on 2026-10-14: MiMo writes about 5 tokens/s, so a report of about 2,000 tokens outlasted the 180 s writer deadline, while DeepSeek answered the plan calls in 9 to 24 s. JSON output validated in code (the endpoint refused strict `json_schema` for MiMo) | low (MiMo: none) |
 | Verifier | GLM-5.3-Flash | Different family from the writer | low |
 | Engineer chat | Qwen3.8-Flash-Next | Fast | none |
 | Router fallback | MiniCPM5-2B | Small; used only when deterministic rules cannot route | n/a |
