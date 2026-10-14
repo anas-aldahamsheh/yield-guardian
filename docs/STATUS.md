@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 17:12 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 17:25 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 17:25 | Polish: the full investigations list keeps failed recording attempts behind a "Show N failed recording attempts" button (Failed filter unchanged). Fresh-database seed checked locally: recorded_runs_seeded imported 1; the recorded run's page has no console errors in Asia/Amman or UTC |
 | 2026-10-14 17:12 | L11 and A3 done: recorded run committed (ab23908), seeded idempotently on the live site and opens as a recorded run. Live home: Lighthouse 95 / 100 / 100 / 100, no console errors. 82 of 82 |
 | 2026-10-14 17:00 | Merged 189406d (W5): event times render in UTC on the server and switch to local time after hydration, fixing React #418 on home and /investigations; verified on a production build in Asia/Amman, America/Los_Angeles and UTC. One L11 recording started on the owner's "يلا بسرعة" (writer Qwen3.8-Flash-Next first) |
 | 2026-10-14 16:50 | Live 8ba0adc: axe on home has 0 violations on desktop and mobile (target-size fixed) |
