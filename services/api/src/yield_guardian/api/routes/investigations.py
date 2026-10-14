@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Header, Path, Query, status
 from sse_starlette import EventSourceResponse
 
-from yield_guardian.api.deps import EngineerSession, Investigations
+from yield_guardian.api.deps import EngineerSession, Investigations, LiveInvestigator
 from yield_guardian.api.problems import problem_responses
 from yield_guardian.contracts.investigation import (
     DecisionCreate,
@@ -36,9 +36,13 @@ SSE_RESPONSE: dict[int | str, dict[str, Any]] = {
     responses=problem_responses(401, 403, 503),
 )
 async def create_investigation(
-    session: EngineerSession, body: InvestigationCreate, store: Investigations
+    session: EngineerSession,
+    body: InvestigationCreate,
+    store: Investigations,
+    _investigator: LiveInvestigator,
 ) -> Investigation:
     """Start a live investigation. Follow it on GET /investigations/{id}/events."""
+    # Without an investigator, LiveInvestigator answers 503 not_ready before any run exists.
     return await store.create(body.trigger, session=session)
 
 

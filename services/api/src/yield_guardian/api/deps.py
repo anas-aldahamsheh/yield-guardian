@@ -15,6 +15,7 @@ from yield_guardian.contracts.services import (
     SecomService,
     WaferService,
 )
+from yield_guardian.services.jobs import NO_RUNNER_DETAIL
 from yield_guardian.services.protocols import (
     VISITOR,
     ActiveSession,
@@ -70,6 +71,14 @@ def investigation_runner(registry: Registry) -> InvestigationRunner:
     return _need(registry.runner, "investigator")
 
 
+def live_investigator(registry: Registry) -> InvestigationRunner:
+    """The investigator, checked before a live run is created: without it the create route
+    answers 503 and leaves no run behind (the job worker would only fail it at once)."""
+    if registry.runner is None:
+        raise NotReadyError(NO_RUNNER_DETAIL)
+    return registry.runner
+
+
 def work_order_store(registry: Registry) -> WorkOrderStore:
     return _need(registry.work_orders, "work order store")
 
@@ -105,6 +114,7 @@ Sessions = Annotated[SessionManager, Depends(session_manager)]
 Methods = Annotated[MethodsService, Depends(methods_service)]
 Chat = Annotated[ChatResponder, Depends(chat_responder)]
 Llm = Annotated[LlmAdmin, Depends(llm_admin)]
+LiveInvestigator = Annotated[InvestigationRunner, Depends(live_investigator)]
 
 
 async def current_session(request: Request, registry: Registry) -> ActiveSession:

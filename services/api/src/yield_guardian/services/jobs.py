@@ -35,11 +35,11 @@ log = structlog.get_logger(__name__)
 
 RunnerProvider = Callable[[], InvestigationRunner | None]
 
+NO_RUNNER_DETAIL = (
+    "No investigator is configured on this server, so the investigation could not run."
+)
 NO_RUNNER = Problem(
-    title="Investigator not available",
-    status=503,
-    code="not_ready",
-    detail="No investigator is configured on this server, so the investigation could not run.",
+    title="Investigator not available", status=503, code="not_ready", detail=NO_RUNNER_DETAIL
 )
 RUN_FAILED = Problem(
     title="Investigation failed",

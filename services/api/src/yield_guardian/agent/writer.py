@@ -23,7 +23,9 @@ from yield_guardian.llm.gateway import CallOptions, LlmGateway, Structured
 from yield_guardian.llm.messages import ChatMessage, ChatRequest
 from yield_guardian.llm.registry import Role
 
-WRITER_MAX_TOKENS = 4096
+WRITER_MAX_TOKENS = 16384
+"""Room for a thinking model's reasoning and the report: Qwen3.8-27B (it cannot turn thinking
+off; "low" is its lowest effort) used all of 4096 on reasoning in the first live run."""
 REPORT_SCHEMA_NAME = "investigation_report"
 
 

@@ -30,6 +30,7 @@ from yield_guardian.llm.errors import (
     StreamReportedError,
     TokenFactoryHttpError,
     TransportError,
+    error_body_excerpt,
     parse_error_body,
 )
 from yield_guardian.llm.profiles import CatalogEntry, parse_catalog
@@ -194,6 +195,7 @@ class TokenFactoryClient:
             retry_after=parse_retry_after(headers.get("retry-after")),
             attempts=attempts,
             headers=headers,
+            body=error_body_excerpt(text),
         )
 
     async def request(

@@ -8,6 +8,7 @@ the gateway uses the OpenAI shape ``{"error": {...}}`` and the platform wraps it
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from typing import Any, Literal
@@ -149,6 +150,31 @@ class ProfileViolationError(LlmError):
         self.detail = detail
 
 
+MAX_ERROR_BODY = 2000
+_SECRETS = (
+    re.compile(r"rc-[0-9A-Fa-f]{16,}"),
+    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{8,}"),
+    re.compile(
+        r"(?i)(\"?(?:api[_-]?key|authorization|token|secret|password)\"?\s*[:=]\s*)\"?[^\s\",}]+"
+    ),
+)
+
+
+def mask_secrets(text: str) -> str:
+    """``text`` with API keys, bearer tokens and key-like fields replaced by ``[redacted]``."""
+    for pattern in _SECRETS:
+        text = pattern.sub(lambda m: (m.group(1) if m.lastindex else "") + "[redacted]", text)
+    return text
+
+
+def error_body_excerpt(text: str, limit: int = MAX_ERROR_BODY) -> str | None:
+    """The provider's error body for logs and call records: secrets masked, cut to ``limit``."""
+    body = mask_secrets(text.strip())
+    if not body:
+        return None
+    return body if len(body) <= limit else body[:limit] + "…"
+
+
 class TokenFactoryHttpError(LlmError):
     """The server answered with a non-success status (after any retries)."""
 
@@ -160,9 +186,12 @@ class TokenFactoryHttpError(LlmError):
         retry_after: float | None = None,
         attempts: int = 1,
         headers: Mapping[str, str] | None = None,
+        body: str | None = None,
     ) -> None:
         self.status = status
         self.error = error
+        self.body = body
+        """The raw error body, secrets masked and truncated (:func:`error_body_excerpt`)."""
         self.kind = classify(status, error)
         self.retry_after = retry_after
         self.attempts = attempts

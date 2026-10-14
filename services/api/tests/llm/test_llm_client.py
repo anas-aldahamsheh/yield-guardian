@@ -314,3 +314,37 @@ async def test_the_client_does_not_cap_requests_in_flight(respx_mock: respx.Rout
     replies = await asyncio.gather(*(client.chat_completion(CHAT_BODY) for _ in range(10)))
     assert peak == 10
     assert all(reply.attempts == 1 for reply in replies)
+
+
+def test_error_body_excerpt_masks_keys_and_truncates() -> None:
+    from yield_guardian.llm.errors import MAX_ERROR_BODY, error_body_excerpt
+
+    key = "rc-" + "1f" * 24
+    text = (
+        f'{{"error": {{"message": "key {key} rejected", "api_key": "abc123secret",'
+        ' "detail": "Authorization: Bearer abcdefghijklmnop"}}'
+    )
+    out = error_body_excerpt(text)
+    assert out is not None
+    assert key not in out
+    assert "abc123secret" not in out
+    assert "abcdefghijklmnop" not in out
+    assert out.count("[redacted]") == 3
+    assert "rejected" in out
+    assert error_body_excerpt("   ") is None
+    long = error_body_excerpt("x" * (MAX_ERROR_BODY + 50))
+    assert long is not None
+    assert len(long) == MAX_ERROR_BODY + 1
+    assert long.endswith("…")
+
+
+async def test_an_http_error_keeps_the_body_excerpt(respx_mock: respx.Router) -> None:
+    respx_mock.post(host=HOST).mock(
+        return_value=httpx.Response(
+            400, json={"error": {"message": "Invalid schema", "param": "response_format"}}
+        )
+    )
+    with pytest.raises(TokenFactoryHttpError) as caught:
+        await make_client().chat_completion(CHAT_BODY)
+    assert caught.value.body is not None
+    assert '"param":"response_format"' in caught.value.body

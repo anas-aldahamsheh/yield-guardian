@@ -130,7 +130,7 @@ async def test_roles_show_primary_effort_and_fallbacks() -> None:
     roles = {row.role: row for row in await make_admin().roles()}
     assert set(roles) == {"investigator", "writer", "verifier", "chat", "router", "ocr", "vision"}
     assert roles["writer"].model_id == "MiMo-V2.6-Flash"
-    assert roles["writer"].reasoning_effort == "low"
+    assert roles["writer"].reasoning_effort == "none"
     assert roles["writer"].fallbacks == ["Qwen3.8-27B"]
     assert roles["router"].reasoning_effort is None
 

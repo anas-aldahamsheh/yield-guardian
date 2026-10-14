@@ -10,6 +10,7 @@ from tests.db.fakes import FakeRunner
 from yield_guardian.api.app import create_app
 from yield_guardian.api.deps import CSRF_HEADER, SESSION_COOKIE
 from yield_guardian.core.settings import Settings
+from yield_guardian.services.jobs import NO_RUNNER_DETAIL
 from yield_guardian.services.persistence import build_persistence
 from yield_guardian.services.registry import ServiceRegistry
 
@@ -101,3 +102,32 @@ async def test_bad_cursor_is_a_bad_request(api: httpx.AsyncClient) -> None:
     response = await api.get("/api/v1/investigations", params={"cursor": "nope"})
     assert response.status_code == 400
     assert response.json()["code"] == "bad_request"
+
+
+async def test_without_an_investigator_a_live_run_is_refused_and_not_created(
+    database_url: str, db_settings: Settings
+) -> None:
+    await clean(database_url)
+    registry = ServiceRegistry(settings=db_settings, runner=None)
+    build_persistence(db_settings, runner_provider=lambda: registry.runner, migrate=True).install(
+        registry
+    )
+    app = create_app(db_settings, registry)
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as api:
+            info = (await api.post("/api/v1/session/guest", json={"display_name": "Mia"})).json()
+            refused = await api.post(
+                "/api/v1/investigations",
+                json={"trigger": {"kind": "alarm", "ref": "AL-1043-t2"}},
+                headers={CSRF_HEADER: info["csrf_token"]},
+            )
+            assert refused.status_code == 503
+            problem = refused.json()
+            assert problem["code"] == "not_ready"
+            assert problem["detail"] == NO_RUNNER_DETAIL
+            assert (await api.get("/api/v1/investigations")).json()["items"] == []
+            unsigned = await api.post(
+                "/api/v1/investigations", json={"trigger": {"kind": "unit", "ref": "12"}}
+            )
+            assert unsigned.status_code == 403  # the session checks still come first
