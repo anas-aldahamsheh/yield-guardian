@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "e2e:stack": "playwright test -c playwright.stack.config.ts",
     "screenshots": "playwright test --project=screenshots",
     "start:mock": "tsx scripts/gateway.ts --mode start --mock",
     "dev:next": "next dev"

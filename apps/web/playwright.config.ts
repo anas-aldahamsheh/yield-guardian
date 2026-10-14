@@ -13,6 +13,8 @@ const executablePath = process.env.PW_CHROMIUM ?? (existsSync(preinstalled) ? pr
 
 export default defineConfig({
   testDir: "./e2e",
+  // e2e/stack runs against the composed stack: playwright.stack.config.ts.
+  testIgnore: ["**/stack/**"],
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,

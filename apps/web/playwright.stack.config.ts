@@ -18,8 +18,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: process.env.CI ? [["list"], ["html", { open: "never", outputFolder: "playwright-report-stack" }]] : "list",
-  outputDir: "test-results-stack",
+  reporter: process.env.CI ? [["list"], ["html", { open: "never", outputFolder: "playwright-report/stack" }]] : "list",
+  outputDir: "test-results/stack",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
     launchOptions: { executablePath, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
