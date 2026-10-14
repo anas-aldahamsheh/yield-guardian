@@ -1,0 +1,366 @@
+{
+  "name": "verifier-claims-v1",
+  "role": "verifier",
+  "description": "Hand-written findings over invented evidence values, written only to score the verifier model; none of these values come from the plant data. Each finding is labelled supported or not_supported by a person.",
+  "tasks": [
+    {
+      "id": "v01",
+      "summary": "Unit 1062 risk.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_risk",
+          "arguments": {
+            "unit_id": 1062
+          },
+          "data": {
+            "unit_id": 1062,
+            "probability": 0.82,
+            "band": "high"
+          },
+          "summary": "failure probability of unit 1062"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Unit 1062 has a high predicted failure probability (0.82).",
+          "evidence_ids": [
+            "E1"
+          ],
+          "strength": "strong",
+          "expected": "supported"
+        }
+      ]
+    },
+    {
+      "id": "v02",
+      "summary": "Unit 1062 risk.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_risk",
+          "arguments": {
+            "unit_id": 1062
+          },
+          "data": {
+            "unit_id": 1062,
+            "probability": 0.12,
+            "band": "low"
+          },
+          "summary": "failure probability of unit 1062"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Unit 1062 has a high predicted failure probability.",
+          "evidence_ids": [
+            "E1"
+          ],
+          "strength": "strong",
+          "expected": "not_supported"
+        }
+      ]
+    },
+    {
+      "id": "v03",
+      "summary": "Contributions.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_risk",
+          "arguments": {
+            "unit_id": 1062
+          },
+          "data": {
+            "unit_id": 1062,
+            "probability": 0.82,
+            "band": "high"
+          },
+          "summary": "failure probability of unit 1062"
+        },
+        {
+          "evidence_id": "E2",
+          "tool": "get_shap",
+          "arguments": {
+            "unit_id": 1062,
+            "top_k": 3
+          },
+          "data": {
+            "unit_id": 1062,
+            "contributions": [
+              {
+                "sensor": "S060",
+                "shap": 0.41
+              },
+              {
+                "sensor": "S104",
+                "shap": 0.12
+              },
+              {
+                "sensor": "S333",
+                "shap": -0.03
+              }
+            ]
+          },
+          "summary": "top sensor contributions for unit 1062"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Sensor S060 has the largest contribution associated with the risk of unit 1062.",
+          "evidence_ids": [
+            "E2"
+          ],
+          "strength": "moderate",
+          "expected": "supported"
+        },
+        {
+          "claim": "Sensor S333 has the largest contribution associated with the risk of unit 1062.",
+          "evidence_ids": [
+            "E2"
+          ],
+          "strength": "moderate",
+          "expected": "not_supported"
+        }
+      ]
+    },
+    {
+      "id": "v04",
+      "summary": "Sensor health.",
+      "evidence": [
+        {
+          "evidence_id": "E3",
+          "tool": "get_sensor_health",
+          "arguments": {},
+          "data": {
+            "sensors": [
+              {
+                "sensor": "S060",
+                "status": "ok"
+              },
+              {
+                "sensor": "S104",
+                "status": "dead"
+              }
+            ]
+          },
+          "summary": "sensor health statuses"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Sensor S104 is reported dead.",
+          "evidence_ids": [
+            "E3"
+          ],
+          "strength": "strong",
+          "expected": "supported"
+        }
+      ]
+    },
+    {
+      "id": "v05",
+      "summary": "Sensor health.",
+      "evidence": [
+        {
+          "evidence_id": "E3",
+          "tool": "get_sensor_health",
+          "arguments": {},
+          "data": {
+            "sensors": [
+              {
+                "sensor": "S060",
+                "status": "ok"
+              },
+              {
+                "sensor": "S104",
+                "status": "dead"
+              }
+            ]
+          },
+          "summary": "sensor health statuses"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "All sensors are reported healthy.",
+          "evidence_ids": [
+            "E3"
+          ],
+          "strength": "strong",
+          "expected": "not_supported"
+        }
+      ]
+    },
+    {
+      "id": "v06",
+      "summary": "Wafer 811.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_wafer_prediction",
+          "arguments": {
+            "wafer_id": 811
+          },
+          "data": {
+            "wafer_id": 811,
+            "label": "Edge-Ring",
+            "probability": 0.93
+          },
+          "summary": "predicted pattern of wafer 811"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Wafer 811 is predicted to show an Edge-Ring pattern.",
+          "evidence_ids": [
+            "E1"
+          ],
+          "strength": "strong",
+          "expected": "supported"
+        }
+      ]
+    },
+    {
+      "id": "v07",
+      "summary": "Wafer 811.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_wafer_prediction",
+          "arguments": {
+            "wafer_id": 811
+          },
+          "data": {
+            "wafer_id": 811,
+            "label": "Edge-Ring",
+            "probability": 0.93
+          },
+          "summary": "predicted pattern of wafer 811"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Wafer 811 is predicted to show a Scratch pattern.",
+          "evidence_ids": [
+            "E1"
+          ],
+          "strength": "strong",
+          "expected": "not_supported"
+        }
+      ]
+    },
+    {
+      "id": "v08",
+      "summary": "Lot lot4521.",
+      "evidence": [
+        {
+          "evidence_id": "E2",
+          "tool": "get_lot_stats",
+          "arguments": {
+            "lot_id": "lot4521"
+          },
+          "data": {
+            "lot_id": "lot4521",
+            "wafers": 25,
+            "patterns": {
+              "Edge-Ring": 9,
+              "none": 16
+            }
+          },
+          "summary": "pattern counts of lot lot4521"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "9 of the 25 wafers in lot lot4521 are predicted as Edge-Ring.",
+          "evidence_ids": [
+            "E2"
+          ],
+          "strength": "moderate",
+          "expected": "supported"
+        }
+      ]
+    },
+    {
+      "id": "v09",
+      "summary": "Lot lot4521.",
+      "evidence": [
+        {
+          "evidence_id": "E2",
+          "tool": "get_lot_stats",
+          "arguments": {
+            "lot_id": "lot4521"
+          },
+          "data": {
+            "lot_id": "lot4521",
+            "wafers": 25,
+            "patterns": {
+              "Edge-Ring": 9,
+              "none": 16
+            }
+          },
+          "summary": "pattern counts of lot lot4521"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "Most wafers in lot lot4521 are predicted as Edge-Ring.",
+          "evidence_ids": [
+            "E2"
+          ],
+          "strength": "moderate",
+          "expected": "not_supported"
+        }
+      ]
+    },
+    {
+      "id": "v10",
+      "summary": "Unit 1062 risk and health.",
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "tool": "get_risk",
+          "arguments": {
+            "unit_id": 1062
+          },
+          "data": {
+            "unit_id": 1062,
+            "probability": 0.82,
+            "band": "high"
+          },
+          "summary": "failure probability of unit 1062"
+        },
+        {
+          "evidence_id": "E3",
+          "tool": "get_sensor_health",
+          "arguments": {},
+          "data": {
+            "sensors": [
+              {
+                "sensor": "S060",
+                "status": "ok"
+              },
+              {
+                "sensor": "S104",
+                "status": "dead"
+              }
+            ]
+          },
+          "summary": "sensor health statuses"
+        }
+      ],
+      "findings": [
+        {
+          "claim": "The dead sensor S104 explains the high risk of unit 1062.",
+          "evidence_ids": [
+            "E1",
+            "E3"
+          ],
+          "strength": "weak",
+          "expected": "not_supported"
+        }
+      ]
+    }
+  ]
+}
