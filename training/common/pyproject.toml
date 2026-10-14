@@ -1,0 +1,55 @@
+[project]
+name = "yg-common"
+version = "0.1.0"
+description = "Statistics and provenance helpers shared by the Yield Guardian training pipelines"
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "numpy>=2.5",
+  "scipy>=1.18",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1",
+  "hypothesis>=6.169",
+  "ruff>=0.17",
+  "mypy>=2.4",
+  "scipy-stubs>=1.18",
+  # Reference implementations, used only to check ours in tests.
+  "scikit-learn>=1.9",
+  "statsmodels>=0.15",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yg_common"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "RUF", "SIM", "PT", "N", "NPY"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PT011"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "statsmodels.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
