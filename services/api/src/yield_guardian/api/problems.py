@@ -22,7 +22,6 @@ _STATUS_CODES: dict[int, tuple[ProblemCode, str]] = {
     404: ("not_found", "Not found"),
     405: ("bad_request", "Method not allowed"),
     409: ("conflict", "Conflict"),
-    429: ("rate_limited", "Too many requests"),
     503: ("not_ready", "Not ready"),
 }
 

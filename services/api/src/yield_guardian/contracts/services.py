@@ -104,21 +104,9 @@ class NotReadyError(ServiceError):
     title = "Not ready"
 
 
-class RateLimitedError(ServiceError):
-    code = "rate_limited"
-    status = 429
-    title = "Too many requests"
-
-
-class BudgetGuardError(ServiceError):
-    """Live model calls are paused to protect the daily budget; recorded runs stay available."""
-
-    code = "budget_guard"
-    status = 429
-    title = "Live model calls are paused"
-
-
 class UpstreamError(ServiceError):
+    """The model service failed after the retries; `retry_after_s` when it said how long to wait."""
+
     code = "upstream_error"
     status = 502
     title = "Model service error"
@@ -278,5 +266,5 @@ class LlmAdmin(Protocol):
     async def evaluations(self) -> Evaluations: ...
 
     async def live_calls_available(self) -> bool:
-        """A key is configured and the budget guard is not active."""
+        """A Token Factory key is configured. The product never limits calls (PLAN D-009)."""
         ...

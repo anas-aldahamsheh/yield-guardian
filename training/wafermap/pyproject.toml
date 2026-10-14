@@ -1,0 +1,50 @@
+[project]
+name = "yield-guardian-wafermap"
+version = "0.1.0"
+description = "Yield Guardian wafer-map science: CNN, unknown patterns, similarity, lot statistics"
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "torch==2.14.1",
+  "numpy>=2.3",
+  "pandas>=2.3",
+  "pyarrow>=21",
+  "scikit-learn>=1.9",
+  "scipy>=1.18",
+  "statsmodels>=0.15",
+  "mlflow>=3.17",
+  "onnx>=1.19",
+  "onnxruntime>=1.31",
+  "onnxscript>=0.5",
+  "matplotlib>=3.10",
+]
+
+[dependency-groups]
+dev = ["pytest>=9.1", "ruff>=0.17"]
+
+# The lock pins the CUDA 13.0 build of PyTorch (RTX 3060, sm_86). The code is
+# device-agnostic: on AMD GPUs install the ROCm build of the same version instead,
+# e.g. `uv pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/rocm<ver>`
+# (ROCm wheels are Linux-only); torch.cuda.* then maps to HIP unchanged.
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF", "SIM", "N", "NPY"]
+ignore = ["N803", "N806", "N812", "NPY002"]  # torch F alias; global numpy seed for determinism
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

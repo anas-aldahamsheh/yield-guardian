@@ -1,0 +1,71 @@
+[
+  {
+    "role": "investigator",
+    "model_id": "DeepSeek-V4.1-Flash",
+    "reasoning_effort": "low",
+    "fallbacks": [
+      "GLM-5.3-Flash",
+      "Qwen3.8-Flash-Next"
+    ],
+    "updated_at": null,
+    "updated_by": null
+  },
+  {
+    "role": "writer",
+    "model_id": "MiMo-V2.6-Flash",
+    "reasoning_effort": "low",
+    "fallbacks": [
+      "Qwen3.8-27B"
+    ],
+    "updated_at": null,
+    "updated_by": null
+  },
+  {
+    "role": "verifier",
+    "model_id": "GLM-5.3-Flash",
+    "reasoning_effort": "low",
+    "fallbacks": [
+      "DeepSeek-V4-Flash"
+    ],
+    "updated_at": "2026-10-13T23:24:00Z",
+    "updated_by": "admin"
+  },
+  {
+    "role": "chat",
+    "model_id": "Qwen3.8-Flash-Next",
+    "reasoning_effort": "none",
+    "fallbacks": [
+      "DeepSeek-V4-Flash"
+    ],
+    "updated_at": null,
+    "updated_by": null
+  },
+  {
+    "role": "router",
+    "model_id": "MiniCPM5-2B",
+    "reasoning_effort": null,
+    "fallbacks": [
+      "DeepSeek-V4-Flash"
+    ],
+    "updated_at": null,
+    "updated_by": null
+  },
+  {
+    "role": "ocr",
+    "model_id": "MinerU2.5-Pro",
+    "reasoning_effort": null,
+    "fallbacks": [],
+    "updated_at": null,
+    "updated_by": null
+  },
+  {
+    "role": "vision",
+    "model_id": "DeepSeek-V4.1-Flash",
+    "reasoning_effort": "low",
+    "fallbacks": [
+      "Qwen3.8-Flash-Next"
+    ],
+    "updated_at": null,
+    "updated_by": null
+  }
+]

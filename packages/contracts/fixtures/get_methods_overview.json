@@ -1,0 +1,69 @@
+{
+  "datasets": [
+    {
+      "name": "SECOM",
+      "description": "Production units of a semiconductor fab with 590 anonymous sensor readings, a pass or fail result and a timestamp.",
+      "source_url": "https://archive.ics.uci.edu/dataset/179/secom",
+      "citation": "McCann, M. and Johnston, A. (2008). SECOM. UCI Machine Learning Repository.",
+      "licence": "Synthetic fixture: the licence is recorded at download.",
+      "retrieved_at": "2026-10-13T23:48:00Z",
+      "files": [
+        {
+          "path": "data/secom/secom.data",
+          "sha256": "ab94ec319d9f7574e41c10b15b3fdfeb39cf322877ec00d5b269c15c853c7b7a",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "name": "WM-811K",
+      "description": "Wafer maps from real fabs, about a fifth of them labelled with one of nine patterns.",
+      "source_url": "http://mirlab.org/dataSet/public/",
+      "citation": "Wu, M.-J., Jang, J.-S. R. and Chen, J.-L. (2015). Wafer map failure pattern recognition and similarity ranking for large-scale data sets. IEEE TSM 28(1), 1-12.",
+      "licence": "Synthetic fixture: the licence is recorded at download.",
+      "retrieved_at": "2026-10-13T23:48:00Z",
+      "files": [
+        {
+          "path": "data/raw/wm811k/LSWMD.pkl",
+          "sha256": "ab94ec319d9f7574e41c10b15b3fdfeb39cf322877ec00d5b269c15c853c7b7a",
+          "bytes": 0
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "bundle": {
+        "name": "secom",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      },
+      "files": 14,
+      "verified": true
+    },
+    {
+      "bundle": {
+        "name": "wafermap",
+        "version": "v1",
+        "created_at": "2026-10-13T23:48:00Z",
+        "git_commit": "0000000000000000000000000000000000000000"
+      },
+      "files": 11,
+      "verified": true
+    }
+  ],
+  "model_cards": [
+    {
+      "name": "secom",
+      "title": "SECOM failure-risk model"
+    },
+    {
+      "name": "wafermap",
+      "title": "Wafer-map pattern model"
+    }
+  ],
+  "limitations": [
+    "Synthetic fixture for interface development; not a measured result."
+  ]
+}

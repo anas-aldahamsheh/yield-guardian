@@ -33,7 +33,7 @@ SSE_RESPONSE: dict[int | str, dict[str, Any]] = {
     "/investigations",
     operation_id="create_investigation",
     status_code=status.HTTP_202_ACCEPTED,
-    responses=problem_responses(401, 403, 429, 503),
+    responses=problem_responses(401, 403, 503),
 )
 async def create_investigation(
     session: EngineerSession, body: InvestigationCreate, store: Investigations
