@@ -21,8 +21,10 @@ def main() -> None:
         counts = {m: marks.count(m) for m in totals}
         for m in totals:
             totals[m] += counts[m]
-        lines.append(f"| {title} | {counts['✅']} of {len(marks)} | {counts['🟡']} | {counts['⏳']} |")
-    n = len(ROW.findall(text))
+        kept = len([m for m in marks if m != "✂️"])
+        lines.append(f"| {title} | {counts['✅']} of {kept} | {counts['🟡']} | {counts['⏳']} |")
+    # Cut items leave the count.
+    n = len([m for m in ROW.findall(text) if m != "✂️"])
     done = totals["✅"]
     block = "\n".join(
         [

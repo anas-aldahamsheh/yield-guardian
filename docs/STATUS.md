@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 12:31 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 12:50 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
-## Progress: 74 of 86 done (86%), 7 in progress, 5 not started
+## Progress: 74 of 82 done (90%), 6 in progress, 2 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -18,7 +18,7 @@
 | U: Interface | 12 of 14 | 2 | 0 |
 | P: Packaging and deployment | 6 of 7 | 1 | 0 |
 | Q: Quality | 3 of 5 | 0 | 2 |
-| X: Submission | 1 of 6 | 2 | 3 |
+| X: Submission | 1 of 2 | 1 | 0 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -35,7 +35,7 @@
 
 | | |
 |---|---|
-| Done | 74 of 86 |
+| Done | 74 of 82 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -195,11 +195,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
-| X2 | Demo video script and shot list | Cloud | 🟡 | [Video script](submission/video_script.md): 9 scenes, 185 s; screens U7 to U12 and a recorded investigation needed before recording |
-| X3 | Slide deck | Cloud | ⏳ | |
-| X4 | Cover image | Cloud | ⏳ | |
+| X2 | Demo video script and shot list | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
+| X3 | Slide deck | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
+| X4 | Cover image | Cloud | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
 | X5 | Submission form texts (title, short and long description, tags) | Cloud | ✅ | [Form texts](submission/form.md): title 56 chars, short 243 chars, long 483 words, 7 tags; only measured numbers, SECOM weakness stated; checked by check_form.py |
-| X6 | Submit on lablab | You | ⏳ | |
+| X6 | Submit on lablab | You | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
 
 ## Waiting on you
 
@@ -207,12 +207,12 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|
 | 2026-10-14 12:12 | Go-ahead to record 3 demo investigations (L11), on the decision card in the thread | It spends Token Factory points: the ceiling is about 3 points per run, above the 1-point daily budget in PLAN 7.2, and a real run costs far less (the evaluation spent 0.0019). Recommended: record one, check its real cost, then the rest |
 | 2026-10-14 | Rotate the Token Factory key after the event | It was pasted in chat |
-| at the end | Submit on lablab (X6) | It must come from your account |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 12:50 | Owner cut the submission material: video (X2), slides (X3), cover (X4) and the lablab submission (X6). Cut items no longer count toward the total. Recorder bug found on the live server (tools read the live cursor, not the alarm time); 0 points spent, fix in progress |
 | 2026-10-14 12:31 | New visual design merged: 3D wafer hero with a step-and-scan exposure, live chart motion, investigation report layout, attribution shown as one citation line (af225fe) |
 | 2026-10-14 12:13 | "Waiting on you" cleaned: changelog rows moved back here; open asks are L11 go-ahead, key rotation and the lablab submission |
 | 2026-10-14 12:08 | API tests (Q2) and web tests (Q3) closed with evidence; live site runs 249300b with results and every screen |
