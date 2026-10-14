@@ -5,6 +5,7 @@
 #
 # The same image serves the API (default command) and runs database migrations as a one-shot
 # command (`yg-migrate`, which runs `alembic upgrade head`; see deploy/compose/compose.yaml).
+# Admin password hash: docker compose run --rm -it api python scripts/hash_password.py
 # Model bundles are downloaded and verified at build time from deploy/artifacts.lock.json.
 
 ARG PYTHON_IMAGE=python:3.13-slim-trixie
@@ -23,26 +24,20 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_PYTHON=/usr/local/bin/python3 \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
-WORKDIR /src/services/api
+# The repository layout is kept (/app/services/api): yield_guardian.db.migrate finds alembic.ini
+# and alembic/ next to src/, both for `yg-migrate` and for migrations at API startup.
+WORKDIR /app/services/api
 
 # Third-party dependencies first, so source changes do not reinstall them.
 COPY services/api/pyproject.toml services/api/uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --no-install-project
 
-# The API itself, installed as a regular package (no source tree needed at run time).
-COPY services/api/ ./
+COPY services/api/README.md ./
+COPY services/api/src/ ./src/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-editable
-
-# Database migrations (alembic.ini and alembic/), when this revision has them.
-RUN mkdir -p /out \
- && if [ -f alembic.ini ]; then \
-      test -d alembic || { echo "alembic.ini without an alembic/ folder" >&2; exit 1; }; \
-      cp alembic.ini /out/ && cp -R alembic /out/alembic; \
-    else \
-      echo "No database migrations in this revision"; \
-    fi
+    uv sync --locked --no-dev \
+ && python3 -m compileall -q src
 
 # ---------------------------------------------------------------------------------------------
 # Model bundles: downloaded, checked against the lock and every MANIFEST.json, or the build fails.
@@ -69,10 +64,14 @@ ENV PATH=/app/.venv/bin:$PATH \
     ARTIFACTS_DIR=/app/artifacts \
     SECOM_DATA_DIR=/app/data/secom
 
-WORKDIR /app
+WORKDIR /app/services/api
 
 COPY --from=build /app/.venv /app/.venv
-COPY --from=build /out/ /app/
+COPY --from=build /app/services/api/ /app/services/api/
+# Database migrations and the admin password hasher.
+COPY services/api/alembic.ini /app/services/api/
+COPY services/api/alembic/ /app/services/api/alembic/
+COPY services/api/scripts/ /app/services/api/scripts/
 # SECOM, redistributed unmodified under CC BY 4.0; ATTRIBUTION.md travels with the data.
 COPY data/secom/ATTRIBUTION.md data/secom/secom.data data/secom/secom_labels.data \
      data/secom/secom.names /app/data/secom/
