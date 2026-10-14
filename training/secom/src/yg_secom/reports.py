@@ -34,12 +34,14 @@ def fmt(value: float | None, digits: int = 3) -> str:
     return "n/a" if value is None else f"{value:.{digits}f}"
 
 
-def fmt_est(est: dict[str, Any] | None, digits: int = 3, pct: bool = False) -> str:
+def fmt_est(
+    est: dict[str, Any] | None, digits: int = 3, pct: bool = False, pct_digits: int = 1
+) -> str:
     if est is None or est.get("value") is None:
         return "n/a"
     scale = 100.0 if pct else 1.0
     unit = "%" if pct else ""
-    d = 1 if pct else digits
+    d = pct_digits if pct else digits
     value = f"{scale * est['value']:.{d}f}{unit}"
     if est.get("ci_low") is None or est.get("ci_high") is None:
         return value
@@ -777,6 +779,7 @@ def results_markdown(
     held = jump["held_out_share_flagged"]
     oor = rules["out_of_reference_check"]
     miss = health["missingness_associated_with_failure"]
+    runs = health["identical_runs"]
     lines += [
         f"Limitation: {fdc['limitations']}.",
         "",
@@ -794,7 +797,8 @@ def results_markdown(
         *[f"- {r}" for r in rules["status"]],
         "",
         f"Windows: {rules['windows']}. Reference: {rules['reference']} "
-        f"({health['reference_units']} units; {health['held_out_reference_units']} held out).",
+        f"(fit set {health['reference_units']} units, held-out set "
+        f"{health['held_out_reference_units']} units).",
         "",
         "Jump threshold, calibrated on the reference: "
         + (
@@ -802,7 +806,7 @@ def results_markdown(
             f"{jump['target_reference_share']:.1%} of {jump['reference_differences']:,} reference "
             f"first differences ({jump['sensors_with_computable_z']} sensors with a computable "
             f"z; share flagged there {jump['reference_share_flagged']:.3%}). On the held-out "
-            f"reference: {fmt_est(held, pct=True) if held else 'n/a'} of "
+            f"reference: {fmt_est(held, pct=True, pct_digits=3) if held else 'n/a'} of "
             f"{jump['held_out_differences']:,} differences flagged (out-of-sample check). "
             f"{health['sensors_with_any_jump']} of {health['live_sensors']} live sensors have at "
             f"least one jump somewhere in the period; the status uses jump frequency, not a "
@@ -822,7 +826,17 @@ def results_markdown(
             else "n/a"
         )
         + f", and {oor['held_out_sensors_at_or_above_watch_rate']} sensors reach the watch "
-        "rate there.",
+        "rate there: on in-control data the out-of-reference watch rule already fires for "
+        "that many sensors, so a watch status from this rule alone is weak evidence.",
+        "",
+        f"Identical runs: {runs['runs']} runs of at least {runs['min_length']} identical "
+        f"consecutive readings in {runs['sensors']} live sensors; "
+        f"{runs['runs_sharing_their_unit_span_with_another_sensor']} of them cover exactly the "
+        "same units as a run in another sensor (up to "
+        f"{runs['largest_number_of_sensors_sharing_one_span']} sensors at once), which points "
+        "to readings recorded once and repeated across consecutive units rather than to "
+        "single stuck sensors. The stuck-value rule therefore compares each run with the "
+        "sensor's own reference repeat rate.",
         "",
         f"Missingness versus failure ({rules['missing_vs_failure']}): "
         f"{len(miss['sensors'])} of {miss['tested']} testable sensors at q <= "

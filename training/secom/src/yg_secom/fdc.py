@@ -15,11 +15,11 @@ Model (fitted on the earlier half only)
     Features with more than 50% missing readings, a single distinct reading, or a zero
     median absolute deviation (more than half the readings identical) in the reference are
     left out. Missing readings are replaced by the reference median (FDC only). Each
-    feature is scaled by its normal-consistent MAD (1.4826 x MAD) and centred at its
-    reference mean (after imputation), so reference scores have mean zero as the limits
-    assume. PCA keeps the fewest components reaching 90% of the variance; Horn's parallel
-    analysis (95th percentile of eigenvalues of column-permuted data) is reported as a
-    cross-check.
+    feature is centred at its reference mean and scaled by its reference standard
+    deviation (both after imputation; autoscaling), so reference scores have mean zero and
+    unit variance as the limits assume. PCA keeps the fewest components reaching 90% of
+    the variance; Horn's parallel analysis (95th percentile of eigenvalues of
+    column-permuted data) is reported as a cross-check.
 
 Statistics and limits (for new observations)
     Hotelling T^2 = sum_a t_a^2 / lambda_a over the kept components, with the Phase II limit
@@ -62,6 +62,21 @@ def robust_scale(values: FloatArray) -> FloatArray:
     """Normal-consistent median absolute deviation per column, ignoring missing values."""
     median = np.nanmedian(values, axis=0)
     return np.asarray(MAD_TO_SD * np.nanmedian(np.abs(values - median), axis=0), np.float64)
+
+
+def reference_scale(filled: FloatArray) -> FloatArray:
+    """Sample standard deviation per column (ddof=1) of the imputed reference readings.
+
+    Autoscaling to unit reference variance is the usual choice for PCA monitoring
+    (Kourti and MacGregor, 1995). A MAD scale was used first and rejected: for sensors whose
+    readings are mostly tightly clustered with a heavy tail, the MAD is far smaller than the
+    spread, so one standardised sensor carried almost all the variance and a single
+    component "explained" 100% of it.
+    """
+    scale = np.asarray(filled.std(axis=0, ddof=1), dtype=np.float64)
+    if not np.all(scale > 0):
+        raise ValueError("every FDC feature needs a positive reference standard deviation")
+    return scale
 
 
 def t2_limit(n_components: int, n_reference: int, alpha: float) -> float:
@@ -188,9 +203,9 @@ def fit_fdc(
     features, dropped = fdc_feature_filter(X_ref, max_missing)
     raw = X_ref.loc[:, features].to_numpy(dtype=np.float64)
     medians = np.nanmedian(raw, axis=0)
-    scale = robust_scale(raw)
     filled = np.where(np.isnan(raw), medians, raw)
     center = filled.mean(axis=0)
+    scale = reference_scale(filled)
     Z = (filled - center) / scale
     n = Z.shape[0]
     _, s, vt = np.linalg.svd(Z, full_matrices=False)
@@ -226,7 +241,7 @@ def _standardise_candidate(X: pd.DataFrame, max_missing: float) -> FloatArray:
     raw = X.loc[:, features].to_numpy(dtype=np.float64)
     medians = np.nanmedian(raw, axis=0)
     filled = np.where(np.isnan(raw), medians, raw)
-    return np.asarray((filled - filled.mean(axis=0)) / robust_scale(raw), dtype=np.float64)
+    return np.asarray((filled - filled.mean(axis=0)) / reference_scale(filled), dtype=np.float64)
 
 
 def stationarity_check(Z: FloatArray, n_components: int, family_alpha: float) -> dict[str, Any]:

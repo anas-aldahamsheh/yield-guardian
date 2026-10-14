@@ -14,8 +14,14 @@ Rules (thresholds in ``PipelineConfig``):
   where ``p_v`` is the reference share of that value (a value never seen in the reference
   counts as seen once).
 - **Stuck value**: a run of ``R >= min_readings`` identical consecutive readings with
-  ``n_readings * p_v ** (R - 1) < stuck_alpha`` (a union bound over start positions); the
-  value of the least probable run is reported.
+  ``n_readings * r ** (R - 1) < stuck_alpha`` (a union bound over start positions), where
+  ``r = (repeats + 1) / (consecutive pairs + 2)`` is the sensor's own rate of repeating its
+  previous reading in the reference (a first-order Markov null). The value of the least
+  probable run is reported. An independence null (``p_v`` of the value) was used first and
+  rejected: in SECOM identical runs occur in many sensors at exactly the same units (as if
+  a reading were recorded once and assigned to several consecutive units), so it flagged
+  most continuous sensors. Runs whose unit span is shared by another sensor are counted
+  in the summary.
 - **Jump**: robust z of the first difference between consecutive readings,
   ``(d - median(d_ref)) / (1.4826 MAD(d_ref))``, beyond a threshold ``z*`` in absolute
   value. ``z*`` is calibrated on the reference: it is the smallest value that at most a
@@ -101,7 +107,9 @@ class HealthRules:
             f"{self.min_readings} readings in a calendar week, all identical, with reference "
             f"probability p_v ** n < {self.flatline_probability:g}); or a stuck value (a run of "
             f"R >= {self.min_readings} identical consecutive readings with n_readings * "
-            f"p_v ** (R - 1) < {self.stuck_alpha:g}); or a week missing at least "
+            f"r ** (R - 1) < {self.stuck_alpha:g}, r = the sensor's reference rate of "
+            "repeating its previous reading, (repeats + 1) / (pairs + 2)); or a week missing "
+            "at least "
             f"{self.maintenance_window_missing:.0%} of readings while the reference misses at "
             f"most {self.normal_missing:.0%}; or at least {self.maintenance_out_of_reference:.0%} "
             "of readings after the reference outside the reference range",
@@ -163,6 +171,12 @@ def _value_probability(reference: FloatArray) -> tuple[dict[float, float], float
     values, counts = np.unique(reference, return_counts=True)
     n = reference.size
     return {float(v): c / n for v, c in zip(values, counts, strict=True)}, (1.0 / n if n else 1.0)
+
+
+def _repeat_rate(reference: FloatArray) -> float:
+    """Smoothed share of consecutive reference readings that repeat the previous one."""
+    diffs = np.diff(reference)
+    return (int(np.sum(diffs == 0)) + 1.0) / (diffs.size + 2.0)
 
 
 def _runs(values: FloatArray) -> list[tuple[int, int, float]]:
@@ -312,6 +326,7 @@ def analyse_health(
     evidence: list[dict[str, Any]] = []
     jump_tests: dict[int, float] = {}
     held_outside: list[float] = []
+    spans: dict[tuple[int, int], set[int]] = {}
     for j in range(len(sensors)):
         series = ordered[:, j]
         present = ~np.isnan(series)
@@ -334,14 +349,20 @@ def analyse_health(
                 if p_v**w_values.size < rules.flatline_probability:
                     flatline.append((i, float(w_values[0]), int(w_values.size)))
 
-        stuck: tuple[float, int, float] | None = None
-        for _, length, value in _runs(readings):
+        stuck: tuple[float, int, float, float] | None = None
+        repeat = _repeat_rate(ref_present)
+        varies = np.unique(readings).size > 1
+        for run_start, length, value in _runs(readings):
             if length < rules.min_readings:
                 continue
-            p_v = probs.get(value, unseen)
-            bound = readings.size * p_v ** (length - 1)
+            if varies:
+                spans.setdefault(
+                    (int(reading_units[run_start]), int(reading_units[run_start + length - 1])),
+                    set(),
+                ).add(j)
+            bound = readings.size * repeat ** (length - 1)
             if bound < rules.stuck_alpha and (stuck is None or bound < stuck[2]):
-                stuck = (value, length, bound)
+                stuck = (value, length, bound, repeat)
 
         jumps: list[int] = []
         jump_k = jump_m = 0
@@ -415,10 +436,10 @@ def analyse_health(
                 f"readings equal {value:g}"
             )
         if ev["stuck"] is not None:
-            value, length, bound = ev["stuck"]
+            value, length, bound, repeat = ev["stuck"]
             maintenance.append(
-                f"stuck value {value:g}: {length} identical consecutive readings "
-                f"(union bound {bound:.2g} < {rules.stuck_alpha:g})"
+                f"stuck value {value:g}: {length} identical consecutive readings; reference "
+                f"repeat rate {repeat:.3g}, union bound {bound:.2g} < {rules.stuck_alpha:g}"
             )
         if normally_measured:
             for w in np.flatnonzero(window_missing >= rules.maintenance_window_missing):
@@ -511,6 +532,17 @@ def analyse_health(
             sum(1 for j, r in enumerate(rows) if r["status"] != "dead" and j not in scales)
         ),
         "jump_frequency_tests": len(jump_cols),
+        "identical_runs": {
+            "min_length": rules.min_readings,
+            "runs": sum(len(v) for v in spans.values()),
+            "sensors": len(set().union(*spans.values())) if spans else 0,
+            "runs_sharing_their_unit_span_with_another_sensor": sum(
+                len(v) for v in spans.values() if len(v) > 1
+            ),
+            "largest_number_of_sensors_sharing_one_span": max(
+                (len(v) for v in spans.values()), default=0
+            ),
+        },
         "missingness_associated_with_failure": {
             "tested": len(tested),
             "significant_at_q": fdr_q,

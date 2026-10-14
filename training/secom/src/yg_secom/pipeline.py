@@ -1080,7 +1080,7 @@ def _methods(model: Any, n_fit: int, config: PipelineConfig) -> dict[str, str]:
         ),
         "fdc": (
             f"PCA on {n_fit} passing reference units and {len(model.features)} sensors "
-            "(reference-median imputation, normal-consistent MAD scaling), keeping "
+            "(reference-median imputation, autoscaling to reference mean and SD), keeping "
             f"{model.n_components} components ({100 * model.explained_variance:.1f}% of "
             f"variance); Hotelling T2 limits from the Phase II F distribution and SPE limits "
             f"by {model.spe_limit_method}, at {100 * (1 - low):g}% and {100 * (1 - high):g}%."
@@ -1364,8 +1364,8 @@ def _fdc(
         "model": {
             "features": len(model.features),
             "features_dropped": model.dropped,
-            "scaling": "reference median imputation (FDC only); normal-consistent MAD scale; "
-            "centred at the reference mean after imputation",
+            "scaling": "reference median imputation (FDC only); centred at the reference mean "
+            "and scaled by the reference standard deviation, both after imputation",
             "n_components": model.n_components,
             "explained_variance": model.explained_variance,
             "variance_target": config.fdc_variance_target,
