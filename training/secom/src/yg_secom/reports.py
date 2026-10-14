@@ -936,6 +936,57 @@ def limitations(metrics: dict[str, Any]) -> list[str]:
     return items
 
 
+def claims_section(metrics: dict[str, Any]) -> list[str]:
+    """What the results support and what they do not, from the numbers in ``metrics``."""
+    main = metrics["models"]["lightgbm"]["test"]
+    prev = metrics["models"]["prevalence"]["test"]["pr_auc"]
+    logistic = metrics["models"]["logistic_regression"]["test"]["pr_auc"]
+    diff = metrics["comparisons"]["pr_auc_difference"]
+    vs_prev = diff["prevalence"]
+    vs_log = diff["logistic_regression"]
+    point = metrics["operating_points"]["test"][0]
+    blocks = {b["block"]: b for b in metrics["split"]["blocks"]["blocks"]}
+    root = metrics["root_cause"]
+    far = metrics["fdc"]["false_alarm_rate_held_out_reference"]
+    miss = metrics["health"]["missingness_associated_with_failure"]
+    return [
+        "## What this model can and cannot claim",
+        "",
+        "It can claim:",
+        "",
+        f"- A failure-risk ranking evaluated once on {blocks['test']['units']} later units "
+        f"({blocks['test']['failures']} failures) that no model, threshold or calibrator saw "
+        f"while it was built: PR-AUC {fmt_est(main['pr_auc'])} against a no-skill "
+        f"{fmt_est(prev)}, ROC-AUC {fmt_est(main['roc_auc'])}.",
+        f"- At the {point['label']} threshold set on validation, the test block saw "
+        f"{fmt_est(point['false_alarms_per_100'], 2)} false alarms per 100 units and recall "
+        f"{fmt_est(point['recall'], pct=True)}.",
+        "- Sensor groups ranked by their association with failure in the period before the "
+        f"test block ({len(root['stability']['stable_groups'])} groups stable across "
+        "refits), as leads for an engineer to check.",
+        f"- Multivariate drift monitoring whose held-out in-control false-alarm rate is "
+        f"measured: {fmt_est(far['99']['either']['rate'], pct=True)} beyond the 99% limit.",
+        "",
+        "It cannot claim:",
+        "",
+        f"- Better-than-chance failure prediction: the PR-AUC gain over no skill is "
+        f"{fmt_est(vs_prev['difference'])} (p = {fmt_p(vs_prev['p_value'])}), so the "
+        "interval includes zero.",
+        f"- That LightGBM is the best model: logistic regression scored PR-AUC "
+        f"{fmt_est(logistic)}; LightGBM minus logistic is {fmt_est(vs_log['difference'])} "
+        f"(p = {fmt_p(vs_log['p_value'])}). The main model was fixed before the test block "
+        "was opened and was not changed afterwards.",
+        f"- Root causes: no sensor group is significant after the permutation test "
+        f"({len(root['permutation_test']['significant_groups'])} groups at q <= 0.05), "
+        "sensors are anonymous, and every finding is an association.",
+        f"- That missing readings predict failure in general: {len(miss['sensors'])} of "
+        f"{miss['tested']} sensors are associated on the period before the test block only.",
+        "- Anything about other tools, products or periods: one fab, about three months in "
+        "2008, and a failure rate that drifts within that time.",
+        "",
+    ]
+
+
 def model_card(
     metrics: dict[str, Any], groups: dict[str, Any], eda: dict[str, Any], provenance: str
 ) -> str:
@@ -952,6 +1003,7 @@ def model_card(
         "",
         provenance,
         "",
+        *claims_section(metrics),
         "## Intended use",
         "",
         "Decision support for yield and process engineers: rank production units by their "
@@ -976,6 +1028,9 @@ def model_card(
             for name, b in blocks.items()
         )
         + ".",
+        f"- `secom.names` states 591 attributes (and a 1567 x 591 matrix), but `secom.data` "
+        f"has {eda['counts']['features']} sensor columns; the count used here is the one "
+        "in the file.",
         "- No synthetic data; no resampling that creates units; no row dropped.",
         "",
         "## Method",
