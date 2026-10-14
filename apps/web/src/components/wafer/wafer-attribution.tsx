@@ -46,7 +46,7 @@ export function WaferAttribution({
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen((o) => !o)}
-          className="cursor-pointer rounded-sm text-left text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+          className="inline-block min-h-6 cursor-pointer rounded-sm py-0.5 text-left text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
         >
           {children ? "How it was chosen, licence and full attribution" : "Licence and full attribution"}
         </button>
