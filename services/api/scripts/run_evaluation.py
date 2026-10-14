@@ -12,7 +12,8 @@ Usage (from ``services/api``)::
         scripts/evaluation/router_intents.json --model MiniCPM5-2B --confirm --out result.json
 
 The result (an ``EvaluationResult`` plus each task's outcome) is printed and, with ``--out``,
-written as JSON.
+written as JSON. When DATABASE_URL is set it is also stored in ``llm_evaluations``, where the
+Models page reads it; ``scripts/import_evaluation.py`` stores a result file written earlier.
 """
 
 from __future__ import annotations
@@ -35,6 +36,8 @@ from yield_guardian.agent.evaluation import (
     task_role,
 )
 from yield_guardian.core.settings import Settings
+from yield_guardian.db.engine import Database
+from yield_guardian.llm.dbstores import DbEvaluationStore
 from yield_guardian.llm.factory import assemble_llm_stack, key_configured
 from yield_guardian.llm.profiles import ProfileCatalog
 
@@ -102,6 +105,20 @@ async def run(args: argparse.Namespace, settings: Settings, env: Mapping[str, st
     print(text)
     if args.out is not None:
         args.out.write_text(text + "\n", encoding="utf-8")
+    if settings.database_url is not None:
+        database = Database(settings.database_url.get_secret_value(), migrate_on_start=False)
+        try:
+            await DbEvaluationStore(database.sessionmaker).save(result.result)
+        except Exception as error:  # the run is paid for: keep the printed result usable
+            print(
+                f"evaluation: not stored in the database ({type(error).__name__}); store the "
+                "printed result later with scripts/import_evaluation.py",
+                file=sys.stderr,
+            )
+            return 1
+        finally:
+            await database.stop()
+        print("Stored in llm_evaluations.")
     return 0
 
 

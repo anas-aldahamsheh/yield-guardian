@@ -10,8 +10,10 @@ when the app starts, applies the stored role assignments, opens the investigatio
 With a database (``sessions`` given), the call log, response cache, role assignments, chat
 routes and evaluations are the PostgreSQL stores of ``llm.dbstores``, so usage and role choices
 survive a restart, and a :class:`KnowledgeResource` moves the literature search to PostgreSQL
-full-text search. Both resources are placed after the database (which migrates first) and
-before the job worker (which calls ``registry.runner``).
+full-text search. A :class:`RecordedRunsResource` imports the recorded investigations of
+``docs/recorded/investigations.json`` (or ``RECORDED_RUNS_FILE``) that this host lacks. These
+resources are placed after the database (which migrates first) and before the job worker
+(which calls ``registry.runner``).
 
 Startup makes no Token Factory call: the live model catalog is not read here (it would be a
 network call to the endpoint before anyone asked for one). Nothing here limits, delays or
@@ -185,6 +187,58 @@ def install_knowledge(registry: ServiceRegistry, directory: Path | None = None) 
         log.info("knowledge_loaded", directory=str(path))
 
 
+RECORDED_RUNS_VARIABLE = "RECORDED_RUNS_FILE"
+DEFAULT_RECORDED_RUNS = DEFAULT_KNOWLEDGE_DIR.parent / "recorded" / "investigations.json"
+
+
+def recorded_runs_file(environ: dict[str, str] | None = None) -> Path:
+    env = os.environ if environ is None else environ
+    configured = env.get(RECORDED_RUNS_VARIABLE, "").strip()
+    return Path(configured) if configured else DEFAULT_RECORDED_RUNS
+
+
+class RecordedRunsResource:
+    """Seeds the recorded investigations at startup: imports those missing, changes none."""
+
+    def __init__(
+        self, registry: ServiceRegistry, sessions: Sessions, database_url: str, path: Path
+    ) -> None:
+        self.registry = registry
+        self.sessions = sessions
+        self.database_url = database_url
+        self.path = path
+
+    async def start(self) -> None:
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+        from yield_guardian.services.recorded import import_recorded, read_runs
+
+        if not self.path.is_file():
+            log.info("recorded_runs_none", path=str(self.path))
+            return
+        try:
+            runs = read_runs(self.path)
+            conninfo = psycopg_conninfo(self.database_url)
+            async with AsyncPostgresSaver.from_conn_string(conninfo) as saver:
+                await saver.setup()
+                report = await import_recorded(self.sessions, runs, saver)
+        except Exception as error:
+            reason = f"recorded runs not imported ({type(error).__name__}: {error})"[:300]
+            self.registry.problems["recorded_runs"] = reason
+            log.warning("recorded_runs_not_imported", reason=reason)
+            return
+        self.registry.problems.pop("recorded_runs", None)
+        log.info(
+            "recorded_runs_seeded",
+            imported=len(report.imported),
+            present=len(report.skipped),
+            without_state=len(report.without_state),
+        )
+
+    async def stop(self) -> None:
+        return None
+
+
 KNOWLEDGE_IN_MEMORY = "literature search runs in memory: the database copy failed"
 
 
@@ -238,7 +292,11 @@ def assemble_stack(settings: Settings, sessions: Sessions | None) -> LlmStack:
 
 
 def install_agent(
-    registry: ServiceRegistry, settings: Settings, *, sessions: Sessions | None = None
+    registry: ServiceRegistry,
+    settings: Settings,
+    *,
+    sessions: Sessions | None = None,
+    recorded_runs: Path | None = None,
 ) -> AgentResource | None:
     """Load the knowledge base, then wire the model admin, the investigator and the chat when a
     key is set; record why not otherwise. ``sessions`` (the database, when DATABASE_URL is set)
@@ -246,6 +304,10 @@ def install_agent(
     install_knowledge(registry)
     if sessions is not None and registry.knowledge is not None:
         add_before_jobs(registry, KnowledgeResource(registry, sessions))
+    if sessions is not None and settings.database_url is not None:
+        url = settings.database_url.get_secret_value()
+        path = recorded_runs or recorded_runs_file()
+        add_before_jobs(registry, RecordedRunsResource(registry, sessions, url, path))
     if not key_configured(settings):
         for name in ("llm", "investigator", "chat"):
             registry.problems[name] = NO_KEY
