@@ -3,7 +3,7 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { ChatSheet } from "@/components/chat/chat-sheet";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
-import { PlantClockLink } from "./plant-clock";
+import { PlantClockLink, ReplayTrack } from "./plant-clock";
 import { SessionControl } from "./session-control";
 import { ThemeMenu } from "./theme-menu";
 import { Wordmark } from "./wordmark";
@@ -23,32 +23,10 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-room">
+      <ReplayTrack />
       <div className="mx-auto flex h-bar max-w-[1600px] items-stretch gap-6 px-gutter">
         <Wordmark className="self-center" />
-
-        <nav aria-label="Main" className="hidden items-stretch xl:flex">
-          <ul className="flex items-stretch">
-            {NAV_ITEMS.map((item) => {
-              const active = isActive(pathname, item.href);
-              return (
-                <li key={item.href} className="flex">
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "relative flex items-center px-3 text-sm no-underline transition-colors duration-[var(--dur-micro)]",
-                      active ? "font-medium text-ink" : "text-ink-2 hover:text-ink",
-                      "after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:content-['']",
-                      active ? "after:bg-safelight" : "after:bg-transparent",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <DesktopNav pathname={pathname} />
 
         <div className="ml-auto flex items-center gap-2">
           <PlantClockLink className="hidden sm:flex" />
@@ -107,5 +85,64 @@ export function TopBar() {
         </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * The main navigation on wide screens. The safelight bar under the current page slides to the
+ * next page when you navigate, so the move is visible; it does not animate on first paint.
+ */
+function DesktopNav({ pathname }: { pathname: string }) {
+  const list = useRef<HTMLUListElement>(null);
+  const [bar, setBar] = useState<{ left: number; width: number; animate: boolean } | null>(null);
+  const activeHref = NAV_ITEMS.find((item) => isActive(pathname, item.href))?.href ?? null;
+
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const place = (animate: boolean) => {
+      const link = activeHref ? el.querySelector<HTMLElement>(`a[href="${activeHref}"]`) : null;
+      setBar((prev) =>
+        link ? { left: link.offsetLeft + 12, width: link.offsetWidth - 24, animate: animate && prev != null } : null,
+      );
+    };
+    place(true);
+    const observer = new ResizeObserver(() => place(false));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [activeHref]);
+
+  return (
+    <nav aria-label="Main" className="hidden items-stretch xl:flex">
+      <ul ref={list} className="relative flex items-stretch">
+        {NAV_ITEMS.map((item) => {
+          const active = item.href === activeHref;
+          return (
+            <li key={item.href} className="flex">
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative flex items-center px-3 text-sm no-underline transition-colors duration-[var(--dur-micro)]",
+                  active ? "font-medium text-ink" : "text-ink-2 hover:text-ink",
+                )}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+        {bar ? (
+          <li
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full bg-safelight",
+              bar.animate && "transition-[transform,width] duration-[var(--dur-panel)] ease-[var(--ease-arrive)]",
+            )}
+            style={{ width: bar.width, transform: `translateX(${bar.left}px)` }}
+          />
+        ) : null}
+      </ul>
+    </nav>
   );
 }

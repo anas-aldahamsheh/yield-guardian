@@ -55,10 +55,7 @@ export function PlantClockLink({ className }: { className?: string }) {
           : "Open the line"
       }
     >
-      <span
-        aria-hidden="true"
-        className={cn("size-1.5 rounded-full", live ? "bg-safelight" : "bg-mark-muted")}
-      />
+      <span aria-hidden="true" className={cn("size-1.5 rounded-full", live ? "live-dot" : "bg-mark-muted")} />
       {live ? (
         <span className="tnum">
           Unit {formatInt(live.position)}
@@ -68,5 +65,25 @@ export function PlantClockLink({ className }: { className?: string }) {
         <span>{state.isError ? "Line offline" : "Line"}</span>
       )}
     </Link>
+  );
+}
+
+/**
+ * Where the replay is in its cycle, as a hairline of safelight along the bottom of the top bar.
+ * It repeats the position the clock link states in words, so it is hidden from assistive tech.
+ */
+export function ReplayTrack({ className }: { className?: string }) {
+  const api = useApi();
+  const state = useQuery({ ...q.lineState(api, 10), staleTime: 5 * 60_000 });
+  const live = usePlantClock(state.data?.clock, state.dataUpdatedAt);
+  if (!live) return null;
+  const share = live.total > 1 ? live.position / (live.total - 1) : 0;
+  return (
+    <span aria-hidden="true" className={cn("pointer-events-none absolute inset-x-0 bottom-[-1px] h-px", className)}>
+      <span
+        className="block h-full origin-left bg-safelight transition-transform duration-[var(--dur-arrive)] ease-[var(--ease-arrive)]"
+        style={{ transform: `scaleX(${share})` }}
+      />
+    </span>
   );
 }
