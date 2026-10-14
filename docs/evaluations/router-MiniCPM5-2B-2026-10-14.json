@@ -1,0 +1,224 @@
+{
+  "result": {
+    "role": "router",
+    "model_id": "MiniCPM5-2B",
+    "task_set": "router-intents-v1",
+    "tasks": 28,
+    "success_rate": {
+      "value": 0.8571428571428571,
+      "ci_low": 0.6851019783647471,
+      "ci_high": 0.943009946802506,
+      "ci_level": 0.95,
+      "method": "Wilson score interval",
+      "n": 28,
+      "note": "hand-written task set 'router-intents-v1', one call per task, cache bypassed"
+    },
+    "violations": 0,
+    "latency_ms_p50": 659.6209605049808,
+    "tokens_in": 8054,
+    "tokens_out": 353,
+    "points": 0.0012607985,
+    "run_at": "2026-10-14T11:29:52.925785Z"
+  },
+  "calls": 28,
+  "calls_without_usage": 0,
+  "points_upper_bound": 0.007455952000000001,
+  "outcomes": [
+    {
+      "task_id": "r01",
+      "success": true,
+      "violation": false,
+      "answer": "unit_risk",
+      "expected": "unit_risk"
+    },
+    {
+      "task_id": "r02",
+      "success": true,
+      "violation": false,
+      "answer": "unit_risk",
+      "expected": "unit_risk"
+    },
+    {
+      "task_id": "r03",
+      "success": true,
+      "violation": false,
+      "answer": "unit_explanation",
+      "expected": "unit_explanation"
+    },
+    {
+      "task_id": "r04",
+      "success": true,
+      "violation": false,
+      "answer": "unit_explanation",
+      "expected": "unit_explanation"
+    },
+    {
+      "task_id": "r05",
+      "success": true,
+      "violation": false,
+      "answer": "unit_fdc",
+      "expected": "unit_fdc"
+    },
+    {
+      "task_id": "r06",
+      "success": true,
+      "violation": false,
+      "answer": "unit_fdc",
+      "expected": "unit_fdc"
+    },
+    {
+      "task_id": "r07",
+      "success": true,
+      "violation": false,
+      "answer": "top_sensor_groups",
+      "expected": "top_sensor_groups"
+    },
+    {
+      "task_id": "r08",
+      "success": true,
+      "violation": false,
+      "answer": "top_sensor_groups",
+      "expected": "top_sensor_groups"
+    },
+    {
+      "task_id": "r09",
+      "success": true,
+      "violation": false,
+      "answer": "sensor_health",
+      "expected": "sensor_health"
+    },
+    {
+      "task_id": "r10",
+      "success": true,
+      "violation": false,
+      "answer": "sensor_health",
+      "expected": "sensor_health"
+    },
+    {
+      "task_id": "r11",
+      "success": true,
+      "violation": false,
+      "answer": "wafer_pattern",
+      "expected": "wafer_pattern"
+    },
+    {
+      "task_id": "r12",
+      "success": true,
+      "violation": false,
+      "answer": "wafer_pattern",
+      "expected": "wafer_pattern"
+    },
+    {
+      "task_id": "r13",
+      "success": true,
+      "violation": false,
+      "answer": "similar_wafers",
+      "expected": "similar_wafers"
+    },
+    {
+      "task_id": "r14",
+      "success": true,
+      "violation": false,
+      "answer": "similar_wafers",
+      "expected": "similar_wafers"
+    },
+    {
+      "task_id": "r15",
+      "success": true,
+      "violation": false,
+      "answer": "lot_status",
+      "expected": "lot_status"
+    },
+    {
+      "task_id": "r16",
+      "success": true,
+      "violation": false,
+      "answer": "lot_status",
+      "expected": "lot_status"
+    },
+    {
+      "task_id": "r17",
+      "success": true,
+      "violation": false,
+      "answer": "pattern_causes",
+      "expected": "pattern_causes"
+    },
+    {
+      "task_id": "r18",
+      "success": false,
+      "violation": false,
+      "answer": "knowledge_search",
+      "expected": "pattern_causes"
+    },
+    {
+      "task_id": "r19",
+      "success": true,
+      "violation": false,
+      "answer": "knowledge_search",
+      "expected": "knowledge_search"
+    },
+    {
+      "task_id": "r20",
+      "success": true,
+      "violation": false,
+      "answer": "knowledge_search",
+      "expected": "knowledge_search"
+    },
+    {
+      "task_id": "r21",
+      "success": true,
+      "violation": false,
+      "answer": "general",
+      "expected": "general"
+    },
+    {
+      "task_id": "r22",
+      "success": true,
+      "violation": false,
+      "answer": "general",
+      "expected": "general"
+    },
+    {
+      "task_id": "r23",
+      "success": true,
+      "violation": false,
+      "answer": "action_request",
+      "expected": "action_request"
+    },
+    {
+      "task_id": "r24",
+      "success": true,
+      "violation": false,
+      "answer": "action_request",
+      "expected": "action_request"
+    },
+    {
+      "task_id": "r25",
+      "success": false,
+      "violation": false,
+      "answer": "general",
+      "expected": "out_of_scope"
+    },
+    {
+      "task_id": "r26",
+      "success": false,
+      "violation": false,
+      "answer": "general",
+      "expected": "out_of_scope"
+    },
+    {
+      "task_id": "r27",
+      "success": true,
+      "violation": false,
+      "answer": "unit_risk",
+      "expected": "unit_risk"
+    },
+    {
+      "task_id": "r28",
+      "success": false,
+      "violation": false,
+      "answer": "general",
+      "expected": "out_of_scope"
+    }
+  ]
+}
