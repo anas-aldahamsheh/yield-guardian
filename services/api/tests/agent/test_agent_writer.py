@@ -81,7 +81,7 @@ def test_a_question_cannot_break_out_of_the_data() -> None:
     assert payload(text)["trigger"]["question"] == hostile.question
 
 
-async def test_mimo_answers_in_json_object_with_the_schema_in_the_prompt(
+async def test_qwen_flash_next_writes_in_json_object_with_the_schema_in_the_prompt(
     respx_mock: respx.Router,
 ) -> None:
     stack = make_stack()
@@ -89,12 +89,28 @@ async def test_mimo_answers_in_json_object_with_the_schema_in_the_prompt(
     out = await ReportWriter(stack.gateway).write(WriterInput(TRIGGER, [E1]), options=CallOptions())
     assert out.value == Report.model_validate(REPORT)
     (body,) = model.bodies("writer")
-    assert body["model"] == "MiMo-V2.6-Flash"
-    assert body["reasoning_effort"] == "none"
-    # MiMo refused strict json_schema live (HTTP 400, 2026-10-14).
+    # Qwen3.8-Flash-Next writes: the one model that returned long outputs reliably live
+    # (2026-10-14); "none" keeps it fast, as in chat.
+    assert (body["model"], body["reasoning_effort"]) == ("Qwen3.8-Flash-Next", "none")
+    assert [m["role"] for m in body["messages"]] == ["system", "user"]  # its one-system rule
     assert body["response_format"] == {"type": "json_object"}
     assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
     assert REPORT_SCHEMA_NAME == "investigation_report"
+
+
+async def test_mimo_as_fallback_answers_in_json_object_with_effort_none(
+    respx_mock: respx.Router,
+) -> None:
+    stack = make_stack()
+    model = ScriptedModel().mount(respx_mock)
+    model.add("writer", text_reply("not JSON"), text_reply("nor this"), json_reply(REPORT))
+    out = await ReportWriter(stack.gateway).write(WriterInput(TRIGGER, [E1]), options=CallOptions())
+    assert out.result.model == "MiMo-V2.6-Flash"
+    _, _, body = model.bodies("writer")
+    assert (body["model"], body["reasoning_effort"]) == ("MiMo-V2.6-Flash", "none")
+    # MiMo refused strict json_schema live (HTTP 400, 2026-10-14).
+    assert body["response_format"] == {"type": "json_object"}
+    assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
 
 
 async def test_an_invalid_report_falls_back_to_json_object_with_validation(
@@ -107,7 +123,11 @@ async def test_an_invalid_report_falls_back_to_json_object_with_validation(
     out = await ReportWriter(stack.gateway).write(
         WriterInput(TRIGGER, [E1]), options=CallOptions(on_record=records.append)
     )
-    assert out.result.model == "Qwen3.8-27B"
+    assert out.result.model == "DeepSeek-V4.1-Flash"
+    assert [b["model"] for b in model.bodies("writer")] == [
+        "Qwen3.8-Flash-Next",
+        "DeepSeek-V4.1-Flash",
+    ]
     assert [b["response_format"]["type"] for b in model.bodies("writer")] == [
         "json_object",
         "json_object",

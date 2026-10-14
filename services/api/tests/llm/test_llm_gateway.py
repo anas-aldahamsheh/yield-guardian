@@ -152,7 +152,7 @@ async def test_use_cache_false_calls_the_endpoint_again(
     assert route.call_count == 2
 
 
-async def test_writer_falls_back_from_mimo_prose_to_qwen_json_object(
+async def test_writer_falls_back_from_qwen_prose_to_deepseek_json_object(
     respx_mock: respx.Router, stack: Stack
 ) -> None:
     player = mount(respx_mock, "structured_fallback")
@@ -160,22 +160,23 @@ async def test_writer_falls_back_from_mimo_prose_to_qwen_json_object(
         Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
     )
     assert out.value == FixtureAnswer(label="fixture", count=3)
-    assert out.result.model == "Qwen3.8-27B"
+    assert out.result.model == "DeepSeek-V4.1-Flash"
     first, second = player.bodies()
     assert isinstance(first, dict)
     assert isinstance(second, dict)
     # MiMo refused strict json_schema live (2026-10-14): both models answer in json_object.
+    assert (first["model"], first["reasoning_effort"]) == ("Qwen3.8-Flash-Next", "none")
+    assert (second["model"], second["reasoning_effort"]) == ("DeepSeek-V4.1-Flash", "low")
     assert first["response_format"] == {"type": "json_object"}
     assert second["response_format"] == {"type": "json_object"}
     statuses = [(r.model, r.status) for r in stack.call_log.records]
     assert statuses == [
-        ("MiMo-V2.6-Flash", CallStatus.INVALID_OUTPUT),
-        ("Qwen3.8-27B", CallStatus.OK),
+        ("Qwen3.8-Flash-Next", CallStatus.INVALID_OUTPUT),
+        ("DeepSeek-V4.1-Flash", CallStatus.OK),
     ]
-    # Both calls were billed; Qwen3.8-27B reports no reasoning count.
-    assert stack.call_log.records[0].points == pytest.approx((1500 * 0.14 + 50 * 0.28) / 1e6)
-    assert stack.call_log.records[1].tokens_reasoning is None
-    assert out.result.points == pytest.approx((1500 * 0.50 + 40 * 3.00) / 1e6)
+    # Both calls were billed, each at its model's price.
+    assert stack.call_log.records[0].points == pytest.approx((1500 * 0.15 + 50 * 0.47) / 1e6)
+    assert out.result.points == pytest.approx((1500 * 0.14 + 40 * 0.28) / 1e6)
     player.assert_done()
 
 
@@ -186,13 +187,13 @@ async def test_an_empty_answer_falls_back_and_is_not_cached(
     route = respx_mock.post(host=HOST).mock(
         side_effect=[
             httpx.Response(200, json=empty),
-            completion("Qwen3.8-27B", '{"label": "x", "count": 1}'),
+            completion("DeepSeek-V4.1-Flash", '{"label": "x", "count": 1}'),
         ]
     )
     out = await stack.gateway.complete_structured(
         Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
     )
-    assert out.result.model == "Qwen3.8-27B"
+    assert out.result.model == "DeepSeek-V4.1-Flash"
     assert [r.status for r in stack.call_log.records] == [CallStatus.EMPTY, CallStatus.OK]
     assert route.call_count == 2
     assert len(stack.cache) == 1  # only the valid answer
@@ -562,3 +563,53 @@ async def test_an_http_error_body_is_logged_without_the_key(
     assert "bad schema" in warnings[0]["body"]
     assert all(secret not in str(e) for e in logs)
     assert all(secret not in (r.error_body or "") for r in stack.call_log.records)
+
+
+async def test_a_call_past_the_role_deadline_moves_down_the_chain(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    import asyncio
+
+    from yield_guardian.llm.gateway import ROLE_TIMEOUT_S
+
+    assert ROLE_TIMEOUT_S[Role.WRITER] == 240.0  # a ~2,000-token report at measured speeds
+    assert ROLE_TIMEOUT_S[Role.INVESTIGATOR] == 180.0
+    assert ROLE_TIMEOUT_S[Role.VERIFIER] < 180.0
+    assert ROLE_TIMEOUT_S[Role.ROUTER] < ROLE_TIMEOUT_S[Role.VERIFIER]
+    stack.gateway.timeouts[Role.WRITER] = 0.05
+    calls: list[str] = []
+
+    async def answer(request: httpx.Request) -> httpx.Response:
+        model = json.loads(request.content)["model"]
+        calls.append(model)
+        if model == "Qwen3.8-Flash-Next":
+            await asyncio.sleep(5)  # a server that never answers
+        return completion(model, '{"label": "x", "count": 1}')
+
+    respx_mock.post(host=HOST).mock(side_effect=answer)
+    out = await stack.gateway.complete_structured(
+        Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+    )
+    assert out.result.model == "DeepSeek-V4.1-Flash"
+    assert calls == ["Qwen3.8-Flash-Next", "DeepSeek-V4.1-Flash"]
+    first = stack.call_log.records[0]
+    assert (first.status, first.error_kind) == (CallStatus.ERROR, "TransportError")
+    assert "no answer within 0.05 s" in (first.error_message or "")
+
+
+async def test_when_every_model_times_out_the_reason_names_the_deadline(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    import asyncio
+
+    stack.gateway.timeouts[Role.VERIFIER] = 0.02
+
+    async def hang(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return completion("x", "{}")
+
+    respx_mock.post(host=HOST).mock(side_effect=hang)
+    with pytest.raises(NoModelAvailableError, match=r"no answer within 0\.02 s"):
+        await stack.gateway.complete_structured(
+            Role.VERIFIER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+        )

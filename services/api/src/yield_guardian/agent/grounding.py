@@ -18,6 +18,7 @@ from yield_guardian.agent.numbers import (
     IdentifierKind,
     NumberMention,
     int_values_by_key,
+    level_digits,
     matches,
     numeric_leaves,
     scan,
@@ -36,6 +37,8 @@ _INT_KEYS: dict[IdentifierKind, frozenset[str]] = {
 }
 _STRING_KINDS: frozenset[IdentifierKind] = frozenset({"sensor", "alarm", "wafer", "lot"})
 _SUBSTRING_KINDS: frozenset[IdentifierKind] = frozenset({"date", "time"})
+_LEVEL_SUFFIX = re.compile(r"_([0-9]{2,3})$")
+_LEVEL_KEY = re.compile(r"(?:^|_)(?:level|confidence)$")
 _LOTLIKE = re.compile(r"^[A-Za-z0-9_.]+(?:-[0-9]+)?$")
 
 
@@ -47,6 +50,10 @@ class EvidenceFacts:
     evidence_ids: set[str] = field(default_factory=set)
     known_identifiers: set[str] = field(default_factory=set)
     """Lot names and wafer IDs found in the evidence, matched literally in text."""
+    level_suffixes: set[str] = field(default_factory=set)
+    """Digits that end a field name (``t2_99``, ``limit_999``): the levels the evidence names."""
+    level_values: set[float] = field(default_factory=set)
+    """Values of fields named like a level (``ci_level``: 0.95)."""
 
     @classmethod
     def build(
@@ -68,9 +75,31 @@ class EvidenceFacts:
                             facts.ints.setdefault(kind, set()).add(value)
             for key in ("lot", "wafer_id"):
                 facts._collect_named(item.data, key)
+            facts._collect_levels(item.data)
         facts.strings.update(strings)
         facts.ints.setdefault("unit", set()).update(units)
         return facts
+
+    def _collect_levels(self, data: object) -> None:
+        if isinstance(data, dict):
+            for name, value in data.items():
+                suffix = _LEVEL_SUFFIX.search(str(name))
+                if suffix:
+                    self.level_suffixes.add(suffix.group(1))
+                if _LEVEL_KEY.search(str(name)) and isinstance(value, int | float):
+                    self.level_values.add(float(value))
+                self._collect_levels(value)
+        elif isinstance(data, list):
+            for value in data:
+                self._collect_levels(value)
+
+    def names_level(self, mention: NumberMention) -> bool:
+        """True when the evidence names the level a percentage like "99%" refers to."""
+        if level_digits(mention) in self.level_suffixes:
+            return True
+        if any(abs(v * 100.0 - mention.value) <= 1e-9 for v in self.level_values):
+            return True
+        return any(mention.text in s for s in self.strings)
 
     def _collect_named(self, data: object, key: str) -> None:
         if isinstance(data, dict):

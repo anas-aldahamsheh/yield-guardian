@@ -21,6 +21,13 @@ shows, equals it: ``0.12`` matches 0.1234 (tolerance half a unit in the last wri
 ``12%`` matches 0.1234 (a percentage is compared with the evidence times 100), ``2.3e-4``
 matches 0.000234. ``5%`` never matches 5, and ``0.05`` never matches 5. After a comparator the
 inequality may hold instead: ``p < 0.001`` matches a p-value of 0.0004.
+
+A number may also come from evidence text rather than a numeric field (an operating point
+labelled ``"5% false-alarm rate"``): it is supported when the same number, with the same percent
+sign, appears literally in that text (:func:`appears_in_text`). A percentage that names a level
+("the 99% control limit", "a 95% confidence interval") is a name, not a quantity
+(:func:`names_a_level`): it is checked like an identifier, against the levels the evidence
+names (a key such as ``t2_99``, a ``ci_level`` of 0.95, or the literal text).
 """
 
 from __future__ import annotations
@@ -28,7 +35,7 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Iterable, Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 Comparator = Literal["<", "<=", ">", ">="]
@@ -291,6 +298,47 @@ def matches(mention: NumberMention, evidence_value: float, *, percent: bool | No
             return target >= mention.value
         case _:
             return False
+
+
+def written_value_matches(written: NumberMention, value: float, *, percent: bool) -> bool:
+    """True when a ``numbers[]`` entry's ``value`` agrees with its ``as_written`` to the written
+    precision: ``+0.80`` with 0.802666, ``10.2%`` with 10.21 or (a percentage given as the
+    fraction the evidence holds) 0.1021. The sign must agree; a comparator in ``as_written``
+    does not widen the match."""
+    plain = replace(written, comparator=None)
+    return matches(plain, value, percent=False) or (percent and matches(plain, value, percent=True))
+
+
+_LEVEL_FOLLOW = re.compile(
+    r"\s*(?:(?:upper|lower)\s+)?(?:control\s+|confidence\s+)?"
+    r"(?:limits?|confidence|CI|intervals?|quantiles?|percentiles?|levels?|bands?|UCL|LCL)\b",
+    re.IGNORECASE,
+)
+
+
+def names_a_level(text: str, mention: NumberMention) -> bool:
+    """True when a percentage in ``text`` names a level rather than a quantity: "the 99% limit",
+    "99.9% control limits", "a 95% CI". "99% of units" is a quantity."""
+    return (
+        mention.percent
+        and mention.comparator is None
+        and _LEVEL_FOLLOW.match(text, mention.end) is not None
+    )
+
+
+def level_digits(mention: NumberMention) -> str:
+    """The digits a field name uses for a level: 99% gives "99", 99.9% gives "999"."""
+    return f"{mention.value:g}".replace(".", "")
+
+
+def appears_in_text(mention: NumberMention, text: str) -> bool:
+    """True when ``text`` (a string in the evidence) contains the same number literally, with
+    the same percent sign: ``5%`` in ``"5% false-alarm rate"``, not ``5`` or ``0.05``."""
+    return any(
+        found.percent == mention.percent
+        and abs(found.value - mention.value) <= 1e-12 * max(1.0, abs(mention.value))
+        for found in scan(text).numbers
+    )
 
 
 def magnitude_matches(mention: NumberMention, evidence_value: float, *, percent: bool) -> bool:

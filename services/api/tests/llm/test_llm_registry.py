@@ -17,6 +17,7 @@ from yield_guardian.llm.registry import (
     RoleAssignment,
     choice_for,
     default_mode,
+    family_problems,
     policy_effort,
     validate_chain,
 )
@@ -34,18 +35,25 @@ def test_defaults_follow_plan_section_7_1() -> None:
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
         Role.INVESTIGATOR: "DeepSeek-V4.1-Flash",
-        Role.WRITER: "MiMo-V2.6-Flash",
+        Role.WRITER: "Qwen3.8-Flash-Next",
         Role.VERIFIER: "GLM-5.3-Flash",
         Role.CHAT: "Qwen3.8-Flash-Next",
         Role.ROUTER: "MiniCPM5-2B",
         Role.VISION: "DeepSeek-V4.1-Flash",
         Role.OCR: "MinerU2.5-Pro",
     }
-    # MiMo refused strict json_schema live; every structured default is json_object.
-    assert DEFAULT_CHAINS[Role.WRITER][0] == ModelChoice(
-        model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT
+    # Qwen3.8-Flash-Next writes (the one model that returned long outputs reliably live,
+    # 2026-10-14), then DeepSeek, then MiMo. MiMo refused strict json_schema live; every
+    # structured default is json_object.
+    assert DEFAULT_CHAINS[Role.WRITER] == (
+        ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
+        ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
+        ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT),
     )
-    assert DEFAULT_CHAINS[Role.WRITER][1].response_mode is OBJECT
+    writer, verifier = DEFAULT_CHAINS[Role.WRITER], DEFAULT_CHAINS[Role.VERIFIER]
+    assert family_problems(writer, verifier, ProfileCatalog()) == []
+    # The verifier's primary is outside the writer's families.
+    assert DEFAULT_CHAINS[Role.VERIFIER][0].model == "GLM-5.3-Flash"
     assert all(c.response_mode is not SCHEMA for chain in DEFAULT_CHAINS.values() for c in chain)
 
 

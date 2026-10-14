@@ -22,7 +22,7 @@ from tests.agent.helpers import (
 )
 from tests.llm.helpers import make_stack
 from yield_guardian.agent.chat import ChatAnswerer, SentenceGate, question_facts
-from yield_guardian.agent.grounding import REDACTED
+from yield_guardian.agent.grounding import REDACTED, EvidenceFacts
 from yield_guardian.agent.tools import TOOLS
 from yield_guardian.contracts.chat import ChatContext, ChatEventPayload, ChatRequest
 from yield_guardian.contracts.session import SessionInfo
@@ -303,3 +303,27 @@ def test_the_product_s_own_dataset_names_are_not_hidden() -> None:
     assert gate.unverified == []
     gate = SentenceGate(question_facts([], "what can you do?", None))
     assert gate.feed("There are 811 wafers. ") == [f"There are {REDACTED} wafers. "]
+
+
+def _gate(*numbers: float) -> SentenceGate:
+    return SentenceGate(EvidenceFacts(numbers=list(numbers)))
+
+
+def test_a_numbered_list_marker_is_layout_not_a_number() -> None:
+    gate = _gate(116)
+    shown = gate.feed("1. Dead sensors: 116 [E1].\n2. Done.\n") + gate.flush()
+    assert "".join(shown).startswith("1. Dead sensors: 116")
+    assert gate.unverified == []
+
+
+def test_a_sum_of_two_evidence_counts_passes_and_a_wrong_total_does_not() -> None:
+    gate = _gate(116, 57, 274, 143)
+    shown = "".join(gate.feed("In total 173 sensors need attention [E1]. Or 174.\n") + gate.flush())
+    assert "173" in shown
+    assert gate.unverified == ["174"]
+
+
+def test_a_non_integer_sum_is_not_accepted() -> None:
+    gate = _gate(0.4, 0.3)
+    "".join(gate.feed("The total is 0.7 [E1].\n") + gate.flush())
+    assert gate.unverified == ["0.7"]

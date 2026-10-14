@@ -1,22 +1,22 @@
 {
   "meta": {
     "hand_authored": true,
-    "description": "Writer chain: MiMo-V2.6-Flash (json_object; it refuses strict json_schema live) answers with text that is not JSON, so the gateway falls back to Qwen3.8-27B (json_object), whose answer validates.",
-    "source": "docs/vendor/token-factory.md: only MiMo-V2.6-Flash accepts strict json_schema; every chat model accepts json_object. Answer texts are written for the fixture."
+    "description": "Writer chain: Qwen3.8-Flash-Next (json_object) answers with text that is not JSON, so the gateway falls back to DeepSeek-V4.1-Flash (json_object), whose answer validates.",
+    "source": "docs/vendor/token-factory.md: every chat model accepts json_object; MiMo-V2.6-Flash refused strict json_schema live on 2026-10-14. Answer texts are written for the fixture."
   },
   "interactions": [
     {
       "request": {
         "method": "POST",
         "path": "/chat/completions",
-        "match": {"model": "MiMo-V2.6-Flash", "reasoning_effort": "none", "response_format": {"type": "json_object"}}
+        "match": {"model": "Qwen3.8-Flash-Next", "reasoning_effort": "none", "response_format": {"type": "json_object"}}
       },
       "response": {
         "status": 200,
         "json_body": {
           "id": "chatcmpl-fixture-structured-1",
           "object": "chat.completion",
-          "model": "MiMo-V2.6-Flash",
+          "model": "Qwen3.8-Flash-Next",
           "choices": [
             {"index": 0, "message": {"role": "assistant", "content": "Sorry, here is prose instead of JSON."}, "finish_reason": "stop"}
           ],
@@ -28,14 +28,14 @@
       "request": {
         "method": "POST",
         "path": "/chat/completions",
-        "match": {"model": "Qwen3.8-27B", "reasoning_effort": "low", "response_format": {"type": "json_object"}}
+        "match": {"model": "DeepSeek-V4.1-Flash", "reasoning_effort": "low", "response_format": {"type": "json_object"}}
       },
       "response": {
         "status": 200,
         "json_body": {
           "id": "chatcmpl-fixture-structured-2",
           "object": "chat.completion",
-          "model": "Qwen3.8-27B",
+          "model": "DeepSeek-V4.1-Flash",
           "choices": [
             {"index": 0, "message": {"role": "assistant", "content": "```json\n{\"label\": \"fixture\", \"count\": 3}\n```"}, "finish_reason": "stop"}
           ],

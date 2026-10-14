@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 15:25 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 16:24 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -147,7 +147,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
 | L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
 | L10 | Model evaluation harness per role, with cost estimate | Cloud | ✅ | Run once on the server: router MiniCPM5-2B 24/28 = 0.857 [0.685, 0.943], p50 660 ms; verifier GLM-5.3-Flash 10/10 = 1.000 [0.722, 1.000], p50 2.5 s; 0.0019 points in total ([results](evaluations/)). The router never chose out_of_scope; rules being added |
-| L11 | Recorded demo investigations | Cloud | 🟡 | Writer step fixed (strict-schema fallback, reasoning budget, provider errors logged) in d37fc64. Second attempt reached the writer after 7 evidence records and failed there (0.023 points). Waiting on the owner's go-ahead for a tiny writer check and one more recording |
+| L11 | Recorded demo investigations | Cloud | 🟡 | Stopped by the owner (16:23). Three live attempts reached 7 evidence records each, then failed at the writer: MiMo too slow (~5 tok/s), DeepSeek 504 from AMD's upstream. Writer chain is now Qwen3.8-Flash-Next, DeepSeek-V4.1-Flash, MiMo with a 240 s deadline and a 30-min run bound (b2cecce + this merge); not yet tried live |
 
 ### U: Interface
 
@@ -206,13 +206,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Since | What | Why |
 |---|---|---|
-| 2026-10-14 12:12 | Go-ahead to record 3 demo investigations (L11), on the decision card in the thread | It spends Token Factory points: the ceiling is about 3 points per run, above the 1-point daily budget in PLAN 7.2, and a real run costs far less (the evaluation spent 0.0019). Recommended: record one, check its real cost, then the rest |
 | 2026-10-14 | Rotate the Token Factory key after the event | It was pasted in chat |
 
 ## Changelog
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 16:24 | Second writer attempt (DeepSeek) failed on AMD 504 (0.003 points). Merged b2cecce: Qwen3.8-Flash-Next writes first, writer deadline 240 s; run bound raised to 30 min; 940 tests pass. Owner chose to stop recording here; L11 and A3 stay open |
+| 2026-10-14 16:02 | Owner approved one more recording with DeepSeek as writer; deploy and record line sent |
+| 2026-10-14 15:55 | 4f7e92b live: both chat checks pass (full answer, list markers shown, 173 = 116 + 57 verified; 0.0125 points). Recording failed at the writer (timeout). Merged 53106d8: DeepSeek-V4.1-Flash writes, MiMo is fallback, Qwen3.8-27B dropped; 939 tests pass |
 | 2026-10-14 15:25 | Chat is fully model-written: no canned replies, the model knows every tool and the product, and the number check stays as a check. Accessibility and performance work merged (4e1e524) |
 | 2026-10-14 15:16 | Final review: nothing blocking; docs corrected (writer JSON validated in code, Mahalanobis named in the wafer model card, bundles committed not released, T² interval, language-model results in README). Third recording reached a full report; the verifier rejected it on rounding and labels, then the writer timed out (0.0074 points); fixes in progress |
 | 2026-10-14 14:02 | Arabic guide live (U15 done). Writer fix and "no key means 503" deployed (d37fc64) |

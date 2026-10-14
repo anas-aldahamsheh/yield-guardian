@@ -94,11 +94,16 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         _c("Qwen3.8-Flash-Next", "low", _T),
     ),
     Role.WRITER: (
-        # "none" is the one MiMo value the docs name ("none turns it off"). MiMo refuses strict
-        # json_schema live (HTTP 400, measured 2026-10-14), so it answers in json_object and
-        # the report is validated in code, like every other structured role.
+        # Measured live on 2026-10-14: Qwen3.8-Flash-Next is the one model that reliably
+        # returned long outputs (chat: 1,175 to 1,348 tokens in 43 to 62 s, 4 of 4 calls OK).
+        # DeepSeek-V4.1-Flash answered HTTP 500 (upstream 504 call_upstream_timeout) when
+        # writing, and MiMo-V2.6-Flash (about 5 tokens/s) and Qwen3.8-27B ran past the writer
+        # deadline. All answer in json_object (MiMo refuses strict json_schema) and the report
+        # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
+        # one MiMo effort the docs name.
+        _c("Qwen3.8-Flash-Next", "none", _O),
+        _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),
-        _c("Qwen3.8-27B", "low", _O),
     ),
     Role.VERIFIER: (
         _c("GLM-5.3-Flash", "low", _O),
