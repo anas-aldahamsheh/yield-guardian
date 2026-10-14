@@ -123,9 +123,12 @@
   /* Motion. */
   --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
   --dur-micro: 120ms;
   --dur-component: 220ms;
   --dur-panel: 420ms;
+  /* The line's cadence: how long a new unit takes to slide in. Shorter than a unit's interval. */
+  --dur-arrive: 700ms;
 
   /* Layout. Panels are dies; the gap between them is a street. */
   --street: 8px;
@@ -229,6 +232,10 @@
   --text-h3--line-height: 28px;
   --text-h2: 24px;
   --text-h2--line-height: 30px;
+  /* Page titles in the console. */
+  --text-title: 30px;
+  --text-title--line-height: 36px;
+  --text-title--letter-spacing: -0.02em;
   --text-h1: 36px;
   --text-h1--line-height: 40px;
   --text-h1--letter-spacing: -0.02em;
@@ -241,6 +248,7 @@
 
   --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
 
   --spacing-street: var(--street);
   --spacing-gutter: var(--gutter);
@@ -346,6 +354,120 @@
     animation: arrival 1.1s var(--ease-arrive) both;
   }
 
+  /* A unit that crossed a limit as it arrived: two rings in the fail colour. */
+  .alarm-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: alarm-pulse 0.9s var(--ease-arrive) 2 both;
+  }
+
+  /* Instrument readings at display size: light weight, tabular, tight. */
+  .readout {
+    font-variant-numeric: tabular-nums;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+
+  /*
+   * Fiducials: the alignment marks at the corners of a reticle. Only on what is live or being
+   * exposed (the running line, the hero's exposure field), never as decoration.
+   */
+  .fiducials {
+    position: relative;
+  }
+  .fiducials::before {
+    --fid-len: 10px;
+    --fid-w: 1.5px;
+    --fid-c: var(--safelight);
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--fid-c), var(--fid-c)) top left / var(--fid-len) var(--fid-w) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) top left / var(--fid-w) var(--fid-len) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-len) var(--fid-w) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-w) var(--fid-len) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-len) var(--fid-w) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-w) var(--fid-len) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-len) var(--fid-w) no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-w) var(--fid-len) no-repeat;
+  }
+
+  /*
+   * Not measured yet, or not ready: an unexposed field of dies. A faint die grid that fades out,
+   * so an empty state reads as a place waiting for data rather than a failure.
+   */
+  .unexposed {
+    position: relative;
+    isolation: isolate;
+  }
+  .unexposed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--hairline) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+    background-size: 12px 12px;
+    background-position: -1px -1px;
+    mask-image: radial-gradient(120% 140% at 0% 0%, #000 0%, transparent 70%);
+    opacity: 0.85;
+  }
+
+  /* A live indicator: a dot of safelight with one slow ring. */
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    border-radius: 9999px;
+    background: var(--safelight);
+  }
+  .live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 1.5px var(--safelight);
+    animation: live-ring 2.4s var(--ease-arrive) infinite;
+  }
+
+  /* Something new in a list: its row is lit once, then the light fades. */
+  .flash-new {
+    animation: flash-new 2.4s var(--ease-arrive) both;
+  }
+  .flash-alarm {
+    animation: flash-alarm 2.4s var(--ease-arrive) both;
+  }
+
+  /* A page arriving after navigation: one short settle, not a fade-up per section. */
+  .page-enter {
+    animation: page-enter var(--dur-panel) var(--ease-arrive) both;
+  }
+
+  /* Swapped content (an evidence record, a tab): a quick crossfade. */
+  .swap-in {
+    animation: swap-in var(--dur-component) var(--ease-arrive) both;
+  }
+
+  /* Lines of a display headline rising out of a mask, staggered by --i. */
+  .rise-line {
+    display: block;
+    overflow: clip;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+  .rise-line > span {
+    display: block;
+    animation: rise 0.9s var(--ease-arrive) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 80ms);
+  }
+  .stage-in {
+    animation: stage-in 0.7s var(--ease-arrive) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 380ms);
+  }
+
   .skip-link {
     position: absolute;
     left: 12px;
@@ -373,8 +495,91 @@
   }
 }
 
+@keyframes alarm-pulse {
+  from {
+    opacity: 0.95;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes live-ring {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes flash-new {
+  from {
+    background-color: var(--safelight-wash-strong);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes flash-alarm {
+  from {
+    background-color: var(--fail-wash);
+    box-shadow: inset 2px 0 0 var(--fail);
+  }
+  to {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes swap-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(104%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .arrival {
+  .arrival,
+  .alarm-pulse,
+  .live-dot::after {
     display: none;
   }
 
@@ -394,5 +599,9 @@
   }
   .lit {
     outline: 2px solid Highlight;
+  }
+  .fiducials::before,
+  .unexposed::before {
+    display: none;
   }
 }

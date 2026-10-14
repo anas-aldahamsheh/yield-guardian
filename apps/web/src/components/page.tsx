@@ -2,9 +2,9 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Page frame: the console's width and gutters. */
+/** Page frame: the console's width and gutters. Settles in once when the page arrives. */
 export function PageFrame({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("mx-auto w-full max-w-[1600px] px-gutter pt-6 pb-16", className)} {...props} />;
+  return <div className={cn("page-enter mx-auto w-full max-w-[1600px] px-gutter pt-8 pb-16", className)} {...props} />;
 }
 
 /** Title row of a console page: what this page is for, and its actions. */
@@ -24,8 +24,8 @@ export function PageHeader({
   return (
     <div className={cn("mb-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4", className)}>
       <div className="max-w-[72ch] min-w-0">
-        <h1 className="text-h2 font-semibold tracking-[-0.01em] text-ink">{title}</h1>
-        {description ? <p className="mt-1.5 text-[15px] leading-6 text-ink-2">{description}</p> : null}
+        <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.02em] text-ink sm:text-title">{title}</h1>
+        {description ? <p className="mt-2 text-[15px] leading-6 text-ink-2">{description}</p> : null}
         {meta ? <div className="mt-2 text-sm text-ink-3">{meta}</div> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -33,7 +33,10 @@ export function PageHeader({
   );
 }
 
-/** A panel is a die: flat, square-cornered, on the room colour. */
+/**
+ * A panel is a die: flat, square-cornered, on the room colour. `live` puts fiducials (reticle
+ * alignment marks) on its corners: use it only for a panel whose content is updating right now.
+ */
 export function Panel({
   title,
   description,
@@ -41,6 +44,7 @@ export function Panel({
   children,
   className,
   bodyClassName,
+  live = false,
   as: Tag = "section",
   ...props
 }: {
@@ -50,10 +54,11 @@ export function Panel({
   children?: ReactNode;
   className?: string;
   bodyClassName?: string;
+  live?: boolean;
   as?: "section" | "div" | "article" | "aside";
 } & Omit<ComponentProps<"section">, "title" | "ref">) {
   return (
-    <Tag className={cn("panel min-w-0", className)} {...props}>
+    <Tag className={cn("panel min-w-0", live && "fiducials", className)} {...props}>
       {title || actions ? (
         <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 px-4 pt-3.5 pb-2 sm:px-5">
           <div className="min-w-0">
