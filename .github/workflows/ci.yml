@@ -309,9 +309,9 @@ jobs:
           uv export --locked --no-dev --no-emit-project --no-hashes --format requirements-txt > "$RUNNER_TEMP/api-requirements.txt"
           uvx pip-audit==2.9.0 --strict --no-deps --disable-pip -r "$RUNNER_TEMP/api-requirements.txt"
       - uses: pnpm/action-setup@v4
+      # No pnpm cache here: the audit installs nothing, so there is no store to save.
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
       - name: JavaScript dependency audit (production dependencies)
         run: pnpm audit --prod --audit-level high
