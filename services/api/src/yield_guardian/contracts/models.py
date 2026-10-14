@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from yield_guardian.contracts.base import Contract, Count, Estimate, Share
+from yield_guardian.contracts.base import Contract, Count, Estimate
 
 RoleName = Literal["investigator", "writer", "verifier", "chat", "router", "ocr", "vision"]
 ReasoningEffort = Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]
@@ -105,14 +105,6 @@ class Quota(Contract):
     checked_at: datetime | None
 
 
-class BudgetGuard(Contract):
-    """Below the threshold share of the daily budget, non-essential calls are refused."""
-
-    active: bool
-    threshold: Share
-    reason: str | None
-
-
 class RoleUsage(Contract):
     role: RoleName
     usage: Usage
@@ -128,8 +120,7 @@ class UsageReport(Contract):
     total: Usage
     by_role: list[RoleUsage]
     by_model: list[ModelUsage]
-    quota: Quota
-    guard: BudgetGuard
+    quota: Quota = Field(description="Shown for information; the product never limits calls.")
     deterministic_answers: Count = Field(
         description="Chat questions answered by rules, without a model."
     )

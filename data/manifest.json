@@ -1,0 +1,63 @@
+{
+  "secom": {
+    "title": "SECOM (UCI Machine Learning Repository, dataset 179)",
+    "page": "https://archive.ics.uci.edu/dataset/179/secom",
+    "source": "https://archive.ics.uci.edu/static/public/179/secom.zip",
+    "retrieved_at": "2026-10-14T07:27:56+00:00",
+    "citation": "McCann, M. and Johnston, A. (2008). SECOM [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C54305",
+    "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0). Text on the dataset page, retrieved 2026-10-14: \"This dataset is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license. This allows for the sharing and adaptation of the datasets for any purpose, provided that the appropriate credit is given.\"",
+    "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+    "doi": "https://doi.org/10.24432/C54305",
+    "files": [
+      {
+        "path": "raw/secom/secom.data",
+        "bytes": 5389983,
+        "sha256": "20f0e7ee434f7dcbae0eea9ffff009a2b57f42d6b0dc9a5bd4f00782c0a3374c"
+      },
+      {
+        "path": "raw/secom/secom.names",
+        "bytes": 4223,
+        "sha256": "6d91b0b46cdee03064ee3e3112f937c1b3f7fcd9933575794ec07974e6f1ea59"
+      },
+      {
+        "path": "raw/secom/secom.zip",
+        "bytes": 1964989,
+        "sha256": "eea568baf3c2229096d7d294cf0b096b5502bd96d92c0b80a65b84714059be8e"
+      },
+      {
+        "path": "raw/secom/secom_labels.data",
+        "bytes": 40638,
+        "sha256": "126884cf453705c9e61a903fe906f0665a3b45ce3639e621edc5c93c89627e03"
+      }
+    ],
+    "redistributed": {
+      "folder": "secom/",
+      "files": [
+        "secom.data",
+        "secom_labels.data",
+        "secom.names"
+      ],
+      "note": "Unmodified copies of the raw files above (same SHA-256), committed under CC BY 4.0 with secom/ATTRIBUTION.md."
+    }
+  },
+  "wm811k": {
+    "title": "WM-811K wafer maps (MIR Lab, National Taiwan University)",
+    "page": "http://mirlab.org/dataSet/public/",
+    "source": "https://www.kaggle.com/datasets/qingyi/wm811k-wafer-map",
+    "retrieved_at": "2026-10-14T07:29:50+00:00",
+    "citation": "Wu, M.-J., Jang, J.-S. R. and Chen, J.-L. (2015). Wafer map failure pattern recognition and similarity ranking for large-scale data sets. IEEE Transactions on Semiconductor Manufacturing, 28(1), 1-12.",
+    "licence": "Kaggle mirror qingyi/wm811k-wafer-map (dataset id 14180) lists the licence CC0-1.0 in its metadata (retrieved 2026-10-14). That licence was set by the Kaggle uploader, not by the original authors (MIR Lab); the original release states no licence we could retrieve (http://mirlab.org/dataSet/public/ returned HTTP 404 on 2026-10-14). We therefore treat it as a research dataset: raw data is never redistributed, only a small derived demo subset with attribution.",
+    "files": [
+      {
+        "path": "raw/wm811k/LSWMD.pkl",
+        "bytes": 2095505977,
+        "sha256": "1d04fccb3dd3176b276878b926b20fead7e077c5751e4d353ea9741a5e7b5c65"
+      },
+      {
+        "path": "raw/wm811k/wm811k-wafer-map.zip",
+        "bytes": 156686283,
+        "sha256": "0e4bd4316a110a04e475a88071f5e1c7fe4303b12ee53c851d2cae4d995a93e2"
+      }
+    ]
+  }
+}

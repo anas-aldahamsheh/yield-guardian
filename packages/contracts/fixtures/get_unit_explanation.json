@@ -1,5 +1,5 @@
 {
-  "unit_id": 443,
+  "unit_id": 1062,
   "risk": 0.184,
   "base_value": -2.65,
   "raw_score": -0.94,
@@ -8,7 +8,7 @@
       "feature": "S060",
       "sensor": "S060",
       "kind": "reading",
-      "value": 84.747,
+      "value": 1.0027,
       "shap": 0.62,
       "group_id": "G01"
     },
@@ -16,7 +16,7 @@
       "feature": "S104",
       "sensor": "S104",
       "kind": "reading",
-      "value": 41.29,
+      "value": -0.0139,
       "shap": 0.41,
       "group_id": "G02"
     },
@@ -24,7 +24,7 @@
       "feature": "S130",
       "sensor": "S130",
       "kind": "reading",
-      "value": 88.409,
+      "value": 0.0,
       "shap": -0.33,
       "group_id": "G03"
     },
@@ -32,7 +32,7 @@
       "feature": "S061",
       "sensor": "S061",
       "kind": "reading",
-      "value": 113.457,
+      "value": 352.6027,
       "shap": 0.29,
       "group_id": "G01"
     },
@@ -40,7 +40,7 @@
       "feature": "S026",
       "sensor": "S026",
       "kind": "reading",
-      "value": 66.294,
+      "value": 1.3185,
       "shap": 0.22,
       "group_id": "G04"
     },
@@ -48,7 +48,7 @@
       "feature": "S034",
       "sensor": "S034",
       "kind": "reading",
-      "value": 134.796,
+      "value": 8.9132,
       "shap": 0.18,
       "group_id": "G05"
     },
@@ -56,7 +56,7 @@
       "feature": "S487__missing",
       "sensor": "S487",
       "kind": "missing_indicator",
-      "value": 1.0,
+      "value": 0.0,
       "shap": -0.15,
       "group_id": null
     },
@@ -64,7 +64,7 @@
       "feature": "S211",
       "sensor": "S211",
       "kind": "reading",
-      "value": 159.304,
+      "value": 0.0706,
       "shap": 0.12,
       "group_id": null
     },
@@ -72,7 +72,7 @@
       "feature": "S348",
       "sensor": "S348",
       "kind": "reading",
-      "value": 125.699,
+      "value": 0.0,
       "shap": 0.09,
       "group_id": null
     },
@@ -80,7 +80,7 @@
       "feature": "S065",
       "sensor": "S065",
       "kind": "reading",
-      "value": 158.839,
+      "value": 18.9973,
       "shap": -0.08,
       "group_id": null
     },
@@ -88,7 +88,7 @@
       "feature": "S590",
       "sensor": "S590",
       "kind": "reading",
-      "value": 86.72,
+      "value": 31.0252,
       "shap": 0.07,
       "group_id": null
     },
@@ -96,7 +96,7 @@
       "feature": "S435",
       "sensor": "S435",
       "kind": "reading",
-      "value": 139.759,
+      "value": 2.5787,
       "shap": 0.06,
       "group_id": null
     },
@@ -104,7 +104,7 @@
       "feature": "S090",
       "sensor": "S090",
       "kind": "reading",
-      "value": 110.965,
+      "value": 0.1834,
       "shap": -0.05,
       "group_id": null
     },
@@ -112,7 +112,7 @@
       "feature": "S029",
       "sensor": "S029",
       "kind": "reading",
-      "value": 140.558,
+      "value": 72.2333,
       "shap": 0.04,
       "group_id": null
     },
@@ -120,7 +120,7 @@
       "feature": "S511",
       "sensor": "S511",
       "kind": "reading",
-      "value": 114.458,
+      "value": 38.9189,
       "shap": 0.03,
       "group_id": null
     }

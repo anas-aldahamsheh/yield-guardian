@@ -1,14 +1,14 @@
 {
   "investigation_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
-  "title": "Unit 443: T\u00b2 beyond the 99.9% limit",
+  "title": "Unit 1062: T\u00b2 beyond the 99.9% limit",
   "status": "queued",
   "trigger": {
     "kind": "alarm",
-    "ref": "AL-443-t2",
+    "ref": "AL-1062-t2",
     "question": null
   },
-  "created_at": "2026-10-13T23:39:00Z",
-  "updated_at": "2026-10-13T23:39:00Z",
+  "created_at": "2026-10-14T11:08:24Z",
+  "updated_at": "2026-10-14T11:08:24Z",
   "recorded": false,
   "models": [
     {

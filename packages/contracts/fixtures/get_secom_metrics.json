@@ -2,30 +2,30 @@
   "bundle": {
     "name": "secom",
     "version": "v1",
-    "created_at": "2026-10-13T23:48:00Z",
+    "created_at": "2026-10-14T11:17:24Z",
     "git_commit": "0000000000000000000000000000000000000000"
   },
   "blocks": [
     {
       "block": "train",
-      "start": "2008-07-19T17:04:05.311404Z",
-      "end": "2008-08-06T20:45:36.802465Z",
-      "units": 360,
-      "failures": 24
+      "start": "2008-07-19T11:55:00Z",
+      "end": "2008-09-20T05:34:00Z",
+      "units": 940,
+      "failures": 76
     },
     {
       "block": "validation",
-      "start": "2008-08-06T20:56:39.069729Z",
-      "end": "2008-08-13T05:09:31.803233Z",
-      "units": 120,
-      "failures": 9
+      "start": "2008-09-20T06:08:00Z",
+      "end": "2008-10-02T20:54:00Z",
+      "units": 314,
+      "failures": 11
     },
     {
       "block": "test",
-      "start": "2008-08-13T05:42:59.539150Z",
-      "end": "2008-08-20T18:10:30.952382Z",
-      "units": 120,
-      "failures": 8
+      "start": "2008-10-02T21:32:00Z",
+      "end": "2008-10-17T06:07:00Z",
+      "units": 313,
+      "failures": 17
     }
   ],
   "models": [
@@ -284,61 +284,61 @@
       {
         "bin": 0,
         "mean_predicted": 0.02,
-        "observed_rate": 0.026,
+        "observed_rate": 0.02,
         "units": 31
       },
       {
         "bin": 1,
         "mean_predicted": 0.05,
-        "observed_rate": 0.036,
+        "observed_rate": 0.047,
         "units": 31
       },
       {
         "bin": 2,
         "mean_predicted": 0.08,
-        "observed_rate": 0.073,
+        "observed_rate": 0.087,
         "units": 31
       },
       {
         "bin": 3,
         "mean_predicted": 0.11,
-        "observed_rate": 0.084,
+        "observed_rate": 0.12,
         "units": 31
       },
       {
         "bin": 4,
         "mean_predicted": 0.14,
-        "observed_rate": 0.143,
+        "observed_rate": 0.123,
         "units": 31
       },
       {
         "bin": 5,
         "mean_predicted": 0.17,
-        "observed_rate": 0.155,
+        "observed_rate": 0.186,
         "units": 31
       },
       {
         "bin": 6,
         "mean_predicted": 0.2,
-        "observed_rate": 0.185,
+        "observed_rate": 0.208,
         "units": 31
       },
       {
         "bin": 7,
         "mean_predicted": 0.23,
-        "observed_rate": 0.222,
+        "observed_rate": 0.22,
         "units": 31
       },
       {
         "bin": 8,
         "mean_predicted": 0.26,
-        "observed_rate": 0.255,
+        "observed_rate": 0.278,
         "units": 31
       },
       {
         "bin": 9,
         "mean_predicted": 0.29,
-        "observed_rate": 0.315,
+        "observed_rate": 0.28,
         "units": 31
       }
     ],
@@ -360,8 +360,8 @@
       {
         "fold": 0,
         "train_units": 150,
-        "validation_start": "2008-07-26T21:08:57.423442Z",
-        "validation_end": "2008-07-29T10:24:08.873253Z",
+        "validation_start": "2008-08-07T08:45:00Z",
+        "validation_end": "2008-08-12T12:04:00Z",
         "validation_units": 50,
         "validation_failures": 3,
         "average_precision": 0.15
@@ -369,8 +369,8 @@
       {
         "fold": 1,
         "train_units": 200,
-        "validation_start": "2008-07-29T13:19:04.702001Z",
-        "validation_end": "2008-07-31T14:33:47.685060Z",
+        "validation_start": "2008-08-13T02:48:00Z",
+        "validation_end": "2008-08-18T06:07:00Z",
         "validation_units": 50,
         "validation_failures": 4,
         "average_precision": 0.17
@@ -378,8 +378,8 @@
       {
         "fold": 2,
         "train_units": 250,
-        "validation_start": "2008-07-31T16:05:42.052958Z",
-        "validation_end": "2008-08-03T03:49:09.771145Z",
+        "validation_start": "2008-08-18T06:11:00Z",
+        "validation_end": "2008-08-19T09:05:00Z",
         "validation_units": 50,
         "validation_failures": 3,
         "average_precision": 0.19
@@ -387,8 +387,8 @@
       {
         "fold": 3,
         "train_units": 300,
-        "validation_start": "2008-08-03T05:56:17.923750Z",
-        "validation_end": "2008-08-06T03:24:52.084848Z",
+        "validation_start": "2008-08-19T10:46:00Z",
+        "validation_end": "2008-08-21T05:06:00Z",
         "validation_units": 50,
         "validation_failures": 4,
         "average_precision": 0.21
@@ -419,7 +419,7 @@
     "cusum": "k 0.5, h 4.77; in-control ARL 370"
   },
   "limitations": [
-    "Synthetic fixture for interface development; not a measured result.",
+    "Placeholder model output for interface development; replaced by the real bundle.",
     "SECOM sensors are anonymous, so groups are reported by ID only.",
     "SECOM has no drift labels; FDC alarms are validated by false-alarm rate only."
   ]

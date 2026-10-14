@@ -1153,16 +1153,6 @@
             },
             "description": "Not allowed"
           },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "description": "Too many requests"
-          },
           "503": {
             "content": {
               "application/problem+json": {
@@ -2687,16 +2677,6 @@
             },
             "description": "Not allowed"
           },
-          "429": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "description": "Too many requests"
-          },
           "503": {
             "content": {
               "application/problem+json": {
@@ -2915,7 +2895,7 @@
           "language models"
         ],
         "summary": "Get Llm Usage",
-        "description": "Tokens and points used today, the quota and the budget guard.",
+        "description": "Tokens and points used today and the remaining quota (for information only).",
         "operationId": "get_llm_usage",
         "responses": {
           "200": {
@@ -3185,16 +3165,6 @@
               }
             }
           },
-          "429": {
-            "description": "Too many requests",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
           "503": {
             "description": "Not ready",
             "content": {
@@ -3248,16 +3218,6 @@
           },
           "401": {
             "description": "Sign-in required",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3684,40 +3644,6 @@
           "failures"
         ],
         "title": "BlockInfo"
-      },
-      "BudgetGuard": {
-        "properties": {
-          "active": {
-            "type": "boolean",
-            "title": "Active"
-          },
-          "threshold": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Threshold"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "active",
-          "threshold",
-          "reason"
-        ],
-        "title": "BudgetGuard",
-        "description": "Below the threshold share of the daily budget, non-essential calls are refused."
       },
       "BundleInfo": {
         "properties": {
@@ -8135,8 +8061,6 @@
               "csrf_failed",
               "not_found",
               "conflict",
-              "rate_limited",
-              "budget_guard",
               "not_ready",
               "upstream_error",
               "internal_error"
@@ -10401,10 +10325,8 @@
             "title": "By Model"
           },
           "quota": {
-            "$ref": "#/components/schemas/Quota"
-          },
-          "guard": {
-            "$ref": "#/components/schemas/BudgetGuard"
+            "$ref": "#/components/schemas/Quota",
+            "description": "Shown for information; the product never limits calls."
           },
           "deterministic_answers": {
             "type": "integer",
@@ -10434,7 +10356,6 @@
           "by_role",
           "by_model",
           "quota",
-          "guard",
           "deterministic_answers",
           "model_answers",
           "recent"

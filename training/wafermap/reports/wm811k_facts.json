@@ -1,0 +1,207 @@
+{
+  "source": {
+    "pickle_sha256": "1d04fccb3dd3176b276878b926b20fead7e077c5751e4d353ea9741a5e7b5c65",
+    "parquet_sha256": "3178754727a8399b424177e840307baad8c74d253c6f925ded6b57154e91f683"
+  },
+  "rows": 811457,
+  "original_columns": [
+    "waferMap",
+    "dieSize",
+    "lotName",
+    "waferIndex",
+    "trianTestLabel",
+    "failureType"
+  ],
+  "note_on_columns": "The split column is spelled 'trianTestLabel' in the source (sic).",
+  "unique_lots": 46293,
+  "wafers_per_lot": {
+    "min": 1,
+    "median": 24.0,
+    "max": 25
+  },
+  "duplicate_lot_wafer_index_pairs": 0,
+  "wafer_index_range": [
+    1,
+    25
+  ],
+  "die_size_range": [
+    3.0,
+    48099.0
+  ],
+  "label_encoding": "failureType is a nested array such as [['Center']]; unlabelled wafers hold an empty array (size 0), converted to null",
+  "labelled_rows": 172950,
+  "unlabelled_rows": 638507,
+  "failure_type_counts": {
+    "none": 147431,
+    "Edge-Ring": 9680,
+    "Edge-Loc": 5189,
+    "Center": 4294,
+    "Loc": 3593,
+    "Scratch": 1193,
+    "Random": 866,
+    "Donut": 555,
+    "Near-full": 149
+  },
+  "split_encoding": "trianTestLabel is a nested array such as [['Training']] or empty",
+  "official_split_counts": {
+    "<absent>": 638507,
+    "Test": 118595,
+    "Training": 54355
+  },
+  "split_by_label": {
+    "Training": {
+      "none": 36730,
+      "Edge-Ring": 8554,
+      "Center": 3462,
+      "Edge-Loc": 2417,
+      "Loc": 1620,
+      "Random": 609,
+      "Scratch": 500,
+      "Donut": 409,
+      "Near-full": 54
+    },
+    "<absent>": {
+      "<unlabelled>": 638507
+    },
+    "Test": {
+      "none": 110701,
+      "Edge-Loc": 2772,
+      "Loc": 1973,
+      "Edge-Ring": 1126,
+      "Center": 832,
+      "Scratch": 693,
+      "Random": 257,
+      "Donut": 146,
+      "Near-full": 95
+    }
+  },
+  "labelled_without_split": 0,
+  "split_without_label": 0,
+  "map_value_set": [
+    0,
+    1,
+    2
+  ],
+  "distinct_map_shapes": 632,
+  "most_common_map_shapes": [
+    {
+      "height": 32,
+      "width": 29,
+      "wafers": 108687
+    },
+    {
+      "height": 25,
+      "width": 27,
+      "wafers": 64083
+    },
+    {
+      "height": 49,
+      "width": 39,
+      "wafers": 39323
+    },
+    {
+      "height": 26,
+      "width": 26,
+      "wafers": 30078
+    },
+    {
+      "height": 30,
+      "width": 34,
+      "wafers": 29513
+    },
+    {
+      "height": 33,
+      "width": 33,
+      "wafers": 23886
+    },
+    {
+      "height": 33,
+      "width": 29,
+      "wafers": 20276
+    },
+    {
+      "height": 39,
+      "width": 37,
+      "wafers": 15327
+    },
+    {
+      "height": 52,
+      "width": 59,
+      "wafers": 14812
+    },
+    {
+      "height": 31,
+      "width": 31,
+      "wafers": 14569
+    },
+    {
+      "height": 39,
+      "width": 31,
+      "wafers": 13562
+    },
+    {
+      "height": 29,
+      "width": 26,
+      "wafers": 13247
+    },
+    {
+      "height": 27,
+      "width": 25,
+      "wafers": 12655
+    },
+    {
+      "height": 64,
+      "width": 71,
+      "wafers": 11692
+    },
+    {
+      "height": 31,
+      "width": 28,
+      "wafers": 10788
+    }
+  ],
+  "map_height_range": [
+    6,
+    300
+  ],
+  "map_width_range": [
+    3,
+    205
+  ],
+  "official_split_lot_overlap": {
+    "lots_in_training": 5809,
+    "lots_in_test": 4953,
+    "lots_in_both": 0,
+    "training_wafers_in_shared_lots": 0,
+    "test_wafers_in_shared_lots": 0,
+    "test_wafers_total": 118595
+  },
+  "lot_structure": {
+    "lot_name_format": "lot<integer>, every name matches ^lot[0-9]+$",
+    "lot_number_range": [
+      1,
+      47543
+    ],
+    "rows_sorted_by_lot_number": true,
+    "lots_contiguous_in_file": true,
+    "lots_with_any_labelled_wafer": 10762,
+    "lots_fully_labelled": 4685,
+    "lots_partly_labelled": 6077,
+    "labelled_lots_spanning_both_official_splits": 0,
+    "lot_number_range_by_official_split": {
+      "<absent>": [
+        2,
+        47543
+      ],
+      "Test": [
+        40328,
+        47542
+      ],
+      "Training": [
+        1,
+        46729
+      ]
+    },
+    "note": "WM-811K has no timestamps. Lot numbers increase through the file, and the official test lots are the higher-numbered ones, but lot number is not documented as time order."
+  }
+}

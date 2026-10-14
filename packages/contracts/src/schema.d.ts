@@ -342,7 +342,7 @@ export interface paths {
     };
     /**
      * Get Llm Usage
-     * @description Tokens and points used today, the quota and the budget guard.
+     * @description Tokens and points used today and the remaining quota (for information only).
      */
     get: operations["get_llm_usage"];
     put?: never;
@@ -1048,18 +1048,6 @@ export interface components {
       start: string;
       /** Units */
       units: number;
-    };
-    /**
-     * BudgetGuard
-     * @description Below the threshold share of the daily budget, non-essential calls are refused.
-     */
-    BudgetGuard: {
-      /** Active */
-      active: boolean;
-      /** Reason */
-      reason: string | null;
-      /** Threshold */
-      threshold: number;
     };
     /** BundleInfo */
     BundleInfo: {
@@ -2900,8 +2888,6 @@ export interface components {
         | "csrf_failed"
         | "not_found"
         | "conflict"
-        | "rate_limited"
-        | "budget_guard"
         | "not_ready"
         | "upstream_error"
         | "internal_error";
@@ -3764,9 +3750,9 @@ export interface components {
        * @description Chat questions answered by rules, without a model.
        */
       deterministic_answers: number;
-      guard: components["schemas"]["BudgetGuard"];
       /** Model Answers */
       model_answers: number;
+      /** @description Shown for information; the product never limits calls. */
       quota: components["schemas"]["Quota"];
       /**
        * Recent
@@ -4113,7 +4099,6 @@ export type AuditEntry = components["schemas"]["AuditEntry"];
 export type AuditPage = components["schemas"]["AuditPage"];
 export type AutoClassification = components["schemas"]["AutoClassification"];
 export type BlockInfo = components["schemas"]["BlockInfo"];
-export type BudgetGuard = components["schemas"]["BudgetGuard"];
 export type BundleInfo = components["schemas"]["BundleInfo"];
 export type BundleRef = components["schemas"]["BundleRef"];
 export type Calibration = components["schemas"]["Calibration"];
@@ -4423,15 +4408,6 @@ export interface operations {
           "application/problem+json": components["schemas"]["Problem"];
         };
       };
-      /** @description Too many requests */
-      429: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
       /** @description Not ready */
       503: {
         headers: {
@@ -4601,15 +4577,6 @@ export interface operations {
       };
       /** @description Invalid request */
       422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
-      /** @description Too many requests */
-      429: {
         headers: {
           [name: string]: unknown;
         };
@@ -5711,15 +5678,6 @@ export interface operations {
           "application/problem+json": components["schemas"]["Problem"];
         };
       };
-      /** @description Too many requests */
-      429: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
       /** @description Not ready */
       503: {
         headers: {
@@ -5764,15 +5722,6 @@ export interface operations {
       };
       /** @description Invalid request */
       422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
-      /** @description Too many requests */
-      429: {
         headers: {
           [name: string]: unknown;
         };
