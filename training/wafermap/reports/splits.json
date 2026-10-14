@@ -1,0 +1,116 @@
+{
+  "seed": 20261014,
+  "folds": 20,
+  "held_out_folds": 3,
+  "official": {
+    "wafers": {
+      "test": 118595,
+      "train": 46190,
+      "validation": 8165
+    },
+    "lots": {
+      "test": 4953,
+      "train": 4943,
+      "validation": 866
+    },
+    "lot_overlap": {
+      "test&train": 0,
+      "test&validation": 0,
+      "train&validation": 0
+    },
+    "class_counts": {
+      "test": {
+        "none": 110701,
+        "Edge-Loc": 2772,
+        "Loc": 1973,
+        "Edge-Ring": 1126,
+        "Center": 832,
+        "Scratch": 693,
+        "Random": 257,
+        "Donut": 146,
+        "Near-full": 95
+      },
+      "train": {
+        "none": 31203,
+        "Edge-Ring": 7273,
+        "Center": 2943,
+        "Edge-Loc": 2055,
+        "Loc": 1377,
+        "Random": 519,
+        "Scratch": 425,
+        "Donut": 349,
+        "Near-full": 46
+      },
+      "validation": {
+        "none": 5527,
+        "Edge-Ring": 1281,
+        "Center": 519,
+        "Edge-Loc": 362,
+        "Loc": 243,
+        "Random": 90,
+        "Scratch": 75,
+        "Donut": 60,
+        "Near-full": 8
+      }
+    }
+  },
+  "lot": {
+    "wafers": {
+      "train": 121049,
+      "test": 25954,
+      "validation": 25947
+    },
+    "lots": {
+      "test": 1608,
+      "train": 7542,
+      "validation": 1612
+    },
+    "lot_overlap": {
+      "test&train": 0,
+      "test&validation": 0,
+      "train&validation": 0
+    },
+    "class_counts": {
+      "test": {
+        "none": 22130,
+        "Edge-Ring": 1452,
+        "Edge-Loc": 778,
+        "Center": 643,
+        "Loc": 538,
+        "Scratch": 178,
+        "Random": 130,
+        "Donut": 82,
+        "Near-full": 23
+      },
+      "train": {
+        "none": 103182,
+        "Edge-Ring": 6776,
+        "Edge-Loc": 3633,
+        "Center": 3007,
+        "Loc": 2516,
+        "Scratch": 836,
+        "Random": 606,
+        "Donut": 389,
+        "Near-full": 104
+      },
+      "validation": {
+        "none": 22119,
+        "Edge-Ring": 1452,
+        "Edge-Loc": 778,
+        "Center": 644,
+        "Loc": 539,
+        "Scratch": 179,
+        "Random": 130,
+        "Donut": 84,
+        "Near-full": 22
+      }
+    }
+  },
+  "lot_all_wafers": {
+    "<lot has no labels>": 566611,
+    "train": 171432,
+    "test": 36749,
+    "validation": 36665
+  },
+  "splits_sha256": "2f30ff76442a0c25b3b5babfd81ea47d506f435f07d718947235285346522097"
+}

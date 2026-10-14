@@ -1,0 +1,5 @@
+# Keep the UCI files byte-identical to the download (they use CRLF line endings),
+# so their SHA-256 matches data/manifest.json.
+* -text
+.gitattributes text eol=lf
+ATTRIBUTION.md text eol=lf
