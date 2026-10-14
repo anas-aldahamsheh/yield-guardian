@@ -13,6 +13,7 @@ from yield_guardian.agent.router import (
     ACTION_REFUSAL,
     INJECTION_REFUSAL,
     INTENTS,
+    SCOPE_REFUSAL,
     ChatRouter,
     extract_entities,
     route_by_rules,
@@ -196,7 +197,10 @@ def test_context_fills_this_unit() -> None:
 
 
 def test_context_does_not_capture_unrelated_questions() -> None:
-    assert route_by_rules("What's the weather tomorrow?", ChatContext(unit_id=1062)) is None
+    route = route_by_rules("What's the weather tomorrow?", ChatContext(unit_id=1062))
+    assert route is not None
+    assert (route.intent, route.entities.units) == ("out_of_scope", ())
+    assert route_by_rules("What's your favourite colour?", ChatContext(unit_id=1062)) is None
 
 
 def test_an_explicit_unit_wins_over_the_context() -> None:
@@ -224,7 +228,7 @@ async def test_the_router_model_decides_only_when_the_rules_cannot(
 
 async def test_a_model_refusal_carries_a_code_written_reason(respx_mock: respx.Router) -> None:
     ScriptedModel().mount(respx_mock).add("router", json_reply({"intent": "out_of_scope"}))
-    route = await ChatRouter(make_stack().gateway).route("Tell me a joke", None, options=CallOptions())  # fmt: skip
+    route = await ChatRouter(make_stack().gateway).route("What's your favourite colour?", None, options=CallOptions())  # fmt: skip
     assert route.refused
     assert route.kind == "model"
     assert "plant" in route.reason
@@ -237,3 +241,78 @@ async def test_an_intent_outside_the_closed_set_is_never_used(respx_mock: respx.
     assert route.intent in INTENTS
     assert (route.intent, route.kind) == ("general", "deterministic")
     assert len(model.requests) == 2
+
+
+# -- scope and pattern causes (held-out questions, not in scripts/evaluation) -------------------
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Compose a haiku about autumn leaves",
+        "Who won the football world cup in 2018?",
+        "Give me a recipe for banana bread",
+        "What will the weather be like in Austin tomorrow?",
+        "Tell me a riddle",
+        "Can you recommend a good movie for tonight?",
+        "Translate good morning into Spanish",
+        "Who is the president of Brazil?",
+        "What is the capital of Japan?",
+        "Tell me a random fun story",
+        "What's the local weather forecast?",
+        "Help me with my homework",
+    ],
+)
+def test_requests_outside_the_product_are_refused_by_rule(question: str) -> None:
+    route = route_by_rules(question)
+    assert route is not None
+    assert (route.intent, route.kind, route.refused) == ("out_of_scope", "deterministic", True)
+    assert route.reason == SCOPE_REFUSAL
+    assert route.calls == ()
+
+
+@pytest.mark.parametrize(
+    ("question", "intent"),
+    [
+        ("Write a short story about why unit 1062 failed", "unit_explanation"),
+        ("Is there a weather-related pattern in the sensor data?", None),
+        ("What is the history of the edge-ring pattern in the literature?", "knowledge_search"),
+        ("Which sensor groups matter most for yield?", "top_sensor_groups"),
+    ],
+)
+def test_questions_naming_the_plant_are_never_refused_as_out_of_scope(
+    question: str, intent: str | None
+) -> None:
+    route = route_by_rules(question)
+    if intent is None:
+        assert route is None or route.intent != "out_of_scope"
+    else:
+        assert route is not None
+        assert route.intent == intent
+
+
+@pytest.mark.parametrize(
+    ("question", "pattern"),
+    [
+        ("Which mechanisms are behind donut patterns?", "Donut"),
+        ("What produces a center defect on wafers?", "Center"),
+        ("What is edge-loc attributed to in published work?", "Edge-Loc"),
+        ("What underlying process problems give rise to near-full maps?", "Near-full"),
+        ("What do papers say is responsible for edge ring defects?", "Edge-Ring"),
+        ("How are scratches formed on wafers?", "Scratch"),
+    ],
+)
+def test_questions_about_what_lies_behind_a_pattern_are_pattern_causes(
+    question: str, pattern: str
+) -> None:
+    route = route_by_rules(question)
+    assert route is not None
+    assert route.intent == "pattern_causes"
+    assert route.entities.patterns == (pattern,)
+    assert route.calls[0][0] == "search_knowledge"
+
+
+def test_literature_about_methods_stays_a_knowledge_search() -> None:
+    route = route_by_rules("Which papers classify scratch defects with CNNs?")
+    assert route is not None
+    assert route.intent == "knowledge_search"

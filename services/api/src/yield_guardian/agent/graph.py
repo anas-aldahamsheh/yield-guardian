@@ -599,3 +599,41 @@ class InvestigatorRunner:
         if failure:
             await sink.error(Problem.model_validate(failure))
             await sink.status("failed")
+
+
+# -- recorded runs ------------------------------------------------------------------------------
+
+
+def _thread(investigation_id: str) -> RunnableConfig:
+    return {"configurable": {"thread_id": investigation_id}}
+
+
+async def paused_values(
+    checkpointer: BaseCheckpointSaver[Any], investigation_id: str
+) -> dict[str, Any] | None:
+    """The state of a run paused for the engineer's decision (JSON only), or None."""
+    graph = build_graph(InvestigationLimits()).compile(checkpointer=checkpointer)
+    snapshot = await graph.aget_state(_thread(investigation_id))
+    if "decision" not in snapshot.next or not snapshot.values:
+        return None
+    return dict(snapshot.values)
+
+
+async def restore_paused(
+    checkpointer: BaseCheckpointSaver[Any], investigation_id: str, values: dict[str, Any]
+) -> bool:
+    """Recreate a run paused for the decision from its saved state, so a recorded run imported on
+    another host can still be decided. No node that calls a model runs: the state is written as
+    the output of ``await_decision``, then the ``decision`` node runs up to its interrupt.
+    Returns False when the thread already has a state (nothing is changed)."""
+    graph = build_graph(InvestigationLimits()).compile(checkpointer=checkpointer)
+    config = _thread(investigation_id)
+    if (await graph.aget_state(config)).values:
+        return False
+    if values.get("investigation_id") != investigation_id:
+        raise ValueError("the saved state belongs to another investigation")
+    config = await graph.aupdate_state(config, values, as_node="await_decision")
+    await graph.ainvoke(None, config)
+    if "decision" not in (await graph.aget_state(_thread(investigation_id))).next:
+        raise RuntimeError("the restored run is not waiting for a decision")
+    return True

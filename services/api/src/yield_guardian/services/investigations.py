@@ -356,8 +356,19 @@ class DbInvestigationStore:
 
         An alarm that is already being investigated returns that investigation instead.
         """
+        return await self._create(trigger, audit.Actor.of(session), recorded=False)
+
+    async def create_recorded(
+        self, trigger: InvestigationTrigger, *, actor: audit.Actor
+    ) -> Investigation:
+        """As :meth:`create`, for a run made once to be kept and shown as recorded
+        (``scripts/record_investigations.py``); it runs through the same job queue."""
+        return await self._create(trigger, actor, recorded=True)
+
+    async def _create(
+        self, trigger: InvestigationTrigger, actor: audit.Actor, *, recorded: bool
+    ) -> Investigation:
         title = trigger_title(trigger)
-        actor = audit.Actor.of(session)
         now = datetime.now(UTC)
         async with self._sessionmaker() as db, db.begin():
             if trigger.kind == "alarm":
@@ -373,7 +384,7 @@ class DbInvestigationStore:
                 trigger_kind=trigger.kind,
                 trigger_ref=trigger.ref,
                 trigger_question=trigger.question,
-                recorded=False,
+                recorded=recorded,
                 created_by=actor.label,
                 created_at=now,
                 updated_at=now,
