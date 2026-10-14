@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:49 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 10:57 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -30,7 +30,7 @@ Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, al
 
 | | |
 |---|---|
-| Done | 32 of 86 |
+| Done | 46 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
 | Waiting on you | Add TOKEN_FACTORY_API_KEY to anaslabs-hosting/.env yourself, then restart yield-guardian-api |
@@ -41,11 +41,11 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Metric | Value | 95% CI | Data | Evidence |
 |---|---|---|---|---|
-| SECOM PR-AUC (test block) | 0.075 (no-skill 0.054) | [0.048, 0.181] | 313 test units, 17 failures | [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) (branch w2/secom) |
-| SECOM recall at 5% false-alarm rate | 5.9% (threshold set on validation; achieved false-alarm rate 2.0%) | [0.0%, 17.6%] | 313 test units, 17 failures | [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) (branch w2/secom) |
-| False alarms per 100 units at that point | 1.92 | [0.64, 3.51] | 313 test units | [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) (branch w2/secom) |
+| SECOM PR-AUC (test block) | 0.075 (no-skill 0.054) | [0.048, 0.181] | 313 test units, 17 failures | [results.md](../training/secom/reports/results.md) |
+| SECOM recall at 5% false-alarm rate | 5.9% (threshold set on validation; achieved false-alarm rate 2.0%) | [0.0%, 17.6%] | 313 test units, 17 failures | [results.md](../training/secom/reports/results.md) |
+| False alarms per 100 units at that point | 1.92 | [0.64, 3.51] | 313 test units | [results.md](../training/secom/reports/results.md) |
 | Sensors to inspect per investigation (median) | not measured yet | | | |
-| FDC false-alarm rate on held-out reference | not measured yet | | | |
+| FDC false-alarm rate on held-out reference | 1.9% at the 99% T² limit (target 1%) and 1.9% at 99.9% (target 0.1%) | not computed | 106 held-out reference units | [results.md](../training/secom/reports/results.md); the 99.9% limit is above nominal, disclosed |
 | WM-811K macro-F1, official split | 0.604 (mean of 3 seeds, sd 0.043) | seed 0: 0.621 [0.605, 0.634] | 118,595 test wafers; test lots are shifted from training | [metrics_official.json](../training/wafermap/reports/metrics_official.json) |
 | WM-811K macro-F1, lot-grouped split | 0.900 (mean of 3 seeds, sd 0.006) | seed 0: 0.905 [0.893, 0.916] | 25,954 test wafers, 1,608 lots | [metrics_lot.json](../training/wafermap/reports/metrics_lot.json) |
 | Unknown-pattern AUROC (leave-one-class-out, mean) | 0.922 Mahalanobis (energy 0.545) | per class in loco.json | 8 held-out classes, lot-grouped split | [loco.json](../training/wafermap/reports/loco.json); the method was chosen using these results, so 0.922 is not an independent estimate |
@@ -73,23 +73,23 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | D1 | Download SECOM from UCI, record SHA-256 and licence | PC | ✅ | Byte-identical to the UCI archive; SHA-256 in [manifest.json](../data/manifest.json); CC BY 4.0, DOI 10.24432/C54305; committed with [ATTRIBUTION.md](../data/secom/ATTRIBUTION.md) (78ba1f3) |
 | D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ✅ | MIR Lab returned HTTP 404, so the Kaggle mirror was used; LSWMD.pkl 2,095,505,977 bytes, SHA-256 in the manifest; mirror lists CC0-1.0 set by the uploader, recorded with that caveat; raw data not committed |
 | D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | 🟡 | WM-811K facts done ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)): 811,457 wafers, 46,293 lots (PLAN corrected from 46,393), 172,950 labelled. SECOM EDA with worker 2 |
-| D4 | Validated loaders (pandera schemas) | Cloud | 🟡 | Pandera schemas for SECOM (on branch w2/secom, reaches main with the bundle, 8525032) |
+| D4 | Validated loaders (pandera schemas) | Cloud | ✅ | Pandera schemas for SECOM; merged (5f5c5dd) |
 | D5 | Official-split lot-overlap check for WM-811K | PC | ✅ | Official split has 0 lots in both training (5,809 lots) and test (4,953 lots). Class mix differs: "none" is 67.6% of training, 93.3% of test; reported as a limitation |
 
 ### S: SECOM science
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | 🟡 | Chronological blocks with tie-safe cuts, rolling-origin folds, leakage check passes (a14830d, on branch w2/secom, reaches main with the bundle) |
-| S2 | Training-only preprocessing (constants, missingness indicators) | Cloud | 🟡 | Written and run on the real data (8937c17, on branch w2/secom, reaches main with the bundle); results in [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) |
-| S3 | Baselines: prevalence, logistic regression, random forest | Cloud | 🟡 | Written and run on the real data (8937c17, on branch w2/secom, reaches main with the bundle); results in [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) |
-| S4 | LightGBM with class weights, Optuna tuning on validation | Cloud | 🟡 | Written and run on the real data (8937c17, on branch w2/secom, reaches main with the bundle); results in [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) |
-| S5 | Platt calibration, reliability diagram, Brier, ECE | Cloud | 🟡 | Written and run on the real data (8937c17, on branch w2/secom, reaches main with the bundle); results in [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) |
-| S6 | Test metrics with bootstrap CIs, paired comparison with baselines | Cloud | 🟡 | Written and run on the real data (8937c17, on branch w2/secom, reaches main with the bundle); results in [results.md](https://github.com/anas-aldahamsheh/yield-guardian/blob/w2/secom/training/secom/reports/results.md) |
-| S7 | Root cause: TreeSHAP, sensor groups, stability selection, permutation test, BH | Cloud | 🟡 | TreeSHAP, sensor groups, stability selection, permutation test, BH written and run (12c7c70, on branch w2/secom, reaches main with the bundle) |
-| S8 | FDC: PCA reference, T² and SPE limits, contributions, EWMA and CUSUM | Cloud | 🟡 | PCA reference, T² and SPE limits, contributions, EWMA and CUSUM written (12c7c70); autoscaling being finished (on branch w2/secom, reaches main with the bundle) |
-| S9 | Sensor health rules and missingness association tests | Cloud | 🟡 | Health rules and missingness tests written (12c7c70); stuck-value rule being changed to each sensor's own repeat rate (on branch w2/secom, reaches main with the bundle) |
-| S10 | Artifacts and SECOM model card | Cloud | 🟡 | Bundle export and schemas written (538983d); the final bundle is built after S8 and S9 |
+| S1 | Chronological split and rolling-origin CV, with leakage test | Cloud | ✅ | Chronological blocks (train 376/53, validation 878/34, test 313/17), tie-safe cuts, 5 rolling-origin folds, leakage check passes; [results.md](../training/secom/reports/results.md) |
+| S2 | Training-only preprocessing (constants, missingness indicators) | Cloud | ✅ | Training-only preprocessing: 116 dead sensors dropped, missingness indicators; merged |
+| S3 | Baselines: prevalence, logistic regression, random forest | Cloud | ✅ | Baselines: prevalence, logistic regression (test PR-AUC 0.172), random forest; [results.md](../training/secom/reports/results.md) |
+| S4 | LightGBM with class weights, Optuna tuning on validation | Cloud | ✅ | LightGBM with class weights, Optuna on out-of-fold validation only; [results.md](../training/secom/reports/results.md) |
+| S5 | Platt calibration, reliability diagram, Brier, ECE | Cloud | ✅ | Platt calibration on out-of-fold scores, reliability, Brier, ECE; [results.md](../training/secom/reports/results.md) |
+| S6 | Test metrics with bootstrap CIs, paired comparison with baselines | Cloud | ✅ | Test evaluated once: LightGBM PR-AUC 0.075 [0.048, 0.181] vs no-skill 0.054, not better than logistic (difference -0.097 [-0.307, 0.036]); [results.md](../training/secom/reports/results.md) |
+| S7 | Root cause: TreeSHAP, sensor groups, stability selection, permutation test, BH | Cloud | ✅ | TreeSHAP, sensor groups, stability selection, permutation test, BH: 2 stable groups (4 sensors); [results.md](../training/secom/reports/results.md) |
+| S8 | FDC: PCA reference, T² and SPE limits, contributions, EWMA and CUSUM | Cloud | ✅ | PCA on a 106-unit reference (no candidate passed KPSS, disclosed), 56 components for 90.1%; T² holds 1.9% on held-out units at 99%; SPE limit from leave-one-out reference SPE; EWMA and CUSUM; [results.md](../training/secom/reports/results.md) |
+| S9 | Sensor health rules and missingness association tests | Cloud | ✅ | Health rules with a calibrated jump rule and per-sensor stuck rule; missingness tests (4 of 442 sensors at q ≤ 0.05); out-of-reference rule over-flags, disclosed; [results.md](../training/secom/reports/results.md) |
+| S10 | Artifacts and SECOM model card | Cloud | ✅ | Bundle artifacts/secom/v1 (13 files, verified at build) and [model card](model-cards/secom.md); reproducible run in 210 s; merged (5f5c5dd) |
 
 ### W: Wafer maps
 
@@ -121,10 +121,10 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | A1 | FastAPI app, settings, structured logs, health and readiness, problem+json errors | Cloud | ✅ | App factory, settings, logs, problem+json, health and readiness (37e271d); resources start and stop with the app (a99afd3); at startup the newest verified bundle is loaded and /ready names any reason it could not be (f224cec) |
 | A2 | Database schema and Alembic migrations | Cloud | ✅ | SQLAlchemy models and Alembic migration 0001, applied at startup and tested on PostgreSQL 16 with pgvector; CI runs them on pgvector/pg17 (b8ae0b3) |
 | A3 | Idempotent seed from verified artifacts | Cloud | ⏳ | |
-| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | 🟡 | Plant clock, alarm rules, line state, alarm pages and the /ws/line stream written and tested (5e9e5ca); waits for the real SECOM bundle and the database alarm states |
-| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | 🟡 | SECOM service written and tested (5e9e5ca): bundle verified file by file, timeline checked against secom_labels.data, explanations add up to the raw score; waits for worker 2's bundle |
-| A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | 🟡 | Lead: wafer service from the merged bundle (ONNX, Mahalanobis unknown score, similar wafers, lots) |
-| A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes declared on the service interfaces (37e271d); services pending (A5, A6) |
+| A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
+| A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
+| A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ✅ | Wafer service on the real bundle: ONNX on CPU (parity 0.9986 top-label agreement with the training run), Mahalanobis unknown score, cosine similar-wafer search, lots, measured metrics; 31 tests (merged 5f5c5dd) |
+| A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes served; SECOM and wafer routes answer from real bundles; investigation, chat and knowledge routes wait for the AI layer merge |
 | A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ✅ | Guest and admin sessions (only token hashes stored), scrypt admin hash, CSRF, logout; failed logins never lock the account (D-009); tested through the routes (b8ae0b3) |
 | A9 | Work orders and audit log | Cloud | ✅ | Work orders, audit log with filters and pages, alarm states, investigation store with a PostgreSQL job queue; tested (b8ae0b3) |
 
@@ -206,6 +206,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |
 | 2026-10-14 10:49 | Live on anaslabs-hosting: API at yield-guardian.anaslabs.com, hub card added (P4, P5). Web app merged to main (U2 to U5, P7 done) |
 | 2026-10-14 10:40 | Docker images and compose merged with CI green (P1, P2 done). Committed bundles are verified and baked into the API image |
 | 2026-10-14 10:29 | Statuses reconciled with the branches. Wafer-map W6 to W10 done and merged (unknown score switched to Mahalanobis, AUROC 0.922; energy 0.545). SECOM test-block results measured: PR-AUC 0.075 vs 0.054 no-skill, so SECOM risk is weak and the product leans on FDC and root cause. Unit pages list their investigations (30f1747) |
