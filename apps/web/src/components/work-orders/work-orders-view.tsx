@@ -14,6 +14,7 @@ import { WORK_ORDER_STATUS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 import { AuditLog } from "./audit-log";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const PAGE = 50;
 
@@ -72,7 +73,7 @@ export function WorkOrdersView() {
               .
             </EmptyState>
           ) : (
-            <div className="overflow-x-auto">
+            <ScrollRegion label="Work orders">
               <table className="w-full min-w-[640px] border-collapse text-left text-[14px] leading-5">
                 <caption className="sr-only">Work orders</caption>
                 <thead>
@@ -124,7 +125,7 @@ export function WorkOrdersView() {
                   </Button>
                 </div>
               ) : null}
-            </div>
+            </ScrollRegion>
           )}
         </Panel>
         <AuditLog />

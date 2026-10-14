@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { BAND_NAME } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const SHOWN = 15;
 
@@ -28,7 +29,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
       description={`Newest first. Final-test results arrive ${lag} units after a unit leaves the line.`}
       bodyClassName="px-0 sm:px-0 pb-2"
     >
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Recent units">
         <table className="w-full min-w-[720px] border-collapse text-left text-[14px] leading-5">
           <caption className="sr-only">Recent units with failure risk, control-chart statistics and final test</caption>
           <thead>
@@ -98,7 +99,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       {units.length > SHOWN ? (
         <div className="border-t border-hairline px-4 pt-2 sm:px-5">
           <Button variant="ghost" size="sm" onClick={() => setAll((v) => !v)} className="-ml-2">

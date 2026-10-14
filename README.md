@@ -44,14 +44,21 @@ Chronological split; the test block (313 units, 17 failures) was evaluated once,
 
 | Result | Value | 95% CI |
 |---|---|---|
-| Macro-F1, lot-grouped split (no lot in two parts) | 0.900 (3 seeds, sd 0.006) | seed 0: 0.893 to 0.916 |
-| Macro-F1, official split | 0.604 (3 seeds, sd 0.043) | seed 0: 0.605 to 0.634 |
-| Hand-crafted feature baseline, lot-grouped split | 0.699 | |
+| Macro-F1, lot-grouped split (no lot in two parts) | 0.900 mean of 3 seeds (sd 0.006); deployed seed 1: 0.900 | deployed seed 1: 0.886 to 0.912 |
+| Macro-F1, official split | 0.604 mean of 3 seeds (sd 0.043); seed 0: 0.621 | seed 0: 0.605 to 0.634 |
+| Hand-crafted feature baseline, lot-grouped split | 0.699 | 0.675 to 0.720 |
 | Similar-wafer precision@10 (macro) | 0.860 | 0.845 to 0.873 |
 | Wafers classified automatically at precision ≥ 0.99 | 96.0% at precision 0.992 | 95.7% to 96.3% |
 | Unknown-pattern AUROC, leave-one-class-out mean (Mahalanobis) | 0.922 | per class in `loco.json` |
 
 The official split's test lots differ from its training lots, which is why it scores lower; both are reported. The planned unknown-pattern score (energy) was near chance (0.545), so the product uses the Mahalanobis distance on the embeddings; that choice was made using the same leave-one-class-out results, so 0.922 is not an independent estimate. The ONNX model served by the API matches PyTorch within 8e-6 on the logits.
+
+### Language models (one evaluation run, 0.0019 points)
+
+| Role and model | Result | 95% CI | Data |
+|---|---|---|---|
+| Router fallback, MiniCPM5-2B | 24 of 28 intents correct (0.857), median 660 ms | 0.685 to 0.943 | [router run](docs/evaluations/router-MiniCPM5-2B-2026-10-14.json) |
+| Verifier, GLM-5.3-Flash | 10 of 10 planted claim errors judged correctly | 0.722 to 1.000 | [verifier run](docs/evaluations/verifier-GLM-5.3-Flash-2026-10-14.json) |
 
 ## How AMD is used
 
@@ -60,7 +67,7 @@ All language-model roles run on AMD GPUs through **AMD Token Factory**, one mode
 | Role | Default model |
 |---|---|
 | Investigator (plans, calls tools) | DeepSeek-V4.1-Flash |
-| Report writer (strict JSON schema) | MiMo-V2.6-Flash |
+| Report writer (JSON output validated in code) | MiMo-V2.6-Flash |
 | Verifier (a different family from the writer) | GLM-5.3-Flash |
 | Engineer chat | Qwen3.8-Flash-Next |
 | Router fallback | MiniCPM5-2B |

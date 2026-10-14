@@ -32,5 +32,6 @@ export default defineConfig({
       testMatch: /overflow\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true },
     },
+    { name: "a11y", testMatch: /a11y\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
   ],
 });

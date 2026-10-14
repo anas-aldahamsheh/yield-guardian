@@ -6,6 +6,7 @@ import { Fragment, useState } from "react";
 import { formatNumber, formatPercent, formatPValue } from "@/lib/format";
 import { UNIVARIATE_DIRECTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { ScrollRegion } from "@/components/scroll-region";
 
 /** How the groups were made, written from the API's method fields. */
 export function groupingMethodText(m: Groups["method"]): string {
@@ -32,7 +33,7 @@ export function SensorGroupsTable({
   const [open, setOpen] = useState<string | null>(null);
   const max = Math.max(0.0001, ...data.groups.map((g) => g.importance));
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Sensor groups by importance">
       <table className="w-full min-w-[640px] border-collapse text-left text-[13px] leading-5">
         <caption className="sr-only">Sensor groups by importance</caption>
         <thead>
@@ -101,7 +102,7 @@ export function SensorGroupsTable({
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 
@@ -110,7 +111,7 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
   const limit = 6;
   const shown = all ? group.sensors : group.sensors.slice(0, limit);
   return (
-    <span className="tnum flex flex-wrap gap-x-2 gap-y-0.5">
+    <span className="tnum flex flex-wrap gap-x-2">
       {shown.map((s) => (
         <button
           key={s}
@@ -118,7 +119,8 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
           onClick={() => onSelect(s)}
           aria-pressed={selected === s}
           className={cn(
-            "cursor-pointer underline decoration-hairline-strong underline-offset-4 hover:text-ink",
+            // 24 px tall: a touch target that meets WCAG 2.2 target size.
+            "min-h-6 cursor-pointer underline decoration-hairline-strong underline-offset-4 hover:text-ink",
             s === group.representative ? "font-medium text-ink" : "text-ink-2",
             selected === s && "lit rounded-[2px] px-0.5",
           )}
@@ -128,7 +130,7 @@ function SensorLinks({ group, selected, onSelect }: { group: SensorGroup; select
         </button>
       ))}
       {group.sensors.length > limit && !all ? (
-        <button type="button" onClick={() => setAll(true)} className="cursor-pointer text-ink-3 hover:text-ink">
+        <button type="button" onClick={() => setAll(true)} className="min-h-6 cursor-pointer text-ink-3 hover:text-ink">
           +{group.sensors.length - limit} more
         </button>
       ) : null}

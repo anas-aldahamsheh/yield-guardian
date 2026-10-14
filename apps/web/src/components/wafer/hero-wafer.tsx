@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { usePrefersReducedMotion } from "@/components/motion";
 import { formatInt } from "@/lib/format";
@@ -34,6 +34,40 @@ export function webglAvailable(): boolean {
 const noop = () => () => {};
 
 /**
+ * Runs the scan on its own only with a fine pointer (a desktop) and without Save-Data. On a
+ * phone the poster stays until someone asks for the scan: a WebGL sequence would compete with
+ * the first load on a slow CPU and costs battery.
+ */
+function autoplayAllowed(): boolean {
+  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  return window.matchMedia("(pointer: fine)").matches && !saveData;
+}
+
+/** True once the page has loaded and the browser is idle, so the 3D scene never delays it. */
+function useAfterLoad(): boolean {
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    let cancel = () => {};
+    const go = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        const id = window.requestIdleCallback(() => setIdle(true), { timeout: 2000 });
+        cancel = () => window.cancelIdleCallback(id);
+      } else {
+        const id = window.setTimeout(() => setIdle(true), 200);
+        cancel = () => window.clearTimeout(id);
+      }
+    };
+    if (document.readyState === "complete") go();
+    else window.addEventListener("load", go, { once: true });
+    return () => {
+      window.removeEventListener("load", go);
+      cancel();
+    };
+  }, []);
+  return idle;
+}
+
+/**
  * Running totals of the exposure: after field i, how many dies have been inspected and how many
  * of them failed. Computed from the real map, so the counters under the wafer are real counts.
  */
@@ -57,8 +91,9 @@ function exposureTotals(grid: DieGrid) {
 
 /**
  * The home page's wafer: an SVG poster first (and for good without WebGL), then the 3D wafer,
- * loaded on demand, which runs the scanner sequence once while the counters below it follow the
- * real dies it reveals. Replay runs it again. Once inspected, pointing at a die shows its result.
+ * loaded once the page is idle, which runs the scanner sequence once while the counters below
+ * it follow the real dies it reveals. Replay runs it again. Once inspected, pointing at a die
+ * shows its result. On touch screens the scene loads when someone runs the exposure.
  */
 export function HeroWafer({
   grid,
@@ -72,6 +107,11 @@ export function HeroWafer({
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const canRender3d = useSyncExternalStore(noop, webglAvailable, () => false);
+  const autoplay = useSyncExternalStore(noop, autoplayAllowed, () => false);
+  const idle = useAfterLoad();
+  const [requested, setRequested] = useState(false);
+  // Reduced motion draws one still frame, which is cheap: it loads when idle on any device.
+  const mount3d = canRender3d && (requested || (idle && (autoplay || reducedMotion)));
   const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(true);
   const [playKey, setPlayKey] = useState(0);
@@ -84,8 +124,9 @@ export function HeroWafer({
   const onField = useCallback((f: number) => setField(f), []);
   const onHover = useCallback((d: DieHover | null) => setHover(d), []);
 
-  // Without the 3D sequence (no WebGL, or reduced motion) the counters show the whole wafer.
-  const animated = canRender3d && !reducedMotion;
+  // Without the 3D sequence (no WebGL, reduced motion, or not run yet) the counters show the
+  // whole wafer.
+  const animated = mount3d && !reducedMotion;
   const done = !animated || field == null || field >= totals.fields;
   const at = done ? totals.fields - 1 : field;
   const exposed = animated && field == null ? 0 : totals.dies[at]!;
@@ -97,12 +138,12 @@ export function HeroWafer({
         <div
           className={cn(
             "absolute inset-[11%] transition-opacity duration-[var(--dur-panel)] [transform:perspective(1600px)_rotateX(44deg)_rotateZ(24deg)]",
-            ready && canRender3d ? "opacity-0" : "opacity-100",
+            ready && mount3d ? "opacity-0" : "opacity-100",
           )}
         >
           <WaferPoster grid={grid} />
         </div>
-        {canRender3d ? (
+        {mount3d ? (
           <div
             className={cn(
               "absolute inset-0 transition-opacity duration-[var(--dur-panel)]",
@@ -142,7 +183,19 @@ export function HeroWafer({
             <dd className="text-fail">{formatInt(failed)}</dd>
           </div>
         </dl>
-        {animated ? (
+        {canRender3d && !reducedMotion && !mount3d ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRunning(true);
+              setField(null);
+              setRequested(true);
+            }}
+            className="rounded-sm py-1 text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+          >
+            Run the exposure
+          </button>
+        ) : animated ? (
           <button
             type="button"
             onClick={() => {

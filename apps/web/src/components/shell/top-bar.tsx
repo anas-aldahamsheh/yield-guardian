@@ -3,7 +3,7 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { ChatSheet } from "@/components/chat/chat-sheet";
+import { ChatLauncher } from "@/components/chat/chat-launcher";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
 import { PlantClockLink, ReplayTrack } from "./plant-clock";
@@ -38,15 +38,7 @@ export function TopBar() {
         <div className="ml-auto flex items-center gap-2">
           <PlantClockLink className="hidden sm:flex" />
           <span className="mx-1 hidden h-5 w-px bg-hairline sm:block" aria-hidden="true" />
-          <Suspense
-            fallback={
-              <Button variant="outline" size="sm" disabled>
-                Ask
-              </Button>
-            }
-          >
-            <ChatSheet />
-          </Suspense>
+          <ChatLauncher />
           <ThemeMenu />
           <SessionControl className="hidden md:flex" />
           <Sheet open={open} onOpenChange={setOpen}>

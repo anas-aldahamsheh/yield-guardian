@@ -15,13 +15,14 @@ import { type PatternLabel, patternName } from "@/lib/labels";
 
 import { ConfusionMatrix } from "./charts";
 import { EstimateFootnote, Limitations } from "./secom-methods";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const SPLIT_NAME: Record<SplitResult["split"], string> = {
   official: "Official split",
   lot_grouped: "Lot-grouped split",
 };
 
-/** "0.860 ± 0.004 over 3 seeds", or "single fit" when the API gives no seed spread. */
+/** "<mean> ± <sd> over <n> seeds", or "single fit" when the API gives no seed spread. */
 export function seedText(s: SplitResult): string {
   if (s.seed_mean == null || s.seed_sd == null) return "single fit";
   return `${formatNumber(s.seed_mean, 3)} ± ${formatNumber(s.seed_sd, 3)} over ${s.seeds.length} ${s.seeds.length === 1 ? "seed" : "seeds"}`;
@@ -53,7 +54,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
         description="The lot-grouped split keeps every lot on one side, so wafers from the same lot never sit in both training and test data."
         bodyClassName="px-0 sm:px-0"
       >
-        <div className="overflow-x-auto">
+        <ScrollRegion label="Macro-F1 by split">
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Macro-F1 by split</caption>
             <thead>
@@ -90,7 +91,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <EstimateFootnote estimate={metrics.splits[0]?.macro_f1} />
       </Panel>
 
@@ -111,7 +112,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
           }
         >
           <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="overflow-x-auto">
+            <ScrollRegion label="Per-pattern metrics">
               <table className="w-full min-w-[560px] border-collapse text-left text-[12px] leading-5">
                 <caption className="sr-only">Per-pattern metrics, {SPLIT_NAME[split]}</caption>
                 <thead>
@@ -138,7 +139,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollRegion>
             <ConfusionMatrix matrix={current.confusion} />
           </div>
         </Panel>
@@ -146,7 +147,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-2">
         <Panel title="Unknown-pattern score (Mahalanobis)" description={ood.note}>
-          <div className="grid grid-cols-2 gap-4">
+          <dl className="grid grid-cols-2 gap-4">
             <Reading
               label={`Threshold, set on the ${ood.threshold_set_on} set`}
               value={formatNumber(ood.threshold, 1)}
@@ -161,7 +162,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
               label="Energy score, cross-check only"
               value={ood.energy_mean_auroc ? <EstimateText estimate={ood.energy_mean_auroc} digits={3} /> : "Not measured yet"}
             />
-          </div>
+          </dl>
           {ood.leave_one_class_out.length ? (
             <>
               <h3 className="mt-5 text-[13px] leading-5 text-ink-3">AUROC when each pattern is left out of training</h3>
@@ -180,7 +181,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
         </Panel>
 
         <Panel title="Calibration, retrieval and automation">
-          <div className="grid grid-cols-2 gap-4">
+          <dl className="grid grid-cols-2 gap-4">
             <Reading label={`Temperature (${metrics.calibration.method} scaling)`} value={formatNumber(metrics.calibration.temperature, 2)} />
             <Reading
               label="Expected calibration error"
@@ -188,7 +189,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
               detail={`before: ${formatNumber(metrics.calibration.ece_before.value, 3)}`}
             />
             <Reading label="Similar-wafer precision at 10" value={<EstimateText estimate={metrics.similarity_precision_at_10} format="percent" />} />
-          </div>
+          </dl>
           <h3 className="mt-5 text-[13px] leading-5 font-medium text-ink">Classified automatically at a precision target</h3>
           {metrics.auto_classification.length ? (
             <table className="mt-1.5 w-full border-collapse text-left text-[12px] leading-5">

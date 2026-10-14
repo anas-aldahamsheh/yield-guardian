@@ -15,6 +15,7 @@ import { formatCompact, formatDateTime, formatInt } from "@/lib/format";
 
 import { Limitations, SecomMethods } from "./secom-methods";
 import { WaferMethods } from "./wafer-methods";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const SECTIONS = [
   { id: "results", label: "Measured results" },
@@ -84,7 +85,7 @@ function ResultsTable({ data }: { data: MeasuredResults }) {
   if (data.results.length === 0) return <EmptyState className="mx-4 mt-4 sm:mx-5" title="Not measured yet">No result has been recorded.</EmptyState>;
   return (
     <>
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Measured results table">
         <table className="w-full min-w-[720px] border-collapse text-left text-[14px] leading-5">
           <caption className="sr-only">Measured results</caption>
           <thead>
@@ -109,7 +110,7 @@ function ResultsTable({ data }: { data: MeasuredResults }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       {data.updated_at ? (
         <p className="mx-4 mt-3 text-[12px] text-ink-3 sm:mx-5">
           Updated <time dateTime={data.updated_at} suppressHydrationWarning>{formatDateTime(data.updated_at)}</time>.
@@ -162,7 +163,7 @@ function Provenance({ data }: { data: MethodsOverview }) {
         ))}
       </div>
       <Panel title="Artifact bundles" description="Every file is checked against the SHA-256 in its MANIFEST.json when the API loads it." bodyClassName="px-0 sm:px-0">
-        <div className="overflow-x-auto">
+        <ScrollRegion label="Artifact bundles">
           <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Artifact bundles</caption>
             <thead>
@@ -190,7 +191,7 @@ function Provenance({ data }: { data: MethodsOverview }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </Panel>
       {data.model_cards.length ? <ModelCards cards={data.model_cards} /> : null}
       <Limitations items={data.limitations} title="Limitations of the product" />

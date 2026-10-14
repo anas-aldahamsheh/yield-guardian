@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { SensorField, statusColour } from "./sensor-field";
 import { groupingMethodText, SensorGroupsTable } from "./sensor-groups";
 import { SensorSeriesChart } from "./sensor-series-chart";
+import { ScrollRegion } from "@/components/scroll-region";
 
 const ALL = new Set<HealthStatus>(HEALTH_STATUS_ORDER);
 const TABLE_ROWS = 20;
@@ -199,7 +200,7 @@ function SensorDetail({ sensor, report }: { sensor: string; report: SensorHealth
       }
       description={h.reasons.length ? h.reasons.join(". ") + "." : "No rule is triggered."}
     >
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         <Reading label="Missing" value={formatPercent(h.missing_rate)} />
         <Reading label="Outside the reference range" value={h.out_of_reference_rate == null ? "No reference" : formatPercent(h.out_of_reference_rate)} />
         <Reading label="Jumps" value={formatInt(h.jump_unit_ids.length)} />
@@ -208,7 +209,7 @@ function SensorDetail({ sensor, report }: { sensor: string; report: SensorHealth
           value={h.missing_vs_failure?.q_value == null ? "not tested" : formatPValue(h.missing_vs_failure.q_value)}
           detail={h.missing_vs_failure?.odds_ratio != null ? `odds ratio ${formatNumber(h.missing_vs_failure.odds_ratio, 2)}` : undefined}
         />
-      </div>
+      </dl>
       {h.stuck_value != null ? (
         <p className="tnum mt-3 text-[13px] leading-5 text-ink-2">Stuck at {formatNumber(h.stuck_value, 4)} in the flat-line weeks.</p>
       ) : null}
@@ -303,7 +304,7 @@ function AttentionTable({
       {rows.length === 0 ? (
         <EmptyState className="mx-4 sm:mx-5" title="No sensors">No sensor has this status.</EmptyState>
       ) : (
-        <div className="overflow-x-auto">
+        <ScrollRegion label="Sensors by status">
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Sensors by status</caption>
             <thead>
@@ -347,7 +348,7 @@ function AttentionTable({
               Show all {formatInt(rows.length)}
             </button>
           ) : null}
-        </div>
+        </ScrollRegion>
       )}
     </Panel>
   );

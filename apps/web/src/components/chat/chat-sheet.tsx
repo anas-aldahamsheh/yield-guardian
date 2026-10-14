@@ -29,11 +29,11 @@ function suggestions(context: ChatContext | null): string[] {
   return ["Which units are high risk right now?", "Which sensors need maintenance?", "What does an Edge-Ring pattern usually point to?"];
 }
 
-export function ChatSheet() {
+export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const pageContext = contextFromLocation(pathname, new URLSearchParams(params.toString()));
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [useContext, setUseContext] = useState(true);
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);

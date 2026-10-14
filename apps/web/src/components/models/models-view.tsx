@@ -16,6 +16,7 @@ import { ROLE_JOBS, ROLE_NAMES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 import { RoleDialog } from "./role-dialog";
+import { ScrollRegion } from "@/components/scroll-region";
 
 export function ModelsView() {
   const api = useApi();
@@ -65,7 +66,7 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
   if (roles.length === 0) return <EmptyState className="mx-4 sm:mx-5" title="No roles">The API has no role assignments.</EmptyState>;
   return (
     <>
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Role assignments">
         <table className="w-full min-w-[760px] border-collapse text-left text-[14px] leading-5">
           <caption className="sr-only">Role assignments</caption>
           <thead>
@@ -116,7 +117,7 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       {!isAdmin ? <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">Only an admin can change a role.</p> : null}
       {current ? <RoleDialog key={current.role} assignment={current} catalog={catalog} open onOpenChange={(o) => !o && setEditing(null)} /> : null}
     </>
@@ -138,7 +139,7 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
   }
   return (
     <>
-      <div className="overflow-x-auto">
+      <ScrollRegion label="Model evaluations by role">
         <table className="w-full min-w-[620px] border-collapse text-left text-[13px] leading-5">
           <caption className="sr-only">Model evaluations by role</caption>
           <thead>
@@ -183,7 +184,7 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollRegion>
       <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">
         {data.results[0]?.success_rate.method ? `Intervals: ${data.results[0].success_rate.method}. ` : ""}
         {data.note}
@@ -205,12 +206,12 @@ function UsagePanel({ report }: { report: UsageReport }) {
       <p className="text-[13px] leading-5 text-ink-3">
         Since <time dateTime={report.since} suppressHydrationWarning>{formatDateTime(report.since)}</time>.
       </p>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         <Reading label="Model calls" value={formatInt(t.requests)} detail={t.cache_hits ? `${formatInt(t.cache_hits)} from cache` : undefined} />
         <Reading label="Tokens in" value={formatCompact(t.tokens_in)} />
         <Reading label="Tokens out" value={formatCompact(t.tokens_out)} detail={t.tokens_reasoning ? `${formatCompact(t.tokens_reasoning)} reasoning` : undefined} />
         <Reading label="Points" value={formatNumber(t.points, 4)} />
-      </div>
+      </dl>
       {t.requests_without_usage > 0 ? (
         <p className="rounded-sm bg-die-2 px-3 py-2 text-[13px] leading-5 text-ink-2">
           {formatInt(t.requests_without_usage)} {t.requests_without_usage === 1 ? "call" : "calls"} did not report usage, so the sums leave {t.requests_without_usage === 1 ? "it" : "them"} out.
@@ -322,7 +323,7 @@ function UsageList({ title, rows }: { title: string; rows: { key: string; label:
 function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAssignment[] }) {
   if (models.length === 0) return <EmptyState className="mx-4 sm:mx-5" title="Empty catalog">The API reports no models.</EmptyState>;
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label="Model catalog">
       <table className="w-full min-w-[880px] border-collapse text-left text-[13px] leading-5">
         <caption className="sr-only">Model catalog</caption>
         <thead>
@@ -366,6 +367,6 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }

@@ -243,7 +243,7 @@ function VerificationSummary({ investigation }: { investigation: Investigation }
           {v.issues.map((issue, i) => (
             <li key={i} className="text-ink">
               <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}</span>
-              <span className="text-ink-3"> at {issue.location}{issue.severity === "warning" ? ", warning" : ""}. </span>
+              <span className="text-ink-2"> at {issue.location}{issue.severity === "warning" ? ", warning" : ""}. </span>
               <span className="text-ink-2">{issue.message}</span>
             </li>
           ))}

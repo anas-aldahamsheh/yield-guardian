@@ -1,8 +1,13 @@
+"use client";
+
 import type { ComponentProps } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { useScrollFocus } from "@/lib/use-scroll-focus";
 import { cn } from "@/lib/utils";
+
+import { ScrollRegion } from "./scroll-region";
 
 /**
  * Markdown from the API (model cards, chat answers), drawn with the console's type. Raw HTML in
@@ -19,12 +24,12 @@ const components: Components = {
     <a href={href} target="_blank" rel="noopener noreferrer" className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink" {...p} />
   ),
   code: ({ node: _n, className, ...p }) => <code className={cn("tnum rounded-[2px] bg-die-2 px-1 text-[13px] [overflow-wrap:anywhere]", className)} {...p} />,
-  pre: ({ node: _n, ...p }) => <pre className="mt-3 overflow-x-auto rounded-sm bg-die-2 p-3 text-[13px] leading-5" {...p} />,
+  pre: ({ node: _n, ...p }) => <ScrollPre {...p} />,
   blockquote: ({ node: _n, ...p }) => <blockquote className="mt-3 border-l-2 border-hairline-strong pl-3 text-ink-2" {...p} />,
   table: ({ node: _n, ...p }) => (
-    <div className="mt-3 overflow-x-auto">
+    <ScrollRegion label="Table" className="mt-3">
       <table className="w-full border-collapse text-left text-[13px] leading-5" {...p} />
-    </div>
+    </ScrollRegion>
   ),
   th: ({ node: _n, ...p }) => <th className="border-b border-hairline-strong px-2 py-1.5 font-normal text-ink-3" {...p} />,
   td: ({ node: _n, ...p }) => <td className="tnum border-b border-hairline px-2 py-1.5 text-ink" {...p} />,
@@ -39,4 +44,10 @@ export function Markdown({ children, className, ...props }: { children: string; 
       </ReactMarkdown>
     </div>
   );
+}
+
+/** A code block; while it scrolls sideways it is in the tab order. */
+function ScrollPre(props: ComponentProps<"pre">) {
+  const ref = useScrollFocus<HTMLPreElement>();
+  return <pre ref={ref} className="mt-3 overflow-x-auto rounded-sm bg-die-2 p-3 text-[13px] leading-5" {...props} />;
 }

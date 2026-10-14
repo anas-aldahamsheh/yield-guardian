@@ -23,7 +23,7 @@ Two splits, both with no lot in more than one part (wafers of a lot are correlat
 - Model: compact residual CNN (4 stages of 2 residual blocks, 32-256 channels, 2.83 M parameters); 128-d penultimate embedding.
 - Training: focal loss (gamma 2) with class-balanced weights (beta 0.9999), augmentation by the 8 rotations and flips of the square only, AdamW (lr 2e-3, weight decay 0.05), 1 warm-up epoch then cosine decay, bf16 mixed precision, at most 40 epochs, early stopping on validation macro-F1 (patience 8), 3 seeds. No other hyperparameter search. Test sets were used once, after training.
 - Calibration: temperature scaling fitted on validation.
-- Unknown patterns: energy score, threshold at 95% in-distribution recall on validation; cross-checked with Mahalanobis distance on L2-normalised embeddings (shared Ledoit-Wolf covariance).
+- Unknown patterns: Mahalanobis distance on L2-normalised embeddings (shared Ledoit-Wolf covariance), threshold at 95% in-distribution recall on validation; the energy score is kept as a cross-check. Energy was the planned method; it was replaced after the leave-one-class-out results below (0.545 against 0.922), so the choice used those results.
 - Confidence intervals: 95%, lot-cluster bootstrap (2,000 resamples of test lots unless stated).
 
 ## Results on held-out test data
@@ -71,7 +71,7 @@ A wafer is classified automatically when its calibrated confidence reaches a thr
 
 ### Unknown patterns
 
-Deployed model: energy threshold -2.6177 accepts 0.947 of lot-grouped test wafers (target 0.95 on validation).
+Deployed model: Mahalanobis threshold 272.65 accepts 0.945 of lot-grouped test wafers (target 0.95 on validation). The energy cross-check, threshold -2.6177, accepts 0.947. Lot excursion counts in the demo subset still use the energy flag computed when the bundle was built.
 
 Leave-one-class-out (lot-grouped split, seed 0, training capped at 12 epochs): for each defect class a model trained without it scores every labelled wafer of that class (unseen) against the in-distribution test wafers.
 

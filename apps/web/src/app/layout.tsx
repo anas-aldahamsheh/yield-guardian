@@ -34,6 +34,8 @@ const written = localFont({
   weight: "200 900",
   variable: "--font-written",
   display: "swap",
+  // Report text sits below the fold or on later screens: not worth 250 KB of preload.
+  preload: false,
   adjustFontFallback: "Times New Roman",
 });
 
