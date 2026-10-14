@@ -1,0 +1,6 @@
+# Mock tooling never ships (CI fails if it is in public/ or the build).
+public/mockServiceWorker.js
+playwright-report/
+test-results/
+.next/
+*.tsbuildinfo
