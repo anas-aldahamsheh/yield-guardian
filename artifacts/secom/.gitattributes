@@ -1,0 +1,2 @@
+# Keep bundle files byte-identical to MANIFEST.json checksums.
+* -text

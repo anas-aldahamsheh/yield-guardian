@@ -1,0 +1,71 @@
+[project]
+name = "yg-secom"
+version = "0.1.0"
+description = "Yield Guardian SECOM science: failure risk, root-cause narrowing, FDC and sensor health"
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "yg-common",
+  "numpy>=2.5",
+  "pandas>=3.0",
+  "pyarrow>=26",
+  "scipy>=1.18",
+  "scikit-learn>=1.9",
+  "imbalanced-learn>=0.14",
+  "lightgbm>=4.7",
+  "optuna>=5.0",
+  "statsmodels>=0.15",
+  "pandera>=0.34",
+  "pydantic>=2.14",
+  "matplotlib>=3.11",
+  "joblib>=1.5",
+  "mlflow-skinny>=3.17",
+  "jsonschema>=4.23",
+]
+
+[tool.uv.sources]
+yg-common = { path = "../common", editable = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1",
+  "ruff>=0.17",
+  "mypy>=2.4",
+  "pandas-stubs>=3.0",
+  "scipy-stubs>=1.18",
+  "types-jsonschema>=4.26.0.20261006",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yg_secom"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "RUF", "SIM", "PT", "N", "NPY"]
+ignore = ["S101", "N803", "N806"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PT011"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "imblearn.*", "lightgbm.*", "optuna.*", "statsmodels.*", "pandera.*", "mlflow.*", "joblib.*", "matplotlib.*", "pyarrow.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = ["slow: end-to-end runs that take more than a few seconds"]
