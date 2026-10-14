@@ -15,6 +15,7 @@
 !deploy/docker/api-migrate.sh
 !artifacts/*/v*/
 !docs/knowledge/
+!docs/recorded/
 
 # Secrets, never in an image
 **/.env

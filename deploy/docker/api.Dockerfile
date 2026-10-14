@@ -83,6 +83,8 @@ COPY data/manifest.json /app/data/manifest.json
 COPY --from=artifacts /artifacts/ /app/artifacts/
 # Curated literature for the knowledge search (agent/wiring.py reads /app/docs/knowledge).
 COPY docs/knowledge/ /app/docs/knowledge/
+# Recorded demo investigations (imported at startup when investigations.json exists).
+COPY docs/recorded/ /app/docs/recorded/
 COPY --chmod=0755 deploy/docker/api-migrate.sh /usr/local/bin/yg-migrate
 
 ARG GIT_COMMIT=""
