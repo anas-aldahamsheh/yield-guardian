@@ -60,7 +60,9 @@ def build_registry(settings: Settings) -> ServiceRegistry:
         )
         states = StoredAlarmStates(persistence.alarms) if persistence else None
         registry.line = LineReplay(bundle, clock, states)
-        registry.secom = SecomInference(bundle, registry.line)
+        registry.secom = SecomInference(
+            bundle, registry.line, persistence.investigations if persistence else None
+        )
         registry.bundles.append(verified.info)
         log.info("secom_bundle_loaded", version=verified.info.bundle.version)
     return registry

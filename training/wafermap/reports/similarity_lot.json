@@ -1,0 +1,215 @@
+{
+  "split": "lot",
+  "k": 10,
+  "queries": 25954,
+  "seeds": {
+    "0": {
+      "all_neighbours": {
+        "micro_precision_at_10": {
+          "value": 0.9696000616475302,
+          "ci_low": 0.9674657436753714,
+          "ci_high": 0.9717731073805558,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8601934767326687,
+          "ci_low": 0.8452341217951763,
+          "ci_high": 0.873369217630176,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.9111975116640748,
+          "Donut": 0.8560975609756097,
+          "Edge-Loc": 0.7852185089974293,
+          "Edge-Ring": 0.9705922865013774,
+          "Loc": 0.6938661710037174,
+          "Near-full": 0.9739130434782608,
+          "Random": 0.8223076923076924,
+          "Scratch": 0.7410112359550562,
+          "none": 0.9875372797107999
+        }
+      },
+      "other_lots_only": {
+        "micro_precision_at_10": {
+          "value": 0.9691338522000463,
+          "ci_low": 0.9667931296010938,
+          "ci_high": 0.971400979214266,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8598482801893016,
+          "ci_low": 0.8450623208856621,
+          "ci_high": 0.8731057760290198,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.9110419906687403,
+          "Donut": 0.8560975609756097,
+          "Edge-Loc": 0.7827763496143959,
+          "Edge-Ring": 0.9690771349862259,
+          "Loc": 0.6923791821561338,
+          "Near-full": 0.9782608695652174,
+          "Random": 0.8207692307692308,
+          "Scratch": 0.7410112359550562,
+          "none": 0.9872209670131045
+        }
+      }
+    },
+    "1": {
+      "all_neighbours": {
+        "micro_precision_at_10": {
+          "value": 0.9695075903521615,
+          "ci_low": 0.9672511637692284,
+          "ci_high": 0.9718982821091707,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8597138837019179,
+          "ci_low": 0.8448119038208755,
+          "ci_high": 0.8726164743686872,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.9104199066874029,
+          "Donut": 0.8207317073170731,
+          "Edge-Loc": 0.786503856041131,
+          "Edge-Ring": 0.968939393939394,
+          "Loc": 0.6884758364312267,
+          "Near-full": 0.991304347826087,
+          "Random": 0.8323076923076923,
+          "Scratch": 0.751123595505618,
+          "none": 0.9876186172616358
+        }
+      },
+      "other_lots_only": {
+        "micro_precision_at_10": {
+          "value": 0.9689797333744316,
+          "ci_low": 0.9666571523572819,
+          "ci_high": 0.9714215784567454,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8584208181874434,
+          "ci_low": 0.8431375334738485,
+          "ci_high": 0.871305951092999,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.908398133748056,
+          "Donut": 0.8182926829268292,
+          "Edge-Loc": 0.7848329048843188,
+          "Edge-Ring": 0.9665977961432507,
+          "Loc": 0.6882899628252788,
+          "Near-full": 0.991304347826087,
+          "Random": 0.8307692307692308,
+          "Scratch": 0.75,
+          "none": 0.9873023045639403
+        }
+      }
+    },
+    "2": {
+      "all_neighbours": {
+        "micro_precision_at_10": {
+          "value": 0.9699660938583649,
+          "ci_low": 0.9677220955705345,
+          "ci_high": 0.9721161972454188,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8557530666679388,
+          "ci_low": 0.8402766732723275,
+          "ci_high": 0.8695637415667542,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.916329704510109,
+          "Donut": 0.8390243902439024,
+          "Edge-Loc": 0.7872750642673522,
+          "Edge-Ring": 0.9694903581267217,
+          "Loc": 0.6920074349442379,
+          "Near-full": 0.9652173913043477,
+          "Random": 0.7938461538461539,
+          "Scratch": 0.7505617977528091,
+          "none": 0.9880253050158156
+        }
+      },
+      "other_lots_only": {
+        "micro_precision_at_10": {
+          "value": 0.9695268552053633,
+          "ci_low": 0.967319517533887,
+          "ci_high": 0.9717485741380834,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "macro_precision_at_10": {
+          "value": 0.8547348041408142,
+          "ci_low": 0.8391824696332675,
+          "ci_high": 0.8684392722133848,
+          "ci_level": 0.95,
+          "method": "lot-cluster bootstrap, 1000 resamples (percentile)",
+          "n": 25954,
+          "lots": 1608
+        },
+        "per_class": {
+          "Center": 0.9160186625194401,
+          "Donut": 0.8317073170731708,
+          "Edge-Loc": 0.7847043701799485,
+          "Edge-Ring": 0.9681818181818181,
+          "Loc": 0.691263940520446,
+          "Near-full": 0.9695652173913042,
+          "Random": 0.7923076923076923,
+          "Scratch": 0.751123595505618,
+          "none": 0.9877406235878896
+        }
+      }
+    }
+  },
+  "all_neighbours_micro_across_seeds": {
+    "mean": 0.9696912486193522,
+    "sd": 0.00024247198636696008
+  },
+  "all_neighbours_macro_across_seeds": {
+    "mean": 0.8585534757008418,
+    "sd": 0.0024370515859250133
+  },
+  "other_lots_only_micro_across_seeds": {
+    "mean": 0.9692134802599469,
+    "sd": 0.00028211884980127404
+  },
+  "other_lots_only_macro_across_seeds": {
+    "mean": 0.8576679675058531,
+    "sd": 0.002638559727615048
+  }
+}

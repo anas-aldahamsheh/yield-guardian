@@ -1,0 +1,139 @@
+{
+  "reference": {
+    "lots": 1612,
+    "wafers": 36665,
+    "pattern_rates": {
+      "Center": 0.03401063684712941,
+      "Donut": 0.003681985544797491,
+      "Edge-Loc": 0.0401745533887904,
+      "Edge-Ring": 0.048193099686349376,
+      "Loc": 0.02367380335469794,
+      "Near-full": 0.0006818491749624983,
+      "Random": 0.005754807036683486,
+      "Scratch": 0.007936724396563481,
+      "unknown": 0.09701350061366426
+    }
+  },
+  "tested": {
+    "lots": 1608,
+    "wafers": 36749,
+    "tests": 14472
+  },
+  "flagged_lots": 379,
+  "flagged_tests_by_pattern": {
+    "Center": 99,
+    "Donut": 8,
+    "Edge-Loc": 66,
+    "Edge-Ring": 84,
+    "Loc": 24,
+    "Near-full": 4,
+    "Random": 10,
+    "Scratch": 3,
+    "unknown": 110
+  },
+  "method": "one-sided binomial P(X>=k), Benjamini-Hochberg over all lot x pattern tests",
+  "fdr_q": 0.05,
+  "check_against_true_labels": {
+    "description": "same test on the true labels of labelled wafers (defect classes); reference = labelled validation wafers",
+    "reference_rates": {
+      "Center": 0.024819825027941573,
+      "Donut": 0.0032373684819054227,
+      "Edge-Loc": 0.029984198558600225,
+      "Edge-Ring": 0.05596022661579373,
+      "Loc": 0.020773114425559795,
+      "Near-full": 0.0008478822214514202,
+      "Random": 0.005010213126758392,
+      "Scratch": 0.006898678074536555
+    },
+    "label_based_flags": 250,
+    "model_based_defect_flags": 298,
+    "flagged_by_both": 194,
+    "share_of_model_flags_confirmed": 0.6510067114093959,
+    "share_of_label_flags_found": 0.776
+  },
+  "lots_without_labels": {
+    "lots": 35531,
+    "wafers": 566611,
+    "pattern_rates": {
+      "Center": 0.01999431708879637,
+      "Donut": 0.000241788458042643,
+      "Edge-Loc": 0.029755864252547164,
+      "Edge-Ring": 0.013312484226391651,
+      "Loc": 0.009983921949979793,
+      "Near-full": 0.0036197673536165023,
+      "Random": 0.004929307761409503,
+      "Scratch": 0.004728111526249932,
+      "unknown": 0.3049799597960505,
+      "none": 0.6084544775869158
+    },
+    "validation_lot_rates": {
+      "Center": 0.03401063684712941,
+      "Donut": 0.003681985544797491,
+      "Edge-Loc": 0.0401745533887904,
+      "Edge-Ring": 0.048193099686349376,
+      "Loc": 0.02367380335469794,
+      "Near-full": 0.0006818491749624983,
+      "Random": 0.005754807036683486,
+      "Scratch": 0.007936724396563481,
+      "unknown": 0.09701350061366426,
+      "none": 0.7388790399563616
+    },
+    "note": "not tested; their unknown rate shows a shift from the labelled population"
+  },
+  "model": "lot-seed1",
+  "demo": {
+    "lots": 479,
+    "flagged_included": 379,
+    "unflagged_random": 100,
+    "selection_seed": 20261014
+  },
+  "join_count_demo": {
+    "wafers": 10253,
+    "tested": 10246,
+    "share_p_below_0.05": 0.610189342182315,
+    "permutations": 999,
+    "adjacency": "rook (4-neighbour) among die cells"
+  },
+  "join_count_validation": {
+    "Center": {
+      "wafers": 300,
+      "share_p_below_0.05": 0.8333333333333334,
+      "median_z": 3.8089694396666682
+    },
+    "Donut": {
+      "wafers": 82,
+      "share_p_below_0.05": 1.0,
+      "median_z": 15.313491672715168
+    },
+    "Edge-Loc": {
+      "wafers": 300,
+      "share_p_below_0.05": 0.9533333333333334,
+      "median_z": 6.795723785978182
+    },
+    "Edge-Ring": {
+      "wafers": 300,
+      "share_p_below_0.05": 0.97,
+      "median_z": 12.047758360086737
+    },
+    "Loc": {
+      "wafers": 300,
+      "share_p_below_0.05": 0.9266666666666666,
+      "median_z": 6.75244599950703
+    },
+    "Near-full": {
+      "wafers": 23,
+      "share_p_below_0.05": 0.6086956521739131,
+      "median_z": 4.282515392446551
+    },
+    "Random": {
+      "wafers": 130,
+      "share_p_below_0.05": 0.5692307692307692,
+      "median_z": 2.2303119511552967
+    },
+    "Scratch": {
+      "wafers": 178,
+      "share_p_below_0.05": 0.8932584269662921,
+      "median_z": 4.659288771858103
+    }
+  }
+}

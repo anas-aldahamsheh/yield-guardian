@@ -1,0 +1,87 @@
+{
+  "name": "wafermap",
+  "version": "v1",
+  "created_at": "2026-10-14T10:27:43Z",
+  "git_commit": "58516138c00c364b783ae7936d65713b533904d9",
+  "data": [
+    {
+      "path": "data/raw/wm811k/LSWMD.pkl",
+      "sha256": "1d04fccb3dd3176b276878b926b20fead7e077c5751e4d353ea9741a5e7b5c65"
+    },
+    {
+      "path": "data/interim/wm811k/wm811k.parquet",
+      "sha256": "3178754727a8399b424177e840307baad8c74d253c6f925ded6b57154e91f683"
+    }
+  ],
+  "environment": {
+    "python": "3.13.15",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.4",
+      "pandas": "3.0.6",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.18.1",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0"
+    },
+    "device": "NVIDIA GeForce RTX 3060",
+    "cuda": "13.0"
+  },
+  "files": [
+    {
+      "path": "calibration.json",
+      "bytes": 60,
+      "sha256": "98ddf0497f7bf0711d3c5d1ef0c5779355d1c085401af03cae7e653367a548d8"
+    },
+    {
+      "path": "demo/ATTRIBUTION.md",
+      "bytes": 1111,
+      "sha256": "a4ba565cc78bc30a8b0da96f307ad10d8e916a4418fb44b3e402c980bd55ac7d"
+    },
+    {
+      "path": "demo/lots.json",
+      "bytes": 10454421,
+      "sha256": "6f0b830aa424bd5f9bdddfce92990d43ab7b93086b6ec6759a4db507ec92bd8c"
+    },
+    {
+      "path": "demo/wafers.parquet",
+      "bytes": 2564458,
+      "sha256": "ac57da95e49b4cbe5fc4dbfe071a84d676dabc84bb8227d8ee461b8c90fbb92e"
+    },
+    {
+      "path": "labels.json",
+      "bytes": 114,
+      "sha256": "73661ea262b9f01877375a8ce40c0bc44583f8033666e5b127a7f1aff4c87029"
+    },
+    {
+      "path": "metrics.json",
+      "bytes": 200118,
+      "sha256": "27b460f21c3ac15f5a03db0ebb98145b841d3558fa110b85eb0a524af8b4fd52"
+    },
+    {
+      "path": "model.onnx",
+      "bytes": 11404718,
+      "sha256": "677bc527a5caf147fd1d1441c92a719945ba3e48c0c6ce2941beac3a2f6999bf"
+    },
+    {
+      "path": "model_card.md",
+      "bytes": 9449,
+      "sha256": "1680a65fc3b4939ff8524b2945d18ec6851dbe1fe757ddd8ee8ba85b744b5896"
+    },
+    {
+      "path": "ood.json",
+      "bytes": 2779,
+      "sha256": "45b20f06c0b70db4733663b1ed329969521ae6052fd312327180eb7e39b345db"
+    },
+    {
+      "path": "ood_mahalanobis.npz",
+      "bytes": 70670,
+      "sha256": "5ac8be308a5371c2e08ac5628345ca6672af882e961d6c7e91ef90399754affb"
+    },
+    {
+      "path": "preprocess.json",
+      "bytes": 288,
+      "sha256": "dba490dfcefed705d461cdf415395c9068eec2c956474973e26b3a0df835ad76"
+    }
+  ]
+}
