@@ -11,6 +11,9 @@ source URL and retrieval time is written to data/manifest.json, which is committ
 so anyone can check that they are training on byte-identical data.
 
 Only the standard library is used, plus the `kaggle` command for the WM-811K fallback.
+If `certifi` is importable its CA bundle is used, because some Windows certificate
+stores hold an expired cross-signed ISRG chain that makes UCI fail verification
+(run with: uv run --no-project --with certifi python data/download.py ...).
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import ssl
 import subprocess
 import sys
 import time
@@ -33,6 +37,17 @@ RAW = ROOT / "raw"
 MANIFEST = ROOT / "manifest.json"
 USER_AGENT = "yield-guardian-data/1.0 (+https://github.com/anas-aldahamsheh/yield-guardian)"
 
+
+def _ssl_context() -> ssl.SSLContext:
+    try:
+        import certifi
+    except ImportError:
+        return ssl.create_default_context()
+    return ssl.create_default_context(cafile=certifi.where())
+
+
+SSL_CONTEXT = _ssl_context()
+
 DATASETS: dict[str, dict] = {
     "secom": {
         "title": "SECOM (UCI Machine Learning Repository, dataset 179)",
@@ -46,8 +61,15 @@ DATASETS: dict[str, dict] = {
             "https://archive.ics.uci.edu/ml/machine-learning-databases/secom/secom.names",
         ],
         "expected_files": ["secom.data", "secom_labels.data"],
-        "citation": "McCann, M. and Johnston, A. (2008). SECOM. UCI Machine Learning Repository.",
-        "licence": "Check the dataset page and record it here (expected: CC BY 4.0).",
+        "citation": "McCann, M. and Johnston, A. (2008). SECOM [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C54305",
+        "licence": (
+            "Creative Commons Attribution 4.0 International (CC BY 4.0). Text on the dataset page, "
+            "retrieved 2026-10-14: \"This dataset is licensed under a Creative Commons Attribution 4.0 "
+            "International (CC BY 4.0) license. This allows for the sharing and adaptation of the datasets "
+            "for any purpose, provided that the appropriate credit is given.\""
+        ),
+        "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+        "doi": "https://doi.org/10.24432/C54305",
     },
     "wm811k": {
         "title": "WM-811K wafer maps (MIR Lab, National Taiwan University)",
@@ -82,7 +104,7 @@ def fetch(url: str, target: Path, attempts: int = 4) -> bool:
     for attempt in range(1, attempts + 1):
         try:
             request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(request, timeout=60) as response, partial.open("wb") as out:
+            with urllib.request.urlopen(request, timeout=60, context=SSL_CONTEXT) as response, partial.open("wb") as out:
                 total = int(response.headers.get("Content-Length") or 0)
                 done = 0
                 for block in iter(lambda: response.read(1 << 20), b""):
@@ -111,6 +133,7 @@ def record(name: str, source: str, files: list[Path]) -> None:
         "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "citation": spec["citation"],
         "licence": spec["licence"],
+        **{key: spec[key] for key in ("licence_url", "doi") if key in spec},
         "files": [
             {"path": str(f.relative_to(ROOT)).replace("\\", "/"), "bytes": f.stat().st_size, "sha256": sha256(f)}
             for f in sorted(files)
