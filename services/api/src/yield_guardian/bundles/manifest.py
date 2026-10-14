@@ -54,8 +54,22 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _through_symlink(root: Path, relative: PurePosixPath) -> bool:
+    """Whether the file or any folder between `root` and it is a symbolic link."""
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
 def verify_bundle(path: Path, name: BundleName) -> VerifiedBundle:
-    """Check MANIFEST.json and every file it lists; raise BundleError on the first problem."""
+    """Check MANIFEST.json and every file it lists; raise BundleError on the first problem.
+
+    Listed paths are relative POSIX paths inside the bundle, nested folders allowed (`demo/x`);
+    an absolute path, a `..` part or a symbolic link on the way is refused.
+    """
     manifest_path = path / "MANIFEST.json"
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -70,7 +84,13 @@ def verify_bundle(path: Path, name: BundleName) -> VerifiedBundle:
         raise BundleError(f"{manifest_path}: no files listed.")
     for entry in files:
         relative = PurePosixPath(str(entry.get("path", "")))
-        if relative.is_absolute() or ".." in relative.parts or not relative.parts:
+        if (
+            relative.is_absolute()
+            or ".." in relative.parts
+            or not relative.parts
+            or "\\" in str(relative)
+            or _through_symlink(path, relative)
+        ):
             raise BundleError(f"{manifest_path}: unsafe path {entry.get('path')!r}.")
         target = path.joinpath(*relative.parts)
         if not target.is_file():

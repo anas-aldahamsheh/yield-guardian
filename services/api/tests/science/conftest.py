@@ -4,14 +4,17 @@ from pathlib import Path
 
 import pytest
 
-from tests.science.bundle_factory import DATA, build_secom_bundle
-from yield_guardian.bundles.manifest import verify_bundle
+from tests.science.bundle_factory import DATA, REPO, build_secom_bundle
+from yield_guardian.bundles.manifest import latest_version, verify_bundle
 from yield_guardian.bundles.secom import SecomBundle, load_secom_bundle
+from yield_guardian.bundles.wafermap import WafermapBundle, load_wafermap_bundle
 from yield_guardian.replay.clock import ReplayClock
 from yield_guardian.replay.line import LineReplay
 from yield_guardian.science.secom.service import SecomInference
+from yield_guardian.science.wafermap.service import WaferInference
 
 EPOCH = datetime.fromisoformat("2026-10-12T00:00:00+00:00")
+ARTIFACTS = REPO / "artifacts"
 
 
 @pytest.fixture(scope="session")
@@ -63,3 +66,19 @@ def line(secom_bundle: SecomBundle, clock: ReplayClock) -> LineReplay:
 @pytest.fixture
 def secom(secom_bundle: SecomBundle, line: LineReplay) -> SecomInference:
     return SecomInference(secom_bundle, line)
+
+
+@pytest.fixture(scope="session")
+def wafermap_dir() -> Path:
+    """The real wafer-map bundle committed under artifacts/ (no synthetic data)."""
+    return latest_version(ARTIFACTS, "wafermap")
+
+
+@pytest.fixture(scope="session")
+def wafermap_bundle(wafermap_dir: Path) -> WafermapBundle:
+    return load_wafermap_bundle(verify_bundle(wafermap_dir, "wafermap"))
+
+
+@pytest.fixture(scope="session")
+def wafers(wafermap_bundle: WafermapBundle) -> WaferInference:
+    return WaferInference(wafermap_bundle)

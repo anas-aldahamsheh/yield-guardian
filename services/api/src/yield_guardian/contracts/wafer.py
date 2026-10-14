@@ -52,17 +52,24 @@ class ClassProbability(Contract):
 
 
 class UnknownScore(Contract):
-    """Energy score; a wafer above the threshold is reported as an unknown pattern."""
+    """Mahalanobis score of the CNN embedding; above the threshold, the wafer is an unknown pattern.
 
-    method: Literal["energy"] = "energy"
+    The score is the smallest squared Mahalanobis distance from the L2-normalised embedding to a
+    class mean (shared Ledoit-Wolf covariance). The threshold accepts 95% of validation wafers.
+    """
+
+    method: Literal["mahalanobis"] = "mahalanobis"
     score: float
     threshold: float
+    threshold_set_on: Literal["validation"] = "validation"
     is_unknown: bool
     in_distribution_recall: Share = Field(
         description="Validation recall of known patterns at this threshold."
     )
-    mahalanobis_distance: float | None
-    mahalanobis_flag: bool | None
+    energy_score: float | None = Field(
+        description="Energy score (-logsumexp of the logits), a cross-check only: it does not set "
+        "the flag. It separates unseen patterns worse; see OodMetrics.energy_mean_auroc."
+    )
 
 
 class WaferPrediction(Contract):
@@ -191,8 +198,8 @@ class SplitResult(Contract):
     per_class: list[ClassMetrics]
     confusion: ConfusionMatrix
     seeds: list[SeedResult]
-    seed_mean: float
-    seed_sd: float
+    seed_mean: float | None = Field(description="Null for a single fit (the baseline).")
+    seed_sd: float | None = Field(description="Null for a single fit (the baseline).")
     lots_in_both: Count | None = Field(
         description="Lots present in both training and test data of this split."
     )
@@ -204,12 +211,25 @@ class LeaveOneClassOut(Contract):
 
 
 class OodMetrics(Contract):
-    method: Literal["energy"] = "energy"
+    """The unknown-pattern score (Mahalanobis) and its leave-one-class-out test."""
+
+    method: Literal["mahalanobis"] = "mahalanobis"
     threshold: float
-    in_distribution_recall: Share
-    leave_one_class_out: list[LeaveOneClassOut]
-    mean_auroc: Estimate | None
-    mahalanobis_mean_auroc: Estimate | None
+    threshold_set_on: Literal["validation"] = "validation"
+    in_distribution_recall: Share = Field(
+        description="Validation recall of known patterns at the threshold."
+    )
+    in_distribution_recall_test: Share | None = Field(
+        description="Test recall of known patterns at the same threshold."
+    )
+    leave_one_class_out: list[LeaveOneClassOut] = Field(
+        description="AUROC of the Mahalanobis score for each held-out class."
+    )
+    mean_auroc: Estimate | None = Field(description="Mean Mahalanobis AUROC over held-out classes.")
+    energy_mean_auroc: Estimate | None = Field(
+        description="Mean AUROC of the energy score, the cross-check, over the same classes."
+    )
+    note: str
 
 
 class AutoClassification(Contract):
@@ -242,6 +262,8 @@ class WaferMetrics(Contract):
     calibration: WaferCalibration
     ood: OodMetrics
     similarity_precision_at_10: Estimate
-    auto_classification: AutoClassification | None
+    auto_classification: list[AutoClassification] = Field(
+        description="One row per precision target, as measured."
+    )
     published: list[PublishedResult]
     limitations: list[str]

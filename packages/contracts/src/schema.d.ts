@@ -2652,22 +2652,46 @@ export interface components {
        */
       value: number;
     };
-    /** OodMetrics */
+    /**
+     * OodMetrics
+     * @description The unknown-pattern score (Mahalanobis) and its leave-one-class-out test.
+     */
     OodMetrics: {
-      /** In Distribution Recall */
+      /** @description Mean AUROC of the energy score, the cross-check, over the same classes. */
+      energy_mean_auroc: components["schemas"]["Estimate"] | null;
+      /**
+       * In Distribution Recall
+       * @description Validation recall of known patterns at the threshold.
+       */
       in_distribution_recall: number;
-      /** Leave One Class Out */
+      /**
+       * In Distribution Recall Test
+       * @description Test recall of known patterns at the same threshold.
+       */
+      in_distribution_recall_test: number | null;
+      /**
+       * Leave One Class Out
+       * @description AUROC of the Mahalanobis score for each held-out class.
+       */
       leave_one_class_out: components["schemas"]["LeaveOneClassOut"][];
-      mahalanobis_mean_auroc: components["schemas"]["Estimate"] | null;
+      /** @description Mean Mahalanobis AUROC over held-out classes. */
       mean_auroc: components["schemas"]["Estimate"] | null;
       /**
        * Method
-       * @default energy
+       * @default mahalanobis
        * @constant
        */
-      method: "energy";
+      method: "mahalanobis";
+      /** Note */
+      note: string;
       /** Threshold */
       threshold: number;
+      /**
+       * Threshold Set On
+       * @default validation
+       * @constant
+       */
+      threshold_set_on: "validation";
     };
     /**
      * OperatingPoint
@@ -3405,10 +3429,16 @@ export interface components {
       macro_f1: components["schemas"]["Estimate"];
       /** Per Class */
       per_class: components["schemas"]["ClassMetrics"][];
-      /** Seed Mean */
-      seed_mean: number;
-      /** Seed Sd */
-      seed_sd: number;
+      /**
+       * Seed Mean
+       * @description Null for a single fit (the baseline).
+       */
+      seed_mean: number | null;
+      /**
+       * Seed Sd
+       * @description Null for a single fit (the baseline).
+       */
+      seed_sd: number | null;
       /** Seeds */
       seeds: components["schemas"]["SeedResult"][];
       /**
@@ -3709,9 +3739,17 @@ export interface components {
     };
     /**
      * UnknownScore
-     * @description Energy score; a wafer above the threshold is reported as an unknown pattern.
+     * @description Mahalanobis score of the CNN embedding; above the threshold, the wafer is an unknown pattern.
+     *
+     *     The score is the smallest squared Mahalanobis distance from the L2-normalised embedding to a
+     *     class mean (shared Ledoit-Wolf covariance). The threshold accepts 95% of validation wafers.
      */
     UnknownScore: {
+      /**
+       * Energy Score
+       * @description Energy score (-logsumexp of the logits), a cross-check only: it does not set the flag. It separates unseen patterns worse; see OodMetrics.energy_mean_auroc.
+       */
+      energy_score: number | null;
       /**
        * In Distribution Recall
        * @description Validation recall of known patterns at this threshold.
@@ -3719,20 +3757,22 @@ export interface components {
       in_distribution_recall: number;
       /** Is Unknown */
       is_unknown: boolean;
-      /** Mahalanobis Distance */
-      mahalanobis_distance: number | null;
-      /** Mahalanobis Flag */
-      mahalanobis_flag: boolean | null;
       /**
        * Method
-       * @default energy
+       * @default mahalanobis
        * @constant
        */
-      method: "energy";
+      method: "mahalanobis";
       /** Score */
       score: number;
       /** Threshold */
       threshold: number;
+      /**
+       * Threshold Set On
+       * @default validation
+       * @constant
+       */
+      threshold_set_on: "validation";
     };
     /** Usage */
     Usage: {
@@ -3905,7 +3945,11 @@ export interface components {
     };
     /** WaferMetrics */
     WaferMetrics: {
-      auto_classification: components["schemas"]["AutoClassification"] | null;
+      /**
+       * Auto Classification
+       * @description One row per precision target, as measured.
+       */
+      auto_classification: components["schemas"]["AutoClassification"][];
       /** Baseline */
       baseline: components["schemas"]["SplitResult"][];
       bundle: components["schemas"]["BundleRef"];
