@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     database_url: SecretStr | None = Field(
         None, description="postgresql+asyncpg://user:password@host:5432/yield_guardian"
     )
+    migrate_on_start: bool = Field(True, description="Apply database migrations at startup.")
     artifacts_dir: Path = Path("artifacts")
     secom_data_dir: Path = Path("data/secom")
 
