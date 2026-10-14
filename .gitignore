@@ -1,0 +1,53 @@
+# Secrets
+.env
+.env.*
+!.env.example
+**/.kaggle/
+*.pem
+*.key
+
+# Data and artifacts (published as GitHub Release assets, never committed)
+data/raw/
+data/interim/
+data/processed/
+artifacts/
+mlruns/
+mlartifacts/
+*.onnx
+*.lgb
+*.joblib
+*.pkl
+*.npz
+*.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
