@@ -223,7 +223,7 @@ export default function WaferScene(props: WaferSceneProps) {
       flat
       dpr={[1, 2]}
       frameloop="demand"
-      camera={{ position: [0, 3.05, 3.1], fov: 30, near: 0.1, far: 20 }}
+      camera={{ position: [0, 3.35, 3.4], fov: 30, near: 0.1, far: 20 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ camera }) => camera.lookAt(0, -0.12, 0.02)}
       aria-hidden="true"
