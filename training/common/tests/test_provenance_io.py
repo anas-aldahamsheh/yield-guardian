@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from yg_common.estimates import Estimate
+from yg_common.estimates import UNDEFINED_BOUND_NOTE, Estimate, UndefinedEstimateError
 from yg_common.io import dumps_json, load_npz, save_npz, write_json
 from yg_common.provenance import (
     derive_seed,
@@ -109,9 +109,16 @@ def test_estimate_serialisation() -> None:
         "method": "stratified bootstrap, 2000 resamples",
         "n": 313,
     }
-    undefined = Estimate(math.nan, math.nan, math.nan, 0.95, "m", 0).to_dict()
-    assert undefined["value"] is None
-    assert undefined["ci_low"] is None
+    undefined = Estimate(math.nan, math.nan, math.nan, 0.95, "m", 0)
+    assert not undefined.defined
+    with pytest.raises(UndefinedEstimateError):
+        undefined.to_dict()
+    open_bound = Estimate(0.4, math.nan, 0.6, 0.95, "m", 10).to_dict()
+    assert open_bound["ci_low"] is None
+    assert open_bound["note"] == UNDEFINED_BOUND_NOTE
+    noted = Estimate(0.4, math.nan, math.nan, 0.95, "m", 10, note="why").to_dict()
+    assert noted["note"] == "why"
+    assert "note" not in est.to_dict()
     with pytest.raises(ValueError):
         Estimate(0.5, 0.6, 0.4, 0.95, "m", 1)
     with pytest.raises(ValueError):

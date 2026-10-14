@@ -1,9 +1,13 @@
 """Point estimates with a confidence interval, in the artifact contract format.
 
 Every estimate that leaves a training pipeline is an object
-``{"value", "ci_low", "ci_high", "ci_level", "method", "n"}`` (see
-``packages/contracts/ARTIFACTS.md``). Non-finite numbers are written as JSON ``null``
-because JSON has no NaN.
+``{"value", "ci_low", "ci_high", "ci_level", "method", "n"}`` plus an optional ``note``
+(see ``packages/contracts/ARTIFACTS.md``). The contract rules:
+
+- ``value`` is never null. An undefined quantity (for example precision when nothing is
+  flagged) must be left out by the caller; ``to_dict`` refuses to serialise it.
+- ``ci_low`` and ``ci_high`` may be null only when a bound cannot be computed, and then
+  ``note`` says why (a default reason is supplied when the caller gives none).
 """
 
 from __future__ import annotations
@@ -12,6 +16,12 @@ import math
 from dataclasses import dataclass
 
 type JsonScalar = float | int | str | bool | None
+
+UNDEFINED_BOUND_NOTE = "interval bound undefined: no resample gave a finite value"
+
+
+class UndefinedEstimateError(ValueError):
+    """An estimate whose point value is undefined was about to be published."""
 
 
 def finite_or_none(x: float) -> float | None:
@@ -31,6 +41,7 @@ class Estimate:
         ci_level: Confidence level, for example 0.95.
         method: How the interval was computed, in words.
         n: Number of observations (units) the estimate is based on.
+        note: Why a bound is missing, or another caveat (optional).
     """
 
     value: float
@@ -39,6 +50,7 @@ class Estimate:
     ci_level: float
     method: str
     n: int
+    note: str | None = None
 
     def __post_init__(self) -> None:
         if not 0.0 < self.ci_level < 1.0:
@@ -52,13 +64,33 @@ class Estimate:
         ):
             raise ValueError(f"ci_low {self.ci_low} exceeds ci_high {self.ci_high}")
 
+    @property
+    def defined(self) -> bool:
+        """True when the point value is a finite number (publishable)."""
+        return math.isfinite(self.value)
+
     def to_dict(self) -> dict[str, JsonScalar]:
-        """Serialise in the artifact contract format."""
-        return {
-            "value": finite_or_none(self.value),
+        """Serialise in the artifact contract format.
+
+        Raises:
+            UndefinedEstimateError: if ``value`` is not finite; leave the quantity out
+                and state the reason in the limitations instead.
+        """
+        if not self.defined:
+            raise UndefinedEstimateError(
+                f"estimate value is undefined ({self.value}); omit it and say why"
+            )
+        out: dict[str, JsonScalar] = {
+            "value": float(self.value),
             "ci_low": finite_or_none(self.ci_low),
             "ci_high": finite_or_none(self.ci_high),
             "ci_level": self.ci_level,
             "method": self.method,
             "n": self.n,
         }
+        note = self.note
+        if note is None and (out["ci_low"] is None or out["ci_high"] is None):
+            note = UNDEFINED_BOUND_NOTE
+        if note is not None:
+            out["note"] = note
+        return out
