@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "GLM-5.3-Flash (thinks by default) at reasoning_effort low: thinking text in choices[0].message.reasoning and its count in usage.completion_tokens_details.reasoning_tokens, cached prompt tokens in prompt_tokens_details.",
+    "source": "docs/vendor/token-factory.md: 'Thinking text is returned in choices[0].message.reasoning; its token count in usage.completion_tokens_details.reasoning_tokens'"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "GLM-5.3-Flash", "reasoning_effort": "low"}
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "x-ratelimit-limit-requests": "20",
+          "x-ratelimit-remaining-requests": "18",
+          "x-ratelimit-reset-requests": "42s"
+        },
+        "json_body": {
+          "id": "chatcmpl-fixture-reasoning-1",
+          "object": "chat.completion",
+          "created": 1792058460,
+          "model": "GLM-5.3-Flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "{\"verdicts\": []}",
+                "reasoning": "Fixture thinking text: check each claim against its cited evidence."
+              },
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 2000,
+            "completion_tokens": 400,
+            "total_tokens": 2400,
+            "prompt_tokens_details": {"cached_tokens": 500},
+            "completion_tokens_details": {"reasoning_tokens": 300}
+          }
+        }
+      }
+    }
+  ]
+}

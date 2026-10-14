@@ -61,23 +61,30 @@ class RoleAssignmentUpdate(Contract):
 
 
 class Usage(Contract):
+    """Totals over model calls. Token counts and points add up the calls whose usage the
+    endpoint reported; `requests_without_usage` counts the others (their usage is unknown)."""
+
     requests: Count
     tokens_in: Count
     tokens_out: Count
     tokens_reasoning: Count
     points: float = Field(ge=0)
     cache_hits: Count
+    requests_without_usage: Count = Field(
+        description="Requests the endpoint answered without reporting usage; not in the sums."
+    )
 
 
 class CallUsage(Contract):
-    """One model call."""
+    """One model call. Token counts and points are null when the endpoint did not report
+    usage (never shown as zero)."""
 
     role: RoleName
     model_id: str
-    tokens_in: Count
-    tokens_out: Count
-    tokens_reasoning: Count
-    points: float = Field(ge=0)
+    tokens_in: Count | None
+    tokens_out: Count | None
+    tokens_reasoning: Count | None
+    points: float | None = Field(ge=0)
     latency_ms: int = Field(ge=0)
     cached: bool
 
@@ -87,10 +94,10 @@ class LlmCall(Contract):
     role: RoleName
     model_id: str
     status: CallStatus
-    tokens_in: Count
-    tokens_out: Count
-    tokens_reasoning: Count
-    points: float = Field(ge=0)
+    tokens_in: Count | None = Field(description="Null when the endpoint did not report usage.")
+    tokens_out: Count | None
+    tokens_reasoning: Count | None
+    points: float | None = Field(ge=0)
     latency_ms: int = Field(ge=0)
     error: str | None
 

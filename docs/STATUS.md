@@ -1,7 +1,25 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 10:57 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 11:07 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
+
+<!-- progress:start -->
+## Progress: 59 of 86 done (69%), 8 in progress, 19 not started
+
+| Area | Done | In progress | Not started |
+|---|---|---|---|
+| F: Foundations | 6 of 6 | 0 | 0 |
+| D: Data | 5 of 5 | 0 | 0 |
+| S: SECOM science | 10 of 10 | 0 | 0 |
+| W: Wafer maps | 10 of 10 | 0 | 0 |
+| K: Knowledge base | 1 of 3 | 2 | 0 |
+| A: API | 8 of 9 | 0 | 1 |
+| L: AI layer | 9 of 11 | 1 | 1 |
+| U: Interface | 4 of 14 | 1 | 9 |
+| P: Packaging and deployment | 6 of 7 | 1 | 0 |
+| Q: Quality | 0 of 5 | 2 | 3 |
+| X: Submission | 0 of 6 | 1 | 5 |
+<!-- progress:end -->
 
 | Symbol | Meaning |
 |---|---|
@@ -13,27 +31,14 @@
 
 **Where:** Cloud = this session writes and tests it. PC = runs on the owner's PC. You = needs the owner.
 
-## Resume points (last pause)
-
-Paused at 2026-10-14 08:55 UTC to save the usage quota; resumed at 10:25 UTC, all workers continuing from these points. Nothing half done is on main; each worker's work is on its own branch. To resume, say "continue" in the lead's thread.
-
-| Who | Branch | State at pause | Next step |
-|---|---|---|---|
-| Lead | main | API core done: registry built at startup from the newest verified bundle (f224cec), database, sessions, work orders, audit (b8ae0b3); 167 tests pass with PostgreSQL | Unit to investigation links from the investigations table; declare 400 responses on investigation, work order and cursor routes and regenerate contracts; wafer service (A6) from worker 3's bundle; methods service |
-| Worker 2 | w2/secom | Pipeline, bundle export, schemas, root cause, FDC, sensor health; WIP pushed | Was changing the stuck-value rule to use each sensor's own reference repeat rate, plus a synchronised-run diagnostic; then build the bundle with the ARTIFACTS.md fields |
-| Worker 3 | w3/pc (your PC) | Paused at 55e9d5a: 6 training runs and both evaluations pushed (lot-grouped 0.900 ± 0.006, official 0.604 ± 0.043). The final pipeline (unknown-class runs, similarity, ONNX, lot tests, bundle) keeps running on the PC; its output stays there uncommitted | On continue: commit and push the pipeline output and bundle; then the lead wires A6 |
-| Worker 4 | w4/ai | Agent foundations and the investigator graph (triage, plan, evidence, write, verify, decision) pushed (cb12237) | Graph tests; then merge main and wire runner, chat, llm and knowledge in bootstrap.py |
-| Worker 5 | w5/web | Shell, API client, P7 headers, theme fix, 3D wafer, home page (c2dea39, 151 tests); Line screen half done (bbc8cec) | Finish Line: KPIs, open alarms, recent units, line-view and page; delete stray export in line-charts.tsx; then U6 to U14. Drop upgrade-insecure-requests from the CSP on plain HTTP |
-| Helper | w1/packaging | Images, verified artifact fetch (34 tests), compose with Caddy, all healthy locally; main merged, WIP 19b0ba8 | Fix api-migrate.sh to use /app/services/api/alembic.ini and fail if missing; MIGRATE_ON_START=false in compose; finish .env.example; rebuild, CI green. Lead: env_ignore_empty=True in settings |
-
 ## Summary
 
 | | |
 |---|---|
-| Done | 46 of 86 |
+| Done | 59 of 86 |
 | Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
 | Blocked | Nothing |
-| Waiting on you | Add TOKEN_FACTORY_API_KEY to anaslabs-hosting/.env yourself, then restart yield-guardian-api |
+| Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
 
 ## Measured results
 
@@ -72,7 +77,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 |---|---|---|---|---|
 | D1 | Download SECOM from UCI, record SHA-256 and licence | PC | ✅ | Byte-identical to the UCI archive; SHA-256 in [manifest.json](../data/manifest.json); CC BY 4.0, DOI 10.24432/C54305; committed with [ATTRIBUTION.md](../data/secom/ATTRIBUTION.md) (78ba1f3) |
 | D2 | Download WM-811K (MIR Lab, Kaggle fallback), record SHA-256 and licence | PC | ✅ | MIR Lab returned HTTP 404, so the Kaggle mirror was used; LSWMD.pkl 2,095,505,977 bytes, SHA-256 in the manifest; mirror lists CC0-1.0 set by the uploader, recorded with that caveat; raw data not committed |
-| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | 🟡 | WM-811K facts done ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)): 811,457 wafers, 46,293 lots (PLAN corrected from 46,393), 172,950 labelled. SECOM EDA with worker 2 |
+| D3 | EDA reports: counts, time range, missingness, constants, class balance, lot structure | Cloud + PC | ✅ | SECOM EDA ([eda.md](../training/secom/reports/eda.md)) and WM-811K facts ([wm811k_facts.md](../training/wafermap/reports/wm811k_facts.md)) |
 | D4 | Validated loaders (pandera schemas) | Cloud | ✅ | Pandera schemas for SECOM; merged (5f5c5dd) |
 | D5 | Official-split lot-overlap check for WM-811K | PC | ✅ | Official split has 0 lots in both training (5,809 lots) and test (4,953 lots). Class mix differs: "none" is 67.6% of training, 93.3% of test; reported as a limitation |
 
@@ -110,9 +115,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | ⏳ | |
-| K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ⏳ | Costs points; run once |
-| K3 | Pattern-to-cause table with citations | Cloud | ⏳ | |
+| K1 | Curate open-access sources on wafer-pattern causes; verify every citation | Cloud | 🟡 | Worker 2: curating open-access sources, every citation fetched and checked |
+| K2 | One-time MinerU2.5-Pro conversion, chunking, full-text index | Cloud | ✅ | Chunking with page and section, BM25 search, MinerU ingestion for open-access files (not run); merged (578712c) |
+| K3 | Pattern-to-cause table with citations | Cloud | 🟡 | Worker 2: pattern-to-cause table with cited, cautiously worded causes |
 
 ### A: API
 
@@ -124,7 +129,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | A4 | Replay engine with wall-clock plant clock, WebSocket stream | Cloud | ✅ | Plant clock, alarm rules, line state, alarm pages, /ws/line stream, running on the real SECOM bundle (5f5c5dd) |
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ✅ | SECOM service on the real bundle: risk, SHAP, FDC series and contributions, groups, health; unit pages list their investigations (30f1747) |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ✅ | Wafer service on the real bundle: ONNX on CPU (parity 0.9986 top-label agreement with the training run), Mahalanobis unknown score, cosine similar-wafer search, lots, measured metrics; 31 tests (merged 5f5c5dd) |
-| A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes served; SECOM and wafer routes answer from real bundles; investigation, chat and knowledge routes wait for the AI layer merge |
+| A7 | REST endpoints for every screen | Cloud | ✅ | All 47 routes answer from real services: SECOM, wafer, investigations, chat, knowledge, model admin (578712c) |
 | A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ✅ | Guest and admin sessions (only token hashes stored), scrypt admin hash, CSRF, logout; failed logins never lock the account (D-009); tested through the routes (b8ae0b3) |
 | A9 | Work orders and audit log | Cloud | ✅ | Work orders, audit log with filters and pages, alarm states, investigation store with a PostgreSQL job queue; tested (b8ae0b3) |
 
@@ -132,16 +137,16 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| L1 | Token Factory client with capability profiles and catalog sync | Cloud | 🟡 | Client, capability profiles, request builder (on branch w4/ai, tests pass, merge pending) |
-| L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | 🟡 | Retries, cache, usage records; every limiter removed per D-009 (on branch w4/ai, tests pass, merge pending) |
-| L3 | Model registry: role to model, admin API, validation | Cloud | 🟡 | Role to model registry (on branch w4/ai, tests pass, merge pending) |
-| L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | 🟡 | Investigator graph: code-only triage, up to 8 tool calls, 2 revisions, pause for the engineer's decision, resume; 11 read-only tools (on branch w4/ai, tests pass, merge pending, cb12237) |
-| L5 | Report writer with strict schema | Cloud | 🟡 | Writer with strict JSON schema (on branch w4/ai, tests pass, merge pending) |
-| L6 | Verifier: number check, citation check, wording check, model check | Cloud | 🟡 | Verifier: number, citation, identifier and causal-wording checks in code, then a model from another family (on branch w4/ai, tests pass, merge pending) |
-| L7 | Router: deterministic intents first | Cloud | 🟡 | Worker 4 writing the router |
-| L8 | Engineer chat, grounded and scoped | Cloud | 🟡 | Worker 4 writing the engineer chat |
-| L9 | Recorded fixtures for tests; one manual smoke script | Cloud | 🟡 | Test fixtures and one manual smoke script (on branch w4/ai, tests pass, merge pending) |
-| L10 | Model evaluation harness per role, with cost estimate | Cloud | ⏳ | Costs points; run once |
+| L1 | Token Factory client with capability profiles and catalog sync | Cloud | ✅ | Token Factory client, capability profiles, request builder; merged (578712c) |
+| L2 | Retries with jitter on 429, 502 and 503, response cache, usage records (no request limits, D-009) | Cloud | ✅ | Retries with jitter and a 120 s Retry-After bound, response cache, usage records; every limiter removed (D-009); merged (578712c) |
+| L3 | Model registry: role to model, admin API, validation | Cloud | ✅ | Role-to-model registry with admin API and validation; merged (578712c) |
+| L4 | Investigator graph with read-only tools, checkpointer, SSE events | Cloud | ✅ | Investigator graph: code-only triage, up to 8 tool calls, 2 revisions, pause for the decision, resume after restart (PostgreSQL checkpointer tested); merged (578712c) |
+| L5 | Report writer with strict schema | Cloud | ✅ | Writer with strict JSON schema on MiMo, validated JSON on the fallback; merged (578712c) |
+| L6 | Verifier: number check, citation check, wording check, model check | Cloud | ✅ | Verifier: numbers, citations, identifiers and causal wording checked in code, then a model from another family; failed values shown as [unverified]; merged (578712c) |
+| L7 | Router: deterministic intents first | Cloud | ✅ | Router: rules first, model fallback with a closed intent set; injection and out-of-scope questions refused; merged (578712c) |
+| L8 | Engineer chat, grounded and scoped | Cloud | ✅ | Engineer chat streams with a sentence gate that hides unverified numbers; merged (578712c) |
+| L9 | Recorded fixtures for tests; one manual smoke script | Cloud | ✅ | Offline test fixtures and one manual smoke script (needs --yes and a key); merged (578712c) |
+| L10 | Model evaluation harness per role, with cost estimate | Cloud | 🟡 | Evaluation harness written (router 28 tasks, verifier 10, Wilson intervals, cost bound printed first: ≤0.02 points in total); live run waits for the owner's go-ahead |
 | L11 | Recorded demo investigations | Cloud | ⏳ | Costs points; run once |
 
 ### U: Interface
@@ -172,15 +177,15 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | P3 | GitHub Release of artifacts with SHA-256, verified at build | Cloud + PC | 🟡 | Bundles are committed (owner's request) and verified file by file against MANIFEST.json during the image build (d49c4e2); wafer-map v1 verified. Releases cannot be created from the cloud session; the release path stays available via deploy/artifacts.lock.json |
 | P4 | anaslabs services: Sablier group, Traefik routes, networks | Cloud + PC | ✅ | Worker 3: yield-guardian-api and -web in anaslabs compose (Pino Yard pattern, Sablier group, hardened), own always-on PostgreSQL with pgvector; compose.yaml and .env backed up first; secrets generated without printing |
 | P5 | Hub entry in `apps.js` and `<noscript>`, Sablier restart | PC | ✅ | Hub card in apps.js and <noscript> (anaslabs-src 4fcfb48); hub rebuilt, Sablier restarted |
-| P6 | Live at `yield-guardian.anaslabs.com` | PC | 🟡 | Live at https://yield-guardian.anaslabs.com: home and /line answer 200 (about 10 s cold wake through Sablier), API and database healthy; ready turns true when the SECOM bundle and wafer service land; remaining screens follow as they merge |
+| P6 | Live at `yield-guardian.anaslabs.com` | PC | ✅ | Live at https://yield-guardian.anaslabs.com from main 005a8ee: /api/v1/ready answers ready true (SECOM bundle, wafer bundle, database); cold wake about 20 s through Sablier; Token Factory key read from the server's .env without printing it |
 | P7 | Security headers and CSP | Cloud | ✅ | CSP with per-request nonce, upgrade-insecure-requests only behind HTTPS, security headers; merged (b7f321d) |
 
 ### Q: Quality
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | ⏳ | |
-| Q2 | API tests | Cloud | ⏳ | |
+| Q1 | Python tests: statistics against known values, leakage, parity | Cloud | 🟡 | Training tests: SECOM statistics, split leakage and smoke run; wafer-map units and data; ONNX parity in the API; all green in CI |
+| Q2 | API tests | Cloud | 🟡 | API: 230 tests including PostgreSQL, real-bundle tests for SECOM and wafer services; green in CI |
 | Q3 | Web tests, type check, lint | Cloud | ⏳ | |
 | Q4 | Playwright end-to-end on the composed stack | Cloud + PC | ⏳ | |
 | Q5 | Final review pass and performance check | Cloud | ⏳ | |
@@ -189,7 +194,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | ⏳ | |
+| X1 | README: what, why, how to run anywhere, results, AMD usage, limitations, licences, citations | Cloud | 🟡 | [README.md](../README.md) written with measured results, AMD usage, run-anywhere steps, limitations and licences; updated as the AI layer and remaining screens land |
 | X2 | Demo video script and shot list | Cloud | ⏳ | |
 | X3 | Slide deck | Cloud | ⏳ | |
 | X4 | Cover image | Cloud | ⏳ | |
@@ -206,6 +211,8 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 11:07 | AI layer merged: investigator, writer, verifier, router, chat, knowledge search (L1 to L9, K2, A7 done). README written with measured results |
+| 2026-10-14 11:01 | Site fully ready on yield-guardian.anaslabs.com with both real bundles and the database (P6 done). K1 and K3 moved to worker 2 |
 | 2026-10-14 10:57 | SECOM bundle and the wafer service merged; the API loads both real bundles with no problems (S1 to S10, A4 to A6 done). SECOM risk model has no demonstrated skill (PR-AUC 0.075 vs 0.054 no-skill); the product presents it as experimental and leads with control charts and root cause |
 | 2026-10-14 10:49 | Live on anaslabs-hosting: API at yield-guardian.anaslabs.com, hub card added (P4, P5). Web app merged to main (U2 to U5, P7 done) |
 | 2026-10-14 10:40 | Docker images and compose merged with CI green (P1, P2 done). Committed bundles are verified and baked into the API image |

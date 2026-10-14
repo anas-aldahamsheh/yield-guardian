@@ -10,12 +10,12 @@
     "doi": "https://doi.org/10.24432/C54305",
     "files": [
       {
-        "path": "raw/secom/secom.data",
+        "path": "secom/secom.data",
         "bytes": 5389983,
         "sha256": "20f0e7ee434f7dcbae0eea9ffff009a2b57f42d6b0dc9a5bd4f00782c0a3374c"
       },
       {
-        "path": "raw/secom/secom.names",
+        "path": "secom/secom.names",
         "bytes": 4223,
         "sha256": "6d91b0b46cdee03064ee3e3112f937c1b3f7fcd9933575794ec07974e6f1ea59"
       },
@@ -25,7 +25,7 @@
         "sha256": "eea568baf3c2229096d7d294cf0b096b5502bd96d92c0b80a65b84714059be8e"
       },
       {
-        "path": "raw/secom/secom_labels.data",
+        "path": "secom/secom_labels.data",
         "bytes": 40638,
         "sha256": "126884cf453705c9e61a903fe906f0665a3b45ce3639e621edc5c93c89627e03"
       }
@@ -37,7 +37,7 @@
         "secom_labels.data",
         "secom.names"
       ],
-      "note": "Unmodified copies of the raw files above (same SHA-256), committed under CC BY 4.0 with secom/ATTRIBUTION.md."
+      "note": "Unmodified copies of the raw files above (same SHA-256), committed under CC BY 4.0 with secom/ATTRIBUTION.md. Paths are relative to data/: the three files are committed in data/secom/; secom.zip is the downloaded archive, kept only in the git-ignored data/raw/secom/."
     }
   },
   "wm811k": {

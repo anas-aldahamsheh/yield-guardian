@@ -1,11 +1,13 @@
 """Builds the running registry from settings: verified bundles, the line replay, the SECOM and
-wafer-map services and, when DATABASE_URL is set, the database-backed stores. A part that cannot load is left out, so
-its routes answer 503 not_ready and /ready names the reason."""
+wafer-map services, the language-model admin, investigator and chat when TOKEN_FACTORY_API_KEY
+is set and, when DATABASE_URL is set, the database-backed stores. A part that cannot load is
+left out, so its routes answer 503 not_ready and /ready names the reason."""
 
 from collections.abc import Mapping
 
 import structlog
 
+from yield_guardian.agent.wiring import install_agent
 from yield_guardian.bundles.manifest import BundleError, latest_version, verify_bundle
 from yield_guardian.bundles.secom import load_secom_bundle
 from yield_guardian.bundles.wafermap import load_wafermap_bundle
@@ -39,6 +41,8 @@ class StoredAlarmStates:
 
 def build_registry(settings: Settings) -> ServiceRegistry:
     registry = ServiceRegistry(settings=settings)
+    # First, so its resource starts before the job worker that calls registry.runner.
+    install_agent(registry, settings)
     persistence = None
     if settings.database_url is not None:
         persistence = build_persistence(

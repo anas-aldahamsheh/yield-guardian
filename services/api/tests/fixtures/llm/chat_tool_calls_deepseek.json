@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "hand_authored": true,
+    "description": "DeepSeek-V4.1-Flash answering with two parallel tool calls (finish_reason tool_calls, content null).",
+    "source": "docs/vendor/token-factory.md ('Every chat model supports streaming, tools, tool_choice'); OpenAI tool_calls shape"
+  },
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "path": "/chat/completions",
+        "match": {"model": "DeepSeek-V4.1-Flash"}
+      },
+      "response": {
+        "status": 200,
+        "headers": {"x-ratelimit-remaining-requests": "17"},
+        "json_body": {
+          "id": "chatcmpl-fixture-tools-1",
+          "object": "chat.completion",
+          "created": 1792058520,
+          "model": "DeepSeek-V4.1-Flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": null,
+                "tool_calls": [
+                  {
+                    "id": "call_fixture_1",
+                    "type": "function",
+                    "function": {"name": "get_shap", "arguments": "{\"unit_id\": 7, \"top_k\": 5}"}
+                  },
+                  {
+                    "id": "call_fixture_2",
+                    "type": "function",
+                    "function": {"name": "get_contributions", "arguments": "{\"unit_id\": 7, \"statistic\": \"t2\"}"}
+                  }
+                ]
+              },
+              "finish_reason": "tool_calls"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 900,
+            "completion_tokens": 60,
+            "total_tokens": 960,
+            "completion_tokens_details": {"reasoning_tokens": 20}
+          }
+        }
+      }
+    }
+  ]
+}
