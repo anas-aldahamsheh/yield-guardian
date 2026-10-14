@@ -19,8 +19,16 @@ async def get_health() -> Health:
 async def get_readiness(registry: Registry) -> Readiness:
     """Readiness: bundles verified, database reachable, services loaded."""
     checks = [
-        ReadinessCheck(name="secom_bundle", ok=registry.secom is not None, detail=None),
-        ReadinessCheck(name="wafermap_bundle", ok=registry.wafer is not None, detail=None),
+        ReadinessCheck(
+            name="secom_bundle",
+            ok=registry.secom is not None,
+            detail=registry.problems.get("secom_bundle"),
+        ),
+        ReadinessCheck(
+            name="wafermap_bundle",
+            ok=registry.wafer is not None,
+            detail=registry.problems.get("wafermap_bundle"),
+        ),
         ReadinessCheck(
             name="database",
             ok=bool(registry.database_ok),
