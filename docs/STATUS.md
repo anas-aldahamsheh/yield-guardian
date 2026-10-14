@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 16:24 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 16:50 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 <!-- progress:start -->
@@ -166,7 +166,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | U11 | Models page | Cloud | ✅ | Roles with admin model switch, evaluations with intervals, usage, catalog; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U12 | Methods page and model cards | Cloud | ✅ | Measured results, provenance and model cards from the API; merged 72c1e9d; typecheck, 184 unit tests, 35 Playwright tests at 1440 and 390 px, no fixture content in the build |
 | U13 | Empty, loading and error states | Cloud | ✅ | Empty, loading, not-ready (neutral PendingState) and not-configured states on every screen; Investigate and chat check /meta and send nothing when the key is missing (dda51e7) |
-| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | axe on every route (real stack): 0 serious or critical. No sideways scroll at 375 px. Lighthouse mobile, median of 3 (performance / accessibility / best practices): home 44→79 / 100 / 100, /line 58→63 / 100 / 96, /methods 63→73 / 100 / 100. Home performance is below the 90 target |
+| U14 | Accessibility, responsive layouts, performance budget | Cloud | 🟡 | axe on every route (real stack): 0 serious or critical. No sideways scroll at 375 px. Lighthouse mobile on the production build (05e9669, median of 5): home 94 / 100 / 100 (was 44, then 79/81), /line 75.5 / 100 / 96, /methods 70 (before this pass). Waiting on the live-site measurement after deploy |
 | U15 | Arabic usage guide page (/guide): what it does, how to use it, data, models, problems and fixes, testing; filters and search | Cloud (guide thread) | ✅ | Live on the site (d37fc64): 89 entries in 10 categories, filters and Arabic search, right-to-left, no sideways scroll at 375 px |
 
 ### P: Packaging and deployment
@@ -212,6 +212,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 16:50 | Merged 05e9669 (W5): home Lighthouse mobile 94 (poster image as LCP, menus and toasts load on first use, no Intl in hydration, CSS as a file, one preloaded font); sign-out menu regression fixed; 194 unit and 104 e2e tests pass |
 | 2026-10-14 16:24 | Second writer attempt (DeepSeek) failed on AMD 504 (0.003 points). Merged b2cecce: Qwen3.8-Flash-Next writes first, writer deadline 240 s; run bound raised to 30 min; 940 tests pass. Owner chose to stop recording here; L11 and A3 stay open |
 | 2026-10-14 16:02 | Owner approved one more recording with DeepSeek as writer; deploy and record line sent |
 | 2026-10-14 15:55 | 4f7e92b live: both chat checks pass (full answer, list markers shown, 173 = 116 + 57 verified; 0.0125 points). Recording failed at the writer (timeout). Merged 53106d8: DeepSeek-V4.1-Flash writes, MiMo is fallback, Qwen3.8-27B dropped; 939 tests pass |
