@@ -1,4 +1,6 @@
-"""Tables of the API's own state: sessions, investigations, the job queue, work orders, audit, alarms.
+"""Tables of the API's own state: sessions, investigations, the job queue, work orders, audit, alarms,
+and the language-model layer (call log, response cache, role assignments, chat routes,
+evaluations) and the knowledge chunks searched with PostgreSQL full-text search.
 
 Every timestamp is timestamptz and written in UTC. JSONB columns hold contract models dumped with
 `model_dump(mode="json")`, so they read back with `model_validate`.
@@ -12,6 +14,7 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
+    Computed,
     ForeignKey,
     Identity,
     Index,
@@ -21,7 +24,7 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from yield_guardian.db.base import Base
@@ -183,3 +186,88 @@ class AlarmStateRow(Base):
         Text, ForeignKey("investigations.investigation_id", ondelete="SET NULL"), index=True
     )
     updated_at: Mapped[datetime]
+
+
+# -- language-model layer -----------------------------------------------------------------------
+
+
+class LlmCallRow(Base):
+    """One model call attempt (``LlmCallRecord``); the Models page sums them per quota day."""
+
+    __tablename__ = "llm_calls"
+    __table_args__ = (Index("ix_llm_calls_started", "started_at", "call_id"),)
+
+    call_id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    started_at: Mapped[datetime]
+    role: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text)
+    correlation_id: Mapped[str | None] = mapped_column(Text, index=True)
+    record: Mapped[JsonObject] = mapped_column(JSONB)
+
+
+class LlmResponseCacheRow(Base):
+    """A complete answer keyed by the SHA-256 of the built request (``llm.cache``)."""
+
+    __tablename__ = "llm_response_cache"
+
+    cache_key: Mapped[str] = mapped_column(Text, primary_key=True)
+    result: Mapped[JsonObject] = mapped_column(JSONB)
+    created_at: Mapped[datetime]
+    last_used_at: Mapped[datetime] = mapped_column(index=True)
+    hits: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+
+
+class LlmRoleAssignmentRow(Base):
+    """The model chain an administrator chose for a role; roles without a row use the default."""
+
+    __tablename__ = "llm_role_assignments"
+
+    role: Mapped[str] = mapped_column(Text, primary_key=True)
+    chain: Mapped[JsonList] = mapped_column(JSONB)
+    updated_at: Mapped[datetime | None]
+    updated_by: Mapped[str | None] = mapped_column(Text)
+
+
+class ChatRouteRow(Base):
+    """How one chat question was routed: by rules (deterministic) or by the router model."""
+
+    __tablename__ = "chat_routes"
+    __table_args__ = (CheckConstraint("kind IN ('deterministic', 'model')", name="kind"),)
+
+    route_id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    at: Mapped[datetime] = mapped_column(index=True)
+    kind: Mapped[str] = mapped_column(Text)
+    intent: Mapped[str] = mapped_column(Text)
+
+
+class LlmEvaluationRow(Base):
+    """One evaluation run of a model in a role (``EvaluationResult``)."""
+
+    __tablename__ = "llm_evaluations"
+    __table_args__ = (Index("ix_llm_evaluations_run", "run_at", "evaluation_id"),)
+
+    evaluation_id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    role: Mapped[str] = mapped_column(Text)
+    model_id: Mapped[str] = mapped_column(Text)
+    task_set: Mapped[str] = mapped_column(Text)
+    run_at: Mapped[datetime]
+    result: Mapped[JsonObject] = mapped_column(JSONB)
+
+
+class KnowledgeChunkRow(Base):
+    """A passage of an open-access source with its location; ``search`` is its English
+    full-text vector, kept by PostgreSQL."""
+
+    __tablename__ = "knowledge_chunks"
+    __table_args__ = (Index("ix_knowledge_chunks_search", "search", postgresql_using="gin"),)
+
+    chunk_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    source_id: Mapped[str] = mapped_column(Text, index=True)
+    source: Mapped[JsonObject] = mapped_column(JSONB)
+    position: Mapped[int] = mapped_column(Integer)
+    location: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text)
+    search: Mapped[str] = mapped_column(
+        TSVECTOR, Computed("to_tsvector('english'::regconfig, text)", persisted=True)
+    )

@@ -41,8 +41,6 @@ class StoredAlarmStates:
 
 def build_registry(settings: Settings) -> ServiceRegistry:
     registry = ServiceRegistry(settings=settings)
-    # First, so its resource starts before the job worker that calls registry.runner.
-    install_agent(registry, settings)
     persistence = None
     if settings.database_url is not None:
         persistence = build_persistence(
@@ -51,6 +49,10 @@ def build_registry(settings: Settings) -> ServiceRegistry:
             migrate=settings.migrate_on_start,
         )
         persistence.install(registry)
+    # Its resources start after the database (migrated) and before the job worker.
+    install_agent(
+        registry, settings, sessions=persistence.database.sessionmaker if persistence else None
+    )
     try:
         verified = verify_bundle(latest_version(settings.artifacts_dir, "secom"), "secom")
         bundle = load_secom_bundle(verified, settings.secom_data_dir)
