@@ -47,7 +47,8 @@ def test_without_a_key_nothing_is_installed_and_the_reason_is_recorded(
     assert registry.problems["llm"] == NO_KEY
     assert registry.problems["investigator"] == NO_KEY
     assert registry.problems["chat"] == NO_KEY
-    assert "knowledge" in registry.problems
+    assert registry.knowledge is not None  # the literature needs no key
+    assert "knowledge" not in registry.problems
     assert not [r for r in registry.resources if isinstance(r, AgentResource)]
 
 

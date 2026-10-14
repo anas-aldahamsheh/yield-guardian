@@ -14,7 +14,9 @@ refuses calls (PLAN D-009).
 
 from __future__ import annotations
 
+import os
 from contextlib import AsyncExitStack
+from pathlib import Path
 from typing import Any, cast
 
 import structlog
@@ -31,13 +33,16 @@ from yield_guardian.contracts.services import (
     WaferService,
 )
 from yield_guardian.core.settings import Settings
+from yield_guardian.knowledge.service import KnowledgeError, LiteratureKnowledge
 from yield_guardian.llm.factory import LlmStack, assemble_llm_stack, key_configured
 from yield_guardian.services.registry import ServiceRegistry
 
 log = structlog.get_logger(__name__)
 
 NO_KEY = "TOKEN_FACTORY_API_KEY is not set"
-KNOWLEDGE_NOT_BUILT = "the knowledge base (literature search) is not built yet"
+KNOWLEDGE_NOT_BUILT = "the knowledge base (literature search) is not loaded"
+KNOWLEDGE_DIR_VARIABLE = "KNOWLEDGE_DIR"
+DEFAULT_KNOWLEDGE_DIR = Path(__file__).resolve().parents[5] / "docs" / "knowledge"
 MEMORY_CHECKPOINTS = (
     "investigation checkpoints are kept in memory (DATABASE_URL is not set): a restart loses "
     "investigations waiting for a decision"
@@ -133,10 +138,29 @@ class AgentResource:
         await self.stack.aclose()
 
 
+def knowledge_dir(environ: dict[str, str] | None = None) -> Path:
+    env = os.environ if environ is None else environ
+    configured = env.get(KNOWLEDGE_DIR_VARIABLE, "").strip()
+    return Path(configured) if configured else DEFAULT_KNOWLEDGE_DIR
+
+
+def install_knowledge(registry: ServiceRegistry, directory: Path | None = None) -> None:
+    """The literature search and pattern-cause table; needs no key (no model is called)."""
+    path = directory or knowledge_dir()
+    try:
+        registry.knowledge = LiteratureKnowledge.from_directory(path)
+    except (KnowledgeError, ValueError, OSError) as error:
+        registry.problems["knowledge"] = f"{KNOWLEDGE_NOT_BUILT}: {error}"[:300]
+        log.warning("knowledge_not_loaded", reason=registry.problems["knowledge"])
+    else:
+        registry.problems.pop("knowledge", None)
+        log.info("knowledge_loaded", directory=str(path))
+
+
 def install_agent(registry: ServiceRegistry, settings: Settings) -> AgentResource | None:
-    """Wire the model admin, the investigator and the chat when a key is set; record why not
-    otherwise."""
-    registry.problems.setdefault("knowledge", KNOWLEDGE_NOT_BUILT)
+    """Load the knowledge base, then wire the model admin, the investigator and the chat when a
+    key is set; record why not otherwise."""
+    install_knowledge(registry)
     if not key_configured(settings):
         for name in ("llm", "investigator", "chat"):
             registry.problems[name] = NO_KEY

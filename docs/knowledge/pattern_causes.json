@@ -1,0 +1,216 @@
+{
+  "framing": "Causes proposed in open-access papers, each quoted exactly with its location. They are hypotheses for an engineer to check against this fab's own process history, not diagnoses: the papers state them briefly, often by citing older work, and none was established on this data. No open-access source read for this table states a cause for the Loc or Near-full patterns.",
+  "causes": [
+    {
+      "label": "Center",
+      "hypothesis": "Associated in the literature with thin-film deposition, plasma or etching problems.",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "zheng2021",
+          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
+          "location": "1. Introduction (citing refs. 4 and 5)"
+        },
+        {
+          "source_id": "jeong2023",
+          "quote": "For example, the center type has the effect of problems in the plasma area or thin-film deposition,",
+          "location": "Results and discussion, Experiment, Data description (citing Hansen and Thyregod 1998, ref. 28)"
+        }
+      ]
+    },
+    {
+      "label": "Center",
+      "hypothesis": "Associated with uneven mechanical polishing or abnormal liquid pressure.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "xu2022",
+          "quote": "For example, the Center pattern means that the mechanical polishing is uneven, or the pressure of the liquid is abnormal.",
+          "location": "1. Introduction"
+        }
+      ]
+    },
+    {
+      "label": "Center",
+      "hypothesis": "A circular, center-located pattern is associated with chemical stains or mechanical equipment faults.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "ezzat2020",
+          "quote": "often corresponds to chemical stains or mechanical equipment faults",
+          "location": "I. Introduction (circular-shaped, center-located defect pattern)"
+        }
+      ]
+    },
+    {
+      "label": "Donut",
+      "hypothesis": "A center-located donut pattern is associated with possible tooling problems.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "ezzat2020",
+          "quote": "is routinely observed in wafer data due to possible tooling problems",
+          "location": "I. Introduction (center-located, donut-shaped defect pattern)"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Loc",
+      "hypothesis": "Associated with uneven heating during the diffusion process.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "jeong2023",
+          "quote": "and the edge-loc type has the same effect as uneven heating during the diffusion process.",
+          "location": "Results and discussion, Experiment, Data description (citing Hansen and Thyregod 1998, ref. 28)"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Loc",
+      "hypothesis": "A zone-shaped, edge-located pattern is associated with uneven polishing or edge-die effects (the source describes an edge zone, which corresponds most closely to Edge-Loc).",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "ezzat2020",
+          "quote": "can be traced to uneven polishing or edge-die effects",
+          "location": "I. Introduction (zone-shaped, edge-located defect pattern)"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Ring",
+      "hypothesis": "Associated in the literature with etching or thin-film deposition problems.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "zheng2021",
+          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
+          "location": "1. Introduction (citing refs. 4 and 5)"
+        }
+      ]
+    },
+    {
+      "label": "Edge-Ring",
+      "hypothesis": "Associated with abnormal temperature control during annealing.",
+      "confidence": "low",
+      "quotes": [
+        {
+          "source_id": "xu2022",
+          "quote": "Abnormal temperature control during annealing may lead to an Edge-Ring pattern.",
+          "location": "1. Introduction"
+        }
+      ]
+    },
+    {
+      "label": "Scratch",
+      "hypothesis": "Associated with wafer handling, moving or cutting.",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "zheng2021",
+          "quote": "Scratch is caused by machine handling, while Center and Edge-Ring are caused by thin film deposition and etching problems",
+          "location": "1. Introduction (citing refs. 4 and 5)"
+        },
+        {
+          "source_id": "xu2022",
+          "quote": "The Scratch pattern indicates an exception in the moving or cutting processes.",
+          "location": "1. Introduction"
+        }
+      ]
+    },
+    {
+      "label": "Random",
+      "hypothesis": "Randomly scattered failing dies are associated with ordinary process variation or a poorly controlled process environment rather than with one assignable source.",
+      "confidence": "medium",
+      "quotes": [
+        {
+          "source_id": "ezzat2020",
+          "quote": "since they are merely artifacts of random process variation",
+          "location": "I. Introduction (randomly scattered defective chips)"
+        },
+        {
+          "source_id": "kim2024",
+          "quote": "is often due to a lack of process environment management or factors that are difficult to control directly.",
+          "location": "3.2 Random Noise Filtering and Data Augmentation (about random noise, not the Random class)"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "ezzat2020",
+      "title": "A Graph-Theoretic Approach for Spatial Filtering and Its Impact on Mixed-type Spatial Pattern Recognition in Wafer Bin Maps",
+      "authors": [
+        "Ahmed Aziz Ezzat",
+        "Sheng Liu",
+        "Dorit S. Hochbaum",
+        "Yu Ding"
+      ],
+      "venue": "arXiv preprint arXiv:2006.13824",
+      "year": 2020,
+      "doi": null,
+      "url": "https://arxiv.org/abs/2006.13824",
+      "open_access": true
+    },
+    {
+      "source_id": "zheng2021",
+      "title": "A Deep Convolutional Neural Network-Based Multi-Class Image Classification for Automatic Wafer Map Failure Recognition in Semiconductor Manufacturing",
+      "authors": [
+        "Huilin Zheng",
+        "Syed Waseem Abbas Sherazi",
+        "Sang Hyeok Son",
+        "Jong Yun Lee"
+      ],
+      "venue": "Applied Sciences 11(20), 9769",
+      "year": 2021,
+      "doi": "10.3390/app11209769",
+      "url": "https://www.mdpi.com/2076-3417/11/20/9769",
+      "open_access": true
+    },
+    {
+      "source_id": "xu2022",
+      "title": "Improved Wafer Map Inspection Using Attention Mechanism and Cosine Normalization",
+      "authors": [
+        "Qiao Xu",
+        "Naigong Yu",
+        "Firdaous Essaf"
+      ],
+      "venue": "Machines 10(2), 146",
+      "year": 2022,
+      "doi": "10.3390/machines10020146",
+      "url": "https://www.mdpi.com/2075-1702/10/2/146",
+      "open_access": true
+    },
+    {
+      "source_id": "jeong2023",
+      "title": "Wafer map failure pattern classification using geometric transformation-invariant convolutional neural network",
+      "authors": [
+        "Iljoo Jeong",
+        "Soo Young Lee",
+        "Keonhyeok Park",
+        "Iljeok Kim",
+        "Hyunsuk Huh",
+        "Seungchul Lee"
+      ],
+      "venue": "Scientific Reports 13, 8127",
+      "year": 2023,
+      "doi": "10.1038/s41598-023-34147-2",
+      "url": "https://www.nature.com/articles/s41598-023-34147-2",
+      "open_access": true
+    },
+    {
+      "source_id": "kim2024",
+      "title": "Development of a Wafer Defect Pattern Classifier Using Polar Coordinate System Transformed Inputs and Convolutional Neural Networks",
+      "authors": [
+        "Moo Hyun Kim",
+        "Tae Seon Kim"
+      ],
+      "venue": "Electronics 13(7), 1360",
+      "year": 2024,
+      "doi": "10.3390/electronics13071360",
+      "url": "https://www.mdpi.com/2079-9292/13/7/1360",
+      "open_access": true
+    }
+  ]
+}
