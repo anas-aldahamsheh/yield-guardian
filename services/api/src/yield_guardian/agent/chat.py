@@ -1,13 +1,14 @@
 """Engineer chat (PLAN 7.5): grounded answers about the plant data, streamed as events.
 
-1. **Route** (:mod:`yield_guardian.agent.router`): rules first, the router model only when the
-   rules cannot decide. Requests for actions and attempts to change the rules are refused.
-2. **Gather evidence**: the tool calls the route names, made by code; when the route names none
-   (an open question), the chat model chooses read-only tools, at most four calls.
-3. **Answer**: count questions are answered by code alone. Otherwise the chat model writes the
-   answer from the evidence, streamed sentence by sentence: each sentence is checked by code
-   before it is sent, and every number or identifier the evidence does not hold is replaced by
-   a marker and listed in ``done.numbers_unverified``. Causal wording gets a code-written note.
+Every reply is written by the chat model; no answer, refusal or capability text is written in
+advance by code (the owner's rule: the product's intelligence is the model's).
+
+1. **Gather evidence**: the chat model, told what the product is and given every read-only
+   tool, chooses which tools to call (at most eight calls in four rounds), or none.
+2. **Answer**: the chat model writes the reply from the evidence, streamed sentence by sentence.
+   Code still checks each sentence before it is sent (PLAN rule 4): every number or identifier
+   the evidence does not hold is replaced by a marker and listed in ``done.numbers_unverified``.
+   That check never writes text of its own.
 
 The engineer's conversation reaches the model only as data inside one user message; a browser
 cannot forge an assistant or system turn.
@@ -26,15 +27,14 @@ from yield_guardian.agent.graph import llm_problem
 from yield_guardian.agent.grounding import EvidenceFacts, redact_unverified
 from yield_guardian.agent.numbers import scan
 from yield_guardian.agent.prompts import CHAT_SYSTEM, data_message
-from yield_guardian.agent.router import CAPABILITIES, ChatRouter, Route, is_capability_question
 from yield_guardian.agent.tools import (
+    TOOLS,
     EvidenceLedger,
     ToolExecutor,
     ToolOutcome,
     model_view,
     tool_specs,
 )
-from yield_guardian.agent.wording import causal_phrases
 from yield_guardian.contracts.base import Problem
 from yield_guardian.contracts.chat import (
     ChatCitationEvent,
@@ -42,7 +42,6 @@ from yield_guardian.contracts.chat import (
     ChatDoneEvent,
     ChatErrorEvent,
     ChatEventPayload,
-    ChatRefusalEvent,
     ChatRequest,
     ChatRouteEvent,
     ChatTokenEvent,
@@ -65,10 +64,16 @@ log = structlog.get_logger(__name__)
 
 CHAT_MAX_TOKENS = 700
 TOOL_ROUND_MAX_TOKENS = 1024
-MAX_MODEL_TOOL_CALLS = 4
-MAX_TOOL_ROUNDS = 3
+MAX_MODEL_TOOL_CALLS = 8
+MAX_TOOL_ROUNDS = 4
 HISTORY_MESSAGES = 10
-CAUSAL_NOTE = " (Note: the data shows statistical association, not cause.)"
+PRODUCT_NAMES = frozenset({"WM-811K"})
+"""Names in the system prompt that contain digits; the model may write them, they are not data."""
+SYSTEM = CHAT_SYSTEM.format(
+    tools="\n".join(f"- {name}: {tool.description}" for name, tool in TOOLS.items())
+)
+"""The chat system prompt with every tool listed, so the model knows all it can look up. Static,
+so the provider can reuse its prompt cache."""
 _BOUNDARY = re.compile(r"(?<=[.!?:;])\s+|\n+")
 
 
@@ -80,14 +85,11 @@ class SentenceGate:
         self.buffer = ""
         self.numbers_checked = 0
         self.unverified: list[str] = []
-        self.causal = False
 
     def _check(self, sentence: str) -> str:
         shown, check = redact_unverified(sentence, self.facts)
         self.numbers_checked += len(check.numbers)
         self.unverified.extend(n.text for n in check.unverified)
-        if causal_phrases(sentence):
-            self.causal = True
         return shown
 
     def feed(self, text: str) -> list[str]:
@@ -122,37 +124,13 @@ def question_facts(
         strings.extend(v for v in (context.sensor, context.wafer_id, context.lot) if v)
         if context.unit_id is not None:
             units.append(context.unit_id)
+    strings.extend(PRODUCT_NAMES)
     facts = EvidenceFacts.build(evidence, strings=strings, units=units)
     for mention in found.numbers:
         facts.numbers.append(mention.value / 100 if mention.percent else mention.value)
     facts.known_identifiers.update(s for s in strings if "-" in s or s.startswith("lot"))
+    facts.known_identifiers.update(PRODUCT_NAMES)
     return facts
-
-
-def count_answer(route: Route, outcomes: Sequence[ToolOutcome]) -> str | None:
-    """The whole answer to a count question, written by code from the evidence."""
-    found = [o for o in outcomes if o.evidence is not None]
-    if not found:
-        errors = "; ".join(o.error or "no result" for o in outcomes) or "no lookup was made"
-        return f"I could not read the data for this question ({errors})."
-    item = found[0].evidence
-    assert item is not None
-    data: dict[str, Any] = item.data
-    ref = f"[{item.evidence_id}]"
-    if route.count == "sensors_by_status":
-        counts = data.get("counts", {})
-        parts = [f"{counts.get(s)} sensors have the status {s}" for s in route.entities.statuses]
-        return "; ".join(parts) + f" {ref}."
-    if route.count == "significant_groups":
-        return (
-            f"{data.get('significant_groups')} sensor groups are significantly associated with "
-            f"failure, covering {data.get('sensors_in_significant_groups')} of "
-            f"{data.get('sensors_total')} sensors {ref}."
-        )
-    if route.count == "wafers_in_lot":
-        wafers = data.get("wafers") or []
-        return f"Lot {data.get('lot')} has {len(wafers)} wafers in the data {ref}."
-    return None
 
 
 def _sum[N: (int, float)](values: Sequence[N | None]) -> N | None:
@@ -218,7 +196,6 @@ class ChatAnswerer:
         self.gateway = gateway
         self.services = services
         self.route_log = route_log
-        self.router = ChatRouter(gateway)
         self.wall_clock = wall_clock
 
     async def answer(
@@ -251,60 +228,23 @@ class ChatAnswerer:
         records: list[LlmCallRecord] = []
         options = CallOptions(on_record=records.append)
 
-        if is_capability_question(question):
-            # Answered by code: what the chat can do is a fact about the product, not a guess.
-            await self.route_log.record("deterministic", "general", self.wall_clock())
-            yield ChatRouteEvent(
-                type="route", route="deterministic", intent="general", model_id=None
-            )
-            yield ChatTokenEvent(type="token", text=CAPABILITIES)
-            yield ChatDoneEvent(type="done", usage=None, numbers_checked=0, numbers_unverified=[])
-            return
-
-        route = await self.router.route(question, request.context, options=options)
-        await self.route_log.record(route.kind, route.intent, self.wall_clock())
-        yield ChatRouteEvent(
-            type="route", route=route.kind, intent=route.intent, model_id=route.model_id
-        )
-        if route.refused:
-            yield ChatRefusalEvent(type="refusal", reason=route.reason)
-            return
+        await self.route_log.record("model", "general", self.wall_clock())
+        yield ChatRouteEvent(type="route", route="model", intent="general", model_id=None)
 
         ledger = EvidenceLedger(None)
         executor = ToolExecutor(self.services, ledger, wall_clock=self.wall_clock)
         outcomes: list[ToolOutcome] = []
-        for tool, arguments in route.calls:
-            prepared = executor.prepare(tool, arguments)
-            yield ChatToolEvent(type="tool", tool=tool, arguments=prepared.arguments or arguments)
-            outcome = await executor.run(prepared)
-            outcomes.append(outcome)
-            if outcome.status == "new" and outcome.evidence is not None:
-                yield ChatCitationEvent(type="citation", evidence=outcome.evidence)
-
-        if route.count is not None:
-            text = count_answer(route, outcomes)
-            if text is not None:
-                yield ChatTokenEvent(type="token", text=text)
-                yield ChatDoneEvent(
-                    type="done",
-                    usage=total_usage(records),
-                    numbers_checked=len(scan(text).numbers),
-                    numbers_unverified=[],
-                )
-                return
-
-        if not route.calls:
-            async for event in self._model_tools(
-                question, history, request.context, executor, outcomes, options
-            ):
-                yield event
+        async for event in self._model_tools(
+            question, history, request.context, executor, outcomes, options
+        ):
+            yield event
 
         evidence = ledger.items
         failed = [f"{o.title}: {o.error}" for o in outcomes if o.evidence is None and o.error]
         gate = SentenceGate(question_facts(evidence, question, request.context))
         final = LlmChatRequest(
             messages=(
-                ChatMessage.system(CHAT_SYSTEM),
+                ChatMessage.system(SYSTEM),
                 ChatMessage.user(
                     data_message(_payload(question, history, request.context, evidence, failed))
                 ),
@@ -317,8 +257,6 @@ class ChatAnswerer:
                     yield ChatTokenEvent(type="token", text=piece)
         for piece in gate.flush():
             yield ChatTokenEvent(type="token", text=piece)
-        if gate.causal:
-            yield ChatTokenEvent(type="token", text=CAUSAL_NOTE)
         yield ChatDoneEvent(
             type="done",
             usage=total_usage(records),
@@ -335,9 +273,9 @@ class ChatAnswerer:
         outcomes: list[ToolOutcome],
         options: CallOptions,
     ) -> AsyncIterator[ChatEventPayload]:
-        """Let the chat model choose read-only tools; at most four calls in three rounds."""
+        """Let the chat model choose read-only tools: at most eight calls in four rounds."""
         messages: list[ChatMessage] = [
-            ChatMessage.system(CHAT_SYSTEM),
+            ChatMessage.system(SYSTEM),
             ChatMessage.user(data_message(_payload(question, history, context, [], []))),
         ]
         used = 0
