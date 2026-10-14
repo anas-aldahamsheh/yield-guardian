@@ -9,6 +9,7 @@ import { PageFrame, PageHeader, Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useApi } from "@/lib/api/context";
+import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { q } from "@/lib/api/queries";
 import { formatDateTime, formatInt, formatNumber } from "@/lib/format";
 import { TRIGGER_KIND } from "@/lib/labels";
@@ -29,6 +30,7 @@ export function InvestigationsList() {
   const api = useApi();
   const [status, setStatus] = useState<Status | "all">("all");
   const query = useQuery(q.investigations(api, status === "all" ? {} : { status }));
+  const { liveInvestigations } = useFeatures();
 
   return (
     <PageFrame>
@@ -36,6 +38,7 @@ export function InvestigationsList() {
         title="Investigations"
         description="Each one gathers evidence with data tools, writes a report whose numbers are checked, and waits for an engineer's decision."
       />
+      {liveInvestigations === false ? <NotConfiguredNote /> : null}
       <Panel
         title="Runs"
         description={query.data ? `${formatInt(query.data.total)} in total, newest first.` : undefined}
@@ -125,5 +128,14 @@ export function InvestigationsList() {
         )}
       </Panel>
     </PageFrame>
+  );
+}
+
+function NotConfiguredNote() {
+  return (
+    <div role="note" className="mb-6 rounded-md border border-hairline-strong bg-die px-4 py-3 sm:px-5">
+      <p className="text-[14px] font-medium leading-5 text-ink">{NOT_CONFIGURED.investigations.title}</p>
+      <p className="mt-1 text-[13px] leading-5 text-ink-2">{NOT_CONFIGURED.investigations.detail}</p>
+    </div>
   );
 }

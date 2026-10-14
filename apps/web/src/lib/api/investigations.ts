@@ -7,7 +7,9 @@ import { toast } from "sonner";
 
 import { unwrap } from "./client";
 import { useApi } from "./context";
-import { describeError } from "./errors";
+import { ApiError, describeError } from "./errors";
+import { NOT_CONFIGURED } from "./features";
+import { q } from "./queries";
 import { useSession } from "./session";
 
 /** Starts an investigation from an alarm, unit, wafer or lot and opens it. */
@@ -24,7 +26,15 @@ export function useStartInvestigation() {
       void client.invalidateQueries({ queryKey: ["alarms"] });
       router.push(`/investigations/${investigation.investigation_id}`);
     },
-    onError: (error) => {
+    onError: async (error) => {
+      // A 503 from a server without a language model key is not "still starting": say what it is.
+      if (error instanceof ApiError && error.code === "not_ready") {
+        const meta = await client.fetchQuery(q.meta(api)).catch(() => null);
+        if (meta && !meta.features.live_investigations) {
+          toast.error(NOT_CONFIGURED.investigations.title, { description: NOT_CONFIGURED.investigations.detail });
+          return;
+        }
+      }
       const copy = describeError(error);
       toast.error(copy.title, { description: copy.detail });
     },

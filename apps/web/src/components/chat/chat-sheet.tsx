@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { describeError } from "@/lib/api/errors";
+import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { applyChatEvent, type ChatAnswer, contextFromLocation, describeContext, emptyAnswer, segmentAnswer, streamChat } from "@/lib/chat/chat";
 import { formatDuration, formatNumber, formatReported } from "@/lib/format";
@@ -41,6 +42,7 @@ export function ChatSheet() {
   const scroller = useRef<HTMLDivElement>(null);
   const { canAct, csrf } = useSession();
   const guest = useStartGuestSession();
+  const { chat: chatServed } = useFeatures();
   const streaming = turns.some((t) => t.streaming);
   const context = useContext ? pageContext : null;
 
@@ -113,7 +115,12 @@ export function ChatSheet() {
         </SheetHeader>
 
         <div ref={scroller} className="min-h-0 grow overflow-y-auto px-5 py-4" aria-live="polite" aria-busy={streaming}>
-          {turns.length === 0 ? (
+          {chatServed === false && turns.length === 0 ? (
+            <div role="note" className="rounded-md border border-hairline-strong px-4 py-3">
+              <p className="text-[14px] font-medium leading-5 text-ink">{NOT_CONFIGURED.chat.title}</p>
+              <p className="mt-1 text-[13px] leading-5 text-ink-2">{NOT_CONFIGURED.chat.detail}</p>
+            </div>
+          ) : turns.length === 0 ? (
             <div>
               <p className="text-[13px] leading-5 text-ink-3">Try</p>
               <ul className="mt-2 grid gap-2">
@@ -147,7 +154,9 @@ export function ChatSheet() {
         </div>
 
         <div className="border-t border-hairline px-5 py-3">
-          {!canAct ? (
+          {chatServed === false ? (
+            <p className="text-[13px] leading-5 text-ink-2">Asking is off until the API has a language model key.</p>
+          ) : !canAct ? (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[13px] leading-5 text-ink-2">Asking needs an engineer session.</p>
               <Button size="sm" variant="outline" onClick={() => guest.mutate()} disabled={guest.isPending}>
