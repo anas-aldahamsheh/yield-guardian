@@ -85,13 +85,13 @@
     "resets_at": "2026-10-15T11:00:00Z",
     "rpm_limit": 20,
     "source": "usage_endpoint",
-    "checked_at": "2026-10-13T23:48:00Z"
+    "checked_at": "2026-10-14T11:17:24Z"
   },
   "deterministic_answers": 9,
   "model_answers": 2,
   "recent": [
     {
-      "at": "2026-10-13T23:39:18Z",
+      "at": "2026-10-14T11:08:42Z",
       "role": "verifier",
       "model_id": "GLM-5.3-Flash",
       "status": "ok",
@@ -103,7 +103,7 @@
       "error": null
     },
     {
-      "at": "2026-10-13T23:39:13Z",
+      "at": "2026-10-14T11:08:37Z",
       "role": "writer",
       "model_id": "MiMo-V2.6-Flash",
       "status": "ok",
@@ -115,7 +115,7 @@
       "error": null
     },
     {
-      "at": "2026-10-13T23:39:01Z",
+      "at": "2026-10-14T11:08:25Z",
       "role": "investigator",
       "model_id": "DeepSeek-V4.1-Flash",
       "status": "cached",

@@ -1,5 +1,5 @@
 {
-  "unit_id": 443,
+  "unit_id": 1062,
   "block": "validation",
   "risk": 0.184,
   "risk_source": "validation",
@@ -11,5 +11,5 @@
   },
   "above_threshold": true,
   "calibration": "platt",
-  "note": null
+  "note": "Placeholder model output for interface development; replaced by the real bundle."
 }

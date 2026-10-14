@@ -1,0 +1,10 @@
+# Gitleaks configuration: the default rules plus the few known non-secrets in this repository.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic fixture values and documented placeholders, none of them secrets"
+regexes = [
+  '''synthetic-csrf-token-[0-9]{16}''',
+  '''change-me''',
+]

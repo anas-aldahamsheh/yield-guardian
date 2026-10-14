@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 08:00 UTC (updated as each item changes)
+**Last updated:** 2026-10-14 08:27 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md)
 
 | Symbol | Meaning |
@@ -17,7 +17,7 @@
 
 | | |
 |---|---|
-| Done | 8 of 86 |
+| Done | 9 of 86 |
 | Current focus | SECOM pipeline (worker 2), wafer-map training setup (worker 3 on the PC), AI layer (worker 4), interface (worker 5), CI (lead) |
 | Blocked | Nothing |
 | Waiting on you | Put the Token Factory key in `.env` on your PC when asked |
@@ -49,8 +49,8 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | F1 | Implementation plan | Cloud | ✅ | [PLAN.md](PLAN.md) |
 | F2 | Status tracker | Cloud | ✅ | This file |
 | F3 | Monorepo scaffold, MIT licence, editor and lint config, `.env.example` | Cloud | ✅ | Commits c212301, 9fd5a19: workspace, MIT licence, `.editorconfig`, Ruff and mypy config, `.env.example` |
-| F4 | CI: lint, types, tests, build, secret scan, dependency audit | Cloud | ⏳ | |
-| F5 | Contracts: OpenAPI export and generated TypeScript types, staleness check | Cloud | ✅ | [openapi.json](../packages/contracts/openapi.json) (47 operations), [schema.d.ts](../packages/contracts/src/schema.d.ts), 47 fixtures validated in pytest (74 passed); CI wiring is F4 |
+| F4 | CI: lint, types, tests, build, secret scan, dependency audit | Cloud | ✅ | [ci.yml](../.github/workflows/ci.yml): API (ruff, strict mypy, pytest, OpenAPI and fixture staleness), web (contract types, lint, typecheck, tests, production build, [fixture-leak check](../scripts/ci/check_no_fixtures.py)), training per project, gitleaks, Token Factory key history check, pip-audit, pnpm audit. [Run 3 green](https://github.com/anas-aldahamsheh/yield-guardian/actions/runs/38534177672) on a2acf5e; the web steps start running when the interface is merged |
+| F5 | Contracts: OpenAPI export and generated TypeScript types, staleness check | Cloud | ✅ | [openapi.json](../packages/contracts/openapi.json) (47 operations), [schema.d.ts](../packages/contracts/src/schema.d.ts), 47 fixtures validated in pytest (74 passed), built from real SECOM records with model outputs marked as placeholders ([fixtures/README.md](../packages/contracts/fixtures/README.md)); CI wiring is F4 |
 | F6 | Working copy of the repo in the project folder; toolchain check (Python, uv, Node, pnpm, Docker, CUDA) | PC | ✅ | PC working copy and toolchain checked (worker 3); PyTorch 2.14.1+cu130 sees the RTX 3060 (compute 8.6) |
 
 ### D: Data
@@ -112,7 +112,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | A5 | Inference services: SECOM risk, SHAP, FDC, sensor health | Cloud | ⏳ | |
 | A6 | Inference services: wafer CNN (ONNX), unknown score, pgvector search, lot stats | Cloud | ⏳ | |
 | A7 | REST endpoints for every screen | Cloud | 🟡 | All 47 routes declared on the service interfaces (37e271d); services pending (A5, A6) |
-| A8 | Sessions: "Try as engineer", admin login, roles, CSRF, rate limits | Cloud | ⏳ | |
+| A8 | Sessions: "Try as engineer", admin login, roles, CSRF (no request limits, D-009) | Cloud | ⏳ | |
 | A9 | Work orders and audit log | Cloud | ⏳ | |
 
 ### L: AI layer
@@ -193,6 +193,9 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-14 08:27 | F4 done: CI green on main (run 3) |
+| 2026-10-14 08:20 | CI workflow pushed (F4 in progress); A8 wording corrected to match D-009 (no request limits) |
+| 2026-10-14 08:09 | Fixtures rebuilt from real SECOM records (unit IDs, times, pass/fail, readings, missing values, block counts, sensor health); model outputs stay placeholders until the bundles exist. F4 started |
 | 2026-10-14 08:00 | Decision D-009: no request limits anywhere in the product; plan and contracts updated |
 | 2026-10-14 08:00 | F6, D1, D2, D5 done on the PC: SECOM and WM-811K downloaded with checksums, no lot overlap in the official split; SECOM merged to main |
 | 2026-10-14 07:56 | F3 and F5 done: scaffold, API contracts (47 operations), TypeScript types and validated fixtures |

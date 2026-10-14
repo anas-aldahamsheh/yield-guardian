@@ -1,5 +1,5 @@
 {
-  "unit_id": 443,
+  "unit_id": 1062,
   "statistic": "t2",
   "value": 35.8,
   "limit_99": 26.2,
@@ -10,43 +10,43 @@
       "sensor": "S060",
       "contribution": 9.1,
       "share": 0.254,
-      "value": 37.698,
-      "reference_median": 55.298
+      "value": 1.0027,
+      "reference_median": 17.3018
     },
     {
       "sensor": "S061",
       "contribution": 6.3,
       "share": 0.176,
-      "value": 41.246,
-      "reference_median": 57.202
+      "value": 352.6027,
+      "reference_median": 357.25
     },
     {
       "sensor": "S104",
       "contribution": 4.0,
       "share": 0.112,
-      "value": 45.887,
-      "reference_median": 51.069
+      "value": -0.0139,
+      "reference_median": -0.006
     },
     {
       "sensor": "S026",
       "contribution": 2.9,
       "share": 0.081,
-      "value": 51.632,
-      "reference_median": 43.022
+      "value": 1.3185,
+      "reference_median": 1.2577
     },
     {
       "sensor": "S348",
       "contribution": 2.2,
       "share": 0.061,
-      "value": 47.03,
-      "reference_median": 50.992
+      "value": 0.0,
+      "reference_median": 0.0
     },
     {
       "sensor": "S211",
       "contribution": 1.6,
       "share": 0.045,
-      "value": 43.037,
-      "reference_median": 52.235
+      "value": 0.0706,
+      "reference_median": 0.0951
     }
   ],
   "other_share": 0.271,

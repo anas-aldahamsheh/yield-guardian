@@ -10,7 +10,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 307,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "format": "ratio",
       "data": "SECOM test block, held out and used once",
@@ -26,7 +26,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 19,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "format": "percent",
       "data": "SECOM test block",
@@ -42,7 +42,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 307,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "format": "number",
       "data": "SECOM test block",
@@ -66,7 +66,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 75,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "format": "percent",
       "data": "SECOM reference period, held-out half",
@@ -82,7 +82,7 @@
         "ci_level": 0.95,
         "method": "stratified bootstrap, 2000 resamples",
         "n": 25519,
-        "note": null
+        "note": "Placeholder model output for interface development; replaced by the real bundle."
       },
       "format": "ratio",
       "data": "WM-811K official test split",
@@ -129,5 +129,5 @@
       "source": "database: llm_calls"
     }
   ],
-  "updated_at": "2026-10-13T23:48:00Z"
+  "updated_at": "2026-10-14T11:17:24Z"
 }

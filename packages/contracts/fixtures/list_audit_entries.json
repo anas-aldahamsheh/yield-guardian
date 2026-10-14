@@ -2,7 +2,7 @@
   "items": [
     {
       "audit_id": 6,
-      "at": "2026-10-13T23:43:00Z",
+      "at": "2026-10-14T11:12:24Z",
       "actor_role": "engineer",
       "actor_name": "Guest engineer",
       "action": "work_order.created",
@@ -14,7 +14,7 @@
     },
     {
       "audit_id": 5,
-      "at": "2026-10-13T23:43:00Z",
+      "at": "2026-10-14T11:12:24Z",
       "actor_role": "engineer",
       "actor_name": "Guest engineer",
       "action": "investigation.approved",
@@ -29,19 +29,19 @@
     },
     {
       "audit_id": 4,
-      "at": "2026-10-13T23:39:00Z",
+      "at": "2026-10-14T11:08:24Z",
       "actor_role": "system",
       "actor_name": null,
       "action": "investigation.created",
       "target_kind": "investigation",
       "target_id": "inv_01jae5x9k3m2q7r8s0t1v2w3x4",
       "details": {
-        "trigger": "AL-443-t2"
+        "trigger": "AL-1062-t2"
       }
     },
     {
       "audit_id": 3,
-      "at": "2026-10-13T23:35:40Z",
+      "at": "2026-10-14T11:05:04Z",
       "actor_role": "engineer",
       "actor_name": "Guest engineer",
       "action": "session.guest",
@@ -51,7 +51,7 @@
     },
     {
       "audit_id": 2,
-      "at": "2026-10-13T23:29:00Z",
+      "at": "2026-10-14T10:58:24Z",
       "actor_role": "engineer",
       "actor_name": "Guest engineer",
       "action": "work_order.updated",
@@ -63,7 +63,7 @@
     },
     {
       "audit_id": 1,
-      "at": "2026-10-13T23:24:00Z",
+      "at": "2026-10-14T10:53:24Z",
       "actor_role": "admin",
       "actor_name": "admin",
       "action": "role.updated",
