@@ -24,8 +24,13 @@ from typing import Any
 import structlog
 
 from yield_guardian.agent.graph import llm_problem
-from yield_guardian.agent.grounding import EvidenceFacts, redact_unverified
-from yield_guardian.agent.numbers import scan
+from yield_guardian.agent.grounding import (
+    REDACTED,
+    REDACTED_IDENTIFIER,
+    EvidenceFacts,
+    check_text,
+)
+from yield_guardian.agent.numbers import NumberMention, scan
 from yield_guardian.agent.prompts import CHAT_SYSTEM, data_message
 from yield_guardian.agent.tools import (
     TOOLS,
@@ -62,7 +67,8 @@ from yield_guardian.llm.results import ChatResult, StreamDelta
 
 log = structlog.get_logger(__name__)
 
-CHAT_MAX_TOKENS = 700
+CHAT_MAX_TOKENS = 2000
+"""Room for a full answer: Arabic takes several tokens per word, and 700 cut answers short."""
 TOOL_ROUND_MAX_TOKENS = 1024
 MAX_MODEL_TOOL_CALLS = 8
 MAX_TOOL_ROUNDS = 4
@@ -75,6 +81,27 @@ SYSTEM = CHAT_SYSTEM.format(
 """The chat system prompt with every tool listed, so the model knows all it can look up. Static,
 so the provider can reuse its prompt cache."""
 _BOUNDARY = re.compile(r"(?<=[.!?:;])\s+|\n+")
+_LIST_MARKER = re.compile(r"^\s*(?:[-*•]\s*)?\d{1,2}[.)](?=\s|$)")
+"""A numbered-list marker at the start of a line ("1." or "2)"): layout, not a quantity."""
+MAX_SUM_TERMS = 400
+"""Distinct whole numbers in the evidence up to which a sum of two of them is checked."""
+
+
+def _is_sum_of_two(mention: NumberMention, facts: EvidenceFacts) -> bool:
+    """A whole number that is the sum of two whole numbers in the evidence (116 dead and 57 in
+    maintenance make 173). Only exact integer sums count, so a rounded or invented total does
+    not pass."""
+    if mention.percent or mention.decimals or mention.comparator is not None:
+        return False
+    if mention.value != int(mention.value):
+        return False
+    whole = {int(v) for v in facts.numbers if v == int(v) and v >= 0}
+    if len(whole) > MAX_SUM_TERMS:
+        return False
+    target = int(mention.value)
+    return any(target - a in whole and target - a != a for a in whole) or (
+        target % 2 == 0 and target // 2 in whole and facts.numbers.count(target // 2) > 1
+    )
 
 
 class SentenceGate:
@@ -87,10 +114,20 @@ class SentenceGate:
         self.unverified: list[str] = []
 
     def _check(self, sentence: str) -> str:
-        shown, check = redact_unverified(sentence, self.facts)
+        marker = _LIST_MARKER.match(sentence)
+        head, body = (
+            (sentence[: marker.end()], sentence[marker.end() :]) if marker else ("", sentence)
+        )
+        check = check_text(body, self.facts)
+        unverified = [n for n in check.unverified if not _is_sum_of_two(n, self.facts)]
         self.numbers_checked += len(check.numbers)
-        self.unverified.extend(n.text for n in check.unverified)
-        return shown
+        self.unverified.extend(n.text for n in unverified)
+        spans: dict[tuple[int, int], str] = {(n.start, n.end): REDACTED for n in unverified}
+        for identifier, _ in check.unsupported_identifiers:
+            spans[(identifier.start, identifier.end)] = REDACTED_IDENTIFIER
+        for (start, end), text in sorted(spans.items(), reverse=True):
+            body = body[:start] + text + body[end:]
+        return head + body
 
     def feed(self, text: str) -> list[str]:
         self.buffer += text
