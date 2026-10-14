@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { MeasuredResults, MethodsOverview } from "@yield-guardian/contracts";
 import { type ReactNode, useState } from "react";
@@ -11,7 +12,7 @@ import { EmptyState, Placeholder, QueryView } from "@/components/states";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
-import { formatCompact, formatDateTime, formatInt } from "@/lib/format";
+import { formatCompact, formatInt } from "@/lib/format";
 
 import { Limitations, SecomMethods } from "./secom-methods";
 import { WaferMethods } from "./wafer-methods";
@@ -113,7 +114,7 @@ function ResultsTable({ data }: { data: MeasuredResults }) {
       </ScrollRegion>
       {data.updated_at ? (
         <p className="mx-4 mt-3 text-[12px] text-ink-3 sm:mx-5">
-          Updated <time dateTime={data.updated_at} suppressHydrationWarning>{formatDateTime(data.updated_at)}</time>.
+          Updated <LocalDateTime iso={data.updated_at} />.
         </p>
       ) : null}
     </>
@@ -146,7 +147,7 @@ function Provenance({ data }: { data: MethodsOverview }) {
               <div>
                 <dt className="text-ink-3">Retrieved</dt>
                 <dd className="tnum text-ink">
-                  <time dateTime={d.retrieved_at} suppressHydrationWarning>{formatDateTime(d.retrieved_at)}</time>
+                  <LocalDateTime iso={d.retrieved_at} />
                 </dd>
               </div>
             </dl>
@@ -182,7 +183,7 @@ function Provenance({ data }: { data: MethodsOverview }) {
                     {b.bundle.name} {b.bundle.version}
                   </th>
                   <td className="tnum px-3 py-2 text-ink-2">
-                    <time dateTime={b.bundle.created_at} suppressHydrationWarning>{formatDateTime(b.bundle.created_at)}</time>
+                    <LocalDateTime iso={b.bundle.created_at} />
                   </td>
                   <td className="tnum px-3 py-2 text-ink-2">{b.bundle.git_commit.slice(0, 10)}</td>
                   <td className="tnum px-3 py-2 text-right text-ink-2">{formatInt(b.files)}</td>

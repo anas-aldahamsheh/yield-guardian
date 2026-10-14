@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import type { MeasuredResult } from "@yield-guardian/contracts";
 import { useQuery } from "@tanstack/react-query";
 
@@ -7,7 +8,7 @@ import { IntervalAxis, IntervalBar } from "@/components/charts/estimate";
 import { Placeholder, QueryView } from "@/components/states";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
-import { ciLabel, formatDateTime, formatInt, formatInterval, formatMetric } from "@/lib/format";
+import { ciLabel, formatInt, formatInterval, formatMetric } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ScrollRegion } from "@/components/scroll-region";
 
@@ -34,7 +35,7 @@ export function ResultsLedger() {
             train on. A row without a value has not been measured yet.
           </p>
           {results.data?.updated_at ? (
-            <p className="mt-3 text-[13px] text-ink-3">Updated {formatDateTime(results.data.updated_at)}</p>
+            <p className="mt-3 text-[13px] text-ink-3">Updated <LocalDateTime iso={results.data.updated_at} /></p>
           ) : null}
         </div>
 

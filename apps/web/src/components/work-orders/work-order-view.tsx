@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { WorkOrder, WorkOrderUpdate } from "@yield-guardian/contracts";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import { ApiError } from "@/lib/api/errors";
 import { q } from "@/lib/api/queries";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { useUpdateWorkOrder } from "@/lib/api/work-orders";
-import { formatDateTime } from "@/lib/format";
 import { WORK_ORDER_FLOW, WORK_ORDER_STATUS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -56,9 +56,7 @@ export function WorkOrderView({ id }: { id: string }) {
         description={
           <span className="tnum">
             {o.work_order_id}, opened by {o.created_by} on{" "}
-            <time dateTime={o.created_at} suppressHydrationWarning>
-              {formatDateTime(o.created_at)}
-            </time>{" "}
+            <LocalDateTime iso={o.created_at} />{" "}
             from{" "}
             <Link href={`/investigations/${o.investigation_id}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
               investigation {o.investigation_id}

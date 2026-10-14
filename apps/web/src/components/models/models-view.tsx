@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { CatalogModel, EvaluationResult, Evaluations, RoleAssignment, Usage, UsageReport } from "@yield-guardian/contracts";
 import { Fragment, useState } from "react";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { useSession } from "@/lib/api/session";
-import { formatCompact, formatDateTime, formatDuration, formatInt, formatNumber, formatPercent, formatReported } from "@/lib/format";
+import { formatCompact, formatDuration, formatInt, formatNumber, formatPercent, formatReported } from "@/lib/format";
 import { ROLE_JOBS, ROLE_NAMES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -104,10 +105,10 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
                         Change
                       </Button>
                     ) : r.updated_at ? (
-                      <time dateTime={r.updated_at} suppressHydrationWarning>
-                        {formatDateTime(r.updated_at)}
+                      <span>
+                        <LocalDateTime iso={r.updated_at} />
                         {r.updated_by ? ` by ${r.updated_by}` : ""}
-                      </time>
+                      </span>
                     ) : (
                       "Default"
                     )}
@@ -204,7 +205,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
       <p className="text-[13px] leading-5 text-ink-3">
-        Since <time dateTime={report.since} suppressHydrationWarning>{formatDateTime(report.since)}</time>.
+        Since <LocalDateTime iso={report.since} />.
       </p>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         <Reading label="Model calls" value={formatInt(t.requests)} detail={t.cache_hits ? `${formatInt(t.cache_hits)} from cache` : undefined} />
@@ -229,7 +230,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
               {formatNumber(quota.used, 4)} of {formatNumber(quota.limit, 4)} points used ({formatPercent(share)})
               {quota.resets_at ? (
                 <>
-                  , resets <time dateTime={quota.resets_at} suppressHydrationWarning>{formatDateTime(quota.resets_at)}</time>
+                  , resets <LocalDateTime iso={quota.resets_at} />
                 </>
               ) : null}
               {quota.rpm_limit != null ? `. ${formatInt(quota.rpm_limit)} requests per minute.` : "."}
@@ -260,9 +261,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
           <ol className="mt-1 divide-y divide-hairline border-y border-hairline">
             {report.recent.slice(0, 10).map((c, i) => (
               <li key={i} className="tnum grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 py-1.5 text-[12px] leading-4">
-                <time dateTime={c.at} suppressHydrationWarning className="text-ink-3">
-                  {formatDateTime(c.at).slice(11)}
-                </time>
+                <LocalDateTime iso={c.at} timeOnly className="text-ink-3" />
                 <span className="min-w-0">
                   <span className="text-ink">{ROLE_NAMES[c.role] ?? c.role}</span> <span className="text-ink-2">{c.model_id}</span>
                   <span className="block text-ink-3">

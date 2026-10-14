@@ -1,10 +1,10 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import type { Evidence, NumberRef, VerificationIssue } from "@yield-guardian/contracts";
 import { type ReactNode, useEffect, useRef } from "react";
 
 import { readPointer } from "@/lib/investigation/events";
-import { formatDateTime } from "@/lib/format";
 import { TOOL_NAME } from "@/lib/labels";
 import { useScrollFocus } from "@/lib/use-scroll-focus";
 import { cn } from "@/lib/utils";
@@ -74,7 +74,7 @@ export function EvidencePanel({
               : "Literature index"}
           </dd>
           <dt className="text-ink-3">Stored</dt>
-          <dd className="tnum text-ink-2">{formatDateTime(current.created_at)}</dd>
+          <dd className="tnum text-ink-2"><LocalDateTime iso={current.created_at} /></dd>
         </dl>
 
         {number && path ? (

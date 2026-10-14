@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import type { Investigation, Report } from "@yield-guardian/contracts";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -20,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useDecideInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
-import { formatDateTime, plural } from "@/lib/format";
+import { plural } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { ActionBody, type Shared } from "./report";
@@ -90,7 +91,7 @@ export function DecisionActions({
             {decision.verdict === "approve"
               ? `Approved ${plural(decision.actions.length, "action")}`
               : "Rejected"}{" "}
-            by {decision.decided_by}, {formatDateTime(decision.decided_at)}.
+            by {decision.decided_by}, <LocalDateTime iso={decision.decided_at} />.
           </p>
           {decision.note ? <p className="mt-1 text-[14px] leading-5 text-ink-2">{decision.note}</p> : null}
           {investigation.work_order_id ? (

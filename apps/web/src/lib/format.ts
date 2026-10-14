@@ -151,6 +151,17 @@ export function formatDateTime(iso: string | null | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * The same moment in UTC, marked as such: what the server renders, since it cannot know the
+ * viewer's time zone. LocalDateTime swaps in the local time once the page has hydrated.
+ */
+export function formatDateTimeUtc(iso: string | null | undefined): string {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+}
+
 /** "3 min ago", for recent product events. */
 export function formatRelative(iso: string | null | undefined, now = Date.now()): string {
   if (!iso) return DASH;

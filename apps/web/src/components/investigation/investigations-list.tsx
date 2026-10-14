@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { InvestigationSummary } from "@yield-guardian/contracts";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useApi } from "@/lib/api/context";
 import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { q } from "@/lib/api/queries";
-import { formatDateTime, formatInt, formatNumber } from "@/lib/format";
+import { formatInt, formatNumber } from "@/lib/format";
 import { TRIGGER_KIND } from "@/lib/labels";
 
 import { StatusLabel } from "./status-label";
@@ -110,7 +111,7 @@ export function InvestigationsList() {
                     <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">
                       {TRIGGER_KIND[inv.trigger.kind]} {inv.trigger.ref}
                     </td>
-                    <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">{formatDateTime(inv.created_at)}</td>
+                    <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2"><LocalDateTime iso={inv.created_at} /></td>
                     <td className="tnum px-3 py-2.5 text-right text-ink-2">{inv.usage ? formatNumber(inv.usage.points, 5) : "–"}</td>
                     <td className="tnum px-4 py-2.5 sm:px-5">
                       {inv.work_order_id ? (

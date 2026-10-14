@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { AuditEntry } from "@yield-guardian/contracts";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApi } from "@/lib/api/context";
 import { unwrap } from "@/lib/api/client";
-import { formatDateTime, formatInt } from "@/lib/format";
+import { formatInt } from "@/lib/format";
 import { ACTOR_ROLE, AUDIT_ACTION } from "@/lib/labels";
 
 type Action = AuditEntry["action"];
@@ -106,9 +107,7 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
               const details = Object.entries(e.details ?? {});
               return (
                 <li key={e.audit_id} className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5">
-                  <time dateTime={e.at} suppressHydrationWarning className="tnum text-[12px] leading-5 text-ink-3">
-                    {formatDateTime(e.at)}
-                  </time>
+                  <LocalDateTime iso={e.at} className="tnum text-[12px] leading-5 text-ink-3" />
                   <div className="min-w-0 text-[14px] leading-5">
                     <p className="text-ink">
                       <span className={e.action === "session.login_failed" ? "text-fail" : undefined}>{AUDIT_ACTION[e.action] ?? e.action}</span>{" "}

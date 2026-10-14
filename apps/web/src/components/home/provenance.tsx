@@ -1,12 +1,12 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { Placeholder, QueryView } from "@/components/states";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
-import { formatDateTime } from "@/lib/format";
 
 /** Where the data and the models come from, with checksums and citations. */
 export function Provenance() {
@@ -45,7 +45,7 @@ export function Provenance() {
                     </div>
                     <div className="flex gap-2">
                       <dt className="text-ink-3">Retrieved</dt>
-                      <dd className="tnum text-ink-2">{formatDateTime(d.retrieved_at)}</dd>
+                      <dd className="tnum text-ink-2"><LocalDateTime iso={d.retrieved_at} /></dd>
                     </div>
                     <div className="flex gap-2">
                       <dt className="text-ink-3">Files</dt>

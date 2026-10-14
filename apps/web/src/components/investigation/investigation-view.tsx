@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { Investigation } from "@yield-guardian/contracts";
 import Link from "next/link";
@@ -13,7 +14,7 @@ import { ApiError } from "@/lib/api/errors";
 import { q } from "@/lib/api/queries";
 import { LIVE_STATUSES, issuesByTarget, triggerUnit } from "@/lib/investigation/events";
 import { useInvestigationStream } from "@/lib/investigation/use-investigation-stream";
-import { formatDateTime, formatInt, formatNumber, formatPlantTime, plural } from "@/lib/format";
+import { formatInt, formatNumber, formatPlantTime, plural } from "@/lib/format";
 import { ISSUE_CODE, ROLE_NAMES, TRIGGER_KIND } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +77,7 @@ export function InvestigationView({ id }: { id: string }) {
             <span>
               From {TRIGGER_KIND[inv.trigger.kind]?.toLowerCase()} <TriggerLink investigation={inv} />
             </span>
-            <span className="tnum">Started {formatDateTime(inv.created_at)}</span>
+            <span className="tnum">Started <LocalDateTime iso={inv.created_at} /></span>
             {inv.recorded ? <RecordedLabel investigation={inv} /> : null}
           </span>
         }

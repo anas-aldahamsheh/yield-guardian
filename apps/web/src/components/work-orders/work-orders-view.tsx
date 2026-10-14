@@ -1,5 +1,6 @@
 "use client";
 
+import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { WorkOrder } from "@yield-guardian/contracts";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { unwrap } from "@/lib/api/client";
 import { useApi } from "@/lib/api/context";
-import { formatDateTime, formatInt } from "@/lib/format";
+import { formatInt } from "@/lib/format";
 import { WORK_ORDER_STATUS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -110,9 +111,7 @@ export function WorkOrdersView() {
                         )}
                       </td>
                       <td className="tnum px-4 py-2.5 text-right align-top text-[13px] text-ink-3 sm:px-5">
-                        <time dateTime={o.updated_at} suppressHydrationWarning>
-                          {formatDateTime(o.updated_at)}
-                        </time>
+                        <LocalDateTime iso={o.updated_at} />
                       </td>
                     </tr>
                   ))}
