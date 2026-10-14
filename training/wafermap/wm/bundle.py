@@ -89,6 +89,7 @@ def model_card(m: dict, deployed: str) -> str:
     loco, sim, lots = m["leave_one_class_out"], m["similarity"]["lot"], m["lot_excursions"]
     ood = m["ood"]
     seed = deployed.rsplit("seed", 1)[1]
+    off_f1, lot_f1 = off["across_seeds"]["macro_f1"], lot["across_seeds"]["macro_f1"]
     dep = lot["seeds"][seed]
     lines = [
         "# Model card: wafer-map pattern classifier",
@@ -276,9 +277,8 @@ def model_card(m: dict, deployed: str) -> str:
         "every class equally, so rare classes (Near-full: "
         f"{dep['test']['per_class']['Near-full']['support']} test wafers) have wide intervals.",
         "- The official split gives a much lower macro-F1 than the lot-grouped one "
-        f"({off['across_seeds']['macro_f1']['mean']:.3f} ± "
-        f"{off['across_seeds']['macro_f1']['sd']:.3f} vs {lot['across_seeds']['macro_f1']['mean']:.3f} ± "
-        f"{lot['across_seeds']['macro_f1']['sd']:.3f}). Its test lots are the higher-numbered "
+        f"({off_f1['mean']:.3f} ± {off_f1['sd']:.3f} vs {lot_f1['mean']:.3f} ± "
+        f"{lot_f1['sd']:.3f}). Its test lots are the higher-numbered "
         "ones and differ from its training lots: models that score well on validation lots drawn "
         "from official training call many test `none` wafers Edge-Loc, Center or Loc. One "
         "official seed stopped early (best validation epoch "
