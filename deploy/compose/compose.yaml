@@ -1,0 +1,158 @@
+# Yield Guardian: the complete stack for any Docker host.
+#
+#   cp .env.example deploy/compose/.env    # then fill in the values (see README.md)
+#   docker compose -f deploy/compose/compose.yaml up -d --build --wait
+#
+# The gateway (Caddy) is the only published service: /api/* and /ws/* go to the API, everything
+# else to the web app. Every setting comes from deploy/compose/.env; no secret is in this file
+# or in an image.
+
+name: yield-guardian
+
+x-hardening: &hardening
+  read_only: true
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+x-api-build: &api-build
+  context: ../..
+  dockerfile: deploy/docker/api.Dockerfile
+  args:
+    GIT_COMMIT: ${GIT_COMMIT:-}
+
+x-database-url: &database-url postgresql+asyncpg://yield_guardian:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/compose/.env}@db:5432/yield_guardian
+
+services:
+  db:
+    <<: *hardening
+    image: pgvector/pgvector:pg17
+    user: postgres
+    environment:
+      POSTGRES_USER: yield_guardian
+      POSTGRES_DB: yield_guardian
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/compose/.env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    shm_size: 256mb
+    stop_grace_period: 30s
+    healthcheck:
+      # Over TCP: during first-run initialisation PostgreSQL listens only on its socket.
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "yield_guardian", "-d", "yield_guardian"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks: [backend]
+
+  migrate:
+    <<: *hardening
+    image: ${API_IMAGE:-yield-guardian/api:latest}
+    build: *api-build
+    command: ["yg-migrate"]
+    restart: "no"
+    init: true
+    env_file: .env
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: *database-url
+    tmpfs:
+      - /tmp
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [backend]
+
+  api:
+    <<: *hardening
+    image: ${API_IMAGE:-yield-guardian/api:latest}
+    build: *api-build
+    init: true
+    env_file: .env
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: *database-url
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${HTTP_PORT:-8080}}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in deploy/compose/.env}
+    tmpfs:
+      - /tmp
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks: [backend, frontend]
+
+  web:
+    <<: *hardening
+    image: ${WEB_IMAGE:-yield-guardian/web:latest}
+    build:
+      context: ../..
+      dockerfile: deploy/docker/web.Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-}
+    init: true
+    environment:
+      # Server-side requests go straight to the API; browsers use the gateway's same origin.
+      API_INTERNAL_URL: http://api:8000
+      API_PUBLIC_URL: /api/v1
+    tmpfs:
+      - /tmp
+      - /app/apps/web/.next/cache:uid=1000,gid=1000
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [frontend]
+
+  gateway:
+    <<: *hardening
+    image: caddy:2.11-alpine
+    cap_add: [NET_BIND_SERVICE]
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+      - "${HTTPS_PORT:-8443}:443"
+      - "${HTTPS_PORT:-8443}:443/udp"
+    environment:
+      # A bare port serves plain HTTP; a domain name turns on automatic HTTPS.
+      SITE_ADDRESS: ${DOMAIN:-:80}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1/32}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    tmpfs:
+      - /tmp
+    # No depends_on: Caddy resolves api and web on each request, so it starts on its own.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8081/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [frontend]
+
+networks:
+  # The database and migrations have no route to the internet or to the gateway.
+  backend:
+    internal: true
+  frontend: {}
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
