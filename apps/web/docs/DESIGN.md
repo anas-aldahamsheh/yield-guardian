@@ -64,10 +64,20 @@ straight from data by deterministic rules stays in the reading face. Nothing a m
 wrote appears in the reading face, and every number in serif text links to the
 evidence it came from.
 
-Scale (Bringhurst's classic sizes, px / line height): 12/16 ticks and footnotes,
-14/20 interface and tables (tabular figures), 16/24 body, 18/29 serif report text,
-21/28, 24/30, 36/40, and 52/54 and 72/72 for the home page only. Weights 400, 500
-and 650; tracking −0.02 em from 36 px up.
+Scale (Bringhurst's classic sizes, px / line height):
+
+| Token / class | Size | Use |
+|---|---|---|
+| `text-micro` | 12/16 | Chart ticks, footnotes, table headers |
+| `text-ui` | 14/20 | Interface and tables (tabular figures) |
+| `text-body` | 16/24 | Body |
+| `.written` | 18/29 | Serif text a model wrote; 21/33 for a report's summary |
+| `text-h4` / `text-h3` / `text-h2` | 18/24, 21/28, 24/30 | Panel and section headings |
+| `text-title` | 30/36, −0.02 em | Page titles (`PageHeader`); 26/32 below 640 px |
+| `.readout` | 28 to 36, weight 300, −0.02 em | Instrument readings: KPI counts, check results |
+| `text-display` | 60/64 | Home hero only (40/44 on phones) |
+
+Weights 300 (readouts only), 400, 500 and 600. Panel titles are 15/24 semibold.
 
 ## Layout
 
@@ -120,17 +130,57 @@ Text is left aligned everywhere; numbers in tables are right aligned on tabular 
 
 ## Motion
 
-- **One orchestrated sequence:** on the home page the safelight field steps across the
-  real wafer like a stepper (stage move, exposure flash, results revealed under the
-  field), about 4.5 s, once, with a replay control. Lenis smooth scroll on the home
-  page only.
-- **Everywhere else motion answers an action:** an evidence panel opening, a result
-  arriving, a stream step starting (its marker is lit by the safelight).
+Motion lives in `src/components/motion` (hooks) and `globals.css` (keyframes and
+classes). It is CSS and a few hooks, so it adds almost nothing to the bundle. Every
+piece respects `prefers-reduced-motion`: the global rule in `globals.css` stops
+animations and transitions, the rings and pulses are hidden, and the hooks jump
+straight to their end state.
+
+- **One orchestrated sequence, on the home page:** the headline rises line by line
+  (`.rise-line`, staggered by `--i`), the lede and actions settle in (`.stage-in`), then
+  the real wafer is scanned: the stage moves the next field under the lens, a slit of
+  safelight scans down the field and the dies under it are revealed. About 5 s, once,
+  with a replay control. The counters under the wafer (field, dies inspected, failed)
+  follow the real dies revealed. Once inspected, pointing at a die outlines it and
+  shows its real wafer-test result. Native scrolling (no smooth-scroll library).
+- **The live line is the one place that moves on its own,** because the plant does:
+  each arriving unit slides the series left by one step (`--dur-arrive`, 700 ms), the
+  newest point carries a steady safelight ring and one widening ring as it arrives
+  (`.arrival`), a unit that arrives beyond a limit pulses twice in the fail colour
+  (`.alarm-pulse`), KPI counts tick to their new value (`<Ticker>`), and new alarms and
+  units are lit once (`.flash-new`, `.flash-alarm`, via `useNewIds`). The cursor glides
+  between units. The live dot (`.live-dot`) has one slow ring.
+- **Everywhere else motion answers an action:** a page settles in once on navigation
+  (`PageFrame` carries `.page-enter`; no per-section fade-ups), swapped content
+  crossfades (`.swap-in`, keyed by what changed), a new investigation step is lit once,
+  buttons press down 1 px, the active navigation bar slides to the new page.
 - Easing: `--ease-arrive` cubic-bezier(0.16, 1, 0.3, 1) for things arriving;
-  `--ease-stage` cubic-bezier(0.65, 0, 0.35, 1) for the stepper stage. Durations 120,
-  220 and 420 ms.
-- `prefers-reduced-motion`: the wafer renders fully revealed and still; no scan, no
-  smooth scroll, no transitions beyond opacity.
+  `--ease-stage` cubic-bezier(0.65, 0, 0.35, 1) for the stepper stage;
+  `--ease-settle` for a small overshoot (use sparingly). Durations: `--dur-micro` 120,
+  `--dur-component` 220, `--dur-panel` 420, `--dur-arrive` 700 ms.
+
+## Components to build screens with
+
+- `PageFrame`, `PageHeader` (`components/page.tsx`): every console page. The header
+  title uses `text-title`.
+- `Panel`: a die. Pass `live` only while its content is updating right now (the line's
+  charts while the feed is live, a running investigation); it draws fiducials, the
+  alignment marks of a reticle, at its corners. Actions in the header wrap on phones.
+- `Reading`: a labelled value. For a large count use `.readout` and `<Ticker>`.
+- `QueryView`, `ErrorState`, `EmptyState`, `PendingState` (`components/states.tsx`):
+  a 503 `not_ready` answer is drawn as `PendingState` automatically (neutral, an
+  unexposed die field, "Check again"), never in the fail colour. Use `PendingState`
+  yourself for "Not measured yet" when a whole block has no value; in a table cell,
+  write "Not measured yet" in `text-ink-3`.
+- `.lit`: selection (safelight wash and edge). Toggle groups use it for the on state.
+- `WaferAttribution` (`components/wafer`): wherever a WM-811K map is shown with the
+  API's `attribution`. Never print that Markdown raw.
+- `HeroWafer`, `WaferPoster` (`components/wafer`), `usePrefersReducedMotion` and
+  `webglAvailable`: 3D with an SVG fallback. The 3D scene is a dynamic import; keep it
+  out of the initial bundle.
+- Charts: `ControlChart` (`components/charts`) for any per-unit statistic with limits.
+  Pass `alarmAbove` to tint the band beyond the outer limit and `newestX` for the
+  arrival ring.
 
 ## Principles
 
@@ -140,6 +190,8 @@ Text is left aligned everywhere; numbers in tables are right aligned on tabular 
 3. Objects in 3D, numbers in 2D. Only the wafer and the carrier are 3D.
 4. No estimate without its interval. Every metric shows its 95% CI and its n.
 5. Quiet by default: no gradients as decoration, no shadows, no motion without a cause.
+6. Not ready is a state, not an error. Missing values look designed: an unexposed
+   field, plain words for why, and what happens next.
 
 ## Review against the brief: what changed
 
@@ -171,3 +223,26 @@ produce. Changes:
    as light.
 8. **Section labels.** No all-caps eyebrows or numbered markers, except for the
    investigation flow, which really is a sequence.
+
+## Second pass: what changed and why
+
+The first build was correct but read as timid: every panel had the same weight, the
+charts were small, nothing on the line moved, and missing data looked like an error.
+The second pass keeps the palette, the faces and the principles, and spends boldness in
+two places only.
+
+1. **The hero wafer.** A darker yellow room so the exposure reads as light; a
+   step-and-scan exposure (a slit scanning each field) instead of a whole-field flash;
+   an overhead lamp reflected in the polished surface, a bevel highlight and a
+   vacuum-chuck stage; counters that follow the real dies revealed; die hover with the
+   real result. The headline rises line by line: the page's one orchestrated moment.
+2. **The live line.** Units arrive (the series slides), the newest unit is lit, alarms
+   pulse, counts tick, new rows are lit once, the alarm zone is tinted, and the cursor
+   glides with a ring on each chart's value. The charts are taller.
+3. **Hierarchy.** Page titles at 30 px; counts and check results as light readouts;
+   KPI tiles as dies on streets; report sections ruled; the report summary as a lede.
+4. **Not ready looks designed** (`PendingState`), never like a failure.
+5. **Removed:** Lenis smooth scroll (scroll-jacking is not what engineers expect, and it
+   cost bundle weight) and the raw Markdown attribution under the wafer.
+6. **Fiducials** (reticle alignment marks) were considered as general panel decoration
+   and rejected; they mark only what is live.
