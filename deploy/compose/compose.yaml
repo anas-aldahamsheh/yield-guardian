@@ -80,6 +80,8 @@ services:
       DATABASE_URL: *database-url
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${HTTP_PORT:-8080}}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in deploy/compose/.env}
+      # The migrate service has already applied the migrations.
+      MIGRATE_ON_START: "false"
     tmpfs:
       - /tmp
     depends_on:

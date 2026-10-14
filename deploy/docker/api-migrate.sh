@@ -4,9 +4,9 @@
 # environment.
 set -eu
 
-cd /app
-if [ ! -f alembic.ini ]; then
-  echo "yg-migrate: this image contains no database migrations (no alembic.ini); nothing to apply"
-  exit 0
+cd /app/services/api
+if [ ! -f alembic.ini ] || [ ! -d alembic ]; then
+  echo "yg-migrate: /app/services/api/alembic.ini or alembic/ is missing from this image" >&2
+  exit 1
 fi
-exec alembic -c /app/alembic.ini upgrade head
+exec alembic -c /app/services/api/alembic.ini upgrade head
