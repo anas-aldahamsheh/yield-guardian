@@ -16,7 +16,7 @@ import { unwrap } from "@/lib/api/client";
 import { useApi } from "@/lib/api/context";
 import { formatInt, formatPlantTime, formatPValue, plural } from "@/lib/format";
 import { BAND_NAME, patternName } from "@/lib/labels";
-import { NotReadyYet, getRunCases, retryWhenNotReady } from "@/lib/live/api";
+import { NotReadyYet, getRunCases } from "@/lib/live/api";
 import { cn } from "@/lib/utils";
 
 import type { StartRun } from "./input-bar";
@@ -42,7 +42,6 @@ function Catalog({ onStart, starting }: { onStart: StartRun; starting: boolean }
     queryKey: ["runs", "cases"],
     queryFn: ({ signal }) => getRunCases({ signal }),
     staleTime: 10 * 60_000,
-    ...retryWhenNotReady,
   });
   const finding = cases.isPending && cases.failureReason instanceof NotReadyYet;
   return (

@@ -394,6 +394,23 @@ export function summarizeLine(state: RunState | null, view: SummaryView = {}): S
   return [manufacturing(state, v), monitoring(state, v), waferTest(state, v)];
 }
 
+/** What a station says while the run's stored results are read (a reload of a large run). */
+export const READING_SENTENCE = "Reading this run's stored result.";
+
+/**
+ * The three line stations while the run's stored state is read: nothing is computing, so no
+ * station says it is, nor that it is waiting for the input.
+ */
+export function readingLine(): StationSummary[] {
+  return (["manufacturing", "monitoring", "wafer_test"] as const).map((station) => ({
+    station,
+    name: STATION_NAME[station],
+    tone: "idle" as const,
+    sentence: READING_SENTENCE,
+    number: null,
+  }));
+}
+
 const IDLE_SENTENCE: Record<"manufacturing" | "monitoring" | "wafer_test", string> = {
   manufacturing: "Waiting for input: sensor units, wafer maps or both.",
   monitoring: "Scores each unit for failure risk and charts its sensors against control limits.",

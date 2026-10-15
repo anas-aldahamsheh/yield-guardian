@@ -43,6 +43,7 @@ export function InputBar({
   starting,
   error,
   waitingFor = null,
+  kept = false,
 }: {
   open: Way | null;
   onOpen: (way: Way | null) => void;
@@ -51,6 +52,8 @@ export function InputBar({
   error: string | null;
   /** A station a link asked for before there is a run: the bar is lit and says so. */
   waitingFor?: string | null;
+  /** The open panel was open before a reload: it is back as it was, without fading in. */
+  kept?: boolean;
 }) {
   return (
     <div className={cn(waitingFor && "lit -mx-3 rounded-[4px] px-3 py-3")}>
@@ -102,6 +105,7 @@ export function InputBar({
           id={`way-${open}`}
           label={WAYS.find((w) => w.way === open)!.label}
           onClose={() => onOpen(null)}
+          kept={kept}
         >
           {open === "case" ? <CasePicker onStart={onStart} starting={starting} /> : null}
           {open === "draw" ? <DrawTool onStart={onStart} starting={starting} /> : null}
@@ -116,18 +120,23 @@ function WayPanel({
   id,
   label,
   onClose,
+  kept,
   children,
 }: {
   id: string;
   label: string;
   onClose: () => void;
+  kept: boolean;
   children: ReactNode;
 }) {
   return (
     <section
       id={id}
       aria-label={label}
-      className="swap-in mt-4 rounded-[2px] border border-hairline bg-die p-4 sm:p-5"
+      className={cn(
+        !kept && "swap-in",
+        "mt-4 rounded-[2px] border border-hairline bg-die p-4 sm:p-5",
+      )}
     >
       <div className="mb-3 flex items-start justify-between gap-4">
         <h2 className="text-[17px] leading-6 font-semibold text-ink">{label}</h2>

@@ -11,6 +11,7 @@ import {
   centreDie,
   clearWafer,
   dieCount,
+  drawingDraft,
   drawnWafers,
   failCount,
   isDie,
@@ -18,6 +19,7 @@ import {
   newDrawing,
   paint,
   removeWafer,
+  restoreDrawing,
   selectWafer,
   strokeValue,
 } from "./draw-model";
@@ -122,6 +124,45 @@ describe("the drawing tool", () => {
     d = selectWafer(d, 0);
     for (let k = 0; k < 40; k += 1) d = removeWafer(d);
     expect(d.wafers).toHaveLength(1);
+  });
+
+  it("comes back from its draft as it was (a reload of the tab)", () => {
+    let d = newDrawing(layout);
+    d = paint(d, outerRing(d), "fail");
+    d = addWafer(d, false);
+    d = paint(d, [centreDie(d)], "fail");
+    d = selectWafer(d, 0);
+    const draft = JSON.parse(JSON.stringify(drawingDraft(d))) as ReturnType<typeof drawingDraft>;
+    const back = restoreDrawing(layout, draft);
+    expect(back).not.toBeNull();
+    expect(back!.wafers).toEqual(d.wafers);
+    expect(back!.current).toBe(0);
+    expect(back!.base).toEqual(d.base);
+  });
+
+  it("refuses a draft that does not fit the layout", () => {
+    const d = newDrawing(layout);
+    const draft = drawingDraft(d);
+    // Another layout's size.
+    const other = layouts.find((l) => l.map.height * l.map.width !== d.base.length)!;
+    expect(restoreDrawing(other, draft)).toBeNull();
+    // A die where the layout has none.
+    const noDie = Array.from(d.base).findIndex((v) => v === WAFER_CELL.noDie);
+    const bad = d.wafers[0]!.slice();
+    bad[noDie] = WAFER_CELL.fail;
+    const forged = drawingDraft({ ...d, wafers: [bad] });
+    expect(restoreDrawing(layout, forged)).toBeNull();
+    // Not base64, no wafers, too many wafers.
+    expect(restoreDrawing(layout, { wafers: ["%%%"], current: 0 })).toBeNull();
+    expect(restoreDrawing(layout, { wafers: [], current: 0 })).toBeNull();
+    expect(
+      restoreDrawing(layout, {
+        wafers: Array.from({ length: MAX_DRAWN_WAFERS + 1 }, () => draft.wafers[0]!),
+        current: 0,
+      }),
+    ).toBeNull();
+    // A wafer number past the end is the last wafer.
+    expect(restoreDrawing(layout, { ...draft, current: 9 })!.current).toBe(0);
   });
 
   it("sends the outer ring of every real layout as WM-811K maps labelled as the drawing", () => {

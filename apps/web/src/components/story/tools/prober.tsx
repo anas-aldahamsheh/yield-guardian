@@ -4,7 +4,7 @@ import type { WaferPatternItem, WaferPatternResult } from "@yield-guardian/contr
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { arrivedLive, stageResult, type RunState } from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
 import { FILM } from "@/lib/wafer/geometry";
 import { formatInt } from "@/lib/format";
@@ -66,7 +66,13 @@ export function ProberTool({
           aria-hidden="true"
         >
           <ProberSilhouette active={active} />
-          <Carrier2D store={store} pattern={pattern} tested={tested} flagged={lotFlagged} />
+          <Carrier2D
+            store={store}
+            pattern={pattern}
+            tested={tested}
+            flagged={lotFlagged}
+            live={state != null && arrivedLive(state, { stage: "wafer_pattern" })}
+          />
         </svg>
         <div className="absolute aspect-square" style={CHUCK}>
           {flat ? <Probed2D store={store} wafers={wafers} /> : null}
@@ -219,12 +225,18 @@ function Carrier2D({
   pattern,
   tested,
   flagged,
+  live,
 }: {
   store: SceneStore;
   pattern: WaferPatternResult | null;
   /** Lots the lot test covered, once its result is shown. */
   tested: ReadonlySet<string>;
   flagged: boolean;
+  /**
+   * The wafer maps reached this page on the stream: each probed wafer slides into its slot as
+   * the line shows it. Read with the run's stored state (a reload), they are in their slots.
+   */
+  live: boolean;
 }) {
   const wafers = pattern?.wafers ?? [];
   const filled = useScene(store, (s) => s.carrier);
@@ -267,7 +279,10 @@ function Carrier2D({
               vectorEffect="non-scaling-stroke"
             />
             {loaded && tone ? (
-              <g className={styles.slot} opacity={wafer.index === current ? 1 : 0.8}>
+              <g
+                className={live ? styles.slot : undefined}
+                opacity={wafer.index === current ? 1 : 0.8}
+              >
                 <rect
                   x={x0}
                   y={y - 1.1}

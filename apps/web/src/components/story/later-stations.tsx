@@ -78,6 +78,8 @@ function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
   const query = useQuery(q.investigation(api, id));
   useInvestigationStream(query.data);
   const inv = query.data;
+  // Until the investigation itself is read, the status stored with the run stands for it.
+  const status = inv?.status ?? alarm.investigation_status ?? null;
   const last = inv?.steps.at(-1);
   return (
     <div className="border-t border-hairline pt-2">
@@ -88,7 +90,7 @@ function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
         className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[13px] leading-5"
         aria-live="polite"
       >
-        {inv ? <StatusLabel status={inv.status} /> : <span className="text-ink-3">Starting</span>}
+        {status ? <StatusLabel status={status} /> : <span className="text-ink-3">Starting</span>}
         {inv ? <span className="tnum text-ink-3">{plural(inv.steps.length, "step")}</span> : null}
         {last ? <span className="min-w-0 truncate text-ink-3">{last.title}</span> : null}
       </p>
@@ -96,9 +98,7 @@ function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
         href={investigationHref(id)}
         className="text-[13px] text-ink underline underline-offset-2 hover:text-safelight"
       >
-        {inv?.status === "awaiting_decision"
-          ? "Read the report and decide"
-          : "Open the investigation"}
+        {status === "awaiting_decision" ? "Read the report and decide" : "Open the investigation"}
       </Link>
     </div>
   );

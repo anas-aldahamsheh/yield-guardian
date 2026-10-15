@@ -1,6 +1,7 @@
 import { API_PREFIX, type Problem, type RunEvent } from "@yield-guardian/contracts";
 
 import { isProblem } from "@/lib/api/errors";
+import { retryAfterMs } from "@/lib/api/retry";
 
 /**
  * The run's event stream (GET /runs/{id}/events) read with fetch rather than EventSource, so the
@@ -275,6 +276,8 @@ export async function followRun(options: FollowRunOptions): Promise<FollowRunRes
     if (resume != null) headers["Last-Event-ID"] = String(resume);
 
     let finished = false;
+    /** What the API (or the proxy in front of it while it wakes) asked to wait, if it did. */
+    let asked: number | null = null;
     try {
       const response = await doFetch(runEventsUrl(options.runId), {
         headers,
@@ -287,6 +290,7 @@ export async function followRun(options: FollowRunOptions): Promise<FollowRunRes
         options.onStatus?.("ended");
         throw refused;
       }
+      if (!response.ok) asked = retryAfterMs(response.headers.get("Retry-After"));
       if (response.ok && response.body) {
         options.onStatus?.("streaming");
         const reader = response.body.getReader();
@@ -330,7 +334,7 @@ export async function followRun(options: FollowRunOptions): Promise<FollowRunRes
     failures += 1;
     const base = serverRetry ?? initial;
     options.onStatus?.("reconnecting");
-    await sleep(Math.min(max, base * 2 ** (failures - 1)), signal);
+    await sleep(asked ?? Math.min(max, base * 2 ** (failures - 1)), signal);
   }
   return { finished: false };
 }

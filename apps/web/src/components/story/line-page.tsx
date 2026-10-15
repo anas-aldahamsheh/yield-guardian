@@ -1,27 +1,32 @@
 "use client";
 
-import type { RunAlarm, RunCreate, RunCreated } from "@yield-guardian/contracts";
+import type { Investigation, RunAlarm, RunCreate, RunCreated } from "@yield-guardian/contracts";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { usePrefersReducedMotion } from "@/components/motion";
-import { describeError } from "@/lib/api/errors";
+import { ApiError, describeError } from "@/lib/api/errors";
+import { withRetry } from "@/lib/api/retry";
 import { useSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
 import { useAfterLoad } from "@/lib/idle";
 import { createRun } from "@/lib/live/api";
+import { DRAFT_KEYS, readDraft, writeDraft } from "@/lib/live/drafts";
 import { originRule } from "@/lib/live/origin";
 import { isFinished, stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import {
+  READING_SENTENCE,
   STATION_NAME,
   STATION_STAGES,
   lineStatus,
   needsSentence,
+  readingLine,
   summarizeLine,
   turnsRed,
   type StationSummary,
   type StationTone,
 } from "@/lib/live/stations";
+import type { StoredRun } from "@/lib/live/stored-run";
 import {
   lineQuery,
   parseLineUrl,
@@ -71,6 +76,12 @@ function focusOf(key: string): Focus {
   return { kind: kind as "unit" | "wafer", index: Number(value) };
 }
 
+/** Final test while the run's stored state is read. */
+const READING_FINAL_TEST: { tone: StationTone; sentence: string } = {
+  tone: "idle",
+  sentence: READING_SENTENCE,
+};
+
 /** Final test is drawn by its stamp, at the end of both tracks. */
 function finalTestSummary(
   state: RunState | null,
@@ -108,18 +119,30 @@ function finalTestSummary(
 
 /**
  * The Line page: choose an input, and watch each station compute its result from it. The URL
- * holds the run, the open station and the unit, wafer or lot in view, so a link opens the same
- * view; `?pick=` from an old unit, wafer or lot link starts a run of that item.
+ * holds the run, the open station, the unit, wafer or lot in view and the chosen alarm, so a
+ * reload or a link opens the same view; `?pick=` from an old unit, wafer or lot link starts a
+ * run of that item. `stored` is the run's state as the server read it to render the page, so a
+ * reload shows every result at once, as it stands, with nothing replayed.
  */
-export function LinePage({ initialQuery }: { initialQuery: string }) {
+export function LinePage({
+  initialQuery,
+  stored = null,
+}: {
+  initialQuery: string;
+  stored?: StoredRun | null;
+}) {
   const [url, setUrl] = useState<LineUrlState>(() =>
     parseLineUrl(new URLSearchParams(initialQuery)),
   );
-  const [fresh, setFresh] = useState<ReadonlySet<string>>(() => new Set());
-  const [way, setWay] = useState<Way | null>(null);
+  /** The run this page has just started: its results arrive on the stream and play as they come. */
+  const [freshId, setFreshId] = useState<string | null>(null);
+  /** Whether the open station was chosen here (its drawer comes into view) or arrived with the URL. */
+  const [stationBy, setStationBy] = useState<"url" | "person">("url");
+  const { way, kept: wayKept, setWay } = useWay();
   const [starting, setStarting] = useState(
     () => parsePick(new URLSearchParams(initialQuery)) != null,
   );
+  const [waking, setWaking] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const { csrf } = useSession();
   const reducedMotion = usePrefersReducedMotion();
@@ -131,6 +154,8 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
 
   const go = useCallback((next: LineUrlState, mode: "push" | "replace") => {
     setUrl(next);
+    // A run left is no longer fresh: coming back to it shows it as it stands.
+    setFreshId((id) => (id === next.runId ? id : null));
     const query = lineQuery(next);
     const href = query ? `/?${query}` : "/";
     if (mode === "push") window.history.pushState(null, "", href);
@@ -138,16 +163,24 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
   }, []);
 
   useEffect(() => {
-    const onPop = () => setUrl(parseLineUrl(new URLSearchParams(window.location.search)));
+    const onPop = () => {
+      const next = parseLineUrl(new URLSearchParams(window.location.search));
+      setUrl(next);
+      setFreshId((id) => (id === next.runId ? id : null));
+      // Back and forward restore the view where it was: the browser keeps the scroll position.
+      setStationBy("url");
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   const created = useCallback(
     (run: RunCreated, mode: "push" | "replace") => {
-      setFresh((s) => new Set(s).add(run.run_id));
+      setFreshId(run.run_id);
+      setStationBy("person");
       setWay(null);
       setStarting(false);
+      setWaking(false);
       // A station asked for before there was a run (an old station link) opens on the new run.
       go(
         { runId: run.run_id, station: url.runId ? null : url.station, focus: null, alarm: null },
@@ -158,21 +191,32 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       });
     },
-    [go, url.runId, url.station],
+    [go, setWay, url.runId, url.station],
   );
   const refused = useCallback((error: unknown) => {
     const copy = describeError(error);
     setStartError(`${copy.title}. ${copy.detail}`);
     setStarting(false);
+    setWaking(false);
   }, []);
+
+  /** POST /runs; while the API wakes (503), the page says so and asks again. */
+  const begin = useCallback(
+    (body: RunCreate) =>
+      withRetry(() => createRun(body, csrf), {
+        retryIf: (error) => error instanceof ApiError && error.status === 503,
+        onWaiting: () => setWaking(true),
+      }),
+    [csrf],
+  );
 
   const start = useCallback(
     async (body: RunCreate) => {
       setStarting(true);
       setStartError(null);
-      await createRun(body, csrf).then((run) => created(run, "push"), refused);
+      await begin(body).then((run) => created(run, "push"), refused);
     },
-    [csrf, created, refused],
+    [begin, created, refused],
   );
 
   // An old link to a unit, wafer or lot page arrives as ?pick= and runs that item.
@@ -180,27 +224,34 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
     if (picked.current) return;
     picked.current = true;
     const pick = parsePick(new URLSearchParams(initialQuery));
-    if (pick) void createRun(pick, csrf).then((run) => created(run, "replace"), refused);
-  }, [initialQuery, csrf, created, refused]);
+    if (pick) void begin(pick).then((run) => created(run, "replace"), refused);
+  }, [initialQuery, begin, created, refused]);
 
-  const run = useRun(url.runId, { fresh: url.runId != null && fresh.has(url.runId) });
+  const run = useRun(url.runId, { fresh: url.runId != null && url.runId === freshId, stored });
   const key = focusKey(url.focus);
   const focus = useMemo(() => focusOf(key), [key]);
-  const { store, finish } = useLineScene(run.state, focus, reducedMotion);
+  // Reading the run's stored state (it was not in the page): nothing of it is shown until it is in.
+  const reading = run.connection === "loading" || run.connection === "waking";
+  const state = run.problem || reading ? null : run.state;
+  const { store, finish } = useLineScene(state, focus, reducedMotion);
   const revealed = useScene(store, (s) => s.revealed);
   const alarmsShown = useScene(store, (s) => s.alarms);
   const playing = useScene(store, (s) => s.playing);
-  const state = run.state;
 
   const summaries = useMemo(
     () =>
-      summarizeLine(state, {
-        shown: (s) => revealed.has(s),
-        alarmShown: (a) => alarmsShown.has(a.alarm_id),
-      }),
-    [state, revealed, alarmsShown],
+      reading
+        ? readingLine()
+        : summarizeLine(state, {
+            shown: (s) => revealed.has(s),
+            alarmShown: (a) => alarmsShown.has(a.alarm_id),
+          }),
+    [reading, state, revealed, alarmsShown],
   );
-  const finalTest = useMemo(() => finalTestSummary(state, revealed), [state, revealed]);
+  const finalTest = useMemo(
+    () => (reading ? READING_FINAL_TEST : finalTestSummary(state, revealed)),
+    [reading, state, revealed],
+  );
   // Over when the run has ended and the line has played every result: nothing more will arrive.
   const over = state != null && isFinished(state) && !playing && finalTest.tone !== "working";
   const tones = useMemo(
@@ -217,6 +268,7 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
 
   const setStation = (n: number | null) => {
     if (!url.runId) return;
+    setStationBy("person");
     go({ ...url, station: n }, "replace");
   };
   const setFocus = (next: Focus) => {
@@ -239,10 +291,13 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
           : alarm.lot
             ? { kind: "lot", name: alarm.lot }
             : null;
+    setStationBy("person");
     go({ ...url, station, focus: next, alarm: alarm.alarm_id }, "replace");
   };
-  const linked = (alarmId: string, investigationId: string) => {
-    run.linkInvestigation(alarmId, investigationId);
+  // The server keeps the link too (the investigation's trigger names the alarm), so a reload or
+  // another device shows it; the URL keeps the alarm it was started from.
+  const linked = (alarmId: string, investigation: Investigation) => {
+    run.linkInvestigation(alarmId, investigation.investigation_id, investigation.status);
     if (url.runId) go({ ...url, alarm: alarmId }, "replace");
   };
   const newRun = () => {
@@ -276,6 +331,7 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
           </div>
           <InputBar
             open={way}
+            kept={wayKept}
             onOpen={setWay}
             onStart={start}
             starting={starting}
@@ -288,6 +344,8 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
           <div ref={bayRef} className="scroll-mt-[calc(var(--bar-height)+12px)]">
             {run.problem ? (
               <RunProblemNotice problem={run.problem} onNew={newRun} />
+            ) : reading ? (
+              <ReadingStrip waking={run.connection === "waking"} />
             ) : state ? (
               <RunStrip
                 state={state}
@@ -296,12 +354,14 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
                 onFinish={finish}
                 onRepeat={start}
               />
+            ) : waking && starting ? (
+              <WakingNote />
             ) : null}
-            {twoSources && !run.problem ? <TwoSources /> : null}
+            {twoSources ? <TwoSources /> : null}
             <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(280px,320px)]">
               <div className="min-w-0">
                 <Bay
-                  state={run.problem ? null : state}
+                  state={state}
                   store={store}
                   summaries={summaries}
                   finalTest={finalTest}
@@ -310,11 +370,12 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
                   onOpen={(n) => setStation(url.station === n ? null : n)}
                   openStation={url.station}
                 />
-                {state && !run.problem ? <LineStatus state={state} over={over} /> : null}
+                {state ? <LineStatus state={state} over={over} /> : null}
               </div>
               <div className="relative">
                 <AlarmsRail
-                  state={run.problem ? null : state}
+                  state={state}
+                  reading={reading}
                   shown={alarmsShown}
                   onShow={showAlarm}
                   onLinked={linked}
@@ -340,9 +401,12 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
             focus={focus}
             onFocus={setFocus}
             onClose={() => setStation(null)}
+            // A drawer open in the URL (a reload, a link, back and forward) is already where the
+            // person left it: it neither fades in nor moves the page.
+            restored={stationBy === "url"}
           />
         ) : null}
-        {state && !run.problem ? (
+        {state ? (
           <LaterStations
             state={state}
             focused={url.station === 4 || url.station === 5 ? url.station : null}
@@ -351,7 +415,7 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
       </div>
 
       <Announcer
-        state={run.problem ? null : state}
+        state={state}
         summaries={summaries}
         finalTest={finalTest}
         alarms={alarmsShown}
@@ -361,11 +425,71 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
   );
 }
 
-const CONNECTION: Partial<Record<RunConnection, string>> = {
-  connecting: "Connecting to the run",
-  loading: "Reading the run",
-  reconnecting: "The connection dropped; reconnecting, results so far are kept",
-};
+/**
+ * The open way in (a panel of the input bar), kept for this tab with its draft (an unsent
+ * drawing, a checked upload: lib/live/drafts.ts), so a reload keeps it open as it was. A panel
+ * closed, or run, takes its draft with it, as it does without a reload.
+ */
+function useWay(): { way: Way | null; kept: boolean; setWay: (way: Way | null) => void } {
+  // After hydration: the server renders the bar closed, and so does the first browser render.
+  const keptWay = useSyncExternalStore(noSubscribe, keptWayIn, () => null);
+  const [chosen, setChosen] = useState<{ way: Way | null } | null>(null);
+  const setWay = useCallback((next: Way | null) => {
+    setChosen({ way: next });
+    writeDraft(DRAFT_KEYS.way, next);
+    if (next !== "draw") writeDraft(DRAFT_KEYS.drawing, null);
+    if (next !== "upload") writeDraft(DRAFT_KEYS.upload, null);
+  }, []);
+  return chosen
+    ? { way: chosen.way, kept: false, setWay }
+    : { way: keptWay, kept: keptWay != null, setWay };
+}
+
+function keptWayIn(): Way | null {
+  const kept = readDraft(DRAFT_KEYS.way);
+  return kept === "case" || kept === "draw" || kept === "upload" ? kept : null;
+}
+
+/**
+ * What the strip says about the connection. Nothing while the run is shown as it stands: a run
+ * known up to an event (a reload, a link) is shown at once, and following it on is silent.
+ */
+function connectionNote(connection: RunConnection, state: RunState): string | null {
+  switch (connection) {
+    case "connecting":
+      return state.contiguousSeq == null ? "Connecting to the run" : null;
+    case "reconnecting":
+      return "The connection dropped; reconnecting, results so far are kept";
+    default:
+      return null;
+  }
+}
+
+/** The stored run is being read (it was too large to come with the page, or the API is waking). */
+function ReadingStrip({ waking }: { waking: boolean }) {
+  return (
+    <div className="mt-6 border-t border-hairline pt-4">
+      <h2 className="text-[17px] leading-6 font-semibold text-ink">Reading the run</h2>
+      <p className="mt-1 text-[12px] leading-4 text-ink-3" aria-live="polite">
+        {waking
+          ? "The service is starting after a quiet spell; the run shows as soon as it answers."
+          : "Its results show as they stand once they are in."}
+      </p>
+    </div>
+  );
+}
+
+/** A run was asked for while the API wakes: it starts as soon as the API answers. */
+function WakingNote() {
+  return (
+    <p
+      className="mt-6 border-t border-hairline pt-4 text-[13px] leading-5 text-ink-2"
+      role="status"
+    >
+      The service is starting after a quiet spell; the run starts as soon as it answers.
+    </p>
+  );
+}
 
 function RunStrip({
   state,
@@ -382,7 +506,7 @@ function RunStrip({
 }) {
   const origin = state.origin;
   const rule = origin ? originRule(origin.rule, origin.seed) : null;
-  const note = CONNECTION[connection];
+  const note = connectionNote(connection, state);
   return (
     <div className="mt-6 flex flex-col gap-3 border-t border-hairline pt-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="max-w-[96ch] min-w-0">

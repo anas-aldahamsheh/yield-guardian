@@ -166,6 +166,42 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
+/** A drawing as kept between reloads of the tab (lib/live/drafts.ts): its maps in base64. */
+export function drawingDraft(drawing: Drawing): { wafers: string[]; current: number } {
+  return { wafers: drawing.wafers.map(toBase64), current: drawing.current };
+}
+
+/**
+ * A drawing back from its draft on its layout, or null when the draft does not fit the layout:
+ * every map has the layout's size, no die where the layout has none, and pass or fail on a die.
+ */
+export function restoreDrawing(
+  layout: DrawLayout,
+  draft: { wafers: readonly string[]; current: number },
+): Drawing | null {
+  if (!draft.wafers.length || draft.wafers.length > MAX_DRAWN_WAFERS) return null;
+  const drawing = newDrawing(layout);
+  const wafers: Uint8Array[] = [];
+  for (const cells of draft.wafers) {
+    let map: Uint8Array;
+    try {
+      map = decodeWaferCells({ ...layout.map, encoding: "uint8-base64", cells });
+    } catch {
+      return null;
+    }
+    for (let i = 0; i < map.length; i += 1) {
+      const fits =
+        drawing.base[i] === WAFER_CELL.noDie
+          ? map[i] === WAFER_CELL.noDie
+          : map[i] === WAFER_CELL.pass || map[i] === WAFER_CELL.fail;
+      if (!fits) return null;
+    }
+    wafers.push(map);
+  }
+  const current = Math.min(Math.max(0, Math.trunc(draft.current)), wafers.length - 1);
+  return { ...drawing, wafers, current };
+}
+
 /** The wafers as the run's input: lot "your drawing", wafers numbered from 1, no recorded label. */
 export function drawnWafers(drawing: Drawing): WaferInput[] {
   return drawing.wafers.map((map, i) => ({

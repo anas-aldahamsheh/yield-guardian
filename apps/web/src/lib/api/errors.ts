@@ -8,6 +8,8 @@ export class ApiError extends Error {
     readonly status: number,
     readonly problem: Problem | null,
     message?: string,
+    /** How long the API asked to wait before asking again (its Retry-After), in ms. */
+    readonly retryAfterMs: number | null = null,
   ) {
     super(message ?? problem?.detail ?? problem?.title ?? `The API answered ${status}`);
   }
@@ -39,6 +41,13 @@ export interface ErrorCopy {
 export function describeError(error: unknown): ErrorCopy {
   if (error instanceof ApiError) {
     const detail = error.problem?.detail;
+    // A 503 with no problem of the API's own is the proxy in front of it while it wakes up.
+    if (error.status === 503 && !error.problem) {
+      return {
+        title: "The service is starting",
+        detail: "It sleeps when nobody uses it and takes up to a minute to wake. Try again then.",
+      };
+    }
     switch (error.code) {
       case "network":
         return {

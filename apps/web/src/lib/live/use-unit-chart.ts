@@ -22,7 +22,6 @@ export function useUnitChart(
     queryFn: ({ signal }) => getUnitChart(state!.runId, index!, { signal }),
     enabled: needsFetch,
     staleTime: Infinity,
-    retry: 1,
   });
   if (!row) return undefined;
   return row.z != null ? row : (query.data ?? row);

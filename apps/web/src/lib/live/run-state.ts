@@ -21,7 +21,8 @@ import type {
  * Pure and order-tolerant: the same events in any order, delivered any number of times, give the
  * same state. Statuses only move forward (pending, then running, then done, skipped or failed),
  * so a snapshot followed by a replay of the stream from its start cannot undo a result.
- * Duplicates are recognised by `seq`; alarms by `alarm_id`.
+ * Duplicates are recognised by `seq`; alarms by `alarm_id`. A snapshot says which events it
+ * includes (`last_seq`), so the stream is followed from right after it and nothing is replayed.
  */
 
 export type StageId = StageState["stage"];
@@ -72,7 +73,7 @@ export interface StageView<S extends StageId = StageId> {
   problem: Problem | null;
   /** Server compute time, once the result has arrived. */
   elapsedMs: number | null;
-  /** Server time the stage started (ISO), from its stage_started event. */
+  /** Server time the stage started (ISO), from its stage_started event or the snapshot. */
   startedAt: string | null;
 }
 
@@ -107,8 +108,13 @@ export interface RunState {
   seen: ReadonlySet<number>;
   /** Seq of run_started: the first event of the stream. */
   firstSeq: number | null;
-  /** Highest seq up to which every event has been applied (null until the first). */
+  /**
+   * Highest seq up to which every event has been applied, from the stream or a snapshot (null
+   * until the first): the stream resumes after it.
+   */
   contiguousSeq: number | null;
+  /** Server time of the newest snapshot applied (ISO), null before one. */
+  readAt: string | null;
   /** New things to show, in arrival order (the animation consumes this). */
   arrivals: Arrival[];
 }
@@ -154,6 +160,7 @@ export function emptyRunState(runId: string): RunState {
     seen: new Set(),
     firstSeq: null,
     contiguousSeq: null,
+    readAt: null,
     arrivals: [],
   };
 }
@@ -185,10 +192,18 @@ function alarmNumber(alarmId: string): number {
 function addAlarm(state: RunState, alarm: RunAlarm): { state: RunState; added: boolean } {
   const existing = state.alarms.findIndex((a) => a.alarm_id === alarm.alarm_id);
   if (existing !== -1) {
-    // The same alarm again (snapshot then stream): keep any investigation link either carries.
-    const merged = { ...state.alarms[existing]!, ...alarm };
-    merged.investigation_id =
-      alarm.investigation_id ?? state.alarms[existing]!.investigation_id ?? null;
+    // The same alarm again (snapshot then stream): keep any investigation link either carries,
+    // the newer one (with its status) when both do.
+    const before = state.alarms[existing]!;
+    const merged: RunAlarm = { ...before, ...alarm };
+    if (alarm.investigation_id != null) {
+      merged.investigation_status = alarm.investigation_status ?? null;
+    } else {
+      merged.investigation_id = before.investigation_id ?? null;
+      if (before.investigation_status != null)
+        merged.investigation_status = before.investigation_status;
+    }
+    if (JSON.stringify(merged) === JSON.stringify(before)) return { state, added: false };
     const alarms = state.alarms.slice();
     alarms[existing] = merged;
     return { state: { ...state, alarms }, added: false };
@@ -212,7 +227,9 @@ function contiguous(
 
 /** Applies one event. Returns the same object when the event changes nothing. */
 export function applyRunEvent(state: RunState, event: RunEvent): RunState {
+  // Already applied, or included in a snapshot that was.
   if (state.seen.has(event.seq)) return state;
+  if (state.contiguousSeq != null && event.seq <= state.contiguousSeq) return state;
   const seen = new Set(state.seen);
   seen.add(event.seq);
   const firstSeq = event.type === "run_started" ? event.seq : state.firstSeq;
@@ -291,22 +308,28 @@ export function applyRunEvent(state: RunState, event: RunEvent): RunState {
 
 function mergeStageState(state: RunState, stage: StageState): RunState {
   const current = state.stages[stage.stage];
-  const view = advance(current, {
-    status: stage.status,
-    needs: stage.needs ?? current.needs,
-    result: (stage.result ?? current.result) as never,
-    problem: stage.problem ?? current.problem,
-    elapsedMs: stage.elapsed_ms ?? current.elapsedMs,
-  });
+  const startedAt = current.startedAt ?? stage.started_at ?? null;
+  const view =
+    advance(current, {
+      status: stage.status,
+      needs: stage.needs ?? current.needs,
+      result: (stage.result ?? current.result) as never,
+      problem: stage.problem ?? current.problem,
+      elapsedMs: stage.elapsed_ms ?? current.elapsedMs,
+      startedAt,
+    }) ?? (startedAt !== current.startedAt ? { ...current, startedAt } : null);
   return withStage(state, stage.stage, view);
 }
 
 /**
  * Applies GET /runs/{id}: the full state, after a reload or a lost stream. Stages and alarms
  * already known keep what they have; the snapshot adds the rest. Nothing is queued for the
- * animation: a reloaded run shows its results as they stand.
+ * animation: a reloaded run shows its results as they stand. The events the snapshot includes
+ * (up to `last_seq`) count as applied, so the stream resumes after them.
  */
 export function applyRunSnapshot(state: RunState, run: Run): RunState {
+  const included = run.last_seq ?? 0;
+  const firstSeq = included > 0 ? (state.firstSeq ?? 1) : state.firstSeq;
   let next: RunState = {
     ...state,
     origin: run.origin,
@@ -320,10 +343,21 @@ export function applyRunSnapshot(state: RunState, run: Run): RunState {
         : run.status === "queued" && state.status !== "connecting"
           ? state.status
           : run.status,
+    firstSeq,
+    contiguousSeq:
+      included > 0
+        ? contiguous(state.seen, firstSeq, Math.max(state.contiguousSeq ?? 0, included))
+        : state.contiguousSeq,
+    readAt: run.read_at ?? state.readAt,
   };
   for (const stage of run.stages) next = mergeStageState(next, stage);
   for (const alarm of run.alarms) next = addAlarm(next, alarm).state;
   return next;
+}
+
+/** A run known only from GET /runs/{id} (a reload, a link, another device of the workspace). */
+export function runStateFrom(run: Run): RunState {
+  return applyRunSnapshot(emptyRunState(run.run_id), run);
 }
 
 /** Replays a list of events from an empty state, in the order given. */
@@ -340,15 +374,54 @@ export function stageResult<S extends StageId>(state: RunState, stage: S): Stage
   return state.stages[stage].result as StageResults[S] | null;
 }
 
-/** Records the investigation started from an alarm, until the run snapshot carries it too. */
+/**
+ * Records the investigation started from an alarm on this page, until the next snapshot reads it
+ * back from the server (which keeps the link: the investigation's trigger names the alarm).
+ */
 export function linkInvestigation(
   state: RunState,
   alarmId: string,
   investigationId: string,
+  status: RunAlarm["investigation_status"] = null,
 ): RunState {
   const i = state.alarms.findIndex((a) => a.alarm_id === alarmId);
-  if (i === -1 || state.alarms[i]!.investigation_id === investigationId) return state;
+  if (i === -1) return state;
+  const before = state.alarms[i]!;
+  if (
+    before.investigation_id === investigationId &&
+    (status == null || before.investigation_status === status)
+  )
+    return state;
   const alarms = state.alarms.slice();
-  alarms[i] = { ...alarms[i]!, investigation_id: investigationId };
+  alarms[i] = {
+    ...before,
+    investigation_id: investigationId,
+    investigation_status: status ?? before.investigation_status ?? null,
+  };
   return { ...state, alarms };
+}
+
+/** Stages finished before this page followed the stream (read from a snapshot): shown at once. */
+export function knownBefore(state: RunState): Set<StageId> {
+  const streamed = new Set(
+    state.arrivals.flatMap((a) => (a.kind === "alarm" || a.kind === "done" ? [] : [a.stage])),
+  );
+  return new Set(
+    STAGES.filter((s) => {
+      const status = state.stages[s].status;
+      return (status === "done" || status === "skipped" || status === "failed") && !streamed.has(s);
+    }),
+  );
+}
+
+/** Whether something reached this page on the stream, so the line shows it arriving. */
+export function arrivedLive(
+  state: RunState,
+  what: { alarmId: string } | { stage: StageId },
+): boolean {
+  return state.arrivals.some((a) =>
+    "alarmId" in what
+      ? a.kind === "alarm" && a.alarmId === what.alarmId
+      : a.kind !== "alarm" && a.kind !== "done" && a.stage === what.stage,
+  );
 }

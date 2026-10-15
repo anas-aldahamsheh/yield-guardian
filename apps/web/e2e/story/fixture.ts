@@ -61,7 +61,11 @@ export function snapshotOf(events: readonly RunEvent[], runId = RUN_ID): Run {
   for (const event of events) {
     switch (event.type) {
       case "stage_started":
-        stages.set(event.stage, { ...stages.get(event.stage)!, status: "running" });
+        stages.set(event.stage, {
+          ...stages.get(event.stage)!,
+          status: "running",
+          started_at: event.at,
+        });
         break;
       case "stage_result":
         stages.set(event.stage, {
@@ -69,6 +73,7 @@ export function snapshotOf(events: readonly RunEvent[], runId = RUN_ID): Run {
           status: "done",
           result: event.result,
           elapsed_ms: event.elapsed_ms,
+          started_at: null,
         });
         break;
       case "stage_skipped":
@@ -108,6 +113,8 @@ export function snapshotOf(events: readonly RunEvent[], runId = RUN_ID): Run {
     alarms,
     alarms_not_listed: notListed,
     expires_at: new Date(Date.parse(started.at) + 24 * 3600_000).toISOString(),
+    last_seq: Math.max(...events.map((e) => e.seq)),
+    read_at: events.at(-1)!.at,
   };
 }
 
