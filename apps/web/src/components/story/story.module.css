@@ -1,0 +1,91 @@
+/*
+ * Motion of the line that globals.css does not have. Each plays once, when its element mounts
+ * (React remounts it with a new key for the next occurrence); reduced motion removes it, as the
+ * global rule shortens every animation to nothing.
+ */
+
+/* A station turning red: one ring of the fail colour runs out from the tile's edge and fades. */
+.pulse {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px var(--fail);
+  animation: station-pulse 1.1s var(--ease-arrive) both;
+}
+
+@keyframes station-pulse {
+  0% {
+    opacity: 0;
+    box-shadow:
+      inset 0 0 0 1.5px var(--fail),
+      inset 0 0 0 0 color-mix(in oklab, var(--fail) 22%, transparent);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    box-shadow:
+      inset 0 0 0 1.5px var(--fail),
+      inset 0 0 48px 8px color-mix(in oklab, var(--fail) 0%, transparent);
+  }
+}
+
+/* An alarm arriving in the rail: it slides in from the line's side (from above where the rail
+   sits under the line). One animation whose offset the width sets, so a resize across the
+   breakpoint does not replay it. */
+.slideIn {
+  --arrive-from: translateY(-8px);
+  animation: arrive-from var(--dur-arrive) var(--ease-arrive) both;
+}
+
+@media (min-width: 1280px) {
+  .slideIn {
+    --arrive-from: translateX(-14px);
+  }
+}
+
+@keyframes arrive-from {
+  from {
+    opacity: 0;
+    transform: var(--arrive-from);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .slideIn {
+    animation: none;
+  }
+  .pulse {
+    display: none;
+  }
+}
+
+/* A probed wafer going into its carrier slot: it slides in from the prober's side. */
+.slot {
+  transform-box: fill-box;
+  animation: slot-in 320ms var(--ease-arrive) both;
+}
+
+@keyframes slot-in {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot {
+    animation: none;
+  }
+}

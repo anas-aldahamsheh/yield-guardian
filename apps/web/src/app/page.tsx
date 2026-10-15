@@ -1,28 +1,27 @@
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import type { Metadata } from "next";
 
-import { Hero } from "@/components/home/hero";
-import { InvestigationSequence } from "@/components/home/investigation-sequence";
-import { Provenance } from "@/components/home/provenance";
-import { ResultsLedger } from "@/components/home/results-ledger";
-import { q } from "@/lib/api/queries";
-import { serverApi, serverQueryClient } from "@/lib/api/server";
+import { LinePage } from "@/components/story/line-page";
 
-export default async function HomePage() {
-  const api = await serverApi();
-  const client = serverQueryClient();
-  await Promise.all([
-    client.prefetchQuery(q.heroWafer(api)),
-    client.prefetchQuery(q.results(api)),
-    client.prefetchQuery(q.methods(api)),
-    client.prefetchQuery(q.llmRoles(api)),
-  ]);
+export const metadata: Metadata = {
+  title: { absolute: "Line – Yield Guardian" },
+  description:
+    "Run real SECOM sensor units and WM-811K wafer maps, or your own data, through the line and watch each station compute its result.",
+};
 
-  return (
-    <HydrationBoundary state={dehydrate(client)}>
-      <Hero />
-      <ResultsLedger />
-      <InvestigationSequence />
-      <Provenance />
-    </HydrationBoundary>
-  );
+/** The URL keys the Line page reads; anything else in the query is ignored. */
+const KEYS = ["run", "station", "unit", "wafer", "lot", "pick"] as const;
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+  for (const key of KEYS) {
+    const value = params[key];
+    const first = Array.isArray(value) ? value[0] : value;
+    if (first != null) query.set(key, first);
+  }
+  return <LinePage initialQuery={query.toString()} />;
 }

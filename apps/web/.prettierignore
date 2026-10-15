@@ -5,3 +5,5 @@ test-results
 docs/screenshots
 public/mockServiceWorker.js
 next-env.d.ts
+# Test fixture built from the bundles by e2e/story/build_fixture.py (minified on purpose)
+e2e/story/run-fixture.json
