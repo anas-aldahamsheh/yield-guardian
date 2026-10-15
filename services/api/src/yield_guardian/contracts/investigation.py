@@ -32,9 +32,13 @@ ToolName = Literal[
     "get_similar_wafers",
     "get_lot_stats",
     "search_knowledge",
+    "get_run",
+    "get_run_unit",
+    "get_run_wafer",
+    "get_run_lot",
 ]
 Strength = Literal["strong", "moderate", "weak"]
-TriggerKind = Literal["alarm", "unit", "wafer", "lot"]
+TriggerKind = Literal["alarm", "unit", "wafer", "lot", "run_alarm"]
 InvestigationStatus = Literal[
     "queued", "running", "awaiting_decision", "approved", "rejected", "failed"
 ]
@@ -50,7 +54,10 @@ IssueCode = Literal[
     "causal_wording",
     "unsupported_claim",
     "verifier_unavailable",
+    "unknown_source",
+    "assessment_without_evidence",
 ]
+Assessment = Literal["supported", "not_supported", "inconclusive"]
 ClaimVerdictValue = Literal["supported", "partially_supported", "unsupported", "not_checked"]
 
 
@@ -89,12 +96,45 @@ class NumberRef(Contract):
     path: str = Field(pattern=r"^(/[^/]*)*$", examples=["/contributions/0/shap"])
 
 
+class HypothesisEvidence(Contract):
+    evidence_id: EvidenceId
+    observation: str = Field(
+        min_length=1,
+        max_length=300,
+        description="What this evidence shows for or against the hypothesis, in one sentence.",
+    )
+
+
+class Hypothesis(Contract):
+    """A candidate explanation tested against the evidence: a literature cause proposed for the
+    predicted wafer pattern, or the deviation of a sensor group. It states an association to
+    check, never a cause."""
+
+    hypothesis: str = Field(min_length=1, max_length=400)
+    source_ids: list[str] = Field(
+        max_length=8,
+        description="Knowledge sources (source_id) that propose it; empty for a hypothesis "
+        "read from the sensor data.",
+    )
+    evidence_for: list[HypothesisEvidence] = Field(max_length=8)
+    evidence_against: list[HypothesisEvidence] = Field(max_length=8)
+    assessment: Assessment = Field(
+        description="supported needs at least one item for, not_supported at least one against."
+    )
+
+
 class Report(Contract):
     summary: str = Field(min_length=1, max_length=1200)
     findings: list[Finding]
     actions: list[Action]
     numbers: list[NumberRef]
     limitations: list[str]
+    hypotheses: list[Hypothesis] = Field(
+        default_factory=list,
+        max_length=8,
+        description="Candidate explanations and how the evidence bears on each; empty in "
+        "reports written before hypotheses existed.",
+    )
 
 
 class VerificationIssue(Contract):
@@ -143,8 +183,9 @@ class InvestigationTrigger(Contract):
     ref: str = Field(
         min_length=1,
         max_length=80,
-        description="Alarm ID, unit ID, wafer ID or lot, depending on `kind`.",
-        examples=["AL-1043-t2"],
+        description="Alarm ID, unit ID, wafer ID or lot, depending on `kind`; for `run_alarm`, "
+        "`<run_id>:<alarm_id>`.",
+        examples=["AL-1043-t2", "run_01jaf3k9x2m4q7r8s0t1v2w3x4:RA-3"],
     )
     question: str | None = Field(None, max_length=500)
 

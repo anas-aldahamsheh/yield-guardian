@@ -53,6 +53,7 @@ from yield_guardian.contracts.services import (
     WaferService,
 )
 from yield_guardian.contracts.wafer import LotDetail, SimilarWafers, WaferPrediction
+from yield_guardian.live.protocols import RunReader
 
 CONTRACT_FIXTURES = Path(__file__).resolve().parents[4] / "packages" / "contracts" / "fixtures"
 M = TypeVar("M", bound=BaseModel)
@@ -175,6 +176,7 @@ class FakeScience:
     secom: FakeSecom = field(default_factory=FakeSecom)
     wafer: FakeWafer = field(default_factory=FakeWafer)
     knowledge: FakeKnowledge = field(default_factory=FakeKnowledge)
+    runs: RunReader | None = None
 
     @property
     def services(self) -> ScienceServices:
@@ -182,6 +184,7 @@ class FakeScience:
             secom=cast(SecomService, self.secom),
             wafer=cast(WaferService, self.wafer),
             knowledge=cast(KnowledgeService, self.knowledge),
+            runs=self.runs,
         )
 
 

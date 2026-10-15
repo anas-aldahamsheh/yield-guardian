@@ -30,16 +30,28 @@ REDACTED = "[unverified number removed]"
 REDACTED_IDENTIFIER = "[unverified identifier removed]"
 
 _INT_KEYS: dict[IdentifierKind, frozenset[str]] = {
-    "unit": frozenset({"unit_id", "unit_ids", "jump_unit_ids"}),
+    "unit": frozenset({"unit_id", "unit_ids", "jump_unit_ids", "source_unit", "unit_index"}),
     "sequence": frozenset({"sequence", "from_seq", "to_seq", "position"}),
     "wafer_index": frozenset({"wafer_index"}),
     "window": frozenset({"window_id", "flatline_windows"}),
 }
-_STRING_KINDS: frozenset[IdentifierKind] = frozenset({"sensor", "alarm", "wafer", "lot"})
+_STRING_KINDS: frozenset[IdentifierKind] = frozenset({"sensor", "alarm", "wafer", "lot", "run"})
 _SUBSTRING_KINDS: frozenset[IdentifierKind] = frozenset({"date", "time"})
 _LEVEL_SUFFIX = re.compile(r"_([0-9]{2,3})$")
 _LEVEL_KEY = re.compile(r"(?:^|_)(?:level|confidence)$")
-_LOTLIKE = re.compile(r"^[A-Za-z0-9_.]+(?:-[0-9]+)?$")
+_LOTLIKE = re.compile(r"^(?=[^-]*[A-Za-z])[A-Za-z0-9_.]+(?:-[0-9]+)?$")
+"""A lot, wafer or unit name matched literally in text. It must hold a letter before any
+``-<n>`` suffix: a name of digits only (a lot called ``7`` in a user's file) would otherwise turn
+every such number in a text into a name and exempt it from the number checks."""
+_NAMED_KEYS = ("lot", "wafer_id", "source_wafer", "unit_id")
+"""Keys whose string values are names in a user's file or in WM-811K (run units keep their
+file's ``unit_id``)."""
+_DIGITS_ONLY = re.compile(r"^[0-9]{1,9}$")
+
+
+def is_literal_name(value: str) -> bool:
+    """True for a name matched literally in text (see ``_LOTLIKE``)."""
+    return _LOTLIKE.match(value) is not None
 
 
 @dataclass
@@ -73,7 +85,8 @@ class EvidenceFacts:
                     for kind, keys in _INT_KEYS.items():
                         if key in keys:
                             facts.ints.setdefault(kind, set()).add(value)
-            for key in ("lot", "wafer_id"):
+                facts._collect_unit_labels(source)
+            for key in _NAMED_KEYS:
                 facts._collect_named(item.data, key)
             facts._collect_levels(item.data)
         facts.strings.update(strings)
@@ -100,6 +113,19 @@ class EvidenceFacts:
         if any(abs(v * 100.0 - mention.value) <= 1e-9 for v in self.level_values):
             return True
         return any(mention.text in s for s in self.strings)
+
+    def _collect_unit_labels(self, data: object) -> None:
+        """A run unit's ``unit_id`` is its label in the user's file; a label of digits only is
+        a unit number a text may write as "unit 12"."""
+        if isinstance(data, dict):
+            for name, value in data.items():
+                if name == "unit_id" and isinstance(value, str) and _DIGITS_ONLY.match(value):
+                    self.ints.setdefault("unit", set()).add(int(value))
+                else:
+                    self._collect_unit_labels(value)
+        elif isinstance(data, list):
+            for value in data:
+                self._collect_unit_labels(value)
 
     def _collect_named(self, data: object, key: str) -> None:
         if isinstance(data, dict):

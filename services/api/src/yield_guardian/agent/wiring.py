@@ -33,6 +33,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from yield_guardian.agent.chat import ChatAnswerer
 from yield_guardian.agent.graph import InvestigatorRunner
+from yield_guardian.contracts.runs import Run, SensorUnitInput, UnitChartResult, WaferInput
 from yield_guardian.contracts.services import (
     KnowledgeService,
     NotReadyError,
@@ -43,6 +44,7 @@ from yield_guardian.contracts.services import (
 from yield_guardian.core.settings import Settings
 from yield_guardian.knowledge.postgres import PostgresFullTextIndex
 from yield_guardian.knowledge.service import KnowledgeError, LiteratureKnowledge
+from yield_guardian.live.protocols import RunReader
 from yield_guardian.llm.dbstores import (
     DbCallLog,
     DbEvaluationStore,
@@ -85,6 +87,35 @@ class Unavailable:
         return unavailable
 
 
+RUNS_NOT_SERVED = "the run store is not available"
+
+
+class RegistryRunReader:
+    """The registry's run store, looked up on each read: the agent starts before or after the
+    store without missing it. A read while there is none raises NotReadyError."""
+
+    def __init__(self, registry: ServiceRegistry) -> None:
+        self._registry = registry
+
+    def _reader(self) -> RunReader:
+        reader = self._registry.run_reader
+        if reader is None:
+            raise NotReadyError(self._registry.problems.get("runs", RUNS_NOT_SERVED))
+        return reader
+
+    async def get_run(self, run_id: str) -> Run | None:
+        return await self._reader().get_run(run_id)
+
+    async def get_unit_chart(self, run_id: str, index: int) -> UnitChartResult | None:
+        return await self._reader().get_unit_chart(run_id, index)
+
+    async def get_unit_input(self, run_id: str, index: int) -> SensorUnitInput | None:
+        return await self._reader().get_unit_input(run_id, index)
+
+    async def get_wafer_input(self, run_id: str, index: int) -> WaferInput | None:
+        return await self._reader().get_wafer_input(run_id, index)
+
+
 def science_services(registry: ServiceRegistry) -> ScienceServices:
     def reason(key: str, default: str) -> str:
         return registry.problems.get(key, default)
@@ -96,6 +127,7 @@ def science_services(registry: ServiceRegistry) -> ScienceServices:
         secom=cast(SecomService, secom),
         wafer=cast(WaferService, wafer),
         knowledge=cast(KnowledgeService, knowledge),
+        runs=RegistryRunReader(registry),
     )
 
 

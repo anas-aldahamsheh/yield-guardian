@@ -1,6 +1,7 @@
 """The investigator's and the chat's tools: typed, read-only, each result stored as evidence.
 
-Each of the eleven tools (PLAN 7.3) wraps one read method of the science services. A call is
+Each of the eleven science tools (PLAN 7.3) wraps one read method of the science services; the
+four run tools (:mod:`yield_guardian.agent.run_tools`) read one run (PLAN_V2 3.4). A call is
 validated against a Pydantic argument model with tight bounds, executed, and stored as an
 :class:`~yield_guardian.contracts.investigation.Evidence` record with a stable ID (``E1``,
 ``E2`` ...) and a one-line summary written by code. The same call twice returns the same
@@ -15,14 +16,17 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Awaitable, Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Literal, cast, get_args
+from typing import Any, Literal, get_args
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from yield_guardian.agent.prompts import data_json
+from yield_guardian.agent.run_tools import RUN_TOOLS
+from yield_guardian.agent.tool_base import Tool
+from yield_guardian.agent.tool_base import ToolArgs as _Args
 from yield_guardian.contracts.base import (
     BundleRef,
     LotId,
@@ -48,16 +52,12 @@ from yield_guardian.contracts.secom import (
 from yield_guardian.contracts.services import ScienceServices, ServiceError
 from yield_guardian.contracts.wafer import LotDetail, SimilarWafers, WaferPrediction
 from yield_guardian.llm.cache import canonical_json
-from yield_guardian.llm.messages import FunctionSpec, ToolSpec
+from yield_guardian.llm.messages import ToolSpec
 
 MAX_FDC_WINDOW = 40
 """Units per FDC window: enough to see a drift, small enough for the model's context."""
 
 ALL_TOOL_NAMES: tuple[ToolName, ...] = get_args(ToolName)
-
-
-class _Args(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class UnitArgs(_Args):
@@ -230,47 +230,13 @@ def _knowledge_summary(args: KnowledgeArgs, k: KnowledgeSearchResult) -> str:
     return f"{len(k.hits)} passages found for the query {args.query!r}."
 
 
-@dataclass(frozen=True, slots=True)
-class Tool[A: _Args, R: BaseModel]:
-    name: ToolName
-    description: str
-    args: type[A]
-    call: Callable[[ScienceServices, A], Awaitable[R]]
-    title: Callable[[A], str]
-    summary: Callable[[A, R], str]
-    hidden: tuple[str, ...] = ()
-    """JSON Pointer patterns left out of the model's view (``*`` matches any key or index)."""
-
-    def spec(self) -> ToolSpec:
-        return ToolSpec(
-            function=FunctionSpec(
-                name=self.name, description=self.description, parameters=_parameters(self.args)
-            )
-        )
-
-
-def _clean_schema(node: Any) -> Any:
-    if isinstance(node, dict):
-        return {k: _clean_schema(v) for k, v in node.items() if k != "title"}
-    if isinstance(node, list):
-        return [_clean_schema(v) for v in node]
-    return node
-
-
-def _parameters(args: type[_Args]) -> dict[str, Any]:
-    schema = _clean_schema(args.model_json_schema())
-    schema.pop("$defs", None)
-    schema["additionalProperties"] = False
-    return cast(dict[str, Any], schema)
-
-
 def _sensor_health_title(a: SensorHealthArgs) -> str:
     if a.sensors:
         return f"Read the health of sensors {', '.join(a.sensors)}"
     return f"List sensors with status {', '.join(a.statuses or [])}"
 
 
-TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
+_SCIENCE_TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
     tool.name: tool
     for tool in (
         Tool(
@@ -371,6 +337,12 @@ TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
         ),
     )
 }
+TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
+    **_SCIENCE_TOOLS,
+    **{tool.name: tool for tool in RUN_TOOLS},
+}
+SCIENCE_TOOL_NAMES: tuple[ToolName, ...] = tuple(_SCIENCE_TOOLS)
+"""The tools over the SECOM, WM-811K and literature bundles (every tool but the run tools)."""
 
 
 def tool_specs(names: Iterable[ToolName] = ALL_TOOL_NAMES) -> tuple[ToolSpec, ...]:

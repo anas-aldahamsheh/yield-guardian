@@ -7,7 +7,8 @@
                                      +--------+  (at most two revisions)
 
 * **triage** is code: one read-only tool call chosen from the trigger (the unit behind an
-  alarm, the unit, the wafer's prediction or the lot's tests). It costs no model call.
+  alarm, the unit, the wafer's prediction or the lot's tests); for an alarm raised in a run, two
+  (the run, then the unit, wafer or lot the alarm is about). It costs no model call.
 * **plan** asks the investigator model which tools to call next, with the evidence so far as
   data. It answers with tool calls, or with no tool call when it has enough.
 * **evidence** runs those calls through :class:`~yield_guardian.agent.tools.ToolExecutor`.
@@ -48,7 +49,11 @@ from langgraph.runtime import Runtime
 from langgraph.types import Command, interrupt
 
 from yield_guardian.agent.prompts import INVESTIGATOR_SYSTEM, data_json, data_message
+from yield_guardian.agent.run_results import parse_run_alarm_ref
+from yield_guardian.agent.run_tools import alarm_item_call, read_run
 from yield_guardian.agent.tools import (
+    ALL_TOOL_NAMES,
+    SCIENCE_TOOL_NAMES,
     EvidenceLedger,
     ToolExecutor,
     ToolOutcome,
@@ -69,7 +74,7 @@ from yield_guardian.contracts.investigation import (
     ToolName,
     VerificationIssue,
 )
-from yield_guardian.contracts.services import InvestigationSink, ScienceServices
+from yield_guardian.contracts.services import InvestigationSink, ScienceServices, ServiceError
 from yield_guardian.llm.calllog import LlmCallRecord, to_call_usage
 from yield_guardian.llm.errors import LlmError, NoModelAvailableError, TokenFactoryHttpError
 from yield_guardian.llm.gateway import CallOptions, LlmGateway
@@ -158,8 +163,35 @@ def services_as_of(services: ScienceServices, position: int | None) -> ScienceSe
     return replace(services, secom=view(services.secom, position))
 
 
+def services_whole_line(services: ScienceServices) -> ScienceServices:
+    """The services with every SECOM unit visible: a run's real units were chosen from the
+    whole dataset, so none of them is still "on the line" for the run's investigation or chat."""
+    timeline = getattr(services.secom, "timeline", None)
+    if timeline is None:
+        return services
+    return services_as_of(services, len(timeline) - 1)
+
+
 def _services(ctx: GraphContext, state: InvestigationState) -> ScienceServices:
-    return services_as_of(ctx.services, state.get("as_of"))
+    as_of = state.get("as_of")
+    if as_of is None and state["trigger"].get("kind") == "run_alarm":
+        return services_whole_line(ctx.services)
+    return services_as_of(ctx.services, as_of)
+
+
+def trigger_tools(trigger: InvestigationTrigger) -> tuple[ToolName, ...]:
+    """The tools an investigation may call: every tool for an alarm raised in a run (the run
+    tools, and the science tools for its real units and wafers), else the science tools."""
+    return ALL_TOOL_NAMES if trigger.kind == "run_alarm" else SCIENCE_TOOL_NAMES
+
+
+async def knowledge_source_ids(services: ScienceServices) -> frozenset[str] | None:
+    """Every source ID of the knowledge base, or None when it cannot be read."""
+    try:
+        causes = await services.knowledge.pattern_causes()
+    except ServiceError:
+        return None
+    return frozenset(source.source_id for source in causes.sources)
 
 
 @dataclass(frozen=True, slots=True)
@@ -233,6 +265,9 @@ def triage_call(trigger: InvestigationTrigger) -> tuple[ToolName, dict[str, Any]
     """The first, deterministic tool call for a trigger (None when the trigger names nothing
     a tool can read)."""
     ref = trigger.ref.strip()
+    if trigger.kind == "run_alarm":
+        parsed = parse_run_alarm_ref(ref)
+        return ("get_run", {"run_id": parsed[0]}) if parsed else None
     if trigger.kind == "unit":
         return ("get_unit", {"unit_id": int(ref)}) if ref.isdigit() else None
     if trigger.kind == "alarm":
@@ -254,10 +289,11 @@ def _dump(message: ChatMessage) -> dict[str, Any]:
 def plan_request(state: InvestigationState, limits: InvestigationLimits) -> ChatRequest:
     system = ChatMessage.system(INVESTIGATOR_SYSTEM.format(max_tool_steps=limits.max_tool_steps))
     history = tuple(ChatMessage.model_validate(m) for m in state["messages"])
+    trigger = InvestigationTrigger.model_validate(state["trigger"])
     return ChatRequest(
         messages=(system, *history),
         max_tokens=limits.plan_max_tokens,
-        tools=tool_specs(),
+        tools=tool_specs(trigger_tools(trigger)),
         tool_choice="auto",
     )
 
@@ -278,40 +314,90 @@ async def _record_outcome(ctx: GraphContext, step: _Step, outcome: ToolOutcome) 
 # -- nodes ------------------------------------------------------------------------------------
 
 
+def _invalid_trigger(detail: str | None) -> dict[str, Any]:
+    return Problem(
+        title="Invalid trigger", status=400, detail=detail, code="bad_request"
+    ).model_dump(mode="json")
+
+
+async def _triage_step(
+    ctx: GraphContext,
+    executor: ToolExecutor,
+    investigation_id: str,
+    index: int,
+    call: tuple[ToolName, dict[str, Any]],
+) -> ToolOutcome:
+    prepared = executor.prepare(*call)
+    step = _Step(ctx, investigation_id, index, "triage", prepared.title, prepared.tool.name if prepared.tool else None)  # fmt: skip
+    await step.start()
+    outcome = await executor.run(prepared)
+    await _record_outcome(ctx, step, outcome)
+    return outcome
+
+
+async def _alarm_item(
+    services: ScienceServices, trigger: InvestigationTrigger
+) -> tuple[ToolName, dict[str, Any]] | Problem | None:
+    """The run tool call for the item a run alarm is about; a problem when the alarm is not
+    part of the run; None when the alarm names no single item."""
+    parsed = parse_run_alarm_ref(trigger.ref)
+    if parsed is None:
+        return None
+    run_id, alarm_id = parsed
+    try:
+        run = await read_run(services, run_id)
+    except ServiceError as exc:
+        return exc.problem()
+    if not any(a.alarm_id == alarm_id for a in run.alarms):
+        return Problem(
+            title="Alarm not found",
+            status=404,
+            detail=f"run {run_id} has no alarm {alarm_id}",
+            code="not_found",
+        )
+    call = alarm_item_call(run, alarm_id)
+    return (call[0], dict(call[1])) if call else None
+
+
 async def triage(state: InvestigationState, runtime: Runtime[GraphContext]) -> dict[str, Any]:
     ctx = runtime.context
     trigger = InvestigationTrigger.model_validate(state["trigger"])
     investigation_id = state["investigation_id"]
+    services = _services(ctx, state)
     ledger = EvidenceLedger(investigation_id)
-    executor = ToolExecutor(_services(ctx, state), ledger, wall_clock=ctx.wall_clock)
+    executor = ToolExecutor(
+        services, ledger, wall_clock=ctx.wall_clock, allowed=trigger_tools(trigger)
+    )
     chosen = triage_call(trigger)
     if chosen is None:
-        return {
-            "failure": Problem(
-                title="Invalid trigger",
-                status=400,
-                detail=f"the {trigger.kind} reference does not name anything a tool can read",
-                code="bad_request",
-            ).model_dump(mode="json")
-        }
-    name, arguments = chosen
-    prepared = executor.prepare(name, arguments)
-    step = _Step(ctx, investigation_id, state["next_step"], "triage", prepared.title, prepared.tool.name if prepared.tool else None)  # fmt: skip
-    await step.start()
-    outcome = await executor.run(prepared)
-    await _record_outcome(ctx, step, outcome)
-    update: dict[str, Any] = {"next_step": state["next_step"] + 1, "tool_steps": 1}
+        detail = f"the {trigger.kind} reference does not name anything a tool can read"
+        return {"failure": _invalid_trigger(detail)}
+    index = state["next_step"]
+    outcome = await _triage_step(ctx, executor, investigation_id, index, chosen)
+    update: dict[str, Any] = {"next_step": index + 1, "tool_steps": 1}
     if outcome.evidence is None:
-        problem = outcome.problem or Problem(
-            title="Invalid trigger", status=400, detail=outcome.error, code="bad_request"
+        problem = outcome.problem
+        update["failure"] = (
+            problem.model_dump(mode="json") if problem else _invalid_trigger(outcome.error)
         )
-        update["failure"] = problem.model_dump(mode="json")
         return update
+    gathered = [outcome.evidence]
+    if trigger.kind == "run_alarm":
+        item = await _alarm_item(services, trigger)
+        if isinstance(item, Problem):
+            update["failure"] = item.model_dump(mode="json")
+            return update
+        if item is not None:
+            second = await _triage_step(ctx, executor, investigation_id, index + 1, item)
+            update["next_step"] = index + 2
+            update["tool_steps"] = 2
+            if second.evidence is not None:
+                gathered.append(second.evidence)
     first = data_message(
         {
             "trigger": trigger.model_dump(mode="json"),
-            "evidence": [model_view(outcome.evidence)],
-            "tool_calls_used": 1,
+            "evidence": [model_view(e) for e in gathered],
+            "tool_calls_used": update["tool_steps"],
         }
     )
     update["evidence"] = [e.model_dump(mode="json") for e in ledger.items]
@@ -352,7 +438,10 @@ async def gather(state: InvestigationState, runtime: Runtime[GraphContext]) -> d
     limit = ctx.limits.max_tool_steps
     investigation_id = state["investigation_id"]
     ledger = EvidenceLedger(investigation_id, _evidence(state))
-    executor = ToolExecutor(_services(ctx, state), ledger, wall_clock=ctx.wall_clock)
+    trigger = InvestigationTrigger.model_validate(state["trigger"])
+    executor = ToolExecutor(
+        _services(ctx, state), ledger, wall_clock=ctx.wall_clock, allowed=trigger_tools(trigger)
+    )
     used = state["tool_steps"]
     index = state["next_step"]
     messages = list(state["messages"])
@@ -427,6 +516,7 @@ async def verify(state: InvestigationState, runtime: Runtime[GraphContext]) -> d
     step = _Step(ctx, state["investigation_id"], state["next_step"], "verify", title)
     await step.start()
     report = Report.model_validate(state["report"])
+    sources = await knowledge_source_ids(ctx.services) if report.hypotheses else None
     result = await ctx.verifier.verify(
         report,
         _evidence(state),
@@ -435,6 +525,7 @@ async def verify(state: InvestigationState, runtime: Runtime[GraphContext]) -> d
         last_round=last,
         writer_model=state["writer_model"],
         options=step.options(),
+        known_sources=sources,
     )
     await step.end("completed")
     verification = result.verification

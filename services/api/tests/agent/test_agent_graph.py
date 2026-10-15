@@ -26,6 +26,7 @@ from tests.agent.helpers import (
 )
 from tests.llm.helpers import make_stack
 from yield_guardian.agent.graph import InvestigationLimits, InvestigatorRunner, triage_call
+from yield_guardian.agent.tools import SCIENCE_TOOL_NAMES
 from yield_guardian.agent.verifier import REPORT_REDACTION
 from yield_guardian.contracts.investigation import (
     Decision,
@@ -201,7 +202,7 @@ async def test_the_planner_sees_tools_and_evidence_as_data(respx_mock: respx.Rou
     model = happy_model(respx_mock)
     await runner(FakeScience()).run(INV, UNIT, RecordingSink())
     first, second = model.bodies("investigator")
-    assert len(first["tools"]) == 11
+    assert [t["function"]["name"] for t in first["tools"]] == list(SCIENCE_TOOL_NAMES)
     assert first["tool_choice"] == "auto"
     assert "at most 8 tool calls" in first["messages"][0]["content"]
     assert [m["role"] for m in first["messages"]] == ["system", "user"]

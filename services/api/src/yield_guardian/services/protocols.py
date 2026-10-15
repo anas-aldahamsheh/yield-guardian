@@ -98,7 +98,7 @@ class LineService(Protocol):
 
 class InvestigationStore(Protocol):
     async def create(
-        self, trigger: InvestigationTrigger, *, session: ActiveSession
+        self, trigger: InvestigationTrigger, *, session: ActiveSession, title: str | None = None
     ) -> Investigation: ...
 
     async def get(self, investigation_id: str) -> Investigation: ...

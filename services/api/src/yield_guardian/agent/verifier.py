@@ -7,7 +7,9 @@
    cited evidence at its JSON Pointer, within the rounding the text shows; a finding or action
    must cite the evidence its numbers come from. Identifiers (units, sensors, wafers, lots,
    alarms, dates) must exist in the evidence.
-3. Citations: every evidence ID a finding, an action or a number cites must exist.
+3. Citations: every evidence ID a finding, an action, a number or a hypothesis cites must exist;
+   every source a hypothesis names must be in the knowledge base; a hypothesis assessed
+   ``supported`` needs an observation for it, one assessed ``not_supported`` one against it.
 4. Wording: causal phrases are rejected (:mod:`yield_guardian.agent.wording`).
 5. Claims: a model of a different family from the writer judges whether each finding is
    supported by the evidence it cites.
@@ -20,9 +22,9 @@ after two revisions is shown with the issues flagged (``passed`` false).
 from __future__ import annotations
 
 import re
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,6 +46,7 @@ from yield_guardian.agent.wording import ASSOCIATION_HINT, causal_phrases
 from yield_guardian.contracts.investigation import (
     ClaimVerdict,
     Evidence,
+    HypothesisEvidence,
     InvestigationTrigger,
     IssueCode,
     NumberRef,
@@ -93,13 +96,31 @@ def text_fields(report: Report) -> Iterator[TextField]:
         yield TextField(f"actions[{i}].rationale", action.rationale, cites)
     for i, limitation in enumerate(report.limitations):
         yield TextField(f"limitations[{i}]", limitation, None)
+    for i, hypothesis in enumerate(report.hypotheses):
+        observed = (*hypothesis.evidence_for, *hypothesis.evidence_against)
+        cites = tuple(item.evidence_id for item in observed)
+        yield TextField(f"hypotheses[{i}].hypothesis", hypothesis.hypothesis, cites)
+        for side, items in (
+            ("evidence_for", hypothesis.evidence_for),
+            ("evidence_against", hypothesis.evidence_against),
+        ):
+            for j, item in enumerate(items):
+                location = f"hypotheses[{i}].{side}[{j}].observation"
+                yield TextField(location, item.observation, (item.evidence_id,))
 
 
 REPORT_REDACTION = "[unverified]"
 """Stands in, in the report shown to the engineer, for a number or identifier code could not
 verify (the verification lists what it was and why)."""
 
-_TEXT_LIMITS = {"summary": 1200, "claim": 600, "action": 300, "rationale": 600}
+_TEXT_LIMITS = {
+    "summary": 1200,
+    "claim": 600,
+    "action": 300,
+    "rationale": 600,
+    "hypothesis": 400,
+    "observation": 300,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +160,8 @@ def trigger_facts(trigger: InvestigationTrigger | None) -> tuple[list[str], list
     alarm = _ALARM_UNIT.match(trigger.ref)
     if trigger.kind == "alarm" and alarm:
         units.append(int(alarm.group("unit")))
+    if trigger.kind == "run_alarm":
+        strings.extend(trigger.ref.split(":", 1))
     return strings, units
 
 
@@ -209,14 +232,63 @@ class _NumberCheck:
         return float(value)
 
 
+def check_hypotheses(
+    report: Report, evidence: Mapping[str, Evidence], known_sources: Collection[str] | None
+) -> list[VerificationIssue]:
+    """Sources, evidence IDs and the evidence each assessment needs. ``known_sources`` is every
+    source ID of the knowledge base; None when it could not be read, so no source can be
+    confirmed."""
+    issues: list[VerificationIssue] = []
+    for i, hypothesis in enumerate(report.hypotheses):
+        location = f"hypotheses[{i}]"
+        for source_id in hypothesis.source_ids:
+            if known_sources is None:
+                message = f"source {source_id!r} not checked: the knowledge base is not available"
+                issues.append(_issue("unknown_source", f"{location}.source_ids", message))
+            elif source_id not in known_sources:
+                message = f"source {source_id!r} is not in the knowledge base"
+                issues.append(_issue("unknown_source", f"{location}.source_ids", message))
+        for side, items in (
+            ("evidence_for", hypothesis.evidence_for),
+            ("evidence_against", hypothesis.evidence_against),
+        ):
+            for j, item in enumerate(items):
+                if item.evidence_id not in evidence:
+                    issues.append(
+                        _issue(
+                            "unknown_evidence",
+                            f"{location}.{side}[{j}].evidence_id",
+                            f"{item.evidence_id} was not returned by a tool in this investigation",
+                        )
+                    )
+        if hypothesis.assessment == "supported" and not hypothesis.evidence_for:
+            issues.append(
+                _issue(
+                    "assessment_without_evidence",
+                    f"{location}.assessment",
+                    "assessed supported without an observation in evidence_for",
+                )
+            )
+        if hypothesis.assessment == "not_supported" and not hypothesis.evidence_against:
+            issues.append(
+                _issue(
+                    "assessment_without_evidence",
+                    f"{location}.assessment",
+                    "assessed not_supported without an observation in evidence_against",
+                )
+            )
+    return issues
+
+
 def check_numbers_and_citations(
     report: Report,
     evidence: Mapping[str, Evidence],
     *,
     trigger: InvestigationTrigger | None = None,
+    known_sources: Collection[str] | None = None,
 ) -> CodeCheck:
     """Rules 2 to 4: numbers, identifiers, citations and wording, by code only."""
-    issues: list[VerificationIssue] = []
+    issues: list[VerificationIssue] = check_hypotheses(report, evidence, known_sources)
     strings, units = trigger_facts(trigger)
     facts = EvidenceFacts.build(evidence.values(), strings=strings, units=units)
     numbers = _NumberCheck(report, evidence)
@@ -439,12 +511,40 @@ def shown_report(report: Report, redactions: Sequence[Redaction]) -> Report:
         for i, a in enumerate(report.actions)
     ]
     limitations = [fix(f"limitations[{i}]", t, None) for i, t in enumerate(report.limitations)]
+
+    def observations(i: int, side: str, items: Sequence[HypothesisEvidence]) -> list[Any]:
+        return [
+            item.model_copy(
+                update={
+                    "observation": fix(
+                        f"hypotheses[{i}].{side}[{j}].observation",
+                        item.observation,
+                        _TEXT_LIMITS["observation"],
+                    )
+                }
+            )
+            for j, item in enumerate(items)
+        ]
+
+    hypotheses = [
+        h.model_copy(
+            update={
+                "hypothesis": fix(
+                    f"hypotheses[{i}].hypothesis", h.hypothesis, _TEXT_LIMITS["hypothesis"]
+                ),
+                "evidence_for": observations(i, "evidence_for", h.evidence_for),
+                "evidence_against": observations(i, "evidence_against", h.evidence_against),
+            }
+        )
+        for i, h in enumerate(report.hypotheses)
+    ]
     return report.model_copy(
         update={
             "summary": fix("summary", report.summary, _TEXT_LIMITS["summary"]),
             "findings": findings,
             "actions": actions,
             "limitations": limitations,
+            "hypotheses": hypotheses,
         }
     )
 
@@ -565,9 +665,12 @@ class ReportVerifier:
         last_round: bool,
         writer_model: str | None,
         options: CallOptions,
+        known_sources: Collection[str] | None = None,
     ) -> VerifyResult:
         index = {item.evidence_id: item for item in evidence}
-        code = check_numbers_and_citations(report, index, trigger=trigger)
+        code = check_numbers_and_citations(
+            report, index, trigger=trigger, known_sources=known_sources
+        )
         if code.has_errors and not last_round:
             model = ModelCheck(
                 [ClaimVerdict(finding_index=i, verdict="not_checked", note=None) for i in range(len(report.findings))],

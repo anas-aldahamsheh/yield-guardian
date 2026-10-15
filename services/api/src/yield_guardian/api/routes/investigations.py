@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Header, Path, Query, status
 from sse_starlette import EventSourceResponse
 
-from yield_guardian.api.deps import EngineerSession, Investigations, LiveInvestigator
+from yield_guardian.api.deps import EngineerSession, Investigations, LiveInvestigator, Registry
 from yield_guardian.api.problems import problem_responses
 from yield_guardian.contracts.investigation import (
     DecisionCreate,
@@ -14,6 +14,7 @@ from yield_guardian.contracts.investigation import (
     InvestigationPage,
     InvestigationStatus,
 )
+from yield_guardian.services.investigations import check_run_alarm
 
 router = APIRouter(tags=["investigations"])
 
@@ -33,17 +34,23 @@ SSE_RESPONSE: dict[int | str, dict[str, Any]] = {
     "/investigations",
     operation_id="create_investigation",
     status_code=status.HTTP_202_ACCEPTED,
-    responses=problem_responses(401, 403, 503),
+    responses=problem_responses(400, 401, 403, 404, 503),
 )
 async def create_investigation(
     session: EngineerSession,
     body: InvestigationCreate,
     store: Investigations,
+    registry: Registry,
     _investigator: LiveInvestigator,
 ) -> Investigation:
-    """Start a live investigation. Follow it on GET /investigations/{id}/events."""
+    """Start a live investigation. Follow it on GET /investigations/{id}/events.
+
+    A `run_alarm` trigger (`<run_id>:<alarm_id>`) needs the run and its alarm (404 otherwise)."""
     # Without an investigator, LiveInvestigator answers 503 not_ready before any run exists.
-    return await store.create(body.trigger, session=session)
+    title = None
+    if body.trigger.kind == "run_alarm":
+        title = await check_run_alarm(registry.run_reader, body.trigger)
+    return await store.create(body.trigger, session=session, title=title)
 
 
 @router.get("/investigations", operation_id="list_investigations", responses=problem_responses(503))

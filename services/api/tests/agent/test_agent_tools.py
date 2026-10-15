@@ -9,9 +9,11 @@ import pytest
 
 from tests.agent.helpers import FakeKnowledge, FakeScience, TickingClock
 from yield_guardian.agent.pointer import resolve
+from yield_guardian.agent.run_tools import RUN_TOOL_NAMES
 from yield_guardian.agent.tools import (
     ALL_TOOL_NAMES,
     MAX_FDC_WINDOW,
+    SCIENCE_TOOL_NAMES,
     TOOLS,
     EvidenceLedger,
     ToolExecutor,
@@ -39,10 +41,12 @@ def keys_of(node: Any) -> set[str]:
     return set()
 
 
-def test_eleven_tools_with_closed_schemas() -> None:
+def test_eleven_science_and_four_run_tools_with_closed_schemas() -> None:
     specs = tool_specs()
     assert [s.function.name for s in specs] == list(ALL_TOOL_NAMES)
-    assert len(specs) == 11
+    assert len(SCIENCE_TOOL_NAMES) == 11
+    assert RUN_TOOL_NAMES == ("get_run", "get_run_unit", "get_run_wafer", "get_run_lot")
+    assert list(ALL_TOOL_NAMES) == [*SCIENCE_TOOL_NAMES, *RUN_TOOL_NAMES]
     for spec in specs:
         params = spec.function.parameters
         assert params["type"] == "object"

@@ -9,7 +9,7 @@ Services never return units after the plant clock's position: those have not com
 
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from yield_guardian.contracts.base import Problem, ProblemCode
 from yield_guardian.contracts.chat import ChatEventPayload, ChatRequest
@@ -59,6 +59,9 @@ from yield_guardian.contracts.wafer import (
     WaferPage,
     WaferPrediction,
 )
+
+if TYPE_CHECKING:
+    from yield_guardian.live.protocols import RunReader
 
 
 class ServiceError(Exception):
@@ -201,6 +204,8 @@ class ScienceServices:
     secom: SecomService
     wafer: WaferService
     knowledge: KnowledgeService
+    runs: "RunReader | None" = None
+    """The run store, for the run tools; None where runs are not served."""
 
 
 class InvestigationSink(Protocol):

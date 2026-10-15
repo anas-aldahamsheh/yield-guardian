@@ -60,7 +60,9 @@ class InvestigationRow(Base):
             "status IN ('queued', 'running', 'awaiting_decision', 'approved', 'rejected', 'failed')",
             name="status",
         ),
-        CheckConstraint("trigger_kind IN ('alarm', 'unit', 'wafer', 'lot')", name="trigger_kind"),
+        CheckConstraint(
+            "trigger_kind IN ('alarm', 'unit', 'wafer', 'lot', 'run_alarm')", name="trigger_kind"
+        ),
         Index("ix_investigations_created", "created_at", "investigation_id"),
         Index("ix_investigations_status_created", "status", "created_at", "investigation_id"),
         Index("ix_investigations_trigger", "trigger_kind", "trigger_ref"),
@@ -156,6 +158,8 @@ class WorkOrderRow(Base):
     note: Mapped[str | None] = mapped_column(Text)
     outcome: Mapped[str | None] = mapped_column(Text)
     outcome_confirmed: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    confirmed_cause: Mapped[JsonObject | None] = mapped_column(JSONB)
+    """The fab's own record of the cause (``ConfirmedCause``), set when the work order closes."""
 
 
 class AuditEntryRow(Base):
