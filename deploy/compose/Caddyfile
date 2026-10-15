@@ -14,7 +14,7 @@
 {$SITE_ADDRESS} {
 	header -Server
 
-	# API, server-sent events and the live-line WebSocket: streamed straight through.
+	# API and server-sent events: streamed straight through.
 	@api path /api/* /ws/*
 	handle @api {
 		reverse_proxy api:8000 {
