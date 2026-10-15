@@ -96,6 +96,9 @@ jobs:
       - name: Lint
         if: steps.web.outputs.present == 'true'
         run: pnpm --filter @yield-guardian/web run lint
+      - name: Format
+        if: steps.web.outputs.present == 'true'
+        run: pnpm --filter @yield-guardian/web run format:check
       - name: Typecheck
         if: steps.web.outputs.present == 'true'
         run: pnpm --filter @yield-guardian/web run typecheck
