@@ -11,7 +11,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** List Alarms */
+    /**
+     * List Alarms
+     * @description SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first.
+     */
     get: operations["list_alarms"];
     put?: never;
     post?: never;
@@ -70,7 +73,7 @@ export interface paths {
     };
     /**
      * Get Fdc Series
-     * @description T² and SPE with control limits, up to the plant clock.
+     * @description T² and SPE with control limits, in time order.
      */
     get: operations["get_fdc_series"];
     put?: never;
@@ -231,26 +234,6 @@ export interface paths {
      * @description Full-text search of the curated open-access literature.
      */
     get: operations["search_knowledge"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/line/state": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Line State
-     * @description Plant clock, the latest units, counts and open alarms. Live updates: WebSocket /ws/line.
-     */
-    get: operations["get_line_state"];
     put?: never;
     post?: never;
     delete?: never;
@@ -524,6 +507,127 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/runs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create Run
+     * @description Materialise the input and start computing every stage now. Follow it on `events_url`.
+     */
+    post: operations["create_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Run
+     * @description The run's full state: every stage with its result and every listed alarm.
+     */
+    get: operations["get_run"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}/events": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Stream Run Events
+     * @description Stored events after Last-Event-ID, then live ones; the stream closes after `run_done`.
+     */
+    get: operations["stream_run_events"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}/units/{index}/chart": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Run Unit Chart
+     * @description One unit's control-chart result with `z` (every monitored sensor's standardised
+     *     reading); the run and its events carry `z` for the first 200 units only.
+     */
+    get: operations["get_run_unit_chart"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/cases": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Run Cases
+     * @description Real situations found in the data by fixed rules over live computations.
+     */
+    get: operations["list_run_cases"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/layouts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Draw Layouts
+     * @description Real WM-811K die layouts to draw a defect on (every die starts as pass).
+     */
+    get: operations["list_draw_layouts"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/secom/operating-points": {
     parameters: {
       query?: never;
@@ -681,7 +785,7 @@ export interface paths {
     };
     /**
      * List Units
-     * @description Units in time order, up to the plant clock.
+     * @description Units in time order.
      */
     get: operations["list_units"];
     put?: never;
@@ -758,6 +862,69 @@ export interface paths {
     };
     /** Get Unit Risk */
     get: operations["get_unit_risk"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create Upload
+     * @description Parse and validate a sensor or wafer file and keep it for 24 h. What is wrong inside the
+     *     file comes back as issues (errors block the run); only an unreadable file is refused.
+     */
+    post: operations["create_upload"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads/examples/{kind}.{fmt}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Upload Example
+     * @description Real data in the upload format: real SECOM units the risk model never saw, or every die
+     *     of one real WM-811K demo lot. The source and licence ride in `X-Data-Attribution` and a
+     *     `Link` header (rel cite-as); a workbook also has an About sheet.
+     */
+    get: operations["get_upload_example"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads/templates/{kind}.{fmt}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Upload Template
+     * @description The header row only, ready to fill in.
+     */
+    get: operations["get_upload_template"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1064,6 +1231,19 @@ export interface components {
       start: string;
       /** Units */
       units: number;
+    };
+    /** Body_create_upload */
+    Body_create_upload: {
+      /**
+       * File
+       * @description The CSV or XLSX file.
+       */
+      file: string;
+      /**
+       * Kind
+       * @description sensors or wafers; read from the header row when omitted.
+       */
+      kind?: ("sensors" | "wafers") | null;
     };
     /** BundleInfo */
     BundleInfo: {
@@ -3206,9 +3386,8 @@ export interface components {
       /**
        * Lot
        * @description All demo wafers of this lot.
-       * @default null
        */
-      lot: string | null;
+      lot?: string | null;
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -3578,11 +3757,8 @@ export interface components {
        * @example RA-3
        */
       alarm_id: string;
-      /**
-       * Investigation Id
-       * @default null
-       */
-      investigation_id: string | null;
+      /** Investigation Id */
+      investigation_id?: string | null;
       /**
        * Kind
        * @enum {string}
@@ -3598,11 +3774,8 @@ export interface components {
         | "lot_excursion";
       /** Limit */
       limit: number | null;
-      /**
-       * Lot
-       * @default null
-       */
-      lot: string | null;
+      /** Lot */
+      lot?: string | null;
       /**
        * Meaning
        * @description One plain sentence.
@@ -3638,23 +3811,14 @@ export interface components {
        * @example Sensor relationships broke (SPE)
        */
       title: string;
-      /**
-       * Unit Id
-       * @default null
-       */
-      unit_id: string | null;
-      /**
-       * Unit Index
-       * @default null
-       */
-      unit_index: number | null;
+      /** Unit Id */
+      unit_id?: string | null;
+      /** Unit Index */
+      unit_index?: number | null;
       /** Value */
       value: number | null;
-      /**
-       * Wafer Index
-       * @default null
-       */
-      wafer_index: number | null;
+      /** Wafer Index */
+      wafer_index?: number | null;
     };
     /**
      * RunCase
@@ -3764,28 +3928,19 @@ export interface components {
      * @description Where the input came from, in words the page can show as is.
      */
     RunOrigin: {
-      /**
-       * Case Id
-       * @default null
-       */
-      case_id: string | null;
+      /** Case Id */
+      case_id?: string | null;
       /** Datasets */
       datasets: ("secom" | "wm811k" | "user")[];
-      /**
-       * Filename
-       * @default null
-       */
-      filename: string | null;
+      /** Filename */
+      filename?: string | null;
       /**
        * Rule
        * @description How the input was chosen or built, e.g. the selection rule and its seed.
        */
       rule: string;
-      /**
-       * Seed
-       * @default null
-       */
-      seed: number | null;
+      /** Seed */
+      seed?: number | null;
       /**
        * Source
        * @enum {string}
@@ -3831,9 +3986,8 @@ export interface components {
       /**
        * Seed
        * @description Repeat an earlier pick; omitted picks a new one.
-       * @default null
        */
-      seed: number | null;
+      seed?: number | null;
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -4405,24 +4559,16 @@ export interface components {
     };
     /** StageState */
     StageState: {
-      /**
-       * Elapsed Ms
-       * @default null
-       */
-      elapsed_ms: number | null;
+      /** Elapsed Ms */
+      elapsed_ms?: number | null;
       /**
        * Needs
        * @description Why the stage was skipped, in plain words.
-       * @default null
        */
-      needs: string | null;
-      /** @default null */
-      problem: components["schemas"]["Problem"] | null;
-      /**
-       * Result
-       * @default null
-       */
-      result:
+      needs?: string | null;
+      problem?: components["schemas"]["Problem"] | null;
+      /** Result */
+      result?:
         | (
             | components["schemas"]["IntakeResult"]
             | components["schemas"]["SensorRiskResult"]
@@ -4538,9 +4684,8 @@ export interface components {
       /**
        * Timestamp
        * @description The unit's time, when the input has it.
-       * @default null
        */
-      timestamp: string | null;
+      timestamp?: string | null;
       /** Top Spe */
       top_spe: components["schemas"]["FdcContributionItem"][];
       /** Top T2 */
@@ -4553,9 +4698,8 @@ export interface components {
       /**
        * Z
        * @description Standardised reading of each monitored sensor (order of `features`), null where missing. Sent for at most the first 200 units; GET the run for the rest.
-       * @default null
        */
-      z: (number | null)[] | null;
+      z?: (number | null)[] | null;
     };
     /**
      * UnitDetail
@@ -4587,7 +4731,7 @@ export interface components {
       fdc_period: "reference" | "monitoring";
       /**
        * Final Test
-       * @description Final-test result; null until the replay reveals it (see PlantClock.final_test_lag_units).
+       * @description Recorded final-test result (secom_labels.data).
        */
       final_test: ("pass" | "fail") | null;
       /** Investigation Ids */
@@ -4739,7 +4883,7 @@ export interface components {
       fdc_period: "reference" | "monitoring";
       /**
        * Final Test
-       * @description Final-test result; null until the replay reveals it (see PlantClock.final_test_lag_units).
+       * @description Recorded final-test result (secom_labels.data).
        */
       final_test: ("pass" | "fail") | null;
       /**
@@ -5073,9 +5217,8 @@ export interface components {
       /**
        * Label
        * @description Recorded WM-811K label, when the wafer comes from the real dataset.
-       * @default null
        */
-      label:
+      label?:
         | (
             | "Center"
             | "Donut"
@@ -5097,9 +5240,8 @@ export interface components {
       /**
        * Source Wafer
        * @description The WM-811K wafer this is, when it comes from the real dataset.
-       * @default null
        */
-      source_wafer: string | null;
+      source_wafer?: string | null;
       /** Wafer */
       wafer: number;
     };
@@ -5198,9 +5340,8 @@ export interface components {
       /**
        * Source Wafer
        * @description The WM-811K wafer this is, when it comes from the real dataset.
-       * @default null
        */
-      source_wafer: string | null;
+      source_wafer?: string | null;
       spatial: components["schemas"]["SpatialTest"] | null;
       /**
        * Top Label
@@ -5454,6 +5595,7 @@ export type AuditEntry = components["schemas"]["AuditEntry"];
 export type AuditPage = components["schemas"]["AuditPage"];
 export type AutoClassification = components["schemas"]["AutoClassification"];
 export type BlockInfo = components["schemas"]["BlockInfo"];
+export type BodyCreateUpload = components["schemas"]["Body_create_upload"];
 export type BundleInfo = components["schemas"]["BundleInfo"];
 export type BundleRef = components["schemas"]["BundleRef"];
 export type Calibration = components["schemas"]["Calibration"];
@@ -5826,7 +5968,7 @@ export interface operations {
       query?: {
         /** @description First sequence number (inclusive). */
         from_seq?: number | null;
-        /** @description Last sequence number (inclusive); default: the plant clock. */
+        /** @description Last sequence number (inclusive); default: the last unit. */
         to_seq?: number | null;
       };
       header?: never;
@@ -6301,46 +6443,6 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["KnowledgeSearchResult"];
-        };
-      };
-      /** @description Invalid request */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
-      /** @description Not ready */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/problem+json": components["schemas"]["Problem"];
-        };
-      };
-    };
-  };
-  get_line_state: {
-    parameters: {
-      query?: {
-        window?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LineState"];
         };
       };
       /** @description Invalid request */
@@ -6864,6 +6966,311 @@ export interface operations {
       };
     };
   };
+  create_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunCreated"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Run"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  stream_run_events: {
+    parameters: {
+      query?: never;
+      header?: {
+        "Last-Event-ID"?: string | null;
+      };
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Server-sent events. `event` is the event type, `id` its `seq`, `data` the JSON event. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+          "text/event-stream": components["schemas"]["RunEvent"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_run_unit_chart: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        index: number;
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UnitChartResult"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_run_cases: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunCaseList"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_draw_layouts: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DrawLayoutList"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
   get_operating_points: {
     parameters: {
       query?: never;
@@ -6898,7 +7305,7 @@ export interface operations {
       query?: {
         /** @description First sequence number (inclusive). */
         from_seq?: number | null;
-        /** @description Last sequence number (inclusive); default: the plant clock. */
+        /** @description Last sequence number (inclusive); default: the last unit. */
         to_seq?: number | null;
       };
       header?: never;
@@ -7168,7 +7575,7 @@ export interface operations {
         /** @description First sequence number (inclusive). */
         from_seq?: number | null;
         limit?: number;
-        /** @description Last sequence number (inclusive); default: the plant clock. */
+        /** @description Last sequence number (inclusive); default: the last unit. */
         to_seq?: number | null;
       };
       header?: never;
@@ -7402,6 +7809,132 @@ export interface operations {
       };
       /** @description Not ready */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  create_upload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_create_upload"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadSummary"];
+        };
+      };
+      /** @description Request too large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_upload_example: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        fmt: "csv" | "xlsx";
+        kind: "sensors" | "wafers";
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The file, as an attachment. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+          "text/csv": string;
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_upload_template: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        fmt: "csv" | "xlsx";
+        kind: "sensors" | "wafers";
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The file, as an attachment. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+          "text/csv": string;
+        };
+      };
+      /** @description Invalid request */
+      422: {
         headers: {
           [name: string]: unknown;
         };
