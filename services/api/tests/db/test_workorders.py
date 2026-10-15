@@ -4,10 +4,16 @@ import asyncio
 
 import pytest
 
-from yield_guardian.contracts.investigation import DecisionCreate, InvestigationTrigger
+from tests.db.fakes import REPORT, FakeRunner
+from yield_guardian.contracts.investigation import (
+    DecisionCreate,
+    Hypothesis,
+    HypothesisEvidence,
+    InvestigationTrigger,
+)
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
 from yield_guardian.contracts.session import GuestSessionCreate
-from yield_guardian.contracts.workorders import WorkOrderUpdate
+from yield_guardian.contracts.workorders import ConfirmedCause, WorkOrderUpdate
 from yield_guardian.services.persistence import Persistence
 from yield_guardian.services.protocols import ActiveSession, AuditLog, WorkOrderStore
 
@@ -158,3 +164,75 @@ async def test_alarm_states(persistence: Persistence) -> None:
     assert states["AL-1-risk"].investigation_id == created.investigation_id
     assert list(await persistence.alarms.states()) == ["AL-1-risk"]
     await _drain(persistence, created.investigation_id)
+
+
+SENSOR_HYPOTHESIS = Hypothesis(
+    hypothesis="Synthetic test hypothesis: group G1 is associated with the alarm.",
+    source_ids=[],
+    evidence_for=[HypothesisEvidence(evidence_id="E1", observation="Synthetic observation.")],
+    evidence_against=[],
+    assessment="supported",
+)
+
+
+async def test_a_confirmed_cause_is_recorded_when_the_work_order_closes(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    runner.report = REPORT.model_copy(update={"hypotheses": [SENSOR_HYPOTHESIS]})
+    (work_order_id,) = await _work_orders(persistence, 1)
+    session = await _engineer(persistence)
+    store = persistence.work_orders
+    cause = ConfirmedCause(text="Synthetic confirmed cause.", hypothesis_index=0)
+
+    with pytest.raises(InvalidArgumentError, match="closed"):
+        await store.update(work_order_id, WorkOrderUpdate(confirmed_cause=cause), session=session)
+    closed = await store.update(
+        work_order_id, WorkOrderUpdate(status="done", confirmed_cause=cause), session=session
+    )
+    assert (closed.status, closed.confirmed_cause) == ("done", cause)
+    assert (await store.get(work_order_id)).confirmed_cause == cause
+    with pytest.raises(InvalidArgumentError, match="below 1"):
+        await store.update(
+            work_order_id,
+            WorkOrderUpdate(confirmed_cause=ConfirmedCause(text="x", hypothesis_index=1)),
+            session=session,
+        )
+    free = ConfirmedCause(text="Synthetic cause outside the hypotheses.")
+    changed = await store.update(
+        work_order_id, WorkOrderUpdate(confirmed_cause=free), session=session
+    )
+    assert changed.confirmed_cause == free
+    entries = (await persistence.audit.list(action="work_order.updated")).items
+    assert entries[0].details["changes"] == {
+        "confirmed_cause": {
+            "from": cause.model_dump(mode="json"),
+            "to": {"text": free.text, "hypothesis_index": None},
+        }
+    }
+
+    reopened = await store.update(
+        work_order_id, WorkOrderUpdate(status="in_progress"), session=session
+    )
+    assert reopened.confirmed_cause is None  # reopening withdraws it
+    await store.update(
+        work_order_id, WorkOrderUpdate(status="done", confirmed_cause=free), session=session
+    )
+    cleared = await store.update(
+        work_order_id, WorkOrderUpdate.model_validate({"confirmed_cause": None}), session=session
+    )
+    assert (cleared.status, cleared.confirmed_cause) == ("done", None)
+
+
+async def test_a_hypothesis_index_needs_a_report_with_hypotheses(
+    persistence: Persistence,
+) -> None:
+    (work_order_id,) = await _work_orders(persistence, 1)
+    with pytest.raises(InvalidArgumentError, match="no hypotheses"):
+        await persistence.work_orders.update(
+            work_order_id,
+            WorkOrderUpdate(
+                status="done", confirmed_cause=ConfirmedCause(text="x", hypothesis_index=0)
+            ),
+            session=await _engineer(persistence),
+        )
+    assert (await persistence.work_orders.get(work_order_id)).status == "open"

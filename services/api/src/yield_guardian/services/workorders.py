@@ -6,10 +6,15 @@ from pydantic import JsonValue
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from yield_guardian.contracts.investigation import Action
+from yield_guardian.contracts.investigation import Action, Report
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
-from yield_guardian.contracts.workorders import WorkOrder, WorkOrderPage, WorkOrderUpdate
-from yield_guardian.db.tables import WORK_ORDER_NUMBER, WorkOrderRow
+from yield_guardian.contracts.workorders import (
+    ConfirmedCause,
+    WorkOrder,
+    WorkOrderPage,
+    WorkOrderUpdate,
+)
+from yield_guardian.db.tables import WORK_ORDER_NUMBER, InvestigationRow, WorkOrderRow
 from yield_guardian.services import audit, cursors
 from yield_guardian.services.protocols import ActiveSession
 
@@ -30,6 +35,7 @@ def to_work_order(row: WorkOrderRow) -> WorkOrder:
             "note": row.note,
             "outcome": row.outcome,
             "outcome_confirmed": row.outcome_confirmed,
+            "confirmed_cause": row.confirmed_cause,
         }
     )
 
@@ -65,6 +71,7 @@ async def open_work_order(
             note=note,
             outcome=None,
             outcome_confirmed=False,
+            confirmed_cause=None,
         )
     )
     audit.record(
@@ -76,6 +83,22 @@ async def open_work_order(
         {"investigation_id": investigation_id, "actions": len(actions)},
     )
     return work_order_id
+
+
+async def _check_hypothesis(db: AsyncSession, investigation_id: str, cause: ConfirmedCause) -> None:
+    if cause.hypothesis_index is None:
+        return
+    stored = await db.scalar(
+        select(InvestigationRow.report).where(InvestigationRow.investigation_id == investigation_id)
+    )
+    count = len(Report.model_validate(stored).hypotheses) if stored is not None else 0
+    if cause.hypothesis_index >= count:
+        raise InvalidArgumentError(
+            f"The report of {investigation_id} has {count} hypotheses; "
+            f"hypothesis_index must be below {count}."
+            if count
+            else f"The report of {investigation_id} has no hypotheses; send hypothesis_index null."
+        )
 
 
 class DbWorkOrderStore:
@@ -114,6 +137,8 @@ class DbWorkOrderStore:
         """Apply the fields sent (an explicit null clears note or outcome).
 
         Changing the outcome withdraws its confirmation unless the same update confirms it again.
+        A confirmed cause is recorded only on a closed (done) work order, its hypothesis index
+        must name a hypothesis of the investigation's report, and reopening withdraws it.
         """
         sent = update.model_fields_set
         async with self._sessionmaker() as db, db.begin():
@@ -129,6 +154,7 @@ class DbWorkOrderStore:
                 "note": row.note,
                 "outcome": row.outcome,
                 "outcome_confirmed": row.outcome_confirmed,
+                "confirmed_cause": row.confirmed_cause,
             }
             if update.status is not None:
                 target["status"] = update.status
@@ -142,6 +168,18 @@ class DbWorkOrderStore:
                 target["outcome_confirmed"] = update.outcome_confirmed
             if target["outcome_confirmed"] and not target["outcome"]:
                 raise InvalidArgumentError("Record the outcome before confirming it.")
+            if "confirmed_cause" in sent and update.confirmed_cause is not None:
+                if target["status"] != "done":
+                    raise InvalidArgumentError(
+                        "A confirmed cause is recorded when the work order is closed: send it "
+                        'with status "done".'
+                    )
+                await _check_hypothesis(db, row.investigation_id, update.confirmed_cause)
+                target["confirmed_cause"] = update.confirmed_cause.model_dump(mode="json")
+            elif "confirmed_cause" in sent:
+                target["confirmed_cause"] = None
+            if target["status"] != "done":
+                target["confirmed_cause"] = None
             changes: dict[str, JsonValue] = {
                 field: {"from": getattr(row, field), "to": value}
                 for field, value in target.items()
