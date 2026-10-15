@@ -91,7 +91,7 @@ def _xlsx_records(data: bytes) -> list[tuple[int, list[Cell]]]:
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             unpacked = sum(info.file_size for info in archive.infolist())
-    except zipfile.BadZipFile as error:
+    except Exception as error:  # BadZipFile, and NotImplementedError for a damaged version field
         raise TableError("The file is not a valid .xlsx workbook.") from error
     if unpacked > MAX_XLSX_UNPACKED_BYTES:
         raise TableError("The workbook is too large once unpacked. Save the sheet as CSV.")
@@ -109,6 +109,12 @@ def _xlsx_records(data: bytes) -> list[tuple[int, list[Cell]]]:
                 raise TableError(f"The sheet has more than {MAX_ROWS:,} rows.")
             records.append((number, [_xlsx_cell(v) for v in values]))
         return records
+    except TableError:
+        raise
+    except Exception as error:  # read-only sheets are parsed lazily: damage shows up here
+        raise TableError(
+            "The workbook's first sheet is damaged and cannot be read. Save the sheet as CSV."
+        ) from error
     finally:
         workbook.close()
 
