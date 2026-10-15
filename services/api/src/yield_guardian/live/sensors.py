@@ -66,7 +66,6 @@ BoolArray = npt.NDArray[np.bool_]
 
 TOP_FEATURES = 15
 TOP_CONTRIBUTIONS = 10
-Z_UNITS = 200
 SAMPLE_UNITS = 40
 MAD_TO_SD = 1.482602218505602  # 1 / Phi^-1(3/4), as yg_secom.fdc
 STATUSES: tuple[SensorStatus, ...] = ("ok", "watch", "maintenance", "dead")
@@ -491,13 +490,19 @@ class SecomSensorEngine:
         )
 
     def control_charts(self, units: Sequence[SensorUnitInput]) -> ControlChartsResult:
+        """T², SPE, level, top contributions and `z` for every unit.
+
+        `z` is filled for every unit because this is the stored stage result that GET /runs/{id}
+        returns (RunReader: "z for every unit"); the stream event carries it for at most the
+        first 200 units (UnitChartResult.z), and that cut is made where the event is built.
+        """
         if not units:
             raise NeedsInput("The control charts need at least one sensor unit.")
         scores = self.fdc_scores(readings_matrix(units))
         limits = self.limits
         top_t2 = _top_contributions(scores.contrib_t2, self.fdc_features)
         top_spe = _top_contributions(scores.contrib_spe, self.fdc_features)
-        z_shown = _nullable(scores.z[:Z_UNITS], scores.missing[:Z_UNITS])
+        z_values = _nullable(scores.z, scores.missing)
         items: list[dict[str, Any]] = []
         for i, (unit, t2, spe) in enumerate(
             zip(units, scores.t2.tolist(), scores.spe.tolist(), strict=True)
@@ -519,7 +524,7 @@ class SecomSensorEngine:
                     "level": level,
                     "top_t2": top_t2[i],
                     "top_spe": top_spe[i],
-                    "z": z_shown[i] if i < Z_UNITS else None,
+                    "z": z_values[i],
                 }
             )
         methods = self.bundle.methods

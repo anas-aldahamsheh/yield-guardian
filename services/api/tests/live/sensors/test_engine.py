@@ -203,11 +203,10 @@ def test_control_charts_contract(
     result = engine.control_charts(units)
     assert [u.index for u in result.units] == list(range(250))
     assert [u.timestamp for u in result.units] == [u.timestamp for u in units]
-    shown = [u.z for u in result.units]
-    assert all(z is not None and len(z) == len(result.features) for z in shown[:200])
-    assert all(z is None for z in shown[200:])
+    # z for every unit: this is the stored result GET returns; the event cuts it to 200
+    assert all(u.z is not None and len(u.z) == len(result.features) for u in result.units)
     columns = [int(s[1:]) - 1 for s in result.features]
-    for unit, chart in zip(units[:200], result.units[:200], strict=True):
+    for unit, chart in zip(units, result.units, strict=True):
         assert chart.z is not None
         assert [z is None for z in chart.z] == [unit.readings[c] is None for c in columns]
         for items in (chart.top_t2, chart.top_spe):
