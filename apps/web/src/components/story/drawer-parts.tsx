@@ -45,6 +45,14 @@ export function Method({ children }: { children: string }) {
   );
 }
 
+/**
+ * A detail of a stored result that is still on its way to the page (a reload first shows what
+ * was on screen; the rest of the run is read just after and shows here on its own).
+ */
+export function StillReading({ what }: { what: string }) {
+  return <p className="text-[14px] leading-5 text-ink-3">{`Reading ${what}.`}</p>;
+}
+
 /** A stage whose result is not on the line yet: what it needs, why it stopped, or that it is coming. */
 export function NotYet({ stage, what }: { stage: StageView; what: string }) {
   const text =

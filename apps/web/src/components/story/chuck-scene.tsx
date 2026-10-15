@@ -1,11 +1,11 @@
 "use client";
 
 import { Canvas, useThree } from "@react-three/fiber";
-import type { WaferPatternItem } from "@yield-guardian/contracts";
 import { useEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
 
 import { buildWafer, type WaferObjects } from "@/components/wafer/wafer-build";
+import type { WaferItem } from "@/lib/live/run-state";
 import { layoutDies, planExposure } from "@/lib/wafer/geometry";
 
 import { gridOf } from "./probe-order";
@@ -43,7 +43,7 @@ function Chuck({
   onReady,
 }: {
   store: SceneStore;
-  wafers: WaferPatternItem[];
+  wafers: readonly WaferItem[];
   onReady: () => void;
 }) {
   const invalidate = useThree((s) => s.invalidate);
@@ -63,8 +63,9 @@ function Chuck({
       const index = scene.wafer;
       if (index == null) return;
       if (!plan || plan.index !== index) {
+        // A map still being read (just after a reload) is drawn once it is: the wafers change then.
         const wafer = wafers.find((w) => w.index === index);
-        if (!wafer) return;
+        if (!wafer?.map) return;
         if (objects) {
           parent.remove(objects.root);
           objects.dispose();
@@ -111,7 +112,7 @@ function Chuck({
 
 export default function ChuckScene(props: {
   store: SceneStore;
-  wafers: WaferPatternItem[];
+  wafers: readonly WaferItem[];
   onReady: () => void;
 }) {
   return (

@@ -1,6 +1,7 @@
 import type { RunAlarm } from "@yield-guardian/contracts";
 import { useSyncExternalStore } from "react";
 
+import { restUnit, restWafer } from "@/lib/live/rest";
 import { STAGES, stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import { STATION_STAGES } from "@/lib/live/stations";
 import type { Focus } from "@/lib/live/url-state";
@@ -101,49 +102,6 @@ export function stationOfStage(stage: StageId): LineStation | null {
     if (STATION_STAGES[station].includes(stage)) return station;
   }
   return null;
-}
-
-/** Severity order of the line's statistics against their limits, for choosing a unit to show. */
-function chartSeverity(state: RunState, index: number): number {
-  const charts = stageResult(state, "control_charts");
-  const unit = charts?.units[index];
-  if (!unit || !charts) return 0;
-  return Math.max(unit.t2 / charts.limits.t2_999, unit.spe / charts.limits.spe_999);
-}
-
-/**
- * The unit the instruments rest on: the one asked for, else the unit of the first sensor alarm
- * of the most severe kind, else the last unit.
- */
-export function restUnit(state: RunState, focus: Focus): number | null {
-  const units = state.units ?? stageResult(state, "intake")?.units ?? 0;
-  const count =
-    stageResult(state, "control_charts")?.units.length ??
-    stageResult(state, "sensor_risk")?.units.length ??
-    units;
-  if (!count) return null;
-  if (focus?.kind === "unit" && focus.index < count) return focus.index;
-  const sensorAlarms = state.alarms.filter((a) => a.unit_index != null);
-  const severe = sensorAlarms.filter((a) => a.severity === "alarm");
-  const pick = (severe.length ? severe : sensorAlarms)
-    .map((a) => a.unit_index!)
-    .sort((a, b) => chartSeverity(state, b) - chartSeverity(state, a) || a - b)[0];
-  return pick ?? count - 1;
-}
-
-/** The wafer the prober rests on: the one asked for, else the first unknown-pattern or flagged wafer, else the last. */
-export function restWafer(state: RunState, focus: Focus): number | null {
-  const pattern = stageResult(state, "wafer_pattern");
-  const count = pattern?.wafers.length ?? 0;
-  if (!count || !pattern) return null;
-  if (focus?.kind === "wafer" && focus.index < count) return focus.index;
-  const flagged = new Set(
-    stageResult(state, "lot")?.lots.flatMap((l) =>
-      l.tests.filter((t) => t.flagged).map((t) => t.label),
-    ) ?? [],
-  );
-  const repeat = pattern.wafers.find((w) => flagged.has(w.top_label) && !w.is_unknown);
-  return repeat?.index ?? count - 1;
 }
 
 function dieCount(state: RunState, wafer: number | null): number {

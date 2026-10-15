@@ -1,10 +1,15 @@
 "use client";
 
-import type { WaferPatternItem, WaferPatternResult } from "@yield-guardian/contracts";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { arrivedLive, stageResult, type RunState } from "@/lib/live/run-state";
+import {
+  arrivedLive,
+  stageResult,
+  type RunState,
+  type WaferItem,
+  type WaferPatternView,
+} from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
 import { FILM } from "@/lib/wafer/geometry";
 import { formatInt } from "@/lib/format";
@@ -137,11 +142,11 @@ function ProberSilhouette({ active }: { active: boolean }) {
 }
 
 /** The cabinet's readout: which wafer is on the chuck, dies probed so far and how many failed. */
-function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: WaferPatternItem[] }) {
+function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
   const wafer = index != null ? wafers.find((w) => w.index === index) : undefined;
-  const grid = useMemo(() => (wafer ? gridOf(wafer.map) : null), [wafer]);
+  const grid = useMemo(() => (wafer?.map ? gridOf(wafer.map) : null), [wafer]);
   const order = useMemo(() => (grid ? probeOrder(grid) : null), [grid]);
   const fails = useMemo(() => (grid && order ? failsAlong(grid, order) : null), [grid, order]);
   if (!wafer || !order || !fails) return null;
@@ -160,11 +165,11 @@ function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: WaferPatte
 }
 
 /** The probed wafer as a flat map: dies probed so far show their result, the probe is a lit square. */
-function Probed2D({ store, wafers }: { store: SceneStore; wafers: WaferPatternItem[] }) {
+function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
   const wafer = index != null ? wafers.find((w) => w.index === index) : undefined;
-  const grid = useMemo(() => (wafer ? gridOf(wafer.map) : null), [wafer]);
+  const grid = useMemo(() => (wafer?.map ? gridOf(wafer.map) : null), [wafer]);
   const order = useMemo(() => (grid ? probeOrder(grid) : null), [grid]);
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -228,7 +233,7 @@ function Carrier2D({
   live,
 }: {
   store: SceneStore;
-  pattern: WaferPatternResult | null;
+  pattern: WaferPatternView | null;
   /** Lots the lot test covered, once its result is shown. */
   tested: ReadonlySet<string>;
   flagged: boolean;

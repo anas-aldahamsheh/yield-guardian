@@ -48,7 +48,8 @@ export function DieMap({
   max = 1,
   highlight,
 }: {
-  data: DieMapData;
+  /** Null while the map is still being read: the canvas keeps its place, drawn once it is. */
+  data: DieMapData | null;
   /** Accessible description; the canvas is an image. */
   label: string;
   className?: string;
@@ -72,6 +73,7 @@ export function DieMap({
       if (!ctx) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
+      if (!data) return;
       const surface = token(canvas, "--die-2", "#ffffff");
       const pass = token(canvas, "--hairline-strong", "#b9bdc2");
       const fail = token(canvas, "--fail", "#c62b44");

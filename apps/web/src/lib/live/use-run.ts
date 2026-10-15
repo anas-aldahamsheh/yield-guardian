@@ -9,8 +9,10 @@ import { withRetry } from "@/lib/api/retry";
 import { getRun, isGone } from "./api";
 import {
   applyRunEvent,
+  applyRunGlance,
   applyRunSnapshot,
   emptyRunState,
+  fillIn,
   isFinished,
   linkInvestigation,
   type RunState,
@@ -107,13 +109,14 @@ interface Held {
 
 /**
  * Where the page starts for a run, before any request: what it showed of it before, merged with
- * what the server read while rendering the page. The same on the server and in hydration.
+ * what the server read while rendering the page (in its compact form: the stages it carried in
+ * part are noted, and read in full just after). The same on the server and in hydration.
  */
 function startFor(runId: string, stored: StoredRun | null, fresh: boolean): Held {
   const before = recall(runId);
   const mine = storedRunId(stored) === runId ? stored : null;
   let state = before ?? emptyRunState(runId);
-  if (mine?.kind === "run") state = applyRunSnapshot(state, mine.run);
+  if (mine?.kind === "run") state = applyRunGlance(state, mine.run, mine.partial);
   const problem =
     !before && mine?.kind === "not_found"
       ? NOT_FOUND
@@ -138,8 +141,9 @@ const noSubscribe = () => () => {};
  * A run this page just created (`fresh`) is read from its event stream from the first event, so
  * every result reaches the line as it arrives. Any other run (a reload, a link, back and
  * forward) starts from its stored state, shown as it stands with nothing replayed: what the
- * server read while rendering the page (`stored`), or what this page showed of it before, or
- * else GET /runs/{id}, which waits while the API wakes. A run still going is then followed on
+ * server read while rendering the page (`stored`, compact: the bulk it leaves out is read just
+ * after and drawn in place), or what this page showed of it before, or else GET /runs/{id},
+ * which waits while the API wakes. A run still going is then followed on
  * its stream from right after the last event that state includes (Last-Event-ID), so what
  * arrives then reaches the line as it comes.
  */
@@ -234,6 +238,20 @@ export function useRun(
         if (!quiet) throw error;
       }
     };
+    /**
+     * The bulk of the results the page's first paint carried in part (lib/live/glance.ts), read
+     * after hydration and drawn in place: only those stages change, so nothing the stream brings
+     * meanwhile is taken from it, and nothing is queued to play. Quiet: the page already shows
+     * the run, and the details it waits for say they are being read.
+     */
+    const fill = async () => {
+      try {
+        const run = await withRetry(() => getRun(runId, { signal }), { signal });
+        if (!signal.aborted) patch(runId, {}, (current) => fillIn(current, run));
+      } catch {
+        // Left as shown; the next read of the run (a reload, back and forward) fills it in.
+      }
+    };
 
     const go = async () => {
       // The API answered 404 or 410 while the server rendered the page: that answer is final.
@@ -243,15 +261,21 @@ export function useRun(
         const knownUpTo = known.contiguousSeq != null;
         if (fresh || knownUpTo) {
           if (!isFinished(known)) {
-            await follow();
+            const following = follow();
+            const filling = known.partial.size ? fill() : null;
+            await following;
             // The stream has every result; the snapshot adds the expiry and any investigation
             // link made since.
+            if (!signal.aborted) await filling;
             if (!signal.aborted) await read({ quiet: true });
           } else if (!fromDocument && start !== null) {
             // A finished run shown from what this page held before (back and forward): one
-            // quiet read picks up an investigation started from it since, on any device.
+            // quiet read picks up an investigation started from it since, on any device (and
+            // draws in place any bulk still to read).
             await read({ quiet: true });
             if (!signal.aborted) patch(runId, { connection: "ended" });
+          } else if (known.partial.size) {
+            await fill();
           }
           return;
         }

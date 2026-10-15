@@ -3,6 +3,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 
 import { RUN_ID, sampleEvents, snapshotOf, sseBody } from "../../../e2e/story/fixture";
 
+import { glanceOf, type GlanceView } from "./glance";
+import { stageResult } from "./run-state";
 import { runEventsUrl } from "./sse";
 import type { StoredRun } from "./stored-run";
 import { RUN_NOT_FOUND_MESSAGE, forgetShownRuns, useRun, type RunHandle } from "./use-run";
@@ -50,8 +52,17 @@ function api(answer: (call: Call, n: number) => Response | Promise<Response>) {
   return calls;
 }
 
+/** The stored state as the server puts it in the page when it leaves nothing out. */
 function stored(list: readonly RunEvent[]): StoredRun {
-  return { kind: "run", run: snapshotOf(list) };
+  return { kind: "run", run: snapshotOf(list), partial: [] };
+}
+
+/** The stored state in its compact form, as the server puts it in the page (lib/live/glance.ts). */
+function glanced(
+  list: readonly RunEvent[],
+  view: GlanceView = { station: null, focus: null },
+): StoredRun {
+  return { kind: "run", ...glanceOf(snapshotOf(list), view) };
 }
 
 /** Lets pending effects, requests and stream reads settle. */
@@ -83,6 +94,70 @@ describe("useRun after a reload", () => {
     // Never an empty or "connecting" state on the way.
     expect(seen.every((h) => h.state?.status === "done" && h.connection === "ended")).toBe(true);
     expect(calls).toEqual([]);
+  });
+
+  it("shows a finished run's compact first paint at once, then draws its bulk in place", async () => {
+    const calls = api((call) => (call.url === runUrl ? json(snapshotOf(events)) : json({}, 404)));
+    const seen: RunHandle[] = [];
+    const { result } = renderHook(() => {
+      const handle = useRun(RUN_ID, { fresh: false, stored: glanced(events) });
+      seen.push(handle);
+      return handle;
+    });
+    const first = seen[0]!.state!;
+    expect(first.status).toBe("done");
+    expect([...first.partial].sort()).toEqual(
+      ["control_charts", "lot", "sensor_risk", "wafer_pattern", "wafer_similar"].sort(),
+    );
+    expect(stageResult(first, "wafer_pattern")!.wafers.some((w) => w.map == null)).toBe(true);
+    await waitFor(() => expect(result.current.state!.partial.size).toBe(0));
+    await settle();
+    const last = result.current.state!;
+    expect(stageResult(last, "wafer_pattern")!.wafers.every((w) => w.map != null)).toBe(true);
+    expect(stageResult(last, "sensor_risk")!.units.every((u) => u.top != null)).toBe(true);
+    expect(stageResult(last, "lot")!.lots.every((l) => l.stacked?.frequencies !== null)).toBe(true);
+    // Shown as it stands the whole time: never a reading state, nothing queued to play, the
+    // same alarms; and the API is asked once, for the run (no stream: the run is finished).
+    expect(
+      seen.every(
+        (h) =>
+          h.state?.status === "done" &&
+          h.connection === "ended" &&
+          h.state.arrivals.length === 0 &&
+          h.state.alarms.length === first.alarms.length,
+      ),
+    ).toBe(true);
+    expect(calls.map((c) => c.url)).toEqual([runUrl]);
+  });
+
+  it("follows a compact running run on its stream while its bulk is read", async () => {
+    const cut = 14;
+    const calls = api((call) => {
+      if (call.url === runEventsUrl(RUN_ID))
+        return stream(events.filter((e) => e.seq > Number(call.lastEventId)));
+      // Newer than the stream's place: only the stages left out are taken from it.
+      if (call.url === runUrl) return json(snapshotOf(events));
+      return json({}, 404);
+    });
+    const { result } = renderHook(() =>
+      useRun(RUN_ID, { fresh: false, stored: glanced(events.slice(0, cut)) }),
+    );
+    expect([...result.current.state!.partial].sort()).toEqual(["control_charts", "sensor_risk"]);
+    await waitFor(() => expect(result.current.state?.status).toBe("done"));
+    await settle();
+    expect(result.current.state!.partial.size).toBe(0);
+    expect(calls.filter((c) => c.url === runEventsUrl(RUN_ID))).toEqual([
+      { url: runEventsUrl(RUN_ID), lastEventId: String(events[cut - 1]!.seq) },
+    ]);
+    // Everything after the stored state still arrives as new, in order, though the read of the
+    // run that filled in the bulk already held it.
+    const after = events.filter((e) => e.seq > events[cut - 1]!.seq);
+    expect(result.current.state!.arrivals.map((a) => a.seq)).toEqual(
+      after.filter((e) => ["stage_result", "alarm", "run_done"].includes(e.type)).map((e) => e.seq),
+    );
+    expect(stageResult(result.current.state!, "control_charts")!.units.every((u) => u.top_t2)).toBe(
+      true,
+    );
   });
 
   it("follows a stored running run from right after its last event", async () => {

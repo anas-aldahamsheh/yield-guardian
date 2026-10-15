@@ -30,7 +30,7 @@ export default async function HomePage({
     const first = Array.isArray(value) ? value[0] : value;
     if (first != null) query.set(key, first);
   }
-  const { runId } = parseLineUrl(query);
-  const stored = runId ? await readStoredRun(runId) : null;
+  const view = parseLineUrl(query);
+  const stored = view.runId ? await readStoredRun(view.runId, view) : null;
   return <LinePage initialQuery={query.toString()} stored={stored} />;
 }

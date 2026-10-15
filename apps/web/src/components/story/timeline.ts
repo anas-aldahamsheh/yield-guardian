@@ -298,7 +298,7 @@ export function createLineTimeline(
         walked.forEach((w, i) => {
           const duration = i === 0 ? FIRST_WAFER : later;
           const dies = { v: 0 };
-          const total = dieCount(w.map);
+          const total = w.map ? dieCount(w.map) : 0;
           tl.call(() => store.set({ wafer: w.index, dies: 0 }), [], t);
           tl.to(
             dies,

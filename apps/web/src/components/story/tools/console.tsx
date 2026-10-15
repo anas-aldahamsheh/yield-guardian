@@ -1,15 +1,15 @@
 "use client";
 
-import type {
-  ControlChartsResult,
-  DriftHealthResult,
-  GroupDrift,
-  SensorRiskResult,
-} from "@yield-guardian/contracts";
+import type { DriftHealthResult, GroupDrift } from "@yield-guardian/contracts";
 import { useMemo } from "react";
 
 import { formatNumber, formatPercent, formatReading } from "@/lib/format";
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import {
+  stageResult,
+  type ControlChartsView,
+  type RunState,
+  type SensorRiskView,
+} from "@/lib/live/run-state";
 
 import {
   arcPath,
@@ -165,7 +165,7 @@ function LogDial({
   store: SceneStore;
   cx: number;
   label: string;
-  charts: ControlChartsResult | null;
+  charts: ControlChartsView | null;
   statistic: "t2" | "spe";
 }) {
   const value = useScene(store, (s) => (statistic === "t2" ? s.t2 : s.spe));
@@ -273,7 +273,7 @@ function RiskDial({
 }: {
   store: SceneStore;
   cx: number;
-  risk: SensorRiskResult | null;
+  risk: SensorRiskView | null;
 }) {
   const value = useScene(store, (s) => s.risk);
   const domain = useMemo(
@@ -398,8 +398,8 @@ function Screen({
   skippedDrift,
 }: {
   store: SceneStore;
-  charts: ControlChartsResult | null;
-  risk: SensorRiskResult | null;
+  charts: ControlChartsView | null;
+  risk: SensorRiskView | null;
   drift: DriftHealthResult | null;
   skippedDrift: boolean;
 }) {
