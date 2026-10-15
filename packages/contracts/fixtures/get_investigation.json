@@ -841,7 +841,8 @@
       "SECOM sensors are anonymous, so the tool behind S060 is not named in the data.",
       "Association, not causation: no work-order outcome confirms a cause yet.",
       "Placeholder model output for interface development; replaced by the real bundle."
-    ]
+    ],
+    "hypotheses": []
   },
   "verification": {
     "passed": false,

@@ -117,6 +117,8 @@ export interface paths {
     /**
      * Create Investigation
      * @description Start a live investigation. Follow it on GET /investigations/{id}/events.
+     *
+     *     A `run_alarm` trigger (`<run_id>:<alarm_id>`) needs the run and its alarm (404 otherwise).
      */
     post: operations["create_investigation"];
     delete?: never;
@@ -1223,15 +1225,51 @@ export interface components {
     };
     /**
      * ChatContext
-     * @description What the engineer is looking at; helps the router resolve "this unit" or "this wafer".
+     * @description What the engineer is looking at, so the model can resolve "this unit" or "this alarm".
+     *     With `run_id` the chat may read that run with the run tools.
      */
     ChatContext: {
       /** Investigation Id */
       investigation_id?: string | null;
       /** Lot */
       lot?: string | null;
+      /**
+       * Run Alarm
+       * @description An alarm of the run.
+       */
+      run_alarm?: string | null;
+      /** Run Id */
+      run_id?: string | null;
+      /**
+       * Run Lot
+       * @description A lot of the run, as named in its input.
+       */
+      run_lot?: string | null;
+      /**
+       * Run Unit
+       * @description Position of a unit in the run input.
+       */
+      run_unit?: number | null;
+      /**
+       * Run Wafer
+       * @description Position of a wafer in the run input.
+       */
+      run_wafer?: number | null;
       /** Sensor */
       sensor?: string | null;
+      /**
+       * Station
+       * @description The station of the run being looked at.
+       */
+      station?:
+        | (
+            | "manufacturing"
+            | "monitoring"
+            | "wafer_test"
+            | "investigation"
+            | "decision"
+          )
+        | null;
       /** Unit Id */
       unit_id?: number | null;
       /** Wafer Id */
@@ -1270,6 +1308,7 @@ export interface components {
       | components["schemas"]["ChatRouteEvent"]
       | components["schemas"]["ChatToolEvent"]
       | components["schemas"]["ChatCitationEvent"]
+      | components["schemas"]["ChatSuggestionEvent"]
       | components["schemas"]["ChatTokenEvent"]
       | components["schemas"]["ChatRefusalEvent"]
       | components["schemas"]["ChatDoneEvent"]
@@ -1320,6 +1359,30 @@ export interface components {
        */
       type: "route";
     };
+    /**
+     * ChatSuggestionEvent
+     * @description An offer to start an investigation, proposed by the model and checked by code (the alarm
+     *     or item exists in the run, the evidence or the page). The page shows a button; only the
+     *     engineer's click starts it, with POST /investigations and this `trigger`.
+     */
+    ChatSuggestionEvent: {
+      /**
+       * Action
+       * @constant
+       */
+      action: "start_investigation";
+      /**
+       * Title
+       * @description What would be investigated, written by code.
+       */
+      title: string;
+      trigger: components["schemas"]["InvestigationTrigger"];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "suggestion";
+    };
     /** ChatTokenEvent */
     ChatTokenEvent: {
       /** Text */
@@ -1351,7 +1414,11 @@ export interface components {
         | "get_wafer_prediction"
         | "get_similar_wafers"
         | "get_lot_stats"
-        | "search_knowledge";
+        | "search_knowledge"
+        | "get_run"
+        | "get_run_unit"
+        | "get_run_wafer"
+        | "get_run_lot";
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
@@ -1430,6 +1497,20 @@ export interface components {
         | "none";
       /** Probability */
       probability: number;
+    };
+    /**
+     * ConfirmedCause
+     * @description The cause the fab confirmed when it closed the work order. It is the fab's own record,
+     *     shown as such; it is never given to a language model, as evidence or as a prediction.
+     */
+    ConfirmedCause: {
+      /**
+       * Hypothesis Index
+       * @description The hypothesis of the investigation's report it confirms, if any.
+       */
+      hypothesis_index?: number | null;
+      /** Text */
+      text: string;
     };
     /** ConfusionMatrix */
     ConfusionMatrix: {
@@ -1839,7 +1920,11 @@ export interface components {
         | "get_wafer_prediction"
         | "get_similar_wafers"
         | "get_lot_stats"
-        | "search_knowledge";
+        | "search_knowledge"
+        | "get_run"
+        | "get_run_unit"
+        | "get_run_wafer"
+        | "get_run_lot";
     };
     /** EvidenceEvent */
     EvidenceEvent: {
@@ -2294,6 +2379,45 @@ export interface components {
       /** Window Id */
       window_id: number;
     };
+    /**
+     * Hypothesis
+     * @description A candidate explanation tested against the evidence: a literature cause proposed for the
+     *     predicted wafer pattern, or the deviation of a sensor group. It states an association to
+     *     check, never a cause.
+     */
+    Hypothesis: {
+      /**
+       * Assessment
+       * @description supported needs at least one item for, not_supported at least one against.
+       * @enum {string}
+       */
+      assessment: "supported" | "not_supported" | "inconclusive";
+      /** Evidence Against */
+      evidence_against: components["schemas"]["HypothesisEvidence"][];
+      /** Evidence For */
+      evidence_for: components["schemas"]["HypothesisEvidence"][];
+      /** Hypothesis */
+      hypothesis: string;
+      /**
+       * Source Ids
+       * @description Knowledge sources (source_id) that propose it; empty for a hypothesis read from the sensor data.
+       */
+      source_ids: string[];
+    };
+    /** HypothesisEvidence */
+    HypothesisEvidence: {
+      /**
+       * Evidence Id
+       * @description Evidence ID, unique within one investigation or one chat answer.
+       * @example E3
+       */
+      evidence_id: string;
+      /**
+       * Observation
+       * @description What this evidence shows for or against the hypothesis, in one sentence.
+       */
+      observation: string;
+    };
     /** IntakeResult */
     IntakeResult: {
       /** First Timestamp */
@@ -2459,6 +2583,10 @@ export interface components {
             | "get_similar_wafers"
             | "get_lot_stats"
             | "search_knowledge"
+            | "get_run"
+            | "get_run_unit"
+            | "get_run_wafer"
+            | "get_run_lot"
           )
         | null;
     };
@@ -2510,13 +2638,14 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: "alarm" | "unit" | "wafer" | "lot";
+      kind: "alarm" | "unit" | "wafer" | "lot" | "run_alarm";
       /** Question */
       question?: string | null;
       /**
        * Ref
-       * @description Alarm ID, unit ID, wafer ID or lot, depending on `kind`.
+       * @description Alarm ID, unit ID, wafer ID or lot, depending on `kind`; for `run_alarm`, `<run_id>:<alarm_id>`.
        * @example AL-1043-t2
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4:RA-3
        */
       ref: string;
     };
@@ -3399,6 +3528,11 @@ export interface components {
       actions: components["schemas"]["Action"][];
       /** Findings */
       findings: components["schemas"]["Finding"][];
+      /**
+       * Hypotheses
+       * @description Candidate explanations and how the evidence bears on each; empty in reports written before hypotheses existed.
+       */
+      hypotheses?: components["schemas"]["Hypothesis"][];
       /** Limitations */
       limitations: string[];
       /** Numbers */
@@ -5015,7 +5149,9 @@ export interface components {
         | "missing_citation"
         | "causal_wording"
         | "unsupported_claim"
-        | "verifier_unavailable";
+        | "verifier_unavailable"
+        | "unknown_source"
+        | "assessment_without_evidence";
       /**
        * Location
        * @example findings[1].claim
@@ -5377,6 +5513,8 @@ export interface components {
        * @description The report actions the engineer approved.
        */
       actions: components["schemas"]["Action"][];
+      /** @description Recorded when the work order closed (status done). */
+      confirmed_cause?: components["schemas"]["ConfirmedCause"] | null;
       /**
        * Created At
        * Format: date-time
@@ -5430,6 +5568,8 @@ export interface components {
     };
     /** WorkOrderUpdate */
     WorkOrderUpdate: {
+      /** @description Only with the work order closed (status done, now or in this update); an explicit null clears it. Reopening the work order withdraws it. */
+      confirmed_cause?: components["schemas"]["ConfirmedCause"] | null;
       /** Note */
       note?: string | null;
       /** Outcome */
@@ -5469,6 +5609,7 @@ export type ChatMessage = components["schemas"]["ChatMessage"];
 export type ChatRefusalEvent = components["schemas"]["ChatRefusalEvent"];
 export type ChatRequest = components["schemas"]["ChatRequest"];
 export type ChatRouteEvent = components["schemas"]["ChatRouteEvent"];
+export type ChatSuggestionEvent = components["schemas"]["ChatSuggestionEvent"];
 export type ChatTokenEvent = components["schemas"]["ChatTokenEvent"];
 export type ChatToolEvent = components["schemas"]["ChatToolEvent"];
 export type ClaimVerdict = components["schemas"]["ClaimVerdict"];
@@ -5476,6 +5617,7 @@ export type ClassMetrics = components["schemas"]["ClassMetrics"];
 export type ClassProbability = components["schemas"]["ClassProbability"];
 export type ClassProbabilityItem =
   components["schemas"]["ClassProbabilityItem"];
+export type ConfirmedCause = components["schemas"]["ConfirmedCause"];
 export type ConfusionMatrix = components["schemas"]["ConfusionMatrix"];
 export type ControlChartsResult = components["schemas"]["ControlChartsResult"];
 export type CurvePoint = components["schemas"]["CurvePoint"];
@@ -5517,6 +5659,8 @@ export type GuestSessionCreate = components["schemas"]["GuestSessionCreate"];
 export type Health = components["schemas"]["Health"];
 export type HealthCounts = components["schemas"]["HealthCounts"];
 export type HealthWindow = components["schemas"]["HealthWindow"];
+export type Hypothesis = components["schemas"]["Hypothesis"];
+export type HypothesisEvidence = components["schemas"]["HypothesisEvidence"];
 export type IntakeResult = components["schemas"]["IntakeResult"];
 export type Investigation = components["schemas"]["Investigation"];
 export type InvestigationCreate = components["schemas"]["InvestigationCreate"];
@@ -5959,6 +6103,15 @@ export interface operations {
           "application/json": components["schemas"]["Investigation"];
         };
       };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
       /** @description Sign-in required */
       401: {
         headers: {
@@ -5970,6 +6123,15 @@ export interface operations {
       };
       /** @description Not allowed */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };

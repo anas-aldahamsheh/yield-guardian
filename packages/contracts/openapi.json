@@ -1092,7 +1092,7 @@
           "investigations"
         ],
         "summary": "Create Investigation",
-        "description": "Start a live investigation. Follow it on GET /investigations/{id}/events.",
+        "description": "Start a live investigation. Follow it on GET /investigations/{id}/events.\n\nA `run_alarm` trigger (`<run_id>:<alarm_id>`) needs the run and its alarm (404 otherwise).",
         "operationId": "create_investigation",
         "parameters": [
           {
@@ -1133,6 +1133,16 @@
               }
             }
           },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
           "401": {
             "content": {
               "application/problem+json": {
@@ -1152,6 +1162,16 @@
               }
             },
             "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
           },
           "503": {
             "content": {
@@ -4131,12 +4151,105 @@
               }
             ],
             "title": "Investigation Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^run_[0-9a-z]{8,40}$",
+                "examples": [
+                  "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "station": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "manufacturing",
+                  "monitoring",
+                  "wafer_test",
+                  "investigation",
+                  "decision"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station",
+            "description": "The station of the run being looked at."
+          },
+          "run_unit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Unit",
+            "description": "Position of a unit in the run input."
+          },
+          "run_wafer": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Wafer",
+            "description": "Position of a wafer in the run input."
+          },
+          "run_lot": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+                "description": "A name from the user's file (unit_id or lot), kept as written."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Lot",
+            "description": "A lot of the run, as named in its input."
+          },
+          "run_alarm": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^RA-\\d{1,6}$",
+                "description": "Alarm within one run, numbered in the order raised.",
+                "examples": [
+                  "RA-3"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Alarm",
+            "description": "An alarm of the run."
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "ChatContext",
-        "description": "What the engineer is looking at; helps the router resolve \"this unit\" or \"this wafer\"."
+        "description": "What the engineer is looking at, so the model can resolve \"this unit\" or \"this alarm\".\nWith `run_id` the chat may read that run with the run tools."
       },
       "ChatDoneEvent": {
         "additionalProperties": false,
@@ -4207,6 +4320,7 @@
             "error": "#/components/schemas/ChatErrorEvent",
             "refusal": "#/components/schemas/ChatRefusalEvent",
             "route": "#/components/schemas/ChatRouteEvent",
+            "suggestion": "#/components/schemas/ChatSuggestionEvent",
             "token": "#/components/schemas/ChatTokenEvent",
             "tool": "#/components/schemas/ChatToolEvent"
           },
@@ -4221,6 +4335,9 @@
           },
           {
             "$ref": "#/components/schemas/ChatCitationEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ChatSuggestionEvent"
           },
           {
             "$ref": "#/components/schemas/ChatTokenEvent"
@@ -4353,6 +4470,38 @@
         "title": "ChatRouteEvent",
         "type": "object"
       },
+      "ChatSuggestionEvent": {
+        "additionalProperties": false,
+        "description": "An offer to start an investigation, proposed by the model and checked by code (the alarm\nor item exists in the run, the evidence or the page). The page shows a button; only the\nengineer's click starts it, with POST /investigations and this `trigger`.",
+        "properties": {
+          "type": {
+            "const": "suggestion",
+            "title": "Type",
+            "type": "string"
+          },
+          "action": {
+            "const": "start_investigation",
+            "title": "Action",
+            "type": "string"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/InvestigationTrigger"
+          },
+          "title": {
+            "description": "What would be investigated, written by code.",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "action",
+          "trigger",
+          "title"
+        ],
+        "title": "ChatSuggestionEvent",
+        "type": "object"
+      },
       "ChatTokenEvent": {
         "additionalProperties": false,
         "properties": {
@@ -4393,7 +4542,11 @@
               "get_wafer_prediction",
               "get_similar_wafers",
               "get_lot_stats",
-              "search_knowledge"
+              "search_knowledge",
+              "get_run",
+              "get_run_unit",
+              "get_run_wafer",
+              "get_run_lot"
             ],
             "title": "Tool",
             "type": "string"
@@ -4558,6 +4711,36 @@
         ],
         "title": "ClassProbabilityItem",
         "type": "object"
+      },
+      "ConfirmedCause": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "hypothesis_index": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hypothesis Index",
+            "description": "The hypothesis of the investigation's report it confirms, if any."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ConfirmedCause",
+        "description": "The cause the fab confirmed when it closed the work order. It is the fab's own record,\nshown as such; it is never given to a language model, as evidence or as a prediction."
       },
       "ConfusionMatrix": {
         "properties": {
@@ -5432,7 +5615,11 @@
               "get_wafer_prediction",
               "get_similar_wafers",
               "get_lot_stats",
-              "search_knowledge"
+              "search_knowledge",
+              "get_run",
+              "get_run_unit",
+              "get_run_wafer",
+              "get_run_lot"
             ],
             "title": "Tool"
           },
@@ -6495,6 +6682,89 @@
         ],
         "title": "HealthWindow"
       },
+      "Hypothesis": {
+        "properties": {
+          "hypothesis": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Hypothesis"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Source Ids",
+            "description": "Knowledge sources (source_id) that propose it; empty for a hypothesis read from the sensor data."
+          },
+          "evidence_for": {
+            "items": {
+              "$ref": "#/components/schemas/HypothesisEvidence"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence For"
+          },
+          "evidence_against": {
+            "items": {
+              "$ref": "#/components/schemas/HypothesisEvidence"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence Against"
+          },
+          "assessment": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "not_supported",
+              "inconclusive"
+            ],
+            "title": "Assessment",
+            "description": "supported needs at least one item for, not_supported at least one against."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "hypothesis",
+          "source_ids",
+          "evidence_for",
+          "evidence_against",
+          "assessment"
+        ],
+        "title": "Hypothesis",
+        "description": "A candidate explanation tested against the evidence: a literature cause proposed for the\npredicted wafer pattern, or the deviation of a sensor group. It states an association to\ncheck, never a cause."
+      },
+      "HypothesisEvidence": {
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^E\\d+$",
+            "title": "Evidence Id",
+            "description": "Evidence ID, unique within one investigation or one chat answer.",
+            "examples": [
+              "E3"
+            ]
+          },
+          "observation": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Observation",
+            "description": "What this evidence shows for or against the hypothesis, in one sentence."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "evidence_id",
+          "observation"
+        ],
+        "title": "HypothesisEvidence"
+      },
       "IntakeResult": {
         "additionalProperties": false,
         "properties": {
@@ -6910,7 +7180,11 @@
                   "get_wafer_prediction",
                   "get_similar_wafers",
                   "get_lot_stats",
-                  "search_knowledge"
+                  "search_knowledge",
+                  "get_run",
+                  "get_run_unit",
+                  "get_run_wafer",
+                  "get_run_lot"
                 ]
               },
               {
@@ -7055,7 +7329,8 @@
               "alarm",
               "unit",
               "wafer",
-              "lot"
+              "lot",
+              "run_alarm"
             ],
             "title": "Kind"
           },
@@ -7064,9 +7339,10 @@
             "maxLength": 80,
             "minLength": 1,
             "title": "Ref",
-            "description": "Alarm ID, unit ID, wafer ID or lot, depending on `kind`.",
+            "description": "Alarm ID, unit ID, wafer ID or lot, depending on `kind`; for `run_alarm`, `<run_id>:<alarm_id>`.",
             "examples": [
-              "AL-1043-t2"
+              "AL-1043-t2",
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4:RA-3"
             ]
           },
           "question": {
@@ -9332,6 +9608,15 @@
             },
             "type": "array",
             "title": "Limitations"
+          },
+          "hypotheses": {
+            "items": {
+              "$ref": "#/components/schemas/Hypothesis"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Hypotheses",
+            "description": "Candidate explanations and how the evidence bears on each; empty in reports written before hypotheses existed."
           }
         },
         "additionalProperties": false,
@@ -13067,7 +13352,9 @@
               "missing_citation",
               "causal_wording",
               "unsupported_claim",
-              "verifier_unavailable"
+              "verifier_unavailable",
+              "unknown_source",
+              "assessment_without_evidence"
             ],
             "title": "Code"
           },
@@ -13984,6 +14271,17 @@
             "type": "boolean",
             "title": "Outcome Confirmed",
             "description": "An engineer confirmed the outcome; only then may later reports use causal wording."
+          },
+          "confirmed_cause": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfirmedCause"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recorded when the work order closed (status done)."
           }
         },
         "additionalProperties": false,
@@ -14090,6 +14388,17 @@
               }
             ],
             "title": "Outcome Confirmed"
+          },
+          "confirmed_cause": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfirmedCause"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only with the work order closed (status done, now or in this update); an explicit null clears it. Reopening the work order withdraws it."
           }
         },
         "additionalProperties": false,
