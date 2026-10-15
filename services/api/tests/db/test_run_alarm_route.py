@@ -22,10 +22,10 @@ async def _client(
 ) -> AsyncIterator[httpx.AsyncClient]:
     await clean(database_url)
     registry = ServiceRegistry(settings=settings, runner=FakeRunner())
-    registry.run_reader = runs
     build_persistence(settings, runner_provider=lambda: registry.runner, migrate=True).install(
         registry
     )
+    registry.run_reader = runs  # after install, which sets the database run store
     app = create_app(settings, registry)
     async with app.router.lifespan_context(app):
         transport = httpx.ASGITransport(app=app)

@@ -220,7 +220,8 @@ async def test_uploads_are_kept_for_24_hours(persistence: Persistence) -> None:
     found, items = await store.get_upload(made.upload_id)
     assert found == made
     assert items == data
-    clock.now += RUN_TTL
+    # A second past the TTL: once pruned, the upload ID's own (wall-clock) time decides "gone".
+    clock.now += RUN_TTL + timedelta(seconds=1)
     with pytest.raises(GoneError):
         await store.get_upload(made.upload_id)
     assert (await store.prune()).uploads == 1
