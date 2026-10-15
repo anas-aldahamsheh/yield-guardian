@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 12:50 UTC (updated as each item changes)
-**Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live)
+**Last updated:** 2026-10-15 13:14 UTC (updated as each item changes)
+**Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
-## Progress: 96 of 96 done (100%), 0 in progress, 0 not started
+## Progress: 96 of 100 done (96%), 3 in progress, 1 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -20,6 +20,7 @@
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
 | V: Version 2, the live story | 14 of 14 | 0 | 0 |
+| R: Requests after v2 | 0 of 4 | 3 | 1 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -36,8 +37,8 @@
 
 | | |
 |---|---|
-| Done | 83 of 96 (v1: 82 of 82; v2: 1 of 14) |
-| Current focus | v2: engines, runs, AI layer, story page and page merge, built in parallel (PLAN_V2 §10) |
+| Done | 96 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 0 of 4) |
+| Current focus | The owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor, and a redesign of the whole interface |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
 
@@ -224,6 +225,17 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V13 | Merge, gates, STATUS, PR | Cloud | ✅ | [PR #2](https://github.com/anas-aldahamsheh/yield-guardian/pull/2) merged into main as f754631. Gates run locally (no Actions minutes): API 1,216 passed; web 303 unit tests, lint, typecheck, format, production build, no fixture in the build; Playwright 115 passed (2 conditional skips) on a fresh build |
 | V14 | Deploy, live checks, owner demo | PC | ✅ | Worker 3: live at https://yield-guardian.anaslabs.com since 11:29 UTC, /api/v1/meta git_commit f754631; compose backed up, /ws removed from the Traefik rule; /ready true, alembic head 0004. A real sample run finished its 8 stages in about 0.5 s and streamed through the tunnel to run_done (24 alarms); a reload mid-run resumed. A drawn edge ring: Edge-Ring at 0.999, marked unknown. The real sensors example upload ran; a 33 MiB body got the API's 413 problem+json. /, /investigations and /how at 375 px dark and 1440 px light: no console error, no sideways scroll; v1 addresses answer 308. Lighthouse mobile on /: performance 95, accessibility 100, best practices 100, SEO 100. No model call |
 
+### R: Requests after v2
+
+The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each built by its own worker.
+
+| ID | Item | Where | Status | Evidence / notes |
+|---|---|---|---|---|
+| R1 | A refresh keeps everything: the stored run renders at once with no replay, the open drawer, focus and alarm stay, an alarm keeps its investigation, the API is asked for the session and meta once | Cloud | 🟡 | Reload worker. Live finding: a finished run showed "Connecting to the run" for seconds after a refresh; the alarm-to-investigation link lived only in the browser; /session and /meta were each fetched about 10 times on one live load |
+| R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | 🟡 | Sessions worker. Defaults: another visitor's check answers 404 like a missing one; a workspace and its checks are kept 30 days after its last use instead of 24 h |
+| R3 | The whole interface redesigned: layout, colour, type, hover, motion and page transitions, with the line's motion still driven only by arrived results | Cloud | 🟡 | Redesign worker, with Motion as the owner asked. Budgets: Lighthouse mobile 90 / 100 / 100 on / and /how, axe 0, reduced-motion path |
+| R4 | Deploy R1 to R3 and check them live | PC | ⏳ | Worker 3, after the merge |
+
 ## Waiting on you
 
 | Since | What | Why |
@@ -234,6 +246,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 13:14 | R1 to R4 added for the owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor with no login, and a redesign of the whole interface. The reload, sessions and redesign workers are running; worker 3 stopped its own three workers before they committed anything. 96 of 100 |
 | 2026-10-15 12:50 | V14 done: v2 live from main f754631 with the live checks passing (worker 3). Two notes from the live checks: the 413 message named the body limit (33 MB) instead of the 32 MB file limit, fixed on main; automated mouse strokes on the draw canvas only registered in its top-left half, which a new browser test shows is the automation tool, not the page. 96 of 96 |
 | 2026-10-15 11:13 | V13 done: PR #2 merged into main (f754631). A stale build had failed two browser tests; on a fresh build all 115 pass. One fixture lot ID in a code comment reached the production source maps and was replaced. Worker 3 deploys with short checks. 95 of 96 |
 | 2026-10-15 10:56 | V11 done and merged (ef29c23): guide screenshots from real runs; wafer views mark the wafers the lot test counts as unknown. The owner chose the fast deploy: worker 3 builds from the integration branch while the lead merges to main. 94 of 96 |
