@@ -15,10 +15,12 @@ from yield_guardian.contracts.services import (
 )
 from yield_guardian.core.settings import Settings
 from yield_guardian.live.protocols import RunReader
+from yield_guardian.live.runs import RunService
+from yield_guardian.live.uploads import UploadService
 from yield_guardian.services.protocols import (
+    AlarmService,
     AuditLog,
     InvestigationStore,
-    LineService,
     MethodsService,
     SessionManager,
     WorkOrderStore,
@@ -26,7 +28,7 @@ from yield_guardian.services.protocols import (
 
 
 class Resource(Protocol):
-    """Something with a lifetime (database pool, job worker, replay ticker).
+    """Something with a lifetime (database pool, job worker, run executor).
 
     The app starts resources in list order when it starts and stops them in reverse order.
     """
@@ -42,7 +44,7 @@ class ServiceRegistry:
     secom: SecomService | None = None
     wafer: WaferService | None = None
     knowledge: KnowledgeService | None = None
-    line: LineService | None = None
+    alarms: AlarmService | None = None
     investigations: InvestigationStore | None = None
     runner: InvestigationRunner | None = None
     work_orders: WorkOrderStore | None = None
@@ -52,6 +54,8 @@ class ServiceRegistry:
     chat: ChatResponder | None = None
     llm: LlmAdmin | None = None
     run_reader: RunReader | None = None
+    runs: RunService | None = None
+    uploads: UploadService | None = None
     bundles: list[BundleInfo] = field(default_factory=list)
     resources: list[Resource] = field(default_factory=list)
     problems: dict[str, str] = field(default_factory=dict)

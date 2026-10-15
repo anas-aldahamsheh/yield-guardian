@@ -15,13 +15,15 @@ from yield_guardian.contracts.services import (
     SecomService,
     WaferService,
 )
+from yield_guardian.live.runs import RunService
+from yield_guardian.live.uploads import UploadService
 from yield_guardian.services.jobs import NO_RUNNER_DETAIL
 from yield_guardian.services.protocols import (
     VISITOR,
     ActiveSession,
+    AlarmService,
     AuditLog,
     InvestigationStore,
-    LineService,
     MethodsService,
     SessionManager,
     WorkOrderStore,
@@ -59,8 +61,8 @@ def knowledge_service(registry: Registry) -> KnowledgeService:
     return _need(registry.knowledge, "knowledge base")
 
 
-def line_service(registry: Registry) -> LineService:
-    return _need(registry.line, "line replay")
+def alarm_service(registry: Registry) -> AlarmService:
+    return _need(registry.alarms, "SECOM data and model bundle")
 
 
 def investigation_store(registry: Registry) -> InvestigationStore:
@@ -103,10 +105,18 @@ def llm_admin(registry: Registry) -> LlmAdmin:
     return _need(registry.llm, "model registry")
 
 
+def run_service(registry: Registry) -> RunService:
+    return _need(registry.runs, "run service (it needs the database)")
+
+
+def upload_service(registry: Registry) -> UploadService:
+    return _need(registry.uploads, "upload service (it needs the database)")
+
+
 Secom = Annotated[SecomService, Depends(secom_service)]
 Wafers = Annotated[WaferService, Depends(wafer_service)]
 Knowledge = Annotated[KnowledgeService, Depends(knowledge_service)]
-Line = Annotated[LineService, Depends(line_service)]
+Alarms = Annotated[AlarmService, Depends(alarm_service)]
 Investigations = Annotated[InvestigationStore, Depends(investigation_store)]
 WorkOrders = Annotated[WorkOrderStore, Depends(work_order_store)]
 Audit = Annotated[AuditLog, Depends(audit_log)]
@@ -115,6 +125,8 @@ Methods = Annotated[MethodsService, Depends(methods_service)]
 Chat = Annotated[ChatResponder, Depends(chat_responder)]
 Llm = Annotated[LlmAdmin, Depends(llm_admin)]
 LiveInvestigator = Annotated[InvestigationRunner, Depends(live_investigator)]
+Runs = Annotated[RunService, Depends(run_service)]
+Uploads = Annotated[UploadService, Depends(upload_service)]
 
 
 async def current_session(request: Request, registry: Registry) -> ActiveSession:

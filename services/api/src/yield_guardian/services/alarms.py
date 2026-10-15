@@ -1,4 +1,5 @@
-"""Alarm states. Alarms are computed by the line replay; their status lives here, keyed by alarm ID.
+"""Alarm states. SECOM unit alarms are computed by rule (science/secom/alarms.py); their status
+lives here, keyed by alarm ID.
 
 An alarm without a stored state is open. Creating an investigation from an alarm makes it
 investigating; deciding that investigation closes it; a failed investigation reopens it. Every

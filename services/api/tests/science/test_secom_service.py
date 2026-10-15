@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 
-from tests.science.conftest import FakeNow
 from yield_guardian.bundles.secom import SecomBundle
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
 from yield_guardian.science.secom.service import SecomInference
@@ -13,16 +12,15 @@ def unit_at(bundle: SecomBundle, sequence: int) -> int:
     return int(bundle.timeline.unit_id[sequence])
 
 
-async def test_units_after_the_clock_do_not_exist_yet(
+async def test_every_unit_is_visible_without_a_clock(
     secom: SecomInference, secom_bundle: SecomBundle
 ) -> None:
-    with pytest.raises(NotFoundError, match="not come off the line"):
-        await secom.get_unit(unit_at(secom_bundle, 1101))
     with pytest.raises(NotFoundError, match="does not exist"):
         await secom.get_unit(1567)
-    detail = await secom.get_unit(unit_at(secom_bundle, 1100))
-    assert detail.sequence == 1100
+    detail = await secom.get_unit(unit_at(secom_bundle, 1566))
+    assert detail.sequence == 1566
     assert detail.sensors_measured + detail.sensors_missing == 590
+    assert detail.final_test == ("fail" if secom_bundle.timeline.failed[1566] else "pass")
 
 
 async def test_measured_counts_come_from_the_source_file(
@@ -42,12 +40,12 @@ async def test_unit_pages_are_in_time_order_and_complete(secom: SecomInference) 
         cursor = page.next_cursor
         if cursor is None:
             break
-    assert seen == list(range(1101))
-    assert page.total == 1101
+    assert seen == list(range(1567))
+    assert page.total == 1567
     high = await secom.list_units(band="high", limit=2000)
     assert all(u.risk_band == "high" for u in high.items)
     window = await secom.list_units(from_seq=10, to_seq=5000, limit=2000)
-    assert [u.sequence for u in window.items] == list(range(10, 1101))
+    assert [u.sequence for u in window.items] == list(range(10, 1567))
     with pytest.raises(InvalidArgumentError):
         await secom.list_units(from_seq=10, to_seq=5)
 
@@ -111,15 +109,16 @@ async def test_groups_report_stability_and_counts(secom: SecomInference) -> None
     assert untested.mann_whitney_p is None
 
 
-async def test_health_hides_what_has_not_happened_yet(
-    secom: SecomInference, secom_bundle: SecomBundle, now: FakeNow
+async def test_health_as_of_a_recorded_alarm_hides_what_came_later(
+    secom: SecomInference, secom_bundle: SecomBundle
 ) -> None:
-    now.at_tick(400)
-    report = await secom.get_sensor_health(sensors=["S001"])
+    report = await secom.as_of(400).get_sensor_health(sensors=["S001"])
     (s001,) = report.sensors
     plant_time = secom_bundle.timeline.timestamp[400]
     for window, rate in zip(report.windows, s001.missing_by_window, strict=True):
         assert (rate is None) == (window.start > plant_time)
+    everything = await secom.get_sensor_health(sensors=["S001"])
+    assert None not in everything.sensors[0].missing_by_window
     assert s001.jump_unit_ids == [unit_at(secom_bundle, 10)]
     assert report.counts.watch == 1
     assert report.counts.ok == 589
@@ -143,9 +142,9 @@ async def test_sensor_series_uses_the_real_readings(
         await secom.get_sensor_series("S600")
 
 
-async def test_fdc_series_stops_at_the_clock(secom: SecomInference) -> None:
+async def test_fdc_series_covers_every_unit(secom: SecomInference) -> None:
     series = await secom.get_fdc_series()
-    assert [p.sequence for p in series.points] == list(range(1101))
+    assert [p.sequence for p in series.points] == list(range(1567))
     assert series.n_components == 3
     assert series.features == 20
 

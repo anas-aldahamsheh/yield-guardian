@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Yield Guardian",
-    "description": "Yield Guardian API: semiconductor yield investigation on real fab data (SECOM, WM-811K).\n\n* Errors are RFC 9457 `application/problem+json` (schema `Problem`).\n* Investigator events stream as server-sent events (schema `InvestigationEvent`).\n* The live line streams on the WebSocket `/ws/line` as JSON text frames (schema `LineEvent`).\n* Actions need a session cookie and the `X-CSRF-Token` header (see `/session`).\n",
+    "description": "Yield Guardian API: semiconductor yield investigation on real fab data (SECOM, WM-811K).\n\n* Errors are RFC 9457 `application/problem+json` (schema `Problem`).\n* Investigator events stream as server-sent events (schema `InvestigationEvent`).\n* Run events stream as server-sent events (schema `RunEvent`).\n* Runs and uploads need no sign-in. Actions (investigations, decisions, work orders) need a\n  session cookie and the `X-CSRF-Token` header (see `/session`).\n",
     "version": "0.1.0"
   },
   "paths": {
@@ -113,25 +113,169 @@
         }
       }
     },
-    "/api/v1/line/state": {
+    "/api/v1/runs": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Create Run",
+        "description": "Materialise the input and start computing every stage now. Follow it on `events_url`.",
+        "operationId": "create_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/cases": {
       "get": {
         "tags": [
-          "line"
+          "runs"
         ],
-        "summary": "Get Line State",
-        "description": "Plant clock, the latest units, counts and open alarms. Live updates: WebSocket /ws/line.",
-        "operationId": "get_line_state",
+        "summary": "List Run Cases",
+        "description": "Real situations found in the data by fixed rules over live computations.",
+        "operationId": "list_run_cases",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunCaseList"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/layouts": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "List Draw Layouts",
+        "description": "Real WM-811K die layouts to draw a defect on (every die starts as pass).",
+        "operationId": "list_draw_layouts",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DrawLayoutList"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run",
+        "description": "The run's full state: every stage with its result and every listed alarm.",
+        "operationId": "get_run",
         "parameters": [
           {
-            "name": "window",
-            "in": "query",
-            "required": false,
+            "name": "run_id",
+            "in": "path",
+            "required": true,
             "schema": {
-              "type": "integer",
-              "maximum": 600,
-              "minimum": 10,
-              "default": 120,
-              "title": "Window"
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
             }
           }
         ],
@@ -141,7 +285,409 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LineState"
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/units/{index}/chart": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run Unit Chart",
+        "description": "One unit's control-chart result with `z` (every monitored sensor's standardised\nreading); the run and its events carry `z` for the first 200 units only.",
+        "operationId": "get_run_unit_chart",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitChartResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Stream Run Events",
+        "description": "Stored events after Last-Event-ID, then live ones; the stream closes after `run_done`.",
+        "operationId": "stream_run_events",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-sent events. `event` is the event type, `id` its `seq`, `data` the JSON event.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunEvent"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/uploads": {
+      "post": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Create Upload",
+        "description": "Parse and validate a sensor or wafer file and keep it for 24 h. What is wrong inside the\nfile comes back as issues (errors block the run); only an unreadable file is refused.",
+        "operationId": "create_upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSummary"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request too large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/uploads/templates/{kind}.{fmt}": {
+      "get": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Get Upload Template",
+        "description": "The header row only, ready to fill in.",
+        "operationId": "get_upload_template",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "sensors",
+                "wafers"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "fmt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "title": "Fmt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file, as an attachment.",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/uploads/examples/{kind}.{fmt}": {
+      "get": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Get Upload Example",
+        "description": "Real data in the upload format: real SECOM units the risk model never saw, or every die\nof one real WM-811K demo lot. The source and licence ride in `X-Data-Attribution` and a\n`Link` header (rel cite-as); a workbook also has an About sheet.",
+        "operationId": "get_upload_example",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "sensors",
+                "wafers"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "fmt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "title": "Fmt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file, as an attachment.",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -172,9 +718,10 @@
     "/api/v1/alarms": {
       "get": {
         "tags": [
-          "line"
+          "alarms"
         ],
         "summary": "List Alarms",
+        "description": "SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first.",
         "operationId": "list_alarms",
         "parameters": [
           {
@@ -291,7 +838,7 @@
           "secom"
         ],
         "summary": "List Units",
-        "description": "Units in time order, up to the plant clock.",
+        "description": "Units in time order.",
         "operationId": "list_units",
         "parameters": [
           {
@@ -327,10 +874,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Last sequence number (inclusive); default: the plant clock.",
+              "description": "Last sequence number (inclusive); default: the last unit.",
               "title": "To Seq"
             },
-            "description": "Last sequence number (inclusive); default: the plant clock."
+            "description": "Last sequence number (inclusive); default: the last unit."
           },
           {
             "name": "band",
@@ -723,7 +1270,7 @@
           "secom"
         ],
         "summary": "Get Fdc Series",
-        "description": "T² and SPE with control limits, up to the plant clock.",
+        "description": "T² and SPE with control limits, in time order.",
         "operationId": "get_fdc_series",
         "parameters": [
           {
@@ -759,10 +1306,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Last sequence number (inclusive); default: the plant clock.",
+              "description": "Last sequence number (inclusive); default: the last unit.",
               "title": "To Seq"
             },
-            "description": "Last sequence number (inclusive); default: the plant clock."
+            "description": "Last sequence number (inclusive); default: the last unit."
           }
         ],
         "responses": {
@@ -1004,10 +1551,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Last sequence number (inclusive); default: the plant clock.",
+              "description": "Last sequence number (inclusive); default: the last unit.",
               "title": "To Seq"
             },
-            "description": "Last sequence number (inclusive); default: the plant clock."
+            "description": "Last sequence number (inclusive); default: the last unit."
           }
         ],
         "responses": {
@@ -3696,6 +4243,37 @@
         ],
         "title": "BlockInfo"
       },
+      "Body_create_upload": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The CSV or XLSX file."
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "sensors",
+                  "wafers"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind",
+            "description": "sensors or wafers; read from the header row when omitted."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_upload"
+      },
       "BundleInfo": {
         "properties": {
           "bundle": {
@@ -3899,25 +4477,25 @@
         "description": "One model call. Token counts and points are null when the endpoint did not report\nusage (never shown as zero)."
       },
       "CaseRunCreate": {
-        "additionalProperties": false,
         "properties": {
           "source": {
+            "type": "string",
             "const": "case",
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "case_id": {
+            "type": "string",
             "pattern": "^[a-z0-9_]{1,40}$",
-            "title": "Case Id",
-            "type": "string"
+            "title": "Case Id"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "source",
           "case_id"
         ],
-        "title": "CaseRunCreate",
-        "type": "object"
+        "title": "CaseRunCreate"
       },
       "CatalogModel": {
         "properties": {
@@ -4681,9 +5259,9 @@
         "title": "ClassProbability"
       },
       "ClassProbabilityItem": {
-        "additionalProperties": false,
         "properties": {
           "label": {
+            "type": "string",
             "enum": [
               "Center",
               "Donut",
@@ -4695,22 +5273,22 @@
               "Scratch",
               "none"
             ],
-            "title": "Label",
-            "type": "string"
+            "title": "Label"
           },
           "probability": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Probability",
-            "type": "number"
+            "title": "Probability"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "label",
           "probability"
         ],
-        "title": "ClassProbabilityItem",
-        "type": "object"
+        "title": "ClassProbabilityItem"
       },
       "ConfirmedCause": {
         "properties": {
@@ -4783,56 +5361,57 @@
         "title": "ConfusionMatrix"
       },
       "ControlChartsResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "control_charts",
-            "default": "control_charts",
             "title": "Stage",
-            "type": "string"
+            "default": "control_charts"
           },
           "limits": {
             "$ref": "#/components/schemas/FdcLimits"
           },
           "n_components": {
-            "minimum": 0,
-            "title": "N Components",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "N Components"
           },
           "explained_variance": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Explained Variance",
-            "type": "number"
+            "title": "Explained Variance"
           },
           "features": {
-            "description": "Monitored sensors, in model order.",
             "items": {
+              "type": "string",
+              "pattern": "^S\\d{3}$",
               "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
               "examples": [
                 "S060"
-              ],
-              "pattern": "^S\\d{3}$",
-              "type": "string"
+              ]
             },
+            "type": "array",
             "title": "Features",
-            "type": "array"
+            "description": "Monitored sensors, in model order."
           },
           "units": {
             "items": {
               "$ref": "#/components/schemas/UnitChartResult"
             },
-            "title": "Units",
-            "type": "array"
+            "type": "array",
+            "title": "Units"
           },
           "method": {
-            "title": "Method",
-            "type": "string"
+            "type": "string",
+            "title": "Method"
           },
           "model": {
             "$ref": "#/components/schemas/BundleRef"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "limits",
           "n_components",
@@ -4842,8 +5421,7 @@
           "method",
           "model"
         ],
-        "title": "ControlChartsResult",
-        "type": "object"
+        "title": "ControlChartsResult"
       },
       "CurvePoint": {
         "properties": {
@@ -5155,32 +5733,32 @@
         "type": "object"
       },
       "DrawLayoutItem": {
-        "additionalProperties": false,
-        "description": "An empty wafer to draw on: the die layout (0 no die, 1 pass) of a real WM-811K wafer.",
         "properties": {
           "layout_id": {
-            "title": "Layout Id",
-            "type": "string"
+            "type": "string",
+            "title": "Layout Id"
           },
           "map": {
             "$ref": "#/components/schemas/WaferMap"
           },
           "source_wafer": {
-            "description": "\"<lot>-<wafer index>\".",
-            "examples": [
-              "lot47542-12"
-            ],
+            "type": "string",
             "maxLength": 80,
             "pattern": "^[A-Za-z0-9_.]+-\\d+$",
             "title": "Source Wafer",
-            "type": "string"
+            "description": "\"<lot>-<wafer index>\".",
+            "examples": [
+              "lot47542-12"
+            ]
           },
           "rule": {
-            "description": "How this layout was chosen from the data.",
+            "type": "string",
             "title": "Rule",
-            "type": "string"
+            "description": "How this layout was chosen from the data."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "layout_id",
           "map",
@@ -5188,91 +5766,90 @@
           "rule"
         ],
         "title": "DrawLayoutItem",
-        "type": "object"
+        "description": "An empty wafer to draw on: the die layout (0 no die, 1 pass) of a real WM-811K wafer."
       },
       "DrawLayoutList": {
-        "additionalProperties": false,
         "properties": {
           "items": {
             "items": {
               "$ref": "#/components/schemas/DrawLayoutItem"
             },
-            "title": "Items",
-            "type": "array"
+            "type": "array",
+            "title": "Items"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "items"
         ],
-        "title": "DrawLayoutList",
-        "type": "object"
+        "title": "DrawLayoutList"
       },
       "DrawnRunCreate": {
-        "additionalProperties": false,
-        "description": "Wafers the user painted; each map is labelled as the user's drawing on the page.",
         "properties": {
           "source": {
+            "type": "string",
             "const": "drawn",
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "wafers": {
             "items": {
               "$ref": "#/components/schemas/WaferInput"
             },
+            "type": "array",
             "maxItems": 25,
             "minItems": 1,
-            "title": "Wafers",
-            "type": "array"
+            "title": "Wafers"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "source",
           "wafers"
         ],
         "title": "DrawnRunCreate",
-        "type": "object"
+        "description": "Wafers the user painted; each map is labelled as the user's drawing on the page."
       },
       "DriftHealthResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "drift_health",
-            "default": "drift_health",
             "title": "Stage",
-            "type": "string"
+            "default": "drift_health"
           },
           "groups": {
             "items": {
               "$ref": "#/components/schemas/GroupDrift"
             },
-            "title": "Groups",
-            "type": "array"
+            "type": "array",
+            "title": "Groups"
           },
           "ewma_lambda": {
-            "title": "Ewma Lambda",
-            "type": "number"
+            "type": "number",
+            "title": "Ewma Lambda"
           },
           "ewma_width": {
-            "title": "Ewma Width",
-            "type": "number"
+            "type": "number",
+            "title": "Ewma Width"
           },
           "cusum_k": {
-            "title": "Cusum K",
-            "type": "number"
+            "type": "number",
+            "title": "Cusum K"
           },
           "health": {
-            "description": "Sensors not ok; ok sensors are omitted.",
             "items": {
               "$ref": "#/components/schemas/SensorHealthItem"
             },
+            "type": "array",
             "title": "Health",
-            "type": "array"
+            "description": "Sensors not ok; ok sensors are omitted."
           },
           "health_counts": {
             "additionalProperties": {
-              "minimum": 0,
-              "type": "integer"
+              "type": "integer",
+              "minimum": 0.0
             },
             "propertyNames": {
               "enum": [
@@ -5282,21 +5859,23 @@
                 "dead"
               ]
             },
-            "title": "Health Counts",
-            "type": "object"
+            "type": "object",
+            "title": "Health Counts"
           },
           "rules": {
             "items": {
               "type": "string"
             },
-            "title": "Rules",
-            "type": "array"
+            "type": "array",
+            "title": "Rules"
           },
           "method": {
-            "title": "Method",
-            "type": "string"
+            "type": "string",
+            "title": "Method"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "groups",
           "ewma_lambda",
@@ -5307,8 +5886,7 @@
           "rules",
           "method"
         ],
-        "title": "DriftHealthResult",
-        "type": "object"
+        "title": "DriftHealthResult"
       },
       "EndEvent": {
         "additionalProperties": false,
@@ -5850,35 +6428,35 @@
         "title": "FdcContribution"
       },
       "FdcContributionItem": {
-        "additionalProperties": false,
         "properties": {
           "sensor": {
+            "type": "string",
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
             "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
             "examples": [
               "S060"
-            ],
-            "pattern": "^S\\d{3}$",
-            "title": "Sensor",
-            "type": "string"
+            ]
           },
           "contribution": {
-            "title": "Contribution",
-            "type": "number"
+            "type": "number",
+            "title": "Contribution"
           },
           "share": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Share",
-            "type": "number"
+            "title": "Share"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "sensor",
           "contribution",
           "share"
         ],
-        "title": "FdcContributionItem",
-        "type": "object"
+        "title": "FdcContributionItem"
       },
       "FdcContributions": {
         "properties": {
@@ -6198,69 +6776,69 @@
         "title": "FieldError"
       },
       "FinalTestResult": {
-        "additionalProperties": false,
-        "description": "How the warnings compare with the recorded results, when the input has them.",
         "properties": {
           "stage": {
+            "type": "string",
             "const": "final_test",
-            "default": "final_test",
             "title": "Stage",
-            "type": "string"
+            "default": "final_test"
           },
           "units": {
-            "description": "Only units with a recorded result.",
             "items": {
               "$ref": "#/components/schemas/FinalTestUnit"
             },
+            "type": "array",
             "title": "Units",
-            "type": "array"
+            "description": "Only units with a recorded result."
           },
           "wafers": {
-            "description": "Only wafers with a recorded label.",
             "items": {
               "$ref": "#/components/schemas/FinalTestWafer"
             },
+            "type": "array",
             "title": "Wafers",
-            "type": "array"
+            "description": "Only wafers with a recorded label."
           },
           "units_with_result": {
-            "minimum": 0,
-            "title": "Units With Result",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units With Result"
           },
           "failed_units": {
-            "minimum": 0,
-            "title": "Failed Units",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Failed Units"
           },
           "failed_flagged": {
-            "description": "Failed units whose risk was above the threshold.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Failed Flagged",
-            "type": "integer"
+            "description": "Failed units whose risk was above the threshold."
           },
           "passed_flagged": {
-            "description": "Passed units whose risk was above the threshold.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Passed Flagged",
-            "type": "integer"
+            "description": "Passed units whose risk was above the threshold."
           },
           "wafers_with_label": {
-            "minimum": 0,
-            "title": "Wafers With Label",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers With Label"
           },
           "wafers_agreeing": {
-            "description": "Predicted pattern equals the recorded label.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Wafers Agreeing",
-            "type": "integer"
+            "description": "Predicted pattern equals the recorded label."
           },
           "summary": {
-            "title": "Summary",
-            "type": "string"
+            "type": "string",
+            "title": "Summary"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "units",
           "wafers",
@@ -6273,58 +6851,58 @@
           "summary"
         ],
         "title": "FinalTestResult",
-        "type": "object"
+        "description": "How the warnings compare with the recorded results, when the input has them."
       },
       "FinalTestUnit": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "description": "Position of the unit in the run input.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Index",
-            "type": "integer"
+            "description": "Position of the unit in the run input."
           },
           "unit_id": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Unit Id",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "result": {
+            "type": "string",
             "enum": [
               "pass",
               "fail"
             ],
-            "title": "Result",
-            "type": "string"
+            "title": "Result"
           },
           "flagged": {
-            "description": "Risk was above the threshold.",
+            "type": "boolean",
             "title": "Flagged",
-            "type": "boolean"
+            "description": "Risk was above the threshold."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "unit_id",
           "result",
           "flagged"
         ],
-        "title": "FinalTestUnit",
-        "type": "object"
+        "title": "FinalTestUnit"
       },
       "FinalTestWafer": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "description": "Position of the wafer in the run input.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Index",
-            "type": "integer"
+            "description": "Position of the wafer in the run input."
           },
           "recorded_label": {
+            "type": "string",
             "enum": [
               "Center",
               "Donut",
@@ -6336,10 +6914,10 @@
               "Scratch",
               "none"
             ],
-            "title": "Recorded Label",
-            "type": "string"
+            "title": "Recorded Label"
           },
           "predicted_label": {
+            "type": "string",
             "enum": [
               "Center",
               "Donut",
@@ -6351,22 +6929,22 @@
               "Scratch",
               "none"
             ],
-            "title": "Predicted Label",
-            "type": "string"
+            "title": "Predicted Label"
           },
           "agrees": {
-            "title": "Agrees",
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Agrees"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "recorded_label",
           "predicted_label",
           "agrees"
         ],
-        "title": "FinalTestWafer",
-        "type": "object"
+        "title": "FinalTestWafer"
       },
       "Finding": {
         "properties": {
@@ -6442,72 +7020,71 @@
         "title": "GroupContribution"
       },
       "GroupDrift": {
-        "additionalProperties": false,
         "properties": {
           "group_id": {
-            "title": "Group Id",
-            "type": "string"
+            "type": "string",
+            "title": "Group Id"
           },
           "sensors": {
             "items": {
+              "type": "string",
+              "pattern": "^S\\d{3}$",
               "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
               "examples": [
                 "S060"
-              ],
-              "pattern": "^S\\d{3}$",
-              "type": "string"
+              ]
             },
-            "title": "Sensors",
-            "type": "array"
+            "type": "array",
+            "title": "Sensors"
           },
           "ewma": {
-            "description": "EWMA of the standardised group score, per unit.",
             "items": {
               "type": "number"
             },
+            "type": "array",
             "title": "Ewma",
-            "type": "array"
+            "description": "EWMA of the standardised group score, per unit."
           },
           "ewma_limit": {
-            "title": "Ewma Limit",
-            "type": "number"
+            "type": "number",
+            "title": "Ewma Limit"
           },
           "cusum_upper": {
             "items": {
               "type": "number"
             },
-            "title": "Cusum Upper",
-            "type": "array"
+            "type": "array",
+            "title": "Cusum Upper"
           },
           "cusum_lower": {
             "items": {
               "type": "number"
             },
-            "title": "Cusum Lower",
-            "type": "array"
+            "type": "array",
+            "title": "Cusum Lower"
           },
           "cusum_h": {
-            "title": "Cusum H",
-            "type": "number"
+            "type": "number",
+            "title": "Cusum H"
           },
           "first_ewma_alarm": {
             "anyOf": [
               {
-                "minimum": 0,
-                "type": "integer"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Index of the first unit over the limit.",
-            "title": "First Ewma Alarm"
+            "title": "First Ewma Alarm",
+            "description": "Index of the first unit over the limit."
           },
           "first_cusum_alarm": {
             "anyOf": [
               {
-                "minimum": 0,
-                "type": "integer"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
@@ -6516,6 +7093,8 @@
             "title": "First Cusum Alarm"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "group_id",
           "sensors",
@@ -6527,8 +7106,7 @@
           "first_ewma_alarm",
           "first_cusum_alarm"
         ],
-        "title": "GroupDrift",
-        "type": "object"
+        "title": "GroupDrift"
       },
       "GroupingMethod": {
         "properties": {
@@ -6766,51 +7344,50 @@
         "title": "HypothesisEvidence"
       },
       "IntakeResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "intake",
-            "default": "intake",
             "title": "Stage",
-            "type": "string"
+            "default": "intake"
           },
           "units": {
-            "minimum": 0,
-            "title": "Units",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
           },
           "wafers": {
-            "minimum": 0,
-            "title": "Wafers",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
           },
           "lots": {
-            "minimum": 0,
-            "title": "Lots",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Lots"
           },
           "sensors": {
-            "description": "Sensor columns per unit (590 in the SECOM layout).",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Sensors",
-            "type": "integer"
+            "description": "Sensor columns per unit (590 in the SECOM layout)."
           },
           "missing_readings": {
-            "minimum": 0,
-            "title": "Missing Readings",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Missing Readings"
           },
           "missing_share": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Missing Share",
-            "type": "number"
+            "title": "Missing Share"
           },
           "first_timestamp": {
             "anyOf": [
               {
-                "format": "date-time",
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
@@ -6821,8 +7398,8 @@
           "last_timestamp": {
             "anyOf": [
               {
-                "format": "date-time",
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
@@ -6831,29 +7408,31 @@
             "title": "Last Timestamp"
           },
           "in_time_order": {
-            "description": "Units carry timestamps that never go back.",
+            "type": "boolean",
             "title": "In Time Order",
-            "type": "boolean"
+            "description": "Units carry timestamps that never go back."
           },
           "two_sources": {
-            "description": "Both SECOM units and WM-811K wafers are present: they are different chips.",
+            "type": "boolean",
             "title": "Two Sources",
-            "type": "boolean"
+            "description": "Both SECOM units and WM-811K wafers are present: they are different chips."
           },
           "unmonitored_sensors": {
-            "description": "Sensors the models do not use (constant or empty in training).",
             "items": {
+              "type": "string",
+              "pattern": "^S\\d{3}$",
               "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
               "examples": [
                 "S060"
-              ],
-              "pattern": "^S\\d{3}$",
-              "type": "string"
+              ]
             },
+            "type": "array",
             "title": "Unmonitored Sensors",
-            "type": "array"
+            "description": "Sensors the models do not use (constant or empty in training)."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "units",
           "wafers",
@@ -6867,8 +7446,7 @@
           "two_sources",
           "unmonitored_sensors"
         ],
-        "title": "IntakeResult",
-        "type": "object"
+        "title": "IntakeResult"
       },
       "Investigation": {
         "properties": {
@@ -7699,40 +8277,40 @@
         "type": "object"
       },
       "LineKpis": {
+        "additionalProperties": false,
+        "description": "Counts over the units in `LineState.recent`.",
         "properties": {
           "window_units": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Window Units"
+            "minimum": 0,
+            "title": "Window Units",
+            "type": "integer"
           },
           "high_risk": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "High Risk"
+            "minimum": 0,
+            "title": "High Risk",
+            "type": "integer"
           },
           "elevated_risk": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Elevated Risk"
+            "minimum": 0,
+            "title": "Elevated Risk",
+            "type": "integer"
           },
           "fdc_warnings": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Fdc Warnings"
+            "minimum": 0,
+            "title": "Fdc Warnings",
+            "type": "integer"
           },
           "fdc_alarms": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Fdc Alarms"
+            "minimum": 0,
+            "title": "Fdc Alarms",
+            "type": "integer"
           },
           "failures_revealed": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Failures Revealed"
+            "minimum": 0,
+            "title": "Failures Revealed",
+            "type": "integer"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "required": [
           "window_units",
           "high_risk",
@@ -7742,9 +8320,10 @@
           "failures_revealed"
         ],
         "title": "LineKpis",
-        "description": "Counts over the units in `LineState.recent`."
+        "type": "object"
       },
       "LineState": {
+        "additionalProperties": false,
         "properties": {
           "clock": {
             "$ref": "#/components/schemas/PlantClock"
@@ -7753,27 +8332,25 @@
             "$ref": "#/components/schemas/OperatingPointRef"
           },
           "recent": {
+            "description": "Latest units, oldest first.",
             "items": {
               "$ref": "#/components/schemas/UnitSummary"
             },
-            "type": "array",
             "title": "Recent",
-            "description": "Latest units, oldest first."
+            "type": "array"
           },
           "kpis": {
             "$ref": "#/components/schemas/LineKpis"
           },
           "open_alarms": {
+            "description": "Open alarms, newest first.",
             "items": {
               "$ref": "#/components/schemas/Alarm"
             },
-            "type": "array",
             "title": "Open Alarms",
-            "description": "Open alarms, newest first."
+            "type": "array"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "required": [
           "clock",
           "operating_point",
@@ -7781,7 +8358,8 @@
           "kpis",
           "open_alarms"
         ],
-        "title": "LineState"
+        "title": "LineState",
+        "type": "object"
       },
       "LineUnitMessage": {
         "additionalProperties": false,
@@ -8002,25 +8580,24 @@
         "title": "LotDetail"
       },
       "LotItem": {
-        "additionalProperties": false,
         "properties": {
           "lot": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Lot",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "wafers": {
-            "minimum": 0,
-            "title": "Wafers",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
           },
           "pattern_counts": {
             "additionalProperties": {
-              "minimum": 0,
-              "type": "integer"
+              "type": "integer",
+              "minimum": 0.0
             },
             "propertyNames": {
               "enum": [
@@ -8035,19 +8612,19 @@
                 "none"
               ]
             },
-            "title": "Pattern Counts",
-            "type": "object"
+            "type": "object",
+            "title": "Pattern Counts"
           },
           "tests": {
             "items": {
               "$ref": "#/components/schemas/PatternTest"
             },
-            "title": "Tests",
-            "type": "array"
+            "type": "array",
+            "title": "Tests"
           },
           "flagged": {
-            "title": "Flagged",
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Flagged"
           },
           "stacked": {
             "anyOf": [
@@ -8060,6 +8637,8 @@
             ]
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "lot",
           "wafers",
@@ -8068,8 +8647,7 @@
           "flagged",
           "stacked"
         ],
-        "title": "LotItem",
-        "type": "object"
+        "title": "LotItem"
       },
       "LotPage": {
         "properties": {
@@ -8106,32 +8684,32 @@
         "title": "LotPage"
       },
       "LotResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "lot",
-            "default": "lot",
             "title": "Stage",
-            "type": "string"
+            "default": "lot"
           },
           "lots": {
             "items": {
               "$ref": "#/components/schemas/LotItem"
             },
-            "title": "Lots",
-            "type": "array"
+            "type": "array",
+            "title": "Lots"
           },
           "method": {
-            "title": "Method",
-            "type": "string"
+            "type": "string",
+            "title": "Method"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "lots",
           "method"
         ],
-        "title": "LotResult",
-        "type": "object"
+        "title": "LotResult"
       },
       "LotSummary": {
         "properties": {
@@ -9078,117 +9656,116 @@
         "description": "One-sided binomial test of a pattern's count in a lot against the training-period rate."
       },
       "PickRunCreate": {
-        "additionalProperties": false,
-        "description": "Real items the user chose from the dataset browsers.",
         "properties": {
           "source": {
+            "type": "string",
             "const": "pick",
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "unit_ids": {
             "items": {
+              "type": "integer",
+              "minimum": 0.0,
               "description": "Production unit: row index (0-based) in secom.data.",
               "examples": [
                 1043
-              ],
-              "minimum": 0,
-              "type": "integer"
+              ]
             },
+            "type": "array",
             "maxItems": 5000,
-            "title": "Unit Ids",
-            "type": "array"
+            "title": "Unit Ids"
           },
           "wafer_ids": {
             "items": {
+              "type": "string",
+              "maxLength": 80,
+              "pattern": "^[A-Za-z0-9_.]+-\\d+$",
               "description": "\"<lot>-<wafer index>\".",
               "examples": [
                 "lot47542-12"
-              ],
-              "maxLength": 80,
-              "pattern": "^[A-Za-z0-9_.]+-\\d+$",
-              "type": "string"
+              ]
             },
+            "type": "array",
             "maxItems": 500,
-            "title": "Wafer Ids",
-            "type": "array"
+            "title": "Wafer Ids"
           },
           "lot": {
             "anyOf": [
               {
-                "description": "WM-811K lot name.",
-                "examples": [
-                  "lot47542"
-                ],
+                "type": "string",
                 "maxLength": 64,
                 "minLength": 1,
                 "pattern": "^[A-Za-z0-9_.]+$",
-                "type": "string"
+                "description": "WM-811K lot name.",
+                "examples": [
+                  "lot47542"
+                ]
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "All demo wafers of this lot.",
-            "title": "Lot"
-          }
-        },
-        "required": [
-          "source"
-        ],
-        "title": "PickRunCreate",
-        "type": "object"
-      },
-      "PlantClock": {
-        "properties": {
-          "epoch": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Epoch"
-          },
-          "now": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Now",
-            "description": "Server wall clock when this value was computed."
-          },
-          "seconds_per_unit": {
-            "type": "number",
-            "exclusiveMinimum": 0.0,
-            "title": "Seconds Per Unit"
-          },
-          "units_total": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Units Total"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Position",
-            "description": "Sequence number of the latest unit off the line."
-          },
-          "cycle": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Cycle"
-          },
-          "plant_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Plant Time",
-            "description": "Original timestamp of the latest unit (secom_labels.data)."
-          },
-          "final_test_lag_units": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Final Test Lag Units",
-            "description": "A unit's final-test result is revealed this many units after it leaves the line."
+            "title": "Lot",
+            "description": "All demo wafers of this lot."
           }
         },
         "additionalProperties": false,
         "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "PickRunCreate",
+        "description": "Real items the user chose from the dataset browsers."
+      },
+      "PlantClock": {
+        "additionalProperties": false,
+        "description": "Replay position, computed from the wall clock so every visitor sees the same plant.\n\n`position = floor((now - epoch) / seconds_per_unit) mod units_total`; `cycle` counts completed\nreplays. Units after `position` have not come off the line yet and are never returned.",
+        "properties": {
+          "epoch": {
+            "format": "date-time",
+            "title": "Epoch",
+            "type": "string"
+          },
+          "now": {
+            "description": "Server wall clock when this value was computed.",
+            "format": "date-time",
+            "title": "Now",
+            "type": "string"
+          },
+          "seconds_per_unit": {
+            "exclusiveMinimum": 0,
+            "title": "Seconds Per Unit",
+            "type": "number"
+          },
+          "units_total": {
+            "minimum": 0,
+            "title": "Units Total",
+            "type": "integer"
+          },
+          "position": {
+            "description": "Sequence number of the latest unit off the line.",
+            "minimum": 0,
+            "title": "Position",
+            "type": "integer"
+          },
+          "cycle": {
+            "minimum": 0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "plant_time": {
+            "description": "Original timestamp of the latest unit (secom_labels.data).",
+            "format": "date-time",
+            "title": "Plant Time",
+            "type": "string"
+          },
+          "final_test_lag_units": {
+            "description": "A unit's final-test result is revealed this many units after it leaves the line.",
+            "minimum": 0,
+            "title": "Final Test Lag Units",
+            "type": "integer"
+          }
+        },
         "required": [
           "epoch",
           "now",
@@ -9200,7 +9777,7 @@
           "final_test_lag_units"
         ],
         "title": "PlantClock",
-        "description": "Replay position, computed from the wall clock so every visitor sees the same plant.\n\n`position = floor((now - epoch) / seconds_per_unit) mod units_total`; `cycle` counts completed\nreplays. Units after `position` have not come off the line yet and are never returned."
+        "type": "object"
       },
       "Pricing": {
         "properties": {
@@ -9669,25 +10246,24 @@
         "type": "object"
       },
       "RiskFeature": {
-        "additionalProperties": false,
         "properties": {
           "feature": {
-            "title": "Feature",
-            "type": "string"
+            "type": "string",
+            "title": "Feature"
           },
           "sensor": {
+            "type": "string",
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
             "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
             "examples": [
               "S060"
-            ],
-            "pattern": "^S\\d{3}$",
-            "title": "Sensor",
-            "type": "string"
+            ]
           },
           "indicator": {
-            "description": "True for a missingness indicator feature.",
+            "type": "boolean",
             "title": "Indicator",
-            "type": "boolean"
+            "description": "True for a missingness indicator feature."
           },
           "value": {
             "anyOf": [
@@ -9701,9 +10277,9 @@
             "title": "Value"
           },
           "shap": {
-            "description": "TreeSHAP contribution in log-odds.",
+            "type": "number",
             "title": "Shap",
-            "type": "number"
+            "description": "TreeSHAP contribution in log-odds."
           },
           "group_id": {
             "anyOf": [
@@ -9717,6 +10293,8 @@
             "title": "Group Id"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "feature",
           "sensor",
@@ -9725,8 +10303,7 @@
           "shap",
           "group_id"
         ],
-        "title": "RiskFeature",
-        "type": "object"
+        "title": "RiskFeature"
       },
       "RoleAssignment": {
         "properties": {
@@ -9916,79 +10493,80 @@
         "title": "RoleUsage"
       },
       "Run": {
-        "additionalProperties": false,
         "properties": {
           "run_id": {
-            "examples": [
-              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
-            ],
+            "type": "string",
             "pattern": "^run_[0-9a-z]{8,40}$",
             "title": "Run Id",
-            "type": "string"
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
           },
           "created_at": {
+            "type": "string",
             "format": "date-time",
-            "title": "Created At",
-            "type": "string"
+            "title": "Created At"
           },
           "status": {
+            "type": "string",
             "enum": [
               "queued",
               "running",
               "done",
               "failed"
             ],
-            "title": "Status",
-            "type": "string"
+            "title": "Status"
           },
           "origin": {
             "$ref": "#/components/schemas/RunOrigin"
           },
           "units": {
-            "minimum": 0,
-            "title": "Units",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
           },
           "wafers": {
-            "minimum": 0,
-            "title": "Wafers",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
           },
           "stages": {
             "items": {
               "$ref": "#/components/schemas/StageState"
             },
-            "title": "Stages",
-            "type": "array"
+            "type": "array",
+            "title": "Stages"
           },
           "alarms": {
             "items": {
               "$ref": "#/components/schemas/RunAlarm"
             },
-            "title": "Alarms",
-            "type": "array"
+            "type": "array",
+            "title": "Alarms"
           },
           "alarms_not_listed": {
-            "default": 0,
-            "description": "Alarms the rules raised beyond the per-run cap (most severe are listed); the stage results hold every value.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Alarms Not Listed",
-            "type": "integer"
+            "description": "Alarms the rules raised beyond the per-run cap (most severe are listed); the stage results hold every value.",
+            "default": 0
           },
           "expires_at": {
             "anyOf": [
               {
-                "format": "date-time",
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable.",
-            "title": "Expires At"
+            "title": "Expires At",
+            "description": "When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "run_id",
           "created_at",
@@ -10000,31 +10578,29 @@
           "alarms",
           "expires_at"
         ],
-        "title": "Run",
-        "type": "object"
+        "title": "Run"
       },
       "RunAlarm": {
-        "additionalProperties": false,
-        "description": "An alarm raised by a rule during the run. Messages are written by code.",
         "properties": {
           "alarm_id": {
+            "type": "string",
+            "pattern": "^RA-\\d{1,6}$",
+            "title": "Alarm Id",
             "description": "Alarm within one run, numbered in the order raised.",
             "examples": [
               "RA-3"
-            ],
-            "pattern": "^RA-\\d{1,6}$",
-            "title": "Alarm Id",
-            "type": "string"
+            ]
           },
           "run_id": {
-            "examples": [
-              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
-            ],
+            "type": "string",
             "pattern": "^run_[0-9a-z]{8,40}$",
             "title": "Run Id",
-            "type": "string"
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
           },
           "stage": {
+            "type": "string",
             "enum": [
               "intake",
               "sensor_risk",
@@ -10035,10 +10611,10 @@
               "lot",
               "final_test"
             ],
-            "title": "Stage",
-            "type": "string"
+            "title": "Stage"
           },
           "kind": {
+            "type": "string",
             "enum": [
               "risk",
               "t2",
@@ -10049,73 +10625,68 @@
               "unknown_pattern",
               "lot_excursion"
             ],
-            "title": "Kind",
-            "type": "string"
+            "title": "Kind"
           },
           "severity": {
+            "type": "string",
             "enum": [
               "warning",
               "alarm"
             ],
-            "title": "Severity",
-            "type": "string"
+            "title": "Severity"
           },
           "unit_index": {
             "anyOf": [
               {
-                "minimum": 0,
-                "type": "integer"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Unit Index"
           },
           "unit_id": {
             "anyOf": [
               {
-                "description": "A name from the user's file (unit_id or lot), kept as written.",
+                "type": "string",
                 "maxLength": 64,
                 "minLength": 1,
                 "pattern": "^[A-Za-z0-9_.:\\- ]+$",
-                "type": "string"
+                "description": "A name from the user's file (unit_id or lot), kept as written."
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Unit Id"
           },
           "wafer_index": {
             "anyOf": [
               {
-                "minimum": 0,
-                "type": "integer"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Wafer Index"
           },
           "lot": {
             "anyOf": [
               {
-                "description": "A name from the user's file (unit_id or lot), kept as written.",
+                "type": "string",
                 "maxLength": 64,
                 "minLength": 1,
                 "pattern": "^[A-Za-z0-9_.:\\- ]+$",
-                "type": "string"
+                "description": "A name from the user's file (unit_id or lot), kept as written."
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Lot"
           },
           "value": {
@@ -10141,31 +10712,31 @@
             "title": "Limit"
           },
           "title": {
-            "examples": [
-              "Sensor relationships broke (SPE)"
-            ],
+            "type": "string",
             "maxLength": 120,
             "title": "Title",
-            "type": "string"
+            "examples": [
+              "Sensor relationships broke (SPE)"
+            ]
           },
           "meaning": {
-            "description": "One plain sentence.",
+            "type": "string",
             "maxLength": 400,
             "title": "Meaning",
-            "type": "string"
+            "description": "One plain sentence."
           },
           "sensors": {
             "items": {
+              "type": "string",
+              "pattern": "^S\\d{3}$",
               "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
               "examples": [
                 "S060"
-              ],
-              "pattern": "^S\\d{3}$",
-              "type": "string"
+              ]
             },
+            "type": "array",
             "maxItems": 10,
-            "title": "Sensors",
-            "type": "array"
+            "title": "Sensors"
           },
           "investigation_id": {
             "anyOf": [
@@ -10176,10 +10747,11 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Investigation Id"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "alarm_id",
           "run_id",
@@ -10192,67 +10764,67 @@
           "meaning"
         ],
         "title": "RunAlarm",
-        "type": "object"
+        "description": "An alarm raised by a rule during the run. Messages are written by code."
       },
       "RunCase": {
-        "additionalProperties": false,
-        "description": "A real situation found in the data by a fixed rule (not made up).",
         "properties": {
           "case_id": {
-            "title": "Case Id",
-            "type": "string"
+            "type": "string",
+            "title": "Case Id"
           },
           "title": {
-            "title": "Title",
-            "type": "string"
+            "type": "string",
+            "title": "Title"
           },
           "description": {
-            "title": "Description",
-            "type": "string"
+            "type": "string",
+            "title": "Description"
           },
           "rule": {
-            "description": "The rule that found it in the data.",
+            "type": "string",
             "title": "Rule",
-            "type": "string"
+            "description": "The rule that found it in the data."
           },
           "datasets": {
             "items": {
+              "type": "string",
               "enum": [
                 "secom",
                 "wm811k",
                 "user"
-              ],
-              "type": "string"
+              ]
             },
-            "title": "Datasets",
-            "type": "array"
+            "type": "array",
+            "title": "Datasets"
           },
           "units": {
-            "minimum": 0,
-            "title": "Units",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
           },
           "wafers": {
-            "minimum": 0,
-            "title": "Wafers",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
           },
           "stations": {
-            "description": "Stations this case exercises.",
             "items": {
+              "type": "string",
               "enum": [
                 "manufacturing",
                 "monitoring",
                 "wafer_test",
                 "investigation",
                 "decision"
-              ],
-              "type": "string"
+              ]
             },
+            "type": "array",
             "title": "Stations",
-            "type": "array"
+            "description": "Stations this case exercises."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "case_id",
           "title",
@@ -10264,37 +10836,26 @@
           "stations"
         ],
         "title": "RunCase",
-        "type": "object"
+        "description": "A real situation found in the data by a fixed rule (not made up)."
       },
       "RunCaseList": {
-        "additionalProperties": false,
         "properties": {
           "items": {
             "items": {
               "$ref": "#/components/schemas/RunCase"
             },
-            "title": "Items",
-            "type": "array"
+            "type": "array",
+            "title": "Items"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "items"
         ],
-        "title": "RunCaseList",
-        "type": "object"
+        "title": "RunCaseList"
       },
       "RunCreate": {
-        "description": "Body of POST /runs, discriminated by `source`.",
-        "discriminator": {
-          "mapping": {
-            "case": "#/components/schemas/CaseRunCreate",
-            "drawn": "#/components/schemas/DrawnRunCreate",
-            "pick": "#/components/schemas/PickRunCreate",
-            "sample": "#/components/schemas/SampleRunCreate",
-            "upload": "#/components/schemas/UploadRunCreate"
-          },
-          "propertyName": "source"
-        },
         "oneOf": [
           {
             "$ref": "#/components/schemas/SampleRunCreate"
@@ -10312,37 +10873,48 @@
             "$ref": "#/components/schemas/UploadRunCreate"
           }
         ],
-        "title": "RunCreate"
+        "title": "RunCreate",
+        "description": "Body of POST /runs, discriminated by `source`.",
+        "discriminator": {
+          "propertyName": "source",
+          "mapping": {
+            "case": "#/components/schemas/CaseRunCreate",
+            "drawn": "#/components/schemas/DrawnRunCreate",
+            "pick": "#/components/schemas/PickRunCreate",
+            "sample": "#/components/schemas/SampleRunCreate",
+            "upload": "#/components/schemas/UploadRunCreate"
+          }
+        }
       },
       "RunCreated": {
-        "additionalProperties": false,
         "properties": {
           "run_id": {
-            "examples": [
-              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
-            ],
+            "type": "string",
             "pattern": "^run_[0-9a-z]{8,40}$",
             "title": "Run Id",
-            "type": "string"
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
           },
           "events_url": {
+            "type": "string",
+            "title": "Events Url",
             "examples": [
               "/api/v1/runs/run_01jaf3k9x2m4q7r8s0t1v2w3x4/events"
-            ],
-            "title": "Events Url",
-            "type": "string"
+            ]
           },
           "origin": {
             "$ref": "#/components/schemas/RunOrigin"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "run_id",
           "events_url",
           "origin"
         ],
-        "title": "RunCreated",
-        "type": "object"
+        "title": "RunCreated"
       },
       "RunDoneEvent": {
         "additionalProperties": false,
@@ -10433,10 +11005,9 @@
         "title": "RunEvent"
       },
       "RunOrigin": {
-        "additionalProperties": false,
-        "description": "Where the input came from, in words the page can show as is.",
         "properties": {
           "source": {
+            "type": "string",
             "enum": [
               "sample",
               "case",
@@ -10444,35 +11015,34 @@
               "drawn",
               "upload"
             ],
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "datasets": {
             "items": {
+              "type": "string",
               "enum": [
                 "secom",
                 "wm811k",
                 "user"
-              ],
-              "type": "string"
+              ]
             },
+            "type": "array",
             "minItems": 1,
-            "title": "Datasets",
-            "type": "array"
+            "title": "Datasets"
           },
           "title": {
-            "examples": [
-              "A random real sample"
-            ],
+            "type": "string",
             "maxLength": 200,
             "title": "Title",
-            "type": "string"
+            "examples": [
+              "A random real sample"
+            ]
           },
           "rule": {
-            "description": "How the input was chosen or built, e.g. the selection rule and its seed.",
+            "type": "string",
             "maxLength": 600,
             "title": "Rule",
-            "type": "string"
+            "description": "How the input was chosen or built, e.g. the selection rule and its seed."
           },
           "case_id": {
             "anyOf": [
@@ -10483,20 +11053,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Case Id"
           },
           "filename": {
             "anyOf": [
               {
-                "maxLength": 255,
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Filename"
           },
           "seed": {
@@ -10508,10 +11076,11 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Seed"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "source",
           "datasets",
@@ -10519,7 +11088,7 @@
           "rule"
         ],
         "title": "RunOrigin",
-        "type": "object"
+        "description": "Where the input came from, in words the page can show as is."
       },
       "RunStartedEvent": {
         "additionalProperties": false,
@@ -10571,35 +11140,34 @@
         "type": "object"
       },
       "SampleRunCreate": {
-        "additionalProperties": false,
-        "description": "One click: the server picks real SECOM units and a real WM-811K lot at random.",
         "properties": {
           "source": {
+            "type": "string",
             "const": "sample",
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "seed": {
             "anyOf": [
               {
-                "maximum": 2147483647,
-                "minimum": 0,
-                "type": "integer"
+                "type": "integer",
+                "maximum": 2147483647.0,
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "Repeat an earlier pick; omitted picks a new one.",
-            "title": "Seed"
+            "title": "Seed",
+            "description": "Repeat an earlier pick; omitted picks a new one."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "source"
         ],
         "title": "SampleRunCreate",
-        "type": "object"
+        "description": "One click: the server picks real SECOM units and a real WM-811K lot at random."
       },
       "SecomMetrics": {
         "properties": {
@@ -10946,42 +11514,42 @@
         "title": "SensorHealth"
       },
       "SensorHealthItem": {
-        "additionalProperties": false,
         "properties": {
           "sensor": {
+            "type": "string",
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
             "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
             "examples": [
               "S060"
-            ],
-            "pattern": "^S\\d{3}$",
-            "title": "Sensor",
-            "type": "string"
+            ]
           },
           "status": {
+            "type": "string",
             "enum": [
               "ok",
               "watch",
               "maintenance",
               "dead"
             ],
-            "title": "Status",
-            "type": "string"
+            "title": "Status"
           },
           "reasons": {
             "items": {
               "type": "string"
             },
-            "title": "Reasons",
-            "type": "array"
+            "type": "array",
+            "title": "Reasons"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "sensor",
           "status",
           "reasons"
         ],
-        "title": "SensorHealthItem",
-        "type": "object"
+        "title": "SensorHealthItem"
       },
       "SensorHealthReport": {
         "properties": {
@@ -11091,59 +11659,60 @@
         "description": "Range of the sensor in the FDC reference period."
       },
       "SensorRiskResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "sensor_risk",
-            "default": "sensor_risk",
             "title": "Stage",
-            "type": "string"
+            "default": "sensor_risk"
           },
           "units": {
             "items": {
               "$ref": "#/components/schemas/UnitRiskResult"
             },
-            "title": "Units",
-            "type": "array"
+            "type": "array",
+            "title": "Units"
           },
           "threshold": {
-            "description": "Operating point chosen on the validation block.",
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Threshold",
-            "type": "number"
+            "description": "Operating point chosen on the validation block."
           },
           "operating_point": {
+            "type": "string",
+            "title": "Operating Point",
             "examples": [
               "5% false-alarm rate on the validation block"
-            ],
-            "title": "Operating Point",
-            "type": "string"
+            ]
           },
           "elevated_threshold": {
-            "description": "Lower edge of the elevated band (10% false-alarm rate on the validation block).",
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Elevated Threshold",
-            "type": "number"
+            "description": "Lower edge of the elevated band (10% false-alarm rate on the validation block)."
           },
           "skill": {
-            "description": "Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk.",
             "items": {
               "$ref": "#/components/schemas/MetricValue"
             },
+            "type": "array",
             "title": "Skill",
-            "type": "array"
+            "description": "Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk."
           },
           "caution": {
-            "description": "Plain sentence on how weak the risk is.",
+            "type": "string",
             "title": "Caution",
-            "type": "string"
+            "description": "Plain sentence on how weak the risk is."
           },
           "model": {
             "$ref": "#/components/schemas/BundleRef"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "units",
           "threshold",
@@ -11153,8 +11722,7 @@
           "caution",
           "model"
         ],
-        "title": "SensorRiskResult",
-        "type": "object"
+        "title": "SensorRiskResult"
       },
       "SensorSeries": {
         "properties": {
@@ -11339,21 +11907,21 @@
         "title": "ShapContribution"
       },
       "SimilarItem": {
-        "additionalProperties": false,
         "properties": {
           "wafer_id": {
-            "description": "\"<lot>-<wafer index>\".",
-            "examples": [
-              "lot47542-12"
-            ],
+            "type": "string",
             "maxLength": 80,
             "pattern": "^[A-Za-z0-9_.]+-\\d+$",
             "title": "Wafer Id",
-            "type": "string"
+            "description": "\"<lot>-<wafer index>\".",
+            "examples": [
+              "lot47542-12"
+            ]
           },
           "recorded_label": {
             "anyOf": [
               {
+                "type": "string",
                 "enum": [
                   "Center",
                   "Donut",
@@ -11364,8 +11932,7 @@
                   "Random",
                   "Scratch",
                   "none"
-                ],
-                "type": "string"
+                ]
               },
               {
                 "type": "null"
@@ -11374,6 +11941,7 @@
             "title": "Recorded Label"
           },
           "predicted_label": {
+            "type": "string",
             "enum": [
               "Center",
               "Donut",
@@ -11385,19 +11953,20 @@
               "Scratch",
               "none"
             ],
-            "title": "Predicted Label",
-            "type": "string"
+            "title": "Predicted Label"
           },
           "similarity": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": -1.0,
-            "title": "Similarity",
-            "type": "number"
+            "title": "Similarity"
           },
           "map": {
             "$ref": "#/components/schemas/WaferMap"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "wafer_id",
           "recorded_label",
@@ -11405,8 +11974,7 @@
           "similarity",
           "map"
         ],
-        "title": "SimilarItem",
-        "type": "object"
+        "title": "SimilarItem"
       },
       "SimilarWafer": {
         "properties": {
@@ -11927,9 +12495,9 @@
         "type": "object"
       },
       "StageState": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "enum": [
               "intake",
               "sensor_risk",
@@ -11940,10 +12508,10 @@
               "lot",
               "final_test"
             ],
-            "title": "Stage",
-            "type": "string"
+            "title": "Stage"
           },
           "station": {
+            "type": "string",
             "enum": [
               "manufacturing",
               "monitoring",
@@ -11951,10 +12519,10 @@
               "investigation",
               "decision"
             ],
-            "title": "Station",
-            "type": "string"
+            "title": "Station"
           },
           "status": {
+            "type": "string",
             "enum": [
               "pending",
               "running",
@@ -11962,8 +12530,7 @@
               "skipped",
               "failed"
             ],
-            "title": "Status",
-            "type": "string"
+            "title": "Status"
           },
           "needs": {
             "anyOf": [
@@ -11974,9 +12541,8 @@
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "Why the stage was skipped, in plain words.",
-            "title": "Needs"
+            "title": "Needs",
+            "description": "Why the stage was skipped, in plain words."
           },
           "elapsed_ms": {
             "anyOf": [
@@ -11987,25 +12553,11 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Elapsed Ms"
           },
           "result": {
             "anyOf": [
               {
-                "discriminator": {
-                  "mapping": {
-                    "control_charts": "#/components/schemas/ControlChartsResult",
-                    "drift_health": "#/components/schemas/DriftHealthResult",
-                    "final_test": "#/components/schemas/FinalTestResult",
-                    "intake": "#/components/schemas/IntakeResult",
-                    "lot": "#/components/schemas/LotResult",
-                    "sensor_risk": "#/components/schemas/SensorRiskResult",
-                    "wafer_pattern": "#/components/schemas/WaferPatternResult",
-                    "wafer_similar": "#/components/schemas/WaferSimilarResult"
-                  },
-                  "propertyName": "stage"
-                },
                 "oneOf": [
                   {
                     "$ref": "#/components/schemas/IntakeResult"
@@ -12031,13 +12583,25 @@
                   {
                     "$ref": "#/components/schemas/FinalTestResult"
                   }
-                ]
+                ],
+                "discriminator": {
+                  "propertyName": "stage",
+                  "mapping": {
+                    "control_charts": "#/components/schemas/ControlChartsResult",
+                    "drift_health": "#/components/schemas/DriftHealthResult",
+                    "final_test": "#/components/schemas/FinalTestResult",
+                    "intake": "#/components/schemas/IntakeResult",
+                    "lot": "#/components/schemas/LotResult",
+                    "sensor_risk": "#/components/schemas/SensorRiskResult",
+                    "wafer_pattern": "#/components/schemas/WaferPatternResult",
+                    "wafer_similar": "#/components/schemas/WaferSimilarResult"
+                  }
+                }
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Result"
           },
           "problem": {
@@ -12048,17 +12612,17 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "stage",
           "station",
           "status"
         ],
-        "title": "StageState",
-        "type": "object"
+        "title": "StageState"
       },
       "StatusEvent": {
         "additionalProperties": false,
@@ -12191,69 +12755,67 @@
         "title": "Tuning"
       },
       "UnitChartResult": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "minimum": 0,
-            "title": "Index",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Index"
           },
           "unit_id": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Unit Id",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "timestamp": {
             "anyOf": [
               {
-                "format": "date-time",
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "The unit's time, when the input has it.",
-            "title": "Timestamp"
+            "title": "Timestamp",
+            "description": "The unit's time, when the input has it."
           },
           "t2": {
-            "minimum": 0,
-            "title": "T2",
-            "type": "number"
+            "type": "number",
+            "minimum": 0.0,
+            "title": "T2"
           },
           "spe": {
-            "minimum": 0,
-            "title": "Spe",
-            "type": "number"
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Spe"
           },
           "level": {
+            "type": "string",
             "enum": [
               "none",
               "warning",
               "alarm"
             ],
-            "title": "Level",
-            "type": "string"
+            "title": "Level"
           },
           "top_t2": {
             "items": {
               "$ref": "#/components/schemas/FdcContributionItem"
             },
+            "type": "array",
             "maxItems": 10,
-            "title": "Top T2",
-            "type": "array"
+            "title": "Top T2"
           },
           "top_spe": {
             "items": {
               "$ref": "#/components/schemas/FdcContributionItem"
             },
+            "type": "array",
             "maxItems": 10,
-            "title": "Top Spe",
-            "type": "array"
+            "title": "Top Spe"
           },
           "z": {
             "anyOf": [
@@ -12274,11 +12836,12 @@
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "Standardised reading of each monitored sensor (order of `features`), null where missing. Sent for at most the first 200 units; GET the run for the rest.",
-            "title": "Z"
+            "title": "Z",
+            "description": "Standardised reading of each monitored sensor (order of `features`), null where missing. Sent for at most the first 200 units; GET the run for the rest."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "unit_id",
@@ -12288,8 +12851,7 @@
           "top_t2",
           "top_spe"
         ],
-        "title": "UnitChartResult",
-        "type": "object"
+        "title": "UnitChartResult"
       },
       "UnitDetail": {
         "properties": {
@@ -12419,7 +12981,7 @@
               }
             ],
             "title": "Final Test",
-            "description": "Final-test result; null until the replay reveals it (see PlantClock.final_test_lag_units)."
+            "description": "Recorded final-test result (secom_labels.data)."
           },
           "risk_detail": {
             "$ref": "#/components/schemas/UnitRisk"
@@ -12630,69 +13192,70 @@
         "title": "UnitRisk"
       },
       "UnitRiskResult": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "description": "Position of the unit in the run input.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Index",
-            "type": "integer"
+            "description": "Position of the unit in the run input."
           },
           "unit_id": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Unit Id",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "risk": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Risk",
-            "type": "number"
+            "title": "Risk"
           },
           "band": {
+            "type": "string",
             "enum": [
               "low",
               "elevated",
               "high"
             ],
-            "title": "Band",
-            "type": "string"
+            "title": "Band"
           },
           "above_threshold": {
-            "title": "Above Threshold",
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Above Threshold"
           },
           "validity": {
-            "description": "held_out: a SECOM unit the model never saw; in_training: a SECOM unit the model was fitted on (in-sample); new_data: not a SECOM unit.",
+            "type": "string",
             "enum": [
               "held_out",
               "in_training",
               "new_data"
             ],
             "title": "Validity",
-            "type": "string"
+            "description": "held_out: a SECOM unit the model never saw; in_training: a SECOM unit the model was fitted on (in-sample); new_data: not a SECOM unit."
           },
           "raw_score": {
-            "title": "Raw Score",
-            "type": "number"
+            "type": "number",
+            "title": "Raw Score"
           },
           "base_value": {
-            "title": "Base Value",
-            "type": "number"
+            "type": "number",
+            "title": "Base Value"
           },
           "top": {
-            "description": "Largest |shap| first.",
             "items": {
               "$ref": "#/components/schemas/RiskFeature"
             },
+            "type": "array",
             "maxItems": 15,
             "title": "Top",
-            "type": "array"
+            "description": "Largest |shap| first."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "unit_id",
@@ -12704,8 +13267,7 @@
           "base_value",
           "top"
         ],
-        "title": "UnitRiskResult",
-        "type": "object"
+        "title": "UnitRiskResult"
       },
       "UnitSummary": {
         "properties": {
@@ -12835,7 +13397,7 @@
               }
             ],
             "title": "Final Test",
-            "description": "Final-test result; null until the replay reveals it (see PlantClock.final_test_lag_units)."
+            "description": "Recorded final-test result (secom_labels.data)."
           }
         },
         "additionalProperties": false,
@@ -12978,15 +13540,14 @@
         "description": "Mahalanobis score of the CNN embedding; above the threshold, the wafer is an unknown pattern.\n\nThe score is the smallest squared Mahalanobis distance from the L2-normalised embedding to a\nclass mean (shared Ledoit-Wolf covariance). The threshold accepts 95% of validation wafers."
       },
       "UploadIssue": {
-        "additionalProperties": false,
         "properties": {
           "severity": {
+            "type": "string",
             "enum": [
               "error",
               "warning"
             ],
-            "title": "Severity",
-            "type": "string"
+            "title": "Severity"
           },
           "row": {
             "anyOf": [
@@ -12997,8 +13558,8 @@
                 "type": "null"
               }
             ],
-            "description": "1-based row in the file (the header is row 1).",
-            "title": "Row"
+            "title": "Row",
+            "description": "1-based row in the file (the header is row 1)."
           },
           "column": {
             "anyOf": [
@@ -13012,104 +13573,105 @@
             "title": "Column"
           },
           "message": {
-            "title": "Message",
-            "type": "string"
+            "type": "string",
+            "title": "Message"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "severity",
           "row",
           "column",
           "message"
         ],
-        "title": "UploadIssue",
-        "type": "object"
+        "title": "UploadIssue"
       },
       "UploadRunCreate": {
-        "additionalProperties": false,
         "properties": {
           "source": {
+            "type": "string",
             "const": "upload",
-            "title": "Source",
-            "type": "string"
+            "title": "Source"
           },
           "upload_id": {
-            "examples": [
-              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
-            ],
+            "type": "string",
             "pattern": "^upl_[0-9a-z]{8,40}$",
             "title": "Upload Id",
-            "type": "string"
+            "examples": [
+              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "source",
           "upload_id"
         ],
-        "title": "UploadRunCreate",
-        "type": "object"
+        "title": "UploadRunCreate"
       },
       "UploadSummary": {
-        "additionalProperties": false,
-        "description": "A parsed and validated file, ready to run. Errors block the run; warnings do not.",
         "properties": {
           "upload_id": {
-            "examples": [
-              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
-            ],
+            "type": "string",
             "pattern": "^upl_[0-9a-z]{8,40}$",
             "title": "Upload Id",
-            "type": "string"
+            "examples": [
+              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
           },
           "kind": {
+            "type": "string",
             "enum": [
               "sensors",
               "wafers"
             ],
-            "title": "Kind",
-            "type": "string"
+            "title": "Kind"
           },
           "filename": {
-            "title": "Filename",
-            "type": "string"
+            "type": "string",
+            "title": "Filename"
           },
           "units": {
-            "minimum": 0,
-            "title": "Units",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
           },
           "wafers": {
-            "minimum": 0,
-            "title": "Wafers",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
           },
           "lots": {
-            "minimum": 0,
-            "title": "Lots",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Lots"
           },
           "missing_readings": {
-            "minimum": 0,
-            "title": "Missing Readings",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Missing Readings"
           },
           "issues": {
             "items": {
               "$ref": "#/components/schemas/UploadIssue"
             },
-            "title": "Issues",
-            "type": "array"
+            "type": "array",
+            "title": "Issues"
           },
           "runnable": {
-            "title": "Runnable",
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Runnable"
           },
           "expires_at": {
+            "type": "string",
             "format": "date-time",
-            "title": "Expires At",
-            "type": "string"
+            "title": "Expires At"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "upload_id",
           "kind",
@@ -13123,7 +13685,7 @@
           "expires_at"
         ],
         "title": "UploadSummary",
-        "type": "object"
+        "description": "A parsed and validated file, ready to run. Errors block the run; warnings do not."
       },
       "Usage": {
         "properties": {
@@ -13512,22 +14074,20 @@
         "description": "The wafer shown on the home page, with the rule that picked it."
       },
       "WaferInput": {
-        "additionalProperties": false,
-        "description": "One wafer map with WM-811K values (0 no die, 1 pass, 2 fail).",
         "properties": {
           "lot": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Lot",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "wafer": {
-            "maximum": 10000,
-            "minimum": 1,
-            "title": "Wafer",
-            "type": "integer"
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Wafer"
           },
           "map": {
             "$ref": "#/components/schemas/WaferMap"
@@ -13535,6 +14095,7 @@
           "label": {
             "anyOf": [
               {
+                "type": "string",
                 "enum": [
                   "Center",
                   "Donut",
@@ -13545,44 +14106,43 @@
                   "Random",
                   "Scratch",
                   "none"
-                ],
-                "type": "string"
+                ]
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "Recorded WM-811K label, when the wafer comes from the real dataset.",
-            "title": "Label"
+            "title": "Label",
+            "description": "Recorded WM-811K label, when the wafer comes from the real dataset."
           },
           "source_wafer": {
             "anyOf": [
               {
+                "type": "string",
+                "maxLength": 80,
+                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
                 "description": "\"<lot>-<wafer index>\".",
                 "examples": [
                   "lot47542-12"
-                ],
-                "maxLength": 80,
-                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
-                "type": "string"
+                ]
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "The WM-811K wafer this is, when it comes from the real dataset.",
-            "title": "Source Wafer"
+            "title": "Source Wafer",
+            "description": "The WM-811K wafer this is, when it comes from the real dataset."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "lot",
           "wafer",
           "map"
         ],
         "title": "WaferInput",
-        "type": "object"
+        "description": "One wafer map with WM-811K values (0 no die, 1 pass, 2 fail)."
       },
       "WaferMap": {
         "properties": {
@@ -13721,25 +14281,24 @@
         "title": "WaferPage"
       },
       "WaferPatternItem": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "description": "Position of the wafer in the run input.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Index",
-            "type": "integer"
+            "description": "Position of the wafer in the run input."
           },
           "lot": {
-            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "type": "string",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_.:\\- ]+$",
             "title": "Lot",
-            "type": "string"
+            "description": "A name from the user's file (unit_id or lot), kept as written."
           },
           "wafer": {
-            "title": "Wafer",
-            "type": "integer"
+            "type": "integer",
+            "title": "Wafer"
           },
           "map": {
             "$ref": "#/components/schemas/WaferMap",
@@ -13748,23 +14307,23 @@
           "source_wafer": {
             "anyOf": [
               {
+                "type": "string",
+                "maxLength": 80,
+                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
                 "description": "\"<lot>-<wafer index>\".",
                 "examples": [
                   "lot47542-12"
-                ],
-                "maxLength": 80,
-                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
-                "type": "string"
+                ]
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
-            "description": "The WM-811K wafer this is, when it comes from the real dataset.",
-            "title": "Source Wafer"
+            "title": "Source Wafer",
+            "description": "The WM-811K wafer this is, when it comes from the real dataset."
           },
           "top_label": {
+            "type": "string",
             "enum": [
               "Center",
               "Donut",
@@ -13776,43 +14335,42 @@
               "Scratch",
               "none"
             ],
-            "title": "Top Label",
-            "type": "string"
+            "title": "Top Label"
           },
           "top_probability": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Top Probability",
-            "type": "number"
+            "title": "Top Probability"
           },
           "probabilities": {
-            "description": "Calibrated, highest first.",
             "items": {
               "$ref": "#/components/schemas/ClassProbabilityItem"
             },
+            "type": "array",
             "title": "Probabilities",
-            "type": "array"
+            "description": "Calibrated, highest first."
           },
           "auto_accepted": {
-            "description": "Top probability clears the threshold set for 99% precision on validation.",
+            "type": "boolean",
             "title": "Auto Accepted",
-            "type": "boolean"
+            "description": "Top probability clears the threshold set for 99% precision on validation."
           },
           "unknown_score": {
-            "title": "Unknown Score",
-            "type": "number"
+            "type": "number",
+            "title": "Unknown Score"
           },
           "unknown_threshold": {
-            "title": "Unknown Threshold",
-            "type": "number"
+            "type": "number",
+            "title": "Unknown Threshold"
           },
           "is_unknown": {
-            "title": "Is Unknown",
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Is Unknown"
           },
           "energy_score": {
-            "title": "Energy Score",
-            "type": "number"
+            "type": "number",
+            "title": "Energy Score"
           },
           "spatial": {
             "anyOf": [
@@ -13827,6 +14385,7 @@
           "recorded_label": {
             "anyOf": [
               {
+                "type": "string",
                 "enum": [
                   "Center",
                   "Donut",
@@ -13837,8 +14396,7 @@
                   "Random",
                   "Scratch",
                   "none"
-                ],
-                "type": "string"
+                ]
               },
               {
                 "type": "null"
@@ -13847,6 +14405,8 @@
             "title": "Recorded Label"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "lot",
@@ -13863,44 +14423,44 @@
           "spatial",
           "recorded_label"
         ],
-        "title": "WaferPatternItem",
-        "type": "object"
+        "title": "WaferPatternItem"
       },
       "WaferPatternResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "wafer_pattern",
-            "default": "wafer_pattern",
             "title": "Stage",
-            "type": "string"
+            "default": "wafer_pattern"
           },
           "wafers": {
             "items": {
               "$ref": "#/components/schemas/WaferPatternItem"
             },
-            "title": "Wafers",
-            "type": "array"
+            "type": "array",
+            "title": "Wafers"
           },
           "accept_threshold": {
+            "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Accept Threshold",
-            "type": "number"
+            "title": "Accept Threshold"
           },
           "temperature": {
-            "exclusiveMinimum": 0,
-            "title": "Temperature",
-            "type": "number"
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Temperature"
           },
           "method": {
-            "title": "Method",
-            "type": "string"
+            "type": "string",
+            "title": "Method"
           },
           "model": {
             "$ref": "#/components/schemas/BundleRef"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "wafers",
           "accept_threshold",
@@ -13908,8 +14468,7 @@
           "method",
           "model"
         ],
-        "title": "WaferPatternResult",
-        "type": "object"
+        "title": "WaferPatternResult"
       },
       "WaferPrediction": {
         "properties": {
@@ -13978,51 +14537,50 @@
         "title": "WaferPrediction"
       },
       "WaferSimilarItem": {
-        "additionalProperties": false,
         "properties": {
           "index": {
-            "minimum": 0,
-            "title": "Index",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Index"
           },
           "similar": {
-            "description": "Most similar first.",
             "items": {
               "$ref": "#/components/schemas/SimilarItem"
             },
+            "type": "array",
             "maxItems": 10,
             "title": "Similar",
-            "type": "array"
+            "description": "Most similar first."
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "index",
           "similar"
         ],
-        "title": "WaferSimilarItem",
-        "type": "object"
+        "title": "WaferSimilarItem"
       },
       "WaferSimilarResult": {
-        "additionalProperties": false,
         "properties": {
           "stage": {
+            "type": "string",
             "const": "wafer_similar",
-            "default": "wafer_similar",
             "title": "Stage",
-            "type": "string"
+            "default": "wafer_similar"
           },
           "wafers": {
             "items": {
               "$ref": "#/components/schemas/WaferSimilarItem"
             },
-            "title": "Wafers",
-            "type": "array"
+            "type": "array",
+            "title": "Wafers"
           },
           "searched": {
-            "description": "Real WM-811K wafers searched.",
-            "minimum": 0,
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Searched",
-            "type": "integer"
+            "description": "Real WM-811K wafers searched."
           },
           "precision_at_10": {
             "anyOf": [
@@ -14039,10 +14597,12 @@
             "description": "Literature causes for the predicted patterns in this run: hypotheses to check, not a diagnosis."
           },
           "method": {
-            "title": "Method",
-            "type": "string"
+            "type": "string",
+            "title": "Method"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "wafers",
           "searched",
@@ -14050,8 +14610,7 @@
           "causes",
           "method"
         ],
-        "title": "WaferSimilarResult",
-        "type": "object"
+        "title": "WaferSimilarResult"
       },
       "WaferSummary": {
         "properties": {
