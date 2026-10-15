@@ -38,7 +38,7 @@ from yield_guardian.contracts.base import (
 )
 from yield_guardian.contracts.knowledge import PatternCauses
 from yield_guardian.contracts.line import FdcAlarmLevel, RiskBand
-from yield_guardian.contracts.secom import FdcLimits, SensorStatus
+from yield_guardian.contracts.secom import FdcLimits, MetricValue, SensorStatus
 from yield_guardian.contracts.wafer import (
     PatternTest,
     SpatialTest,
@@ -313,7 +313,10 @@ class SensorRiskResult(Contract):
     units: list[UnitRiskResult]
     threshold: Probability = Field(description="Operating point chosen on the validation block.")
     operating_point: str = Field(examples=["5% false-alarm rate on the validation block"])
-    skill: list[Estimate] = Field(
+    elevated_threshold: Probability = Field(
+        description="Lower edge of the elevated band (10% false-alarm rate on the validation block)."
+    )
+    skill: list[MetricValue] = Field(
         description="Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk."
     )
     caution: str = Field(description="Plain sentence on how weak the risk is.")
@@ -524,6 +527,11 @@ class Run(Contract):
     wafers: Count
     stages: list[StageState]
     alarms: list[RunAlarm]
+    alarms_not_listed: Count = Field(
+        0,
+        description="Alarms the rules raised beyond the per-run cap (most severe are listed); "
+        "the stage results hold every value.",
+    )
     expires_at: datetime
 
 
@@ -572,6 +580,9 @@ class RunDoneEvent(_Event):
     type: Literal["run_done"] = "run_done"
     status: Literal["done", "failed"]
     alarms: Count
+    alarms_not_listed: Count = Field(
+        0, description="Alarms raised but not listed because of the cap."
+    )
 
 
 RunEventPayload = (

@@ -9572,6 +9572,13 @@
             "title": "Alarms",
             "type": "array"
           },
+          "alarms_not_listed": {
+            "default": 0,
+            "description": "Alarms the rules raised beyond the per-run cap (most severe are listed); the stage results hold every value.",
+            "minimum": 0,
+            "title": "Alarms Not Listed",
+            "type": "integer"
+          },
           "expires_at": {
             "format": "date-time",
             "title": "Expires At",
@@ -9963,6 +9970,13 @@
           "alarms": {
             "minimum": 0,
             "title": "Alarms",
+            "type": "integer"
+          },
+          "alarms_not_listed": {
+            "default": 0,
+            "description": "Alarms raised but not listed because of the cap.",
+            "minimum": 0,
+            "title": "Alarms Not Listed",
             "type": "integer"
           }
         },
@@ -10702,10 +10716,17 @@
             "title": "Operating Point",
             "type": "string"
           },
+          "elevated_threshold": {
+            "description": "Lower edge of the elevated band (10% false-alarm rate on the validation block).",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Elevated Threshold",
+            "type": "number"
+          },
           "skill": {
             "description": "Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk.",
             "items": {
-              "$ref": "#/components/schemas/Estimate"
+              "$ref": "#/components/schemas/MetricValue"
             },
             "title": "Skill",
             "type": "array"
@@ -10723,6 +10744,7 @@
           "units",
           "threshold",
           "operating_point",
+          "elevated_threshold",
           "skill",
           "caution",
           "model"

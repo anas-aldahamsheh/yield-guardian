@@ -3463,6 +3463,12 @@ export interface components {
       /** Alarms */
       alarms: components["schemas"]["RunAlarm"][];
       /**
+       * Alarms Not Listed
+       * @description Alarms the rules raised beyond the per-run cap (most severe are listed); the stage results hold every value.
+       * @default 0
+       */
+      alarms_not_listed: number;
+      /**
        * Created At
        * Format: date-time
        */
@@ -3646,6 +3652,12 @@ export interface components {
     RunDoneEvent: {
       /** Alarms */
       alarms: number;
+      /**
+       * Alarms Not Listed
+       * @description Alarms raised but not listed because of the cap.
+       * @default 0
+       */
+      alarms_not_listed: number;
       /**
        * At
        * Format: date-time
@@ -3942,6 +3954,11 @@ export interface components {
        * @description Plain sentence on how weak the risk is.
        */
       caution: string;
+      /**
+       * Elevated Threshold
+       * @description Lower edge of the elevated band (10% false-alarm rate on the validation block).
+       */
+      elevated_threshold: number;
       model: components["schemas"]["BundleRef"];
       /**
        * Operating Point
@@ -3952,7 +3969,7 @@ export interface components {
        * Skill
        * @description Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk.
        */
-      skill: components["schemas"]["Estimate"][];
+      skill: components["schemas"]["MetricValue"][];
       /**
        * @description discriminator enum property added by openapi-typescript
        * @enum {string}
