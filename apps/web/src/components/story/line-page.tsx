@@ -136,8 +136,11 @@ export function LinePage({
   );
   /** The run this page has just started: its results arrive on the stream and play as they come. */
   const [freshId, setFreshId] = useState<string | null>(null);
-  /** Whether the open station was chosen here (its drawer comes into view) or arrived with the URL. */
-  const [stationBy, setStationBy] = useState<"url" | "person">("url");
+  /**
+   * Where the open station comes from: the page's own address, an address reached with back or
+   * forward, or the person choosing it here (only then does its drawer fade in and scroll).
+   */
+  const [stationBy, setStationBy] = useState<"document" | "url" | "person">("document");
   const { way, kept: wayKept, setWay } = useWay();
   const [starting, setStarting] = useState(
     () => parsePick(new URLSearchParams(initialQuery)) != null,
@@ -403,7 +406,8 @@ export function LinePage({
             onClose={() => setStation(null)}
             // A drawer open in the URL (a reload, a link, back and forward) is already where the
             // person left it: it neither fades in nor moves the page.
-            restored={stationBy === "url"}
+            restored={stationBy !== "person"}
+            landing={stationBy === "document"}
           />
         ) : null}
         {state ? (

@@ -315,14 +315,20 @@ test("an alarm keeps its investigation after a reload, and on another device", a
   await expect(row).toHaveAttribute("aria-current", "true", { timeout: 1 });
   await expect(page.locator("#station-4")).toContainText(`${t2.title} ${t2.alarm_id}`);
 
-  // Another device, with no session of its own here, opening the same link.
+  // Another device, with no session of its own here, opening a link to the alarm's unit: the
+  // link is there, and so is the drawer, brought into view as there is no place to go back to.
   const other = await browser.newContext();
   try {
     const second = await other.newPage();
-    await second.goto(page.url(), { waitUntil: "domcontentloaded" });
+    await second.goto(
+      `${proxy.origin}/?run=${RUN_ID}&station=2&unit=${t2.unit_index}&alarm=${t2.alarm_id}`,
+      { waitUntil: "domcontentloaded" },
+    );
     await expect(
       alarmRow(second, t2).getByRole("link", { name: "Open the investigation" }),
     ).toHaveAttribute("href", href, { timeout: 1 });
+    await expect(second.getByRole("heading", { name: "2 Monitoring in detail" })).toBeInViewport();
+    await expect(second.getByRole("heading", { name: "2 Monitoring in detail" })).toBeFocused();
   } finally {
     await other.close();
   }

@@ -13,6 +13,17 @@ import { UnitsDrawer } from "./drawer-units";
 import { WafersDrawer } from "./drawer-wafers";
 
 /**
+ * Whether this page was opened anew at its address, not reloaded or reached with back and
+ * forward, and nothing has scrolled it yet: there is no reading position to keep.
+ */
+function openedAnew(): boolean {
+  const entry = performance.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  return entry?.type === "navigate" && window.scrollY === 0;
+}
+
+/**
  * A station's drawer, opened under the line: everything that station computed, for every unit
  * or wafer of the run. It shows only results the line has reached, so it never runs ahead of the
  * animation.
@@ -25,6 +36,7 @@ export function StationDrawer({
   onFocus,
   onClose,
   restored = false,
+  landing = false,
 }: {
   station: 1 | 2 | 3;
   state: RunState;
@@ -37,6 +49,8 @@ export function StationDrawer({
    * is shown where it is, without fading in, and the page stays where the browser put it.
    */
   restored?: boolean;
+  /** It came with the page itself: a link opened anew brings it into view at once. */
+  landing?: boolean;
 }) {
   const name = STATION_NAME[stationAt(station)!];
   const heading = useRef<HTMLHeadingElement>(null);
@@ -47,13 +61,21 @@ export function StationDrawer({
   // Opening a station moves the reading position to its drawer: the heading comes to the top,
   // under the site bar (the page's scroll padding), so the drawer's contents are in view.
   useEffect(() => {
-    if (restored) return;
+    if (restored) {
+      // A reload and back and forward keep the scroll position the browser restores; a link
+      // opened anew (on another device, say) has none, so the drawer is brought into view.
+      if (landing && openedAnew()) {
+        heading.current?.focus({ preventScroll: true });
+        heading.current?.scrollIntoView({ block: "start" });
+      }
+      return;
+    }
     heading.current?.focus({ preventScroll: true });
     heading.current?.scrollIntoView({
       block: "start",
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
-    // A drawer arriving with the URL stays put; one chosen afterwards comes into view.
+    // Only a station opened anew moves the page, once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station]);
 
