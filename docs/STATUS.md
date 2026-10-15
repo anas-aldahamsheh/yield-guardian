@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 08:48 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 09:14 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 88 of 96 done (92%), 5 in progress, 3 not started
+## Progress: 90 of 96 done (94%), 3 in progress, 3 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 6 of 14 | 5 | 3 |
+| V: Version 2, the live story | 8 of 14 | 3 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -217,9 +217,9 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V6 | Chat run tools and page context | Cloud | ✅ | Merged 13b4a82: ChatContext carries the run, station and item; run tools; a suggestion event offers an investigation the user starts |
 | V7 | Line page: input bar, cases and browsers, drawing, upload, station cards, drawers, alarms rail, banner | Cloud | 🟡 | Story worker, branch v2/story |
 | V8 | The line animation, driven by run events | Cloud | 🟡 | Story worker, branch v2/story, alongside V7 |
-| V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | 🟡 | Pages worker. On main (0d02a34): three-item nav, redirects, floating chat, live line removed; Investigations and How it works in progress |
-| V10 | Savings calculator | Cloud | 🟡 | Pages worker, branch v2/pages |
-| V11 | Guide rewritten for v2 (Arabic) | Cloud | 🟡 | Pages worker, branch v2/pages; screenshots after V7 merges |
+| V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | ✅ | Merged 6bf8d10: Line, Investigations (live progress, hypothesis table, work orders tab, confirmed cause), How it works (plain Arabic, then experts), hidden /admin, permanent redirects for every v1 address, floating Ask with run context and investigation suggestions. 224 web unit tests; mock e2e 59 of 59; axe strict on /how and /investigations |
+| V10 | Savings calculator | Cloud | ✅ | On /how#calculator: empty until the user types costs; rates and their 95% CIs read from the API (96.0% auto-classified, 1.9% control-chart false alarms); every line shows its formula and range |
+| V11 | Guide rewritten for v2 (Arabic) | Cloud | 🟡 | Text done as /how#guide; ten screenshot slots wait for the Line page (V7) |
 | V12 | Tests: parsers, parity, SSE order and resume, Playwright story, axe, Lighthouse | Cloud | ⏳ | Every worker for its part; lead end to end |
 | V13 | Merge, gates, STATUS, PR | Cloud | ⏳ | Lead |
 | V14 | Deploy, live checks, owner demo | PC | ⏳ | Worker 3, from lines the owner pastes |
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 09:14 | V9 and V10 done and merged on local main (6bf8d10): three pages, How it works with the savings calculator, redirects, floating chat; Arabic guide text in place (screenshots after V7). Web: typecheck, lint, 224 unit tests pass. 90 of 96 |
 | 2026-10-15 08:48 | V4, V5 and V6 done and merged on local main (328ca1a): live runs with real engines, run investigations with hypotheses, chat over runs. Full API suite 1,218 passed; web typecheck, lint and 216 unit tests pass. GitHub Actions minutes are used up: pushes paused, every gate runs locally, CI limited to main and pull requests. 88 of 96 |
 | 2026-10-15 08:10 | V3 done and merged (391edeb): the live wafer engine equals the stored model on all 10,253 demo wafers; wafer file parser round-trips demo wafers. Size guard of 2 million dies per run added (join-count cost). Full API suite on main: 1,126 passed. 85 of 96 |
 | 2026-10-15 07:52 | V2 done and merged (f46d40c): the live sensor engine equals the stored models on every SECOM unit (float32, 0 mismatches) and the upload parser round-trips SECOM units as CSV and XLSX. Upload size guard raised to 32 MB so 5,000 units fit in a CSV. Contract additions agreed with the workers: named risk skill, elevated band edge, processed wafer map, per-item final test, alarm cap count, runs kept while an investigation uses them, per-unit chart read. 84 of 96 |
