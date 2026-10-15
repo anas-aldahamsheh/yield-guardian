@@ -9,17 +9,12 @@ from pydantic import TypeAdapter
 
 from yield_guardian.contracts.chat import ChatEvent
 from yield_guardian.contracts.investigation import InvestigationEvent
-from yield_guardian.contracts.line import LineEvent, LineState
 
 FIXTURES = Path(__file__).resolve().parents[4] / "packages" / "contracts" / "fixtures"
 STREAMS: dict[str, Any] = {
     "stream_investigation_events": list[InvestigationEvent],
     "chat": list[ChatEvent],
-    "line_socket": list[LineEvent],
 }
-# Operations retired from the API whose fixtures the v1 web still reads until it drops them
-# (the replay: GET /line/state and /ws/line, PLAN_V2 §3.3); they still match their schema.
-RETIRED: dict[str, Any] = {"get_line_state": LineState}
 NO_FIXTURE = {"get_health", "get_readiness", "logout"}
 # Live runs and uploads (PLAN_V2 §3) have no synthetic fixtures: real data only. Their tests run
 # real inputs through the routes (tests/api/test_runs.py, tests/live/test_runs_real.py), and the
@@ -59,8 +54,8 @@ def _files() -> list[Path]:
 def test_fixture_matches_contract(path: Path, app: FastAPI) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
     name = path.stem
-    if name in STREAMS or name in RETIRED:
-        TypeAdapter(STREAMS.get(name) or RETIRED[name]).validate_python(data)
+    if name in STREAMS:
+        TypeAdapter(STREAMS[name]).validate_python(data)
         return
     route = _routes(app).get(name)
     assert route is not None, f"{path.name} does not name an operation"

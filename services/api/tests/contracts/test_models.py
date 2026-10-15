@@ -2,7 +2,7 @@ import math
 from datetime import UTC, datetime
 
 import pytest
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 
 from yield_guardian.contracts.base import Estimate, Problem
 from yield_guardian.contracts.investigation import (
@@ -11,7 +11,6 @@ from yield_guardian.contracts.investigation import (
     NumberRef,
     StatusEvent,
 )
-from yield_guardian.contracts.line import LineEvent, LineHeartbeat
 from yield_guardian.contracts.services import NotFoundError, NotReadyError, ServiceError
 from yield_guardian.contracts.wafer import WaferSummary
 
@@ -83,22 +82,6 @@ def test_investigation_event_discriminates_on_type() -> None:
     assert isinstance(event.root, StatusEvent)
     with pytest.raises(ValidationError):
         InvestigationEvent.model_validate({"type": "unknown", "seq": 1, "at": NOW.isoformat()})
-
-
-def test_line_event_round_trip() -> None:
-    clock = {
-        "epoch": "2026-10-12T00:00:00Z",
-        "now": NOW.isoformat(),
-        "seconds_per_unit": 6.0,
-        "units_total": 1567,
-        "position": 12,
-        "cycle": 0,
-        "plant_time": "2008-07-19T11:55:00Z",
-        "final_test_lag_units": 25,
-    }
-    event = LineEvent.model_validate({"type": "heartbeat", "clock": clock})
-    assert isinstance(event.root, LineHeartbeat)
-    assert TypeAdapter(LineEvent).validate_json(event.model_dump_json()) == event
 
 
 def test_service_errors_map_to_problems() -> None:

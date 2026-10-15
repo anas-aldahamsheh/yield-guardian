@@ -34,7 +34,7 @@ const { values } = parseArgs({
 const port = Number(values.port);
 const nextPort = Number(values["next-port"]);
 const api = new URL(values.api!);
-const isApiPath = (url = "") => url.startsWith("/api/") || url.startsWith("/ws/");
+const isApiPath = (url = "") => url.startsWith("/api/");
 
 // Next.js, started as a child process on its own port.
 const next = spawn(
@@ -133,7 +133,7 @@ const server = http.createServer((req, res) => {
   forward(req, res, nextOrigin);
 });
 
-// WebSockets: Next's hot reload (and any API socket, passed through).
+// WebSockets: Next's hot reload in dev mode (the API has none).
 server.on("upgrade", (req, socket, head) => {
   const target = isApiPath(req.url) ? api : nextOrigin;
   const upstream = net.connect(Number(target.port || 80), target.hostname, () => {

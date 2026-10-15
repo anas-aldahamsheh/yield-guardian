@@ -15,7 +15,7 @@
 	header -Server
 
 	# API and server-sent events: streamed straight through.
-	@api path /api/* /ws/*
+	@api path /api/*
 	handle @api {
 		reverse_proxy api:8000 {
 			flush_interval -1

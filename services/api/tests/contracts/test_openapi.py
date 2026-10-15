@@ -21,9 +21,11 @@ def test_every_operation_has_an_id(schema: dict[str, Any]) -> None:
 
 def test_stream_event_schemas_are_published(schema: dict[str, Any]) -> None:
     names = schema["components"]["schemas"]
-    for name in ("LineEvent", "InvestigationEvent", "ChatEvent", "Problem"):
+    for name in ("RunEvent", "InvestigationEvent", "ChatEvent", "Problem"):
         assert name in names
     assert "HTTPValidationError" not in names
+    # The v1 replay is gone with its socket.
+    assert not {"LineEvent", "LineState", "PlantClock"} & set(names)
 
 
 def test_errors_are_problem_json(schema: dict[str, Any]) -> None:

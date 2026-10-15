@@ -16,7 +16,6 @@ from pydantic.json_schema import models_json_schema
 from yield_guardian.api.problems import PROBLEM_MEDIA_TYPE
 from yield_guardian.contracts.chat import ChatEvent
 from yield_guardian.contracts.investigation import InvestigationEvent
-from yield_guardian.contracts.line import LineEvent
 from yield_guardian.contracts.runs import (
     DrawLayoutList,
     Run,
@@ -28,7 +27,6 @@ from yield_guardian.contracts.runs import (
 )
 
 STREAM_SCHEMAS: tuple[type[BaseModel], ...] = (
-    LineEvent,
     InvestigationEvent,
     ChatEvent,
     RunEvent,

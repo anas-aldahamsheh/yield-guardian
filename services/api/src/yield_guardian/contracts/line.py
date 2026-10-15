@@ -1,14 +1,13 @@
 """SECOM unit summaries and alarms (GET /units, /alarms).
 
-The wall-clock replay (`PlantClock`, `LineState` and the `LineEvent` messages of the former
-/ws/line) is retired from the product (PLAN_V2 §3.3); those schemas stay published only until
-the web no longer imports them.
+The wall-clock replay of v1 (GET /line/state and /ws/line) is gone (PLAN_V2 §3.3): the line
+runs only on an input, through the runs API (`contracts/runs.py`).
 """
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Literal
 
-from pydantic import Field, RootModel
+from pydantic import Field
 
 from yield_guardian.contracts.base import (
     AlarmId,
@@ -29,27 +28,6 @@ FinalTest = Literal["pass", "fail"]
 AlarmKind = Literal["risk", "t2", "spe", "ewma", "cusum"]
 AlarmSeverity = Literal["warning", "alarm"]
 AlarmStatus = Literal["open", "investigating", "closed"]
-
-
-class PlantClock(Contract):
-    """Replay position, computed from the wall clock so every visitor sees the same plant.
-
-    `position = floor((now - epoch) / seconds_per_unit) mod units_total`; `cycle` counts completed
-    replays. Units after `position` have not come off the line yet and are never returned.
-    """
-
-    epoch: datetime
-    now: datetime = Field(description="Server wall clock when this value was computed.")
-    seconds_per_unit: float = Field(gt=0)
-    units_total: Count
-    position: SequenceNo = Field(description="Sequence number of the latest unit off the line.")
-    cycle: Count
-    plant_time: datetime = Field(
-        description="Original timestamp of the latest unit (secom_labels.data)."
-    )
-    final_test_lag_units: Count = Field(
-        description="A unit's final-test result is revealed this many units after it leaves the line."
-    )
 
 
 class OperatingPointRef(Contract):
@@ -101,79 +79,3 @@ class AlarmPage(Contract):
     items: list[Alarm]
     next_cursor: str | None = None
     total: Count
-
-
-class LineKpis(Contract):
-    """Counts over the units in `LineState.recent`."""
-
-    window_units: Count
-    high_risk: Count
-    elevated_risk: Count
-    fdc_warnings: Count
-    fdc_alarms: Count
-    failures_revealed: Count
-
-
-class LineState(Contract):
-    clock: PlantClock
-    operating_point: OperatingPointRef
-    recent: list[UnitSummary] = Field(description="Latest units, oldest first.")
-    kpis: LineKpis
-    open_alarms: list[Alarm] = Field(description="Open alarms, newest first.")
-
-
-class LineHello(Contract):
-    """First message after the socket opens."""
-
-    type: Literal["hello"]
-    state: LineState
-
-
-class LineUnitMessage(Contract):
-    """A unit came off the line."""
-
-    type: Literal["unit"]
-    clock: PlantClock
-    unit: UnitSummary
-
-
-class LineAlarmMessage(Contract):
-    type: Literal["alarm"]
-    alarm: Alarm
-
-
-class LineFinalTestMessage(Contract):
-    """A final-test result was revealed for an earlier unit."""
-
-    type: Literal["final_test"]
-    unit_id: UnitId
-    sequence: SequenceNo
-    result: FinalTest
-
-
-class LineHeartbeat(Contract):
-    type: Literal["heartbeat"]
-    clock: PlantClock
-
-
-class LineCycle(Contract):
-    """The replay reached the last unit and started again from the first one."""
-
-    type: Literal["cycle"]
-    clock: PlantClock
-
-
-class LineEvent(
-    RootModel[
-        Annotated[
-            LineHello
-            | LineUnitMessage
-            | LineAlarmMessage
-            | LineFinalTestMessage
-            | LineHeartbeat
-            | LineCycle,
-            Field(discriminator="type"),
-        ]
-    ]
-):
-    """A message on the /ws/line WebSocket (JSON text frames)."""

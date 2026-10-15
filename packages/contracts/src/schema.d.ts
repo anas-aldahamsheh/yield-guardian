@@ -2888,133 +2888,6 @@ export interface components {
         | "Scratch"
         | "none";
     };
-    /** LineAlarmMessage */
-    LineAlarmMessage: {
-      alarm: components["schemas"]["Alarm"];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "alarm";
-    };
-    /**
-     * LineCycle
-     * @description The replay reached the last unit and started again from the first one.
-     */
-    LineCycle: {
-      clock: components["schemas"]["PlantClock"];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "cycle";
-    };
-    /**
-     * LineEvent
-     * @description A message on the /ws/line WebSocket (JSON text frames).
-     */
-    LineEvent:
-      | components["schemas"]["LineHello"]
-      | components["schemas"]["LineUnitMessage"]
-      | components["schemas"]["LineAlarmMessage"]
-      | components["schemas"]["LineFinalTestMessage"]
-      | components["schemas"]["LineHeartbeat"]
-      | components["schemas"]["LineCycle"];
-    /**
-     * LineFinalTestMessage
-     * @description A final-test result was revealed for an earlier unit.
-     */
-    LineFinalTestMessage: {
-      /**
-       * Result
-       * @enum {string}
-       */
-      result: "pass" | "fail";
-      /**
-       * Sequence
-       * @description Position of a unit in time order (0 is the earliest unit).
-       */
-      sequence: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "final_test";
-      /**
-       * Unit Id
-       * @description Production unit: row index (0-based) in secom.data.
-       * @example 1043
-       */
-      unit_id: number;
-    };
-    /** LineHeartbeat */
-    LineHeartbeat: {
-      clock: components["schemas"]["PlantClock"];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "heartbeat";
-    };
-    /**
-     * LineHello
-     * @description First message after the socket opens.
-     */
-    LineHello: {
-      state: components["schemas"]["LineState"];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "hello";
-    };
-    /**
-     * LineKpis
-     * @description Counts over the units in `LineState.recent`.
-     */
-    LineKpis: {
-      /** Elevated Risk */
-      elevated_risk: number;
-      /** Failures Revealed */
-      failures_revealed: number;
-      /** Fdc Alarms */
-      fdc_alarms: number;
-      /** Fdc Warnings */
-      fdc_warnings: number;
-      /** High Risk */
-      high_risk: number;
-      /** Window Units */
-      window_units: number;
-    };
-    /** LineState */
-    LineState: {
-      clock: components["schemas"]["PlantClock"];
-      kpis: components["schemas"]["LineKpis"];
-      /**
-       * Open Alarms
-       * @description Open alarms, newest first.
-       */
-      open_alarms: components["schemas"]["Alarm"][];
-      operating_point: components["schemas"]["OperatingPointRef"];
-      /**
-       * Recent
-       * @description Latest units, oldest first.
-       */
-      recent: components["schemas"]["UnitSummary"][];
-    };
-    /**
-     * LineUnitMessage
-     * @description A unit came off the line.
-     */
-    LineUnitMessage: {
-      clock: components["schemas"]["PlantClock"];
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: "unit";
-      unit: components["schemas"]["UnitSummary"];
-    };
     /** LlmCall */
     LlmCall: {
       /**
@@ -3526,48 +3399,6 @@ export interface components {
       unit_ids?: number[];
       /** Wafer Ids */
       wafer_ids?: string[];
-    };
-    /**
-     * PlantClock
-     * @description Replay position, computed from the wall clock so every visitor sees the same plant.
-     *
-     *     `position = floor((now - epoch) / seconds_per_unit) mod units_total`; `cycle` counts completed
-     *     replays. Units after `position` have not come off the line yet and are never returned.
-     */
-    PlantClock: {
-      /** Cycle */
-      cycle: number;
-      /**
-       * Epoch
-       * Format: date-time
-       */
-      epoch: string;
-      /**
-       * Final Test Lag Units
-       * @description A unit's final-test result is revealed this many units after it leaves the line.
-       */
-      final_test_lag_units: number;
-      /**
-       * Now
-       * Format: date-time
-       * @description Server wall clock when this value was computed.
-       */
-      now: string;
-      /**
-       * Plant Time
-       * Format: date-time
-       * @description Original timestamp of the latest unit (secom_labels.data).
-       */
-      plant_time: string;
-      /**
-       * Position
-       * @description Sequence number of the latest unit off the line.
-       */
-      position: number;
-      /** Seconds Per Unit */
-      seconds_per_unit: number;
-      /** Units Total */
-      units_total: number;
     };
     /**
      * Pricing
@@ -5824,16 +5655,6 @@ export type KnowledgeSearchResult =
   components["schemas"]["KnowledgeSearchResult"];
 export type KnowledgeSource = components["schemas"]["KnowledgeSource"];
 export type LeaveOneClassOut = components["schemas"]["LeaveOneClassOut"];
-export type LineAlarmMessage = components["schemas"]["LineAlarmMessage"];
-export type LineCycle = components["schemas"]["LineCycle"];
-export type LineEvent = components["schemas"]["LineEvent"];
-export type LineFinalTestMessage =
-  components["schemas"]["LineFinalTestMessage"];
-export type LineHeartbeat = components["schemas"]["LineHeartbeat"];
-export type LineHello = components["schemas"]["LineHello"];
-export type LineKpis = components["schemas"]["LineKpis"];
-export type LineState = components["schemas"]["LineState"];
-export type LineUnitMessage = components["schemas"]["LineUnitMessage"];
 export type LlmCall = components["schemas"]["LlmCall"];
 export type LoginRequest = components["schemas"]["LoginRequest"];
 export type LotDetail = components["schemas"]["LotDetail"];
@@ -5861,7 +5682,6 @@ export type PatternCause = components["schemas"]["PatternCause"];
 export type PatternCauses = components["schemas"]["PatternCauses"];
 export type PatternTest = components["schemas"]["PatternTest"];
 export type PickRunCreate = components["schemas"]["PickRunCreate"];
-export type PlantClock = components["schemas"]["PlantClock"];
 export type Pricing = components["schemas"]["Pricing"];
 export type Problem = components["schemas"]["Problem"];
 export type PublishedResult = components["schemas"]["PublishedResult"];
