@@ -19,6 +19,7 @@ from yield_guardian.contracts.runs import (
     ControlChartsResult,
     DriftHealthResult,
     LotResult,
+    Run,
     SensorRiskResult,
     SensorUnitInput,
     UploadIssue,
@@ -123,3 +124,24 @@ class WaferFileParser(Protocol):
     """lot, wafer, x, y, result as CSV or XLSX; positions not listed are no die."""
 
     def parse(self, data: bytes, filename: str) -> Parsed[WaferInput]: ...
+
+
+class RunReader(Protocol):
+    """Read access to stored runs for the investigator and the chat (PLAN_V2 §3.4, §8).
+
+    The run store implements it. Reads are per item so a 5,000-unit run is never loaded whole
+    for one question.
+    """
+
+    async def get_run(self, run_id: str) -> Run | None:
+        """The run as GET /runs/{run_id} returns it: every stage state and result (z for every
+        unit, not only the first 200) and every listed alarm. None when absent or expired."""
+        ...
+
+    async def get_unit_input(self, run_id: str, index: int) -> SensorUnitInput | None:
+        """Sensor unit `index` (0-based position in the run input). None when absent."""
+        ...
+
+    async def get_wafer_input(self, run_id: str, index: int) -> WaferInput | None:
+        """Wafer `index` (0-based position in the run input). None when absent."""
+        ...

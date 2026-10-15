@@ -14,6 +14,7 @@ from yield_guardian.contracts.services import (
     WaferService,
 )
 from yield_guardian.core.settings import Settings
+from yield_guardian.live.protocols import RunReader
 from yield_guardian.services.protocols import (
     AuditLog,
     InvestigationStore,
@@ -50,6 +51,7 @@ class ServiceRegistry:
     methods: MethodsService | None = None
     chat: ChatResponder | None = None
     llm: LlmAdmin | None = None
+    run_reader: RunReader | None = None
     bundles: list[BundleInfo] = field(default_factory=list)
     resources: list[Resource] = field(default_factory=list)
     problems: dict[str, str] = field(default_factory=dict)
