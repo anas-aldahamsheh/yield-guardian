@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 13:14 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 14:40 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
@@ -246,6 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 14:40 | The owner's rules recorded in PLAN §16: D-010 every visitor is a separate user with no login for now; D-011 nothing goes live until R1 to R3 are finished, merged and checked, then the final version is deployed once; D-012 workers cut off by the quota resume as soon as it renews (an hourly check does it). Redesign checkpoint 1 (the Line page) sent to the owner. 96 of 100 |
 | 2026-10-15 13:14 | R1 to R4 added for the owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor with no login, and a redesign of the whole interface. The reload, sessions and redesign workers are running; worker 3 stopped its own three workers before they committed anything. 96 of 100 |
 | 2026-10-15 12:50 | V14 done: v2 live from main f754631 with the live checks passing (worker 3). Two notes from the live checks: the 413 message named the body limit (33 MB) instead of the 32 MB file limit, fixed on main; automated mouse strokes on the draw canvas only registered in its top-left half, which a new browser test shows is the automation tool, not the page. 96 of 96 |
 | 2026-10-15 11:13 | V13 done: PR #2 merged into main (f754631). A stale build had failed two browser tests; on a fresh build all 115 pass. One fixture lot ID in a code comment reached the production source maps and was replaced. Worker 3 deploys with short checks. 95 of 96 |
