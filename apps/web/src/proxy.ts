@@ -51,5 +51,16 @@ export const config = {
         { type: "header", key: "purpose", value: "prefetch" },
       ],
     },
+    // v1 addresses, also when the router prefetches a link to one: the prefetch then follows
+    // the redirect instead of getting a 404 whose request never settles in the browser.
+    { source: "/line" },
+    { source: "/wafers/:path*" },
+    { source: "/lots/:path*" },
+    { source: "/units/:path*" },
+    { source: "/sensors" },
+    { source: "/work-orders" },
+    { source: "/models" },
+    { source: "/methods" },
+    { source: "/guide" },
   ],
 };

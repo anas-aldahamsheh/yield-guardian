@@ -115,4 +115,15 @@ describe("security headers", () => {
     expect(matcher.test("/_next/static/chunks/app.js")).toBe(false);
     expect(matcher.test("/healthz")).toBe(false);
   });
+
+  it("also runs, for router prefetches, on every v1 address it redirects", () => {
+    const legacy = config.matcher.slice(1).map((m) => m.source);
+    for (const path of ["/line", "/wafers", "/lots", "/units", "/sensors", "/work-orders"])
+      expect(
+        legacy.some((s) => s === path || s === `${path}/:path*`),
+        path,
+      ).toBe(true);
+    for (const path of ["/models", "/methods", "/guide"]) expect(legacy, path).toContain(path);
+    for (const entry of config.matcher.slice(1)) expect(entry).not.toHaveProperty("missing");
+  });
 });
