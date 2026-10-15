@@ -2,7 +2,7 @@
 
 Alarm choice (code only, no model, the same on every host with the same bundle):
 
-1. take the alarms the replay raises on units of the held-out **test** block, at **alarm**
+1. take the alarms the SECOM alarm rules raise on units of the held-out **test** block, at **alarm**
    severity (failure risk at or above the default operating point; T² or SPE beyond its 99.9%
    control limit), in plant order;
 2. pick round-robin over the kinds in the order risk, T², SPE: the first risk alarm, the first

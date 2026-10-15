@@ -124,7 +124,7 @@ class InvestigationState(TypedDict):
     """Problem details when the investigation failed; the runner reports it."""
     as_of: int | None
     """For a recorded run: the line position (the alarm's sequence) its tools read the data as
-    of. None for a live run, whose tools follow the replay clock."""
+    of. None for a live run, whose tools read every unit."""
 
 
 def initial_state(

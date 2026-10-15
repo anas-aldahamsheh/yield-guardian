@@ -342,7 +342,8 @@ class UnitChartResult(Contract):
     z: list[float | None] | None = Field(
         None,
         description="Standardised reading of each monitored sensor (order of `features`), null "
-        "where missing. Sent for at most the first 200 units; GET the run for the rest.",
+        "where missing. Sent for at most the first 200 units; any unit's is at "
+        "GET /runs/{run_id}/units/{index}/chart.",
     )
 
 
