@@ -15,6 +15,8 @@ from yield_guardian.contracts.services import (
 )
 from yield_guardian.core.settings import Settings
 from yield_guardian.live.protocols import RunReader
+from yield_guardian.live.runs import RunService
+from yield_guardian.live.uploads import UploadService
 from yield_guardian.services.protocols import (
     AlarmService,
     AuditLog,
@@ -52,6 +54,8 @@ class ServiceRegistry:
     chat: ChatResponder | None = None
     llm: LlmAdmin | None = None
     run_reader: RunReader | None = None
+    runs: RunService | None = None
+    uploads: UploadService | None = None
     bundles: list[BundleInfo] = field(default_factory=list)
     resources: list[Resource] = field(default_factory=list)
     problems: dict[str, str] = field(default_factory=dict)

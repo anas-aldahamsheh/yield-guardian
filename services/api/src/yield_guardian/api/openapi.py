@@ -31,7 +31,6 @@ STREAM_SCHEMAS: tuple[type[BaseModel], ...] = (
     LineEvent,
     InvestigationEvent,
     ChatEvent,
-    # V1: the run contract is published ahead of its routes (V4) so the web can build on it.
     RunEvent,
     RunCreate,
     RunCreated,

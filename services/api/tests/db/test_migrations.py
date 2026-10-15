@@ -29,6 +29,12 @@ OWN_TABLES = {
     "chat_routes",
     "llm_evaluations",
     "knowledge_chunks",
+    "runs",
+    "run_items",
+    "run_unit_charts",
+    "run_stages",
+    "run_events",
+    "uploads",
 }
 
 

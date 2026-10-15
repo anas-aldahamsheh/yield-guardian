@@ -21,6 +21,20 @@ STREAMS: dict[str, Any] = {
 # (the replay: GET /line/state and /ws/line, PLAN_V2 §3.3); they still match their schema.
 RETIRED: dict[str, Any] = {"get_line_state": LineState}
 NO_FIXTURE = {"get_health", "get_readiness", "logout"}
+# Live runs and uploads (PLAN_V2 §3) have no synthetic fixtures: real data only. Their tests run
+# real inputs through the routes (tests/api/test_runs.py, tests/live/test_runs_real.py), and the
+# downloads are files, not JSON.
+NO_FIXTURE |= {
+    "create_run",
+    "get_run",
+    "get_run_unit_chart",
+    "list_run_cases",
+    "list_draw_layouts",
+    "stream_run_events",
+    "create_upload",
+    "get_upload_template",
+    "get_upload_example",
+}
 
 
 def _walk(routes: list[Any]) -> list[APIRoute]:

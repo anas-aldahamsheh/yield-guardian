@@ -1,5 +1,5 @@
 """Tables of the API's own state: sessions, investigations, the job queue, work orders, audit, alarms,
-and the language-model layer (call log, response cache, role assignments, chat routes,
+live runs (their input, stages and events) and uploads, the language-model layer (call log, response cache, role assignments, chat routes,
 evaluations) and the knowledge chunks searched with PostgreSQL full-text search.
 
 Every timestamp is timestamptz and written in UTC. JSONB columns hold contract models dumped with
@@ -186,6 +186,111 @@ class AlarmStateRow(Base):
         Text, ForeignKey("investigations.investigation_id", ondelete="SET NULL"), index=True
     )
     updated_at: Mapped[datetime]
+
+
+# -- live runs ----------------------------------------------------------------------------------
+
+
+class RunRow(Base):
+    """A live run (PLAN_V2 §3): its origin and the snapshot its events build. Expires 24 h after
+    creation; `expires_at` is null while an investigation uses the run."""
+
+    __tablename__ = "runs"
+    __table_args__ = (
+        CheckConstraint("status IN ('queued', 'running', 'done', 'failed')", name="status"),
+        Index(
+            "ix_runs_unfinished",
+            "heartbeat_at",
+            postgresql_where=text("status IN ('queued', 'running')"),
+        ),
+    )
+
+    run_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    created_at: Mapped[datetime]
+    expires_at: Mapped[datetime | None] = mapped_column(index=True)
+    status: Mapped[str] = mapped_column(Text)
+    origin: Mapped[JsonObject] = mapped_column(JSONB)
+    units: Mapped[int] = mapped_column(Integer)
+    wafers: Mapped[int] = mapped_column(Integer)
+    alarms: Mapped[JsonList] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
+    alarms_not_listed: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    last_seq: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    heartbeat_at: Mapped[datetime | None]
+    finished_at: Mapped[datetime | None]
+
+
+class RunItemRow(Base):
+    """One item of a run's materialised input (a sensor unit or a wafer), at its 0-based input
+    position; `data` is the item's JSON, compressed, so one item is read without the rest."""
+
+    __tablename__ = "run_items"
+    __table_args__ = (CheckConstraint("kind IN ('unit', 'wafer')", name="kind"),)
+
+    run_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("runs.run_id", ondelete="CASCADE"), primary_key=True
+    )
+    kind: Mapped[str] = mapped_column(Text, primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class RunUnitChartRow(Base):
+    """One unit's control-chart result of a run, at its 0-based input position: `chart` is the
+    result without `z`, as compressed JSON; `z` the standardised readings of the monitored
+    sensors as little-endian float32, NaN where missing (about 1.7 kB a unit)."""
+
+    __tablename__ = "run_unit_charts"
+
+    run_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("runs.run_id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    chart: Mapped[bytes] = mapped_column(LargeBinary)
+    z: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+
+class RunStageRow(Base):
+    """One stage of a run (``StageState``), kept apart so a large result is written once."""
+
+    __tablename__ = "run_stages"
+
+    run_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("runs.run_id", ondelete="CASCADE"), primary_key=True
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    stage: Mapped[str] = mapped_column(Text)
+    state: Mapped[JsonObject] = mapped_column(JSONB)
+
+
+class RunEventRow(Base):
+    """One SSE event of a run; `seq` is monotonic per run, starting at 1."""
+
+    __tablename__ = "run_events"
+
+    run_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("runs.run_id", ondelete="CASCADE"), primary_key=True
+    )
+    seq: Mapped[int] = mapped_column(Integer, primary_key=True)
+    type: Mapped[str] = mapped_column(Text)
+    at: Mapped[datetime]
+    payload: Mapped[JsonObject] = mapped_column(JSONB)
+
+
+class UploadRow(Base):
+    """A parsed and validated file (``UploadSummary``) and its items, kept 24 h to be run."""
+
+    __tablename__ = "uploads"
+    __table_args__ = (CheckConstraint("kind IN ('sensors', 'wafers')", name="kind"),)
+
+    upload_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    created_at: Mapped[datetime]
+    expires_at: Mapped[datetime] = mapped_column(index=True)
+    kind: Mapped[str] = mapped_column(Text)
+    filename: Mapped[str] = mapped_column(Text)
+    runnable: Mapped[bool] = mapped_column(Boolean)
+    summary: Mapped[JsonObject] = mapped_column(JSONB)
+    items: Mapped[bytes] = mapped_column(LargeBinary)
+    """gzip of the parsed items as a JSON array (sensor units or wafers)."""
 
 
 # -- language-model layer -----------------------------------------------------------------------

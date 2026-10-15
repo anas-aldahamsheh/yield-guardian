@@ -1,7 +1,7 @@
 """Builds the running registry from settings: verified bundles, the SECOM alarms, the SECOM and
 wafer-map services, the language-model admin, investigator and chat when TOKEN_FACTORY_API_KEY
-is set and, when DATABASE_URL is set, the database-backed stores. A part that cannot load is
-left out, so its routes answer 503 not_ready and /ready names the reason."""
+is set and, when DATABASE_URL is set, the database-backed stores and live runs. A part that
+cannot load is left out, so its routes answer 503 not_ready and /ready names the reason."""
 
 from collections.abc import Mapping
 
@@ -9,10 +9,11 @@ import structlog
 
 from yield_guardian.agent.wiring import install_agent
 from yield_guardian.bundles.manifest import BundleError, latest_version, verify_bundle
-from yield_guardian.bundles.secom import load_secom_bundle
-from yield_guardian.bundles.wafermap import load_wafermap_bundle
+from yield_guardian.bundles.secom import SecomBundle, load_secom_bundle
+from yield_guardian.bundles.wafermap import WafermapBundle, load_wafermap_bundle
 from yield_guardian.contracts.line import AlarmStatus
 from yield_guardian.core.settings import Settings
+from yield_guardian.live.wiring import install_runs
 from yield_guardian.science.secom.alarms import SecomAlarms
 from yield_guardian.science.secom.service import SecomInference
 from yield_guardian.science.wafermap.service import WaferInference
@@ -53,6 +54,8 @@ def build_registry(settings: Settings) -> ServiceRegistry:
     install_agent(
         registry, settings, sessions=persistence.database.sessionmaker if persistence else None
     )
+    loaded: SecomBundle | None = None
+    loaded_wafers: WafermapBundle | None = None
     try:
         verified = verify_bundle(latest_version(settings.artifacts_dir, "secom"), "secom")
         bundle = load_secom_bundle(verified, settings.secom_data_dir)
@@ -67,6 +70,7 @@ def build_registry(settings: Settings) -> ServiceRegistry:
             bundle, alarms, persistence.investigations if persistence else None
         )
         registry.bundles.append(verified.info)
+        loaded = bundle
         log.info("secom_bundle_loaded", version=verified.info.bundle.version)
     try:
         wafer_verified = verify_bundle(
@@ -80,6 +84,7 @@ def build_registry(settings: Settings) -> ServiceRegistry:
     else:
         registry.wafer = wafer_service
         registry.bundles.append(wafer_verified.info)
+        loaded_wafers = wafer_bundle
         parity = wafer_bundle.parity
         log.info(
             "wafermap_bundle_loaded",
@@ -96,4 +101,12 @@ def build_registry(settings: Settings) -> ServiceRegistry:
             secom=registry.secom,
             wafer=registry.wafer,
         )
+    # After every other resource: the run service stops first and fails the runs still computing.
+    install_runs(
+        registry,
+        persistence.runs if persistence else None,
+        secom=loaded,
+        wafermap=loaded_wafers,
+        secom_attribution=settings.secom_data_dir / "ATTRIBUTION.md",
+    )
     return registry
