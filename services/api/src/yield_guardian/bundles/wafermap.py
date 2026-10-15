@@ -3,12 +3,14 @@
 At load the deployed CNN (model.onnx, onnxruntime on CPU) scores every demo wafer once: calibrated
 class probabilities, the 128-d embedding, the Mahalanobis unknown-pattern score and the energy
 score. The predictions stored in demo/lots.json at bundle build time must agree with these
-(parity), or the bundle is refused. Requests then read the cached results; nothing is scored per
-request.
+(parity), or the bundle is refused. The v1 wafer pages read these cached results. Live runs score
+the user's maps at request time with the same `WaferModel.score`, so a live score of a demo wafer
+equals its load-time score by construction.
 """
 
 import json
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, get_args
 
@@ -83,10 +85,13 @@ class MahalanobisSection(BaseModel):
 
 
 class OodFile(BaseModel):
-    """ood.json: the bundle names energy as its method; the API uses the Mahalanobis section."""
+    """ood.json: the bundle names energy as its method; the API uses the Mahalanobis section.
+    The energy threshold is still read: the lot tests counted the wafers it flagged as unknown."""
 
     model_config = ConfigDict(extra="ignore", frozen=True, allow_inf_nan=False)
 
+    method: str
+    threshold: float
     mahalanobis: MahalanobisSection
 
 
@@ -180,14 +185,33 @@ class Parity:
 
 
 @dataclass(frozen=True, slots=True)
+class LotReference:
+    """What the bundle's lot tests compared against (metrics.json `lot_excursions`).
+
+    `rates` are the shares of the validation lots' wafers (all of them, labelled or not) that
+    the deployed model assigned to each defect pattern, or to "unknown" when the energy score was
+    above `energy_threshold`; a wafer the energy score flagged counts as unknown, not as its
+    pattern. `fdr_q` is the Benjamini-Hochberg level.
+    """
+
+    rates: dict[str, float]
+    fdr_q: float
+    energy_threshold: float
+    lots: int
+    wafers: int
+
+
+@dataclass(frozen=True, slots=True)
 class WafermapBundle:
     bundle: VerifiedBundle
     labels: list[WaferLabel]
     temperature: float
     mahalanobis: MahalanobisSection
+    model: "WaferModel"
     wafers: DemoWafers
     scores: Scores
     parity: Parity
+    lot_reference: LotReference
     lots: dict[str, LotRecord]
     stacked: dict[str, StackedMap | None]
     join_count: list[JoinCountRecord]
@@ -277,7 +301,7 @@ def _nearest(source: int, size: int) -> IntArray:
 
 
 def model_input(
-    grids: list[npt.NDArray[np.uint8]], prep: PreprocessFile
+    grids: Sequence[npt.NDArray[np.uint8]], prep: PreprocessFile
 ) -> npt.NDArray[np.float32]:
     """uint8 maps of any size -> float32 [N, 3, size, size], one-hot no_die, pass, fail."""
     values = np.array([prep.source_values[c] for c in prep.channels], dtype=np.uint8)
@@ -312,14 +336,62 @@ def mahalanobis_score(
     return best
 
 
-def _score(
+class WaferModel:
+    """The deployed CNN with its calibration and unknown-pattern parameters.
+
+    `score` is the one scoring function of the bundle: it scores the demo wafers at load and
+    every live map at request time, so the two agree by construction. Maps go through the
+    network in batches of `BATCH`, in the order given (a different batching changes the float32
+    outputs by about 1e-6, metrics.json `onnx_parity`). onnxruntime allows concurrent `run`
+    calls on one session, so one model serves every request thread.
+    """
+
+    def __init__(
+        self,
+        session: ort.InferenceSession,
+        prep: PreprocessFile,
+        temperature: float,
+        ood: MahalanobisSection,
+        means: FloatArray,
+        precision: FloatArray,
+    ) -> None:
+        self.session = session
+        self.prep = prep
+        self.temperature = temperature
+        self.threshold = ood.threshold
+        self.means = means
+        self.precision = precision
+        self.classes = means.shape[0]
+        self.dim = means.shape[1]
+
+    def score(self, grids: Sequence[npt.NDArray[np.uint8]]) -> Scores:
+        """Model outputs for uint8 maps of any size (0 no die, 1 pass, 2 fail)."""
+        logits: list[npt.NDArray[np.float32]] = [np.empty((0, self.classes), dtype=np.float32)]
+        embeddings: list[npt.NDArray[np.float32]] = [np.empty((0, self.dim), dtype=np.float32)]
+        for start in range(0, len(grids), BATCH):
+            batch = model_input(grids[start : start + BATCH], self.prep)
+            out_logits, out_embedding = self.session.run(None, {"maps": batch})
+            logits.append(np.asarray(out_logits, dtype=np.float32))
+            embeddings.append(np.asarray(out_embedding, dtype=np.float32))
+        z = np.concatenate(logits).astype(np.float64)
+        embedding = np.concatenate(embeddings)
+        mahalanobis = mahalanobis_score(embedding, self.means, self.precision)
+        return Scores(
+            probabilities=_softmax(z / self.temperature),
+            embedding=embedding,
+            mahalanobis=mahalanobis,
+            energy=_energy(z),
+            is_unknown=mahalanobis > self.threshold,
+        )
+
+
+def _load_model(
     bundle: VerifiedBundle,
-    wafers: DemoWafers,
     prep: PreprocessFile,
     temperature: float,
     labels: list[WaferLabel],
     ood: MahalanobisSection,
-) -> Scores:
+) -> WaferModel:
     try:
         session = ort.InferenceSession(
             str(bundle.file("model.onnx")), providers=["CPUExecutionProvider"]
@@ -332,37 +404,27 @@ def _score(
         raise BundleError(
             f"model.onnx: expected maps -> logits, embedding; got {inputs} -> {outputs}."
         )
-    logits: list[npt.NDArray[np.float32]] = []
-    embeddings: list[npt.NDArray[np.float32]] = []
-    for start in range(0, len(wafers), BATCH):
-        grids = [wafers.grid(i) for i in range(start, min(start + BATCH, len(wafers)))]
-        out_logits, out_embedding = session.run(None, {"maps": model_input(grids, prep)})
-        logits.append(np.asarray(out_logits, dtype=np.float32))
-        embeddings.append(np.asarray(out_embedding, dtype=np.float32))
-    z = np.concatenate(logits).astype(np.float64)
-    embedding = np.concatenate(embeddings)
-    if z.shape != (len(wafers), len(labels)) or embedding.ndim != 2:
-        raise BundleError(f"model.onnx: logits {z.shape} do not match {len(labels)} labels.")
-    norms = np.linalg.norm(embedding.astype(np.float64), axis=1)
-    if np.any(np.abs(norms - 1.0) > EMBEDDING_NORM_TOLERANCE):
-        raise BundleError("model.onnx: embeddings are not L2-normalised.")
-
+    logits_shape, embedding_shape = (o.shape for o in session.get_outputs())
+    if len(logits_shape) != 2 or logits_shape[1] != len(labels):
+        raise BundleError(f"model.onnx: logits {logits_shape} do not match {len(labels)} labels.")
     with np.load(bundle.file(ood.parameters), allow_pickle=False) as params:
         if {"class_means", "precision"} - set(params.files):
             raise BundleError(f"{ood.parameters} lacks class_means or precision.")
         means = np.asarray(params["class_means"], dtype=np.float64)
         precision = np.asarray(params["precision"], dtype=np.float64)
-    dim = embedding.shape[1]
+    dim = embedding_shape[1] if len(embedding_shape) == 2 else None
     if means.shape != (len(labels), dim) or precision.shape != (dim, dim):
         raise BundleError(f"{ood.parameters}: shapes do not match the model's embedding.")
-    mahalanobis = mahalanobis_score(embedding, means, precision)
-    return Scores(
-        probabilities=_softmax(z / temperature),
-        embedding=embedding,
-        mahalanobis=mahalanobis,
-        energy=_energy(z),
-        is_unknown=mahalanobis > ood.threshold,
-    )
+    return WaferModel(session, prep, temperature, ood, means, precision)
+
+
+def _score(model: WaferModel, wafers: DemoWafers) -> Scores:
+    """Score every demo wafer, in bundle order, and check the outputs."""
+    scores = model.score([wafers.grid(i) for i in range(len(wafers))])
+    norms = np.linalg.norm(scores.embedding.astype(np.float64), axis=1)
+    if np.any(np.abs(norms - 1.0) > EMBEDDING_NORM_TOLERANCE):
+        raise BundleError("model.onnx: embeddings are not L2-normalised.")
+    return scores
 
 
 def _parity(
@@ -655,6 +717,34 @@ def _lot_method(raw: dict[str, Any]) -> str:
     )
 
 
+def _lot_reference(
+    raw: dict[str, Any], ood: OodFile, labels: list[WaferLabel], lots: dict[str, LotRecord]
+) -> LotReference:
+    """The reference of the lot tests, checked against the tests and flags in demo/lots.json."""
+    summary = raw["lot_excursions"]
+    rates = {str(k): float(v) for k, v in summary["reference"]["pattern_rates"].items()}
+    patterns = [*(c for c in labels if c != "none"), "unknown"]
+    if sorted(rates) != sorted(patterns) or any(not 0.0 <= r <= 1.0 for r in rates.values()):
+        raise BundleError(f"metrics.json: lot reference rates must be shares for {patterns}.")
+    fdr_q = float(summary["fdr_q"])
+    if not 0.0 < fdr_q < 1.0:
+        raise BundleError("metrics.json: lot_excursions.fdr_q must be between 0 and 1.")
+    if ood.method != "energy":
+        raise BundleError(f"ood.json: method {ood.method!r}; the lot tests used energy.")
+    for name, lot in lots.items():
+        if any(t.expected_rate != rates[t.pattern] for t in lot.tests):
+            raise BundleError(f"demo/lots.json: {name} was tested against other rates.")
+        if any(w.unknown != (w.energy > ood.threshold) for w in lot.wafers):
+            raise BundleError(f"demo/lots.json: {name} flags unknowns by another threshold.")
+    return LotReference(
+        rates=rates,
+        fdr_q=fdr_q,
+        energy_threshold=ood.threshold,
+        lots=int(summary["reference"]["lots"]),
+        wafers=int(summary["reference"]["wafers"]),
+    )
+
+
 # Loading --------------------------------------------------------------------------------------
 
 
@@ -674,7 +764,8 @@ def load_wafermap_bundle(bundle: VerifiedBundle) -> WafermapBundle:
     calibration = _json(bundle, "calibration.json", CalibrationFile)
     if calibration.method != "temperature":
         raise BundleError(f"calibration.json: method {calibration.method!r} is not temperature.")
-    ood = _json(bundle, "ood.json", OodFile).mahalanobis
+    ood_file = _json(bundle, "ood.json", OodFile)
+    ood = ood_file.mahalanobis
 
     wafers = _load_wafers(bundle)
     try:
@@ -685,7 +776,8 @@ def load_wafermap_bundle(bundle: VerifiedBundle) -> WafermapBundle:
     except (AttributeError, ValidationError) as error:
         raise BundleError(f"demo/lots.json: {error}") from error
     stacked = _check_lots(lots, wafers, labels)
-    scores = _score(bundle, wafers, prep, calibration.temperature, labels, ood)
+    model = _load_model(bundle, prep, calibration.temperature, labels, ood)
+    scores = _score(model, wafers)
     parity = _parity(wafers, scores, lots, labels)
 
     model_card = bundle.file("model_card.md").read_text(encoding="utf-8")
@@ -694,6 +786,7 @@ def load_wafermap_bundle(bundle: VerifiedBundle) -> WafermapBundle:
         metrics = _metrics(bundle, raw_metrics, labels, calibration.temperature, ood, model_card)
         permutations = int(raw_metrics["lot_excursions"]["join_count_demo"]["permutations"])
         lot_method = _lot_method(raw_metrics)
+        lot_reference = _lot_reference(raw_metrics, ood_file, labels, lots)
     except (KeyError, TypeError, ValueError, ValidationError) as error:
         raise BundleError(f"wafermap/{bundle.path.name}/metrics.json: {error!r}") from error
     stored = {w.wafer_id: w.join_count for lot in lots.values() for w in lot.wafers}
@@ -702,9 +795,11 @@ def load_wafermap_bundle(bundle: VerifiedBundle) -> WafermapBundle:
         labels=labels,
         temperature=calibration.temperature,
         mahalanobis=ood,
+        model=model,
         wafers=wafers,
         scores=scores,
         parity=parity,
+        lot_reference=lot_reference,
         lots=lots,
         stacked=stacked,
         join_count=[stored[w] for w in wafers.wafer_id],
