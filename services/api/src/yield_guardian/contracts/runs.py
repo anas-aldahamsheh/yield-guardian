@@ -332,6 +332,7 @@ class FdcContributionItem(Contract):
 class UnitChartResult(Contract):
     index: Count
     unit_id: UserLabel
+    timestamp: datetime | None = Field(None, description="The unit's time, when the input has it.")
     t2: float = Field(ge=0)
     spe: float = Field(ge=0)
     level: FdcAlarmLevel
@@ -394,6 +395,12 @@ class WaferPatternItem(Contract):
     index: Count = Field(description="Position of the wafer in the run input.")
     lot: UserLabel
     wafer: int
+    map: WaferMap = Field(
+        description="The map as processed: the run's input grid (0 no die, 1 pass, 2 fail)."
+    )
+    source_wafer: WaferId | None = Field(
+        None, description="The WM-811K wafer this is, when it comes from the real dataset."
+    )
     top_label: WaferLabel
     top_probability: Probability
     probabilities: list[ClassProbabilityItem] = Field(description="Calibrated, highest first.")
@@ -457,10 +464,26 @@ class LotResult(Contract):
     method: str
 
 
+class FinalTestUnit(Contract):
+    index: Count = Field(description="Position of the unit in the run input.")
+    unit_id: UserLabel
+    result: FinalResult
+    flagged: bool = Field(description="Risk was above the threshold.")
+
+
+class FinalTestWafer(Contract):
+    index: Count = Field(description="Position of the wafer in the run input.")
+    recorded_label: WaferLabel
+    predicted_label: WaferLabel
+    agrees: bool
+
+
 class FinalTestResult(Contract):
     """How the warnings compare with the recorded results, when the input has them."""
 
     stage: Literal["final_test"] = "final_test"
+    units: list[FinalTestUnit] = Field(description="Only units with a recorded result.")
+    wafers: list[FinalTestWafer] = Field(description="Only wafers with a recorded label.")
     units_with_result: Count
     failed_units: Count
     failed_flagged: Count = Field(description="Failed units whose risk was above the threshold.")

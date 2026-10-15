@@ -6020,6 +6020,22 @@
             "title": "Stage",
             "type": "string"
           },
+          "units": {
+            "description": "Only units with a recorded result.",
+            "items": {
+              "$ref": "#/components/schemas/FinalTestUnit"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "wafers": {
+            "description": "Only wafers with a recorded label.",
+            "items": {
+              "$ref": "#/components/schemas/FinalTestWafer"
+            },
+            "title": "Wafers",
+            "type": "array"
+          },
           "units_with_result": {
             "minimum": 0,
             "title": "Units With Result",
@@ -6059,6 +6075,8 @@
           }
         },
         "required": [
+          "units",
+          "wafers",
           "units_with_result",
           "failed_units",
           "failed_flagged",
@@ -6068,6 +6086,99 @@
           "summary"
         ],
         "title": "FinalTestResult",
+        "type": "object"
+      },
+      "FinalTestUnit": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "Position of the unit in the run input.",
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "unit_id": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "pass",
+              "fail"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "flagged": {
+            "description": "Risk was above the threshold.",
+            "title": "Flagged",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index",
+          "unit_id",
+          "result",
+          "flagged"
+        ],
+        "title": "FinalTestUnit",
+        "type": "object"
+      },
+      "FinalTestWafer": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "Position of the wafer in the run input.",
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "recorded_label": {
+            "enum": [
+              "Center",
+              "Donut",
+              "Edge-Loc",
+              "Edge-Ring",
+              "Loc",
+              "Near-full",
+              "Random",
+              "Scratch",
+              "none"
+            ],
+            "title": "Recorded Label",
+            "type": "string"
+          },
+          "predicted_label": {
+            "enum": [
+              "Center",
+              "Donut",
+              "Edge-Loc",
+              "Edge-Ring",
+              "Loc",
+              "Near-full",
+              "Random",
+              "Scratch",
+              "none"
+            ],
+            "title": "Predicted Label",
+            "type": "string"
+          },
+          "agrees": {
+            "title": "Agrees",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index",
+          "recorded_label",
+          "predicted_label",
+          "agrees"
+        ],
+        "title": "FinalTestWafer",
         "type": "object"
       },
       "Finding": {
@@ -11802,6 +11913,20 @@
             "title": "Unit Id",
             "type": "string"
           },
+          "timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The unit's time, when the input has it.",
+            "title": "Timestamp"
+          },
           "t2": {
             "minimum": 0,
             "title": "T2",
@@ -13321,6 +13446,29 @@
             "title": "Wafer",
             "type": "integer"
           },
+          "map": {
+            "$ref": "#/components/schemas/WaferMap",
+            "description": "The map as processed: the run's input grid (0 no die, 1 pass, 2 fail)."
+          },
+          "source_wafer": {
+            "anyOf": [
+              {
+                "description": "\"<lot>-<wafer index>\".",
+                "examples": [
+                  "lot47542-12"
+                ],
+                "maxLength": 80,
+                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The WM-811K wafer this is, when it comes from the real dataset.",
+            "title": "Source Wafer"
+          },
           "top_label": {
             "enum": [
               "Center",
@@ -13408,6 +13556,7 @@
           "index",
           "lot",
           "wafer",
+          "map",
           "top_label",
           "top_probability",
           "probabilities",

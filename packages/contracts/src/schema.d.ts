@@ -2101,8 +2101,18 @@ export interface components {
       stage: "final_test";
       /** Summary */
       summary: string;
+      /**
+       * Units
+       * @description Only units with a recorded result.
+       */
+      units: components["schemas"]["FinalTestUnit"][];
       /** Units With Result */
       units_with_result: number;
+      /**
+       * Wafers
+       * @description Only wafers with a recorded label.
+       */
+      wafers: components["schemas"]["FinalTestWafer"][];
       /**
        * Wafers Agreeing
        * @description Predicted pattern equals the recorded label.
@@ -2110,6 +2120,67 @@ export interface components {
       wafers_agreeing: number;
       /** Wafers With Label */
       wafers_with_label: number;
+    };
+    /** FinalTestUnit */
+    FinalTestUnit: {
+      /**
+       * Flagged
+       * @description Risk was above the threshold.
+       */
+      flagged: boolean;
+      /**
+       * Index
+       * @description Position of the unit in the run input.
+       */
+      index: number;
+      /**
+       * Result
+       * @enum {string}
+       */
+      result: "pass" | "fail";
+      /**
+       * Unit Id
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      unit_id: string;
+    };
+    /** FinalTestWafer */
+    FinalTestWafer: {
+      /** Agrees */
+      agrees: boolean;
+      /**
+       * Index
+       * @description Position of the wafer in the run input.
+       */
+      index: number;
+      /**
+       * Predicted Label
+       * @enum {string}
+       */
+      predicted_label:
+        | "Center"
+        | "Donut"
+        | "Edge-Loc"
+        | "Edge-Ring"
+        | "Loc"
+        | "Near-full"
+        | "Random"
+        | "Scratch"
+        | "none";
+      /**
+       * Recorded Label
+       * @enum {string}
+       */
+      recorded_label:
+        | "Center"
+        | "Donut"
+        | "Edge-Loc"
+        | "Edge-Ring"
+        | "Loc"
+        | "Near-full"
+        | "Random"
+        | "Scratch"
+        | "none";
     };
     /** Finding */
     Finding: {
@@ -4464,6 +4535,12 @@ export interface components {
       spe: number;
       /** T2 */
       t2: number;
+      /**
+       * Timestamp
+       * @description The unit's time, when the input has it.
+       * @default null
+       */
+      timestamp: string | null;
       /** Top Spe */
       top_spe: components["schemas"]["FdcContributionItem"][];
       /** Top T2 */
@@ -5097,6 +5174,8 @@ export interface components {
        * @description A name from the user's file (unit_id or lot), kept as written.
        */
       lot: string;
+      /** @description The map as processed: the run's input grid (0 no die, 1 pass, 2 fail). */
+      map: components["schemas"]["WaferMap"];
       /**
        * Probabilities
        * @description Calibrated, highest first.
@@ -5116,6 +5195,12 @@ export interface components {
             | "none"
           )
         | null;
+      /**
+       * Source Wafer
+       * @description The WM-811K wafer this is, when it comes from the real dataset.
+       * @default null
+       */
+      source_wafer: string | null;
       spatial: components["schemas"]["SpatialTest"] | null;
       /**
        * Top Label
@@ -5422,6 +5507,8 @@ export type FdcValidation = components["schemas"]["FdcValidation"];
 export type Features = components["schemas"]["Features"];
 export type FieldError = components["schemas"]["FieldError"];
 export type FinalTestResult = components["schemas"]["FinalTestResult"];
+export type FinalTestUnit = components["schemas"]["FinalTestUnit"];
+export type FinalTestWafer = components["schemas"]["FinalTestWafer"];
 export type Finding = components["schemas"]["Finding"];
 export type GroupContribution = components["schemas"]["GroupContribution"];
 export type GroupDrift = components["schemas"]["GroupDrift"];
