@@ -242,9 +242,7 @@ describe("run state", () => {
     run.alarms = run.alarms.map((a) =>
       a.alarm_id === alarm.alarm_id ? { ...a, investigation_status: "awaiting_decision" } : a,
     );
-    expect(applyRunSnapshot(again, run).alarms[0]!.investigation_status).toBe(
-      "awaiting_decision",
-    );
+    expect(applyRunSnapshot(again, run).alarms[0]!.investigation_status).toBe("awaiting_decision");
   });
 
   it("records an investigation started on this page, with its status", () => {

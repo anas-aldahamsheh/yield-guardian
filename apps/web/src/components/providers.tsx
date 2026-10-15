@@ -1,6 +1,12 @@
 "use client";
 
-import { QueryClient, QueryClientProvider, isServer } from "@tanstack/react-query";
+import {
+  HydrationBoundary,
+  QueryClient,
+  QueryClientProvider,
+  isServer,
+  type DehydratedState,
+} from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 
@@ -36,7 +42,19 @@ export function getQueryClient(): QueryClient {
   return browserClient;
 }
 
-export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
+/**
+ * `state` holds what the server read for the whole page (what the API serves: lib/api/server.ts),
+ * so every part of the page, from the top bar on, renders with it at once.
+ */
+export function Providers({
+  children,
+  nonce,
+  state,
+}: {
+  children: ReactNode;
+  nonce?: string;
+  state?: DehydratedState;
+}) {
   const client = getQueryClient();
   return (
     <ThemeProvider
@@ -48,8 +66,10 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
     >
       <ApiProvider>
         <QueryClientProvider client={client}>
-          {children}
-          <LazyToaster />
+          <HydrationBoundary state={state}>
+            {children}
+            <LazyToaster />
+          </HydrationBoundary>
         </QueryClientProvider>
       </ApiProvider>
     </ThemeProvider>

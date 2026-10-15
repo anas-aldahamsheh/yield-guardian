@@ -157,6 +157,13 @@ export function useRun(
     runId ? { ...startFor(runId, stored, fresh), fromDocument: hydrating } : null,
   );
   const [held, setHeld] = useState<Held | null>(first);
+  // A run left (for no run, or another one) is let go of as it was held: what reached the page
+  // on its stream has played. Coming back to it starts from what the page showed, at rest.
+  const [shownRun, setShownRun] = useState(runId);
+  if (shownRun !== runId) {
+    setShownRun(runId);
+    if (held && held.runId !== runId) setHeld(null);
+  }
   /** The run's state as the snapshot and the stream have built it, read by the stream to resume. */
   const latest = useRef<RunState | null>(first?.state ?? null);
   const following = useRef<string | null>(null);

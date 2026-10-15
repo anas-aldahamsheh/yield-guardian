@@ -1,9 +1,6 @@
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import type { Metadata } from "next";
 
 import { LinePage } from "@/components/story/line-page";
-import { q } from "@/lib/api/queries";
-import { serverApi, serverQueryClient } from "@/lib/api/server";
 import { readStoredRun } from "@/lib/live/server-run";
 import { parseLineUrl } from "@/lib/live/url-state";
 
@@ -34,19 +31,6 @@ export default async function HomePage({
     if (first != null) query.set(key, first);
   }
   const { runId } = parseLineUrl(query);
-  const api = await serverApi();
-  const client = serverQueryClient();
-  const [stored] = await Promise.all([
-    runId ? readStoredRun(runId) : Promise.resolve(null),
-    // What the API serves decides which buttons the page offers; the browser asks if this is slow.
-    Promise.race([
-      client.prefetchQuery(q.meta(api)),
-      new Promise((resolve) => setTimeout(resolve, 1_500)),
-    ]),
-  ]);
-  return (
-    <HydrationBoundary state={dehydrate(client)}>
-      <LinePage initialQuery={query.toString()} stored={stored} />
-    </HydrationBoundary>
-  );
+  const stored = runId ? await readStoredRun(runId) : null;
+  return <LinePage initialQuery={query.toString()} stored={stored} />;
 }

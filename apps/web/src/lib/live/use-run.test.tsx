@@ -110,9 +110,7 @@ describe("useRun after a reload", () => {
     // Only what came after the stored state arrives as new.
     const after = events.filter((e) => e.seq > events[cut - 1]!.seq);
     expect(result.current.state!.arrivals.map((a) => a.seq)).toEqual(
-      after
-        .filter((e) => ["stage_result", "alarm", "run_done"].includes(e.type))
-        .map((e) => e.seq),
+      after.filter((e) => ["stage_result", "alarm", "run_done"].includes(e.type)).map((e) => e.seq),
     );
     // No snapshot was read before the stream: the page already had it.
     expect(calls.findIndex((c) => c.url === runUrl)).toBeGreaterThan(
@@ -142,7 +140,9 @@ describe("useRun after a reload", () => {
     const calls = api((call) => {
       if (call.url !== runUrl) return json({}, 404);
       reads += 1;
-      return reads === 1 ? new Response("", { status: 503, headers: { "Retry-After": "0" } }) : json(snapshotOf(events));
+      return reads === 1
+        ? new Response("", { status: 503, headers: { "Retry-After": "0" } })
+        : json(snapshotOf(events));
     });
     const seen: RunHandle[] = [];
     const { result } = renderHook(() => {
@@ -190,9 +190,7 @@ describe("useRun after a reload", () => {
 
   it("keeps an investigation started from an alarm, with its status", async () => {
     api(() => json({}, 500));
-    const { result } = renderHook(() =>
-      useRun(RUN_ID, { fresh: false, stored: stored(events) }),
-    );
+    const { result } = renderHook(() => useRun(RUN_ID, { fresh: false, stored: stored(events) }));
     await settle();
     const alarm = result.current.state!.alarms[0]!;
     act(() => result.current.linkInvestigation(alarm.alarm_id, "inv_1", "queued"));
@@ -214,5 +212,35 @@ describe("useRun for a run this page started", () => {
     expect(result.current.state!.arrivals.filter((a) => a.kind === "result")).toHaveLength(8);
     await waitFor(() => expect(calls.map((c) => c.url)).toEqual([runEventsUrl(RUN_ID), runUrl]));
     expect(calls[0]!.lastEventId).toBeNull();
+  });
+
+  it("is shown at rest after going back and forward to it: what played is not queued again", async () => {
+    const calls = api((call) =>
+      call.url === runEventsUrl(RUN_ID) ? stream(events) : json(snapshotOf(events)),
+    );
+    const seen: RunHandle[] = [];
+    const { result, rerender } = renderHook(
+      ({ id, fresh }: { id: string | null; fresh: boolean }) => {
+        const handle = useRun(id, { fresh });
+        seen.push(handle);
+        return handle;
+      },
+      { initialProps: { id: RUN_ID as string | null, fresh: true } },
+    );
+    await waitFor(() => expect(result.current.state?.status).toBe("done"));
+    await settle();
+    expect(result.current.state!.arrivals.length).toBeGreaterThan(0);
+    rerender({ id: null, fresh: false });
+    expect(result.current.state).toBeNull();
+    const from = seen.length;
+    rerender({ id: RUN_ID, fresh: false });
+    // From the first render back: the run as it stood, with no arrival left to play.
+    expect(seen.slice(from).every((h) => h.state?.arrivals.length === 0)).toBe(true);
+    expect(result.current.state?.status).toBe("done");
+    expect(result.current.connection).toBe("ended");
+    await settle();
+    expect(seen.slice(from).every((h) => h.state?.arrivals.length === 0)).toBe(true);
+    // No stream again: one quiet read for an investigation started from it since.
+    expect(calls.filter((c) => c.url === runEventsUrl(RUN_ID))).toHaveLength(1);
   });
 });

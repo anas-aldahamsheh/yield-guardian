@@ -334,7 +334,8 @@ export async function followRun(options: FollowRunOptions): Promise<FollowRunRes
     failures += 1;
     const base = serverRetry ?? initial;
     options.onStatus?.("reconnecting");
-    await sleep(asked ?? Math.min(max, base * 2 ** (failures - 1)), signal);
+    // A doubling pause, never shorter than what a 503 asked for (lib/api/retry.ts).
+    await sleep(Math.max(asked ?? 0, Math.min(max, base * 2 ** (failures - 1))), signal);
   }
   return { finished: false };
 }

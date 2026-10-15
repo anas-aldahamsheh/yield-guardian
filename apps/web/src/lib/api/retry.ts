@@ -6,9 +6,10 @@ import { ApiError } from "./errors";
  * The deployed API can be asleep: the first requests after a quiet spell wait while it wakes,
  * and while it loads its models and finds the case catalog it answers 503 with Retry-After. So
  * a read that got no answer (status 0), a server error (5xx) or "not ready" (503) is tried
- * again: after the Retry-After the API gave, else after 1, 2, 4 and then 8 seconds, for about a
- * minute and a half in all. Any 4xx is an answer (not found, gone, not allowed) and is never
- * tried again.
+ * again: after 1, 2, 4 and then 8 seconds, or later when the Retry-After the API gave is longer,
+ * for about a minute and a half in all. A wake of a minute costs a read about ten tries, however
+ * short the Retry-After. Any 4xx is an answer (not found, gone, not allowed) and is never tried
+ * again.
  */
 
 /** Tries after the first failure: 1 + 2 + 4 + 8 × 11 seconds is about 95 s of waiting. */
@@ -37,11 +38,10 @@ export function shouldRetry(failures: number, error: unknown): boolean {
   return isRetryable(error) && failures < MAX_RETRIES;
 }
 
-/** For TanStack Query's `retryDelay`: what the API asked for, else a doubling wait. */
+/** For TanStack Query's `retryDelay`: a doubling wait, never shorter than what the API asked. */
 export function retryDelay(failures: number, error: unknown): number {
   const asked = error instanceof ApiError ? error.retryAfterMs : null;
-  if (asked != null) return asked;
-  return Math.min(MAX_DELAY_MS, FIRST_DELAY_MS * 2 ** Math.max(0, failures));
+  return Math.max(asked ?? 0, Math.min(MAX_DELAY_MS, FIRST_DELAY_MS * 2 ** Math.max(0, failures)));
 }
 
 /** Waits `ms`, or less when the signal aborts. */

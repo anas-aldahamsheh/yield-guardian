@@ -91,16 +91,16 @@ export function ProberTool({
           <ProbeReadout store={store} wafers={wafers} />
         </div>
       </div>
-      {use3d ? (
-        <p
-          className={cn(
-            "mt-1.5 px-4 text-[12px] leading-4 text-ink-3",
-            !(onChuck && ready3d) && "invisible",
-          )}
-        >
-          {`Wafer colour: an assumed ${FILM.centreNm} nm oxide film.`}
-        </p>
-      ) : null}
+      {/* Its line is there from the first paint, so the line does not move when the 3D wafer
+          loads after the page (a reload shows the stations where they were). */}
+      <p
+        className={cn(
+          "mt-1.5 px-4 text-[12px] leading-4 text-ink-3",
+          !(use3d && onChuck && ready3d) && "invisible",
+        )}
+      >
+        {`Wafer colour: an assumed ${FILM.centreNm} nm oxide film.`}
+      </p>
     </div>
   );
 }

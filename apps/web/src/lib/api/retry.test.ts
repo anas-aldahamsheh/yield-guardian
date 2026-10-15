@@ -34,11 +34,25 @@ describe("the retry policy", () => {
     expect(shouldRetry(MAX_RETRIES, noAnswer)).toBe(false);
   });
 
-  it("waits as the API asked, else 1, 2, 4 and then 8 seconds", () => {
-    expect(retryDelay(0, waking)).toBe(4_000);
+  it("waits 1, 2, 4 and then 8 seconds, or as long as the API asked when that is longer", () => {
     expect([0, 1, 2, 3, 4, 9].map((n) => retryDelay(n, noAnswer))).toEqual([
       1_000, 2_000, 4_000, 8_000, 8_000, 8_000,
     ]);
+    expect([0, 1, 2, 3].map((n) => retryDelay(n, waking))).toEqual([4_000, 4_000, 4_000, 8_000]);
+    // A short Retry-After does not make the tries come faster.
+    const soon = new ApiError(503, null, undefined, 500);
+    expect([0, 1, 2].map((n) => retryDelay(n, soon))).toEqual([1_000, 2_000, 4_000]);
+  });
+
+  it("asks about ten times while the API wakes for a minute", () => {
+    const soon = new ApiError(503, null, undefined, 1_000);
+    let waited = 0;
+    let tries = 1;
+    while (waited < 60_000) {
+      waited += retryDelay(tries - 1, soon);
+      tries += 1;
+    }
+    expect(tries).toBeLessThanOrEqual(11);
   });
 
   it("waits about a minute and a half in all before giving up", () => {

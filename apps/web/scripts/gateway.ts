@@ -119,8 +119,52 @@ function forward(req: IncomingMessage, res: ServerResponse, target: URL) {
 
 const nextOrigin = new URL(`http://127.0.0.1:${nextPort}`);
 
+/**
+ * With --mock, browser tests put a stand-in for the runs API in front of the gateway
+ * (e2e/story/stub.ts). It registers itself here (PUT /__mock/runs-upstream with its origin,
+ * DELETE when it closes), so the pages Next.js renders read the same runs as the browser does.
+ * Only a stand-in on this machine is accepted.
+ */
+let runsUpstream: URL | null = null;
+const isRunsPath = (url = "") => url === "/api/v1/runs" || url.startsWith("/api/v1/runs/");
+
+async function registerRuns(req: IncomingMessage, res: ServerResponse) {
+  if (req.method === "DELETE") {
+    runsUpstream = null;
+    return void res.writeHead(204).end();
+  }
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk as Buffer);
+  let origin: URL | null = null;
+  try {
+    origin = new URL(Buffer.concat(chunks).toString("utf8").trim());
+  } catch {
+    origin = null;
+  }
+  if (
+    req.method !== "PUT" ||
+    !origin ||
+    origin.protocol !== "http:" ||
+    !["localhost", "127.0.0.1"].includes(origin.hostname)
+  ) {
+    return void res
+      .writeHead(400, { "Content-Type": "text/plain" })
+      .end("PUT http://127.0.0.1:<port>");
+  }
+  runsUpstream = new URL(origin.origin);
+  res.writeHead(204).end();
+}
+
 const server = http.createServer((req, res) => {
+  if (values.mock && req.url === "/__mock/runs-upstream") {
+    registerRuns(req, res).catch(() => res.writeHead(500).end());
+    return;
+  }
   if (isApiPath(req.url)) {
+    if (values.mock && runsUpstream && isRunsPath(req.url?.split("?")[0])) {
+      forward(req, res, runsUpstream);
+      return;
+    }
     if (values.mock) {
       answerFromFixtures(req, res).catch((error: unknown) => {
         console.error(error);
