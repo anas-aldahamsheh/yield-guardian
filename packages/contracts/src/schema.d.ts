@@ -3546,9 +3546,9 @@ export interface components {
       created_at: string;
       /**
        * Expires At
-       * Format: date-time
+       * @description When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable.
        */
-      expires_at: string;
+      expires_at: string | null;
       origin: components["schemas"]["RunOrigin"];
       /**
        * Run Id

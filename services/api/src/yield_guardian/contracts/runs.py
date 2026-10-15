@@ -555,7 +555,10 @@ class Run(Contract):
         description="Alarms the rules raised beyond the per-run cap (most severe are listed); "
         "the stage results hold every value.",
     )
-    expires_at: datetime
+    expires_at: datetime | None = Field(
+        description="When the run is deleted (24 h after creation); null while an "
+        "investigation uses it, so the evidence behind a decision stays openable."
+    )
 
 
 class _Event(Contract):

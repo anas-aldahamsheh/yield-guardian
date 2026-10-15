@@ -9691,9 +9691,17 @@
             "type": "integer"
           },
           "expires_at": {
-            "format": "date-time",
-            "title": "Expires At",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable.",
+            "title": "Expires At"
           }
         },
         "required": [
