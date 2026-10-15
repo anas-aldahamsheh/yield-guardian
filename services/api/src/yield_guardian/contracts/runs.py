@@ -21,7 +21,7 @@ sensor unit, and `IntakeResult.two_sources` tells the page to say so.
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints
+from pydantic import Field, RootModel, StringConstraints
 
 from yield_guardian.contracts.base import (
     BundleRef,
@@ -193,10 +193,13 @@ class UploadRunCreate(Contract):
     upload_id: UploadId
 
 
-RunCreate = Annotated[
-    SampleRunCreate | CaseRunCreate | PickRunCreate | DrawnRunCreate | UploadRunCreate,
-    Field(discriminator="source"),
-]
+RunCreatePayload = (
+    SampleRunCreate | CaseRunCreate | PickRunCreate | DrawnRunCreate | UploadRunCreate
+)
+
+
+class RunCreate(RootModel[Annotated[RunCreatePayload, Field(discriminator="source")]]):
+    """Body of POST /runs, discriminated by `source`."""
 
 
 class RunCreated(Contract):
@@ -558,13 +561,16 @@ class RunDoneEvent(_Event):
     alarms: Count
 
 
-RunEvent = Annotated[
+RunEventPayload = (
     RunStartedEvent
     | StageStartedEvent
     | StageResultEvent
     | StageSkippedEvent
     | StageFailedEvent
     | AlarmEvent
-    | RunDoneEvent,
-    Field(discriminator="type"),
-]
+    | RunDoneEvent
+)
+
+
+class RunEvent(RootModel[Annotated[RunEventPayload, Field(discriminator="type")]]):
+    """An event on GET /runs/{id}/events (SSE: `event` is the type, `id` is `seq`)."""

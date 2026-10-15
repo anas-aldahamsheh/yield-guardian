@@ -3423,6 +3423,37 @@
         "title": "Alarm",
         "description": "An alarm raised by a rule on one unit. Messages are written by code, not by a language model."
       },
+      "AlarmEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "alarm",
+            "default": "alarm",
+            "title": "Type",
+            "type": "string"
+          },
+          "alarm": {
+            "$ref": "#/components/schemas/RunAlarm"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "alarm"
+        ],
+        "title": "AlarmEvent",
+        "type": "object"
+      },
       "AlarmPage": {
         "properties": {
           "items": {
@@ -3846,6 +3877,27 @@
         ],
         "title": "CallUsage",
         "description": "One model call. Token counts and points are null when the endpoint did not report\nusage (never shown as zero)."
+      },
+      "CaseRunCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "const": "case",
+            "title": "Source",
+            "type": "string"
+          },
+          "case_id": {
+            "pattern": "^[a-z0-9_]{1,40}$",
+            "title": "Case Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "case_id"
+        ],
+        "title": "CaseRunCreate",
+        "type": "object"
       },
       "CatalogModel": {
         "properties": {
@@ -4475,6 +4527,38 @@
         ],
         "title": "ClassProbability"
       },
+      "ClassProbabilityItem": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "enum": [
+              "Center",
+              "Donut",
+              "Edge-Loc",
+              "Edge-Ring",
+              "Loc",
+              "Near-full",
+              "Random",
+              "Scratch",
+              "none"
+            ],
+            "title": "Label",
+            "type": "string"
+          },
+          "probability": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "probability"
+        ],
+        "title": "ClassProbabilityItem",
+        "type": "object"
+      },
       "ConfusionMatrix": {
         "properties": {
           "labels": {
@@ -4514,6 +4598,69 @@
           "counts"
         ],
         "title": "ConfusionMatrix"
+      },
+      "ControlChartsResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "control_charts",
+            "default": "control_charts",
+            "title": "Stage",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/FdcLimits"
+          },
+          "n_components": {
+            "minimum": 0,
+            "title": "N Components",
+            "type": "integer"
+          },
+          "explained_variance": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Explained Variance",
+            "type": "number"
+          },
+          "features": {
+            "description": "Monitored sensors, in model order.",
+            "items": {
+              "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+              "examples": [
+                "S060"
+              ],
+              "pattern": "^S\\d{3}$",
+              "type": "string"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitChartResult"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/BundleRef"
+          }
+        },
+        "required": [
+          "limits",
+          "n_components",
+          "explained_variance",
+          "features",
+          "units",
+          "method",
+          "model"
+        ],
+        "title": "ControlChartsResult",
+        "type": "object"
       },
       "CurvePoint": {
         "properties": {
@@ -4822,6 +4969,109 @@
           "work_order_id"
         ],
         "title": "DecisionEvent",
+        "type": "object"
+      },
+      "DrawnRunCreate": {
+        "additionalProperties": false,
+        "description": "Wafers the user painted; each map is labelled as the user's drawing on the page.",
+        "properties": {
+          "source": {
+            "const": "drawn",
+            "title": "Source",
+            "type": "string"
+          },
+          "wafers": {
+            "items": {
+              "$ref": "#/components/schemas/WaferInput"
+            },
+            "maxItems": 25,
+            "minItems": 1,
+            "title": "Wafers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source",
+          "wafers"
+        ],
+        "title": "DrawnRunCreate",
+        "type": "object"
+      },
+      "DriftHealthResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "drift_health",
+            "default": "drift_health",
+            "title": "Stage",
+            "type": "string"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupDrift"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "ewma_lambda": {
+            "title": "Ewma Lambda",
+            "type": "number"
+          },
+          "ewma_width": {
+            "title": "Ewma Width",
+            "type": "number"
+          },
+          "cusum_k": {
+            "title": "Cusum K",
+            "type": "number"
+          },
+          "health": {
+            "description": "Sensors not ok; ok sensors are omitted.",
+            "items": {
+              "$ref": "#/components/schemas/SensorHealthItem"
+            },
+            "title": "Health",
+            "type": "array"
+          },
+          "health_counts": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "ok",
+                "watch",
+                "maintenance",
+                "dead"
+              ]
+            },
+            "title": "Health Counts",
+            "type": "object"
+          },
+          "rules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Rules",
+            "type": "array"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          }
+        },
+        "required": [
+          "groups",
+          "ewma_lambda",
+          "ewma_width",
+          "cusum_k",
+          "health",
+          "health_counts",
+          "rules",
+          "method"
+        ],
+        "title": "DriftHealthResult",
         "type": "object"
       },
       "EndEvent": {
@@ -5359,6 +5609,37 @@
         ],
         "title": "FdcContribution"
       },
+      "FdcContributionItem": {
+        "additionalProperties": false,
+        "properties": {
+          "sensor": {
+            "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+            "examples": [
+              "S060"
+            ],
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
+            "type": "string"
+          },
+          "contribution": {
+            "title": "Contribution",
+            "type": "number"
+          },
+          "share": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sensor",
+          "contribution",
+          "share"
+        ],
+        "title": "FdcContributionItem",
+        "type": "object"
+      },
       "FdcContributions": {
         "properties": {
           "unit_id": {
@@ -5676,6 +5957,66 @@
         ],
         "title": "FieldError"
       },
+      "FinalTestResult": {
+        "additionalProperties": false,
+        "description": "How the warnings compare with the recorded results, when the input has them.",
+        "properties": {
+          "stage": {
+            "const": "final_test",
+            "default": "final_test",
+            "title": "Stage",
+            "type": "string"
+          },
+          "units_with_result": {
+            "minimum": 0,
+            "title": "Units With Result",
+            "type": "integer"
+          },
+          "failed_units": {
+            "minimum": 0,
+            "title": "Failed Units",
+            "type": "integer"
+          },
+          "failed_flagged": {
+            "description": "Failed units whose risk was above the threshold.",
+            "minimum": 0,
+            "title": "Failed Flagged",
+            "type": "integer"
+          },
+          "passed_flagged": {
+            "description": "Passed units whose risk was above the threshold.",
+            "minimum": 0,
+            "title": "Passed Flagged",
+            "type": "integer"
+          },
+          "wafers_with_label": {
+            "minimum": 0,
+            "title": "Wafers With Label",
+            "type": "integer"
+          },
+          "wafers_agreeing": {
+            "description": "Predicted pattern equals the recorded label.",
+            "minimum": 0,
+            "title": "Wafers Agreeing",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "units_with_result",
+          "failed_units",
+          "failed_flagged",
+          "passed_flagged",
+          "wafers_with_label",
+          "wafers_agreeing",
+          "summary"
+        ],
+        "title": "FinalTestResult",
+        "type": "object"
+      },
       "Finding": {
         "properties": {
           "claim": {
@@ -5748,6 +6089,95 @@
           "shap"
         ],
         "title": "GroupContribution"
+      },
+      "GroupDrift": {
+        "additionalProperties": false,
+        "properties": {
+          "group_id": {
+            "title": "Group Id",
+            "type": "string"
+          },
+          "sensors": {
+            "items": {
+              "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+              "examples": [
+                "S060"
+              ],
+              "pattern": "^S\\d{3}$",
+              "type": "string"
+            },
+            "title": "Sensors",
+            "type": "array"
+          },
+          "ewma": {
+            "description": "EWMA of the standardised group score, per unit.",
+            "items": {
+              "type": "number"
+            },
+            "title": "Ewma",
+            "type": "array"
+          },
+          "ewma_limit": {
+            "title": "Ewma Limit",
+            "type": "number"
+          },
+          "cusum_upper": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Cusum Upper",
+            "type": "array"
+          },
+          "cusum_lower": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Cusum Lower",
+            "type": "array"
+          },
+          "cusum_h": {
+            "title": "Cusum H",
+            "type": "number"
+          },
+          "first_ewma_alarm": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Index of the first unit over the limit.",
+            "title": "First Ewma Alarm"
+          },
+          "first_cusum_alarm": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Cusum Alarm"
+          }
+        },
+        "required": [
+          "group_id",
+          "sensors",
+          "ewma",
+          "ewma_limit",
+          "cusum_upper",
+          "cusum_lower",
+          "cusum_h",
+          "first_ewma_alarm",
+          "first_cusum_alarm"
+        ],
+        "title": "GroupDrift",
+        "type": "object"
       },
       "GroupingMethod": {
         "properties": {
@@ -5900,6 +6330,111 @@
           "units"
         ],
         "title": "HealthWindow"
+      },
+      "IntakeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "intake",
+            "default": "intake",
+            "title": "Stage",
+            "type": "string"
+          },
+          "units": {
+            "minimum": 0,
+            "title": "Units",
+            "type": "integer"
+          },
+          "wafers": {
+            "minimum": 0,
+            "title": "Wafers",
+            "type": "integer"
+          },
+          "lots": {
+            "minimum": 0,
+            "title": "Lots",
+            "type": "integer"
+          },
+          "sensors": {
+            "description": "Sensor columns per unit (590 in the SECOM layout).",
+            "minimum": 0,
+            "title": "Sensors",
+            "type": "integer"
+          },
+          "missing_readings": {
+            "minimum": 0,
+            "title": "Missing Readings",
+            "type": "integer"
+          },
+          "missing_share": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Missing Share",
+            "type": "number"
+          },
+          "first_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Timestamp"
+          },
+          "last_timestamp": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Timestamp"
+          },
+          "in_time_order": {
+            "description": "Units carry timestamps that never go back.",
+            "title": "In Time Order",
+            "type": "boolean"
+          },
+          "two_sources": {
+            "description": "Both SECOM units and WM-811K wafers are present: they are different chips.",
+            "title": "Two Sources",
+            "type": "boolean"
+          },
+          "unmonitored_sensors": {
+            "description": "Sensors the models do not use (constant or empty in training).",
+            "items": {
+              "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+              "examples": [
+                "S060"
+              ],
+              "pattern": "^S\\d{3}$",
+              "type": "string"
+            },
+            "title": "Unmonitored Sensors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "units",
+          "wafers",
+          "lots",
+          "sensors",
+          "missing_readings",
+          "missing_share",
+          "first_timestamp",
+          "last_timestamp",
+          "in_time_order",
+          "two_sources",
+          "unmonitored_sensors"
+        ],
+        "title": "IntakeResult",
+        "type": "object"
       },
       "Investigation": {
         "properties": {
@@ -7026,6 +7561,76 @@
         ],
         "title": "LotDetail"
       },
+      "LotItem": {
+        "additionalProperties": false,
+        "properties": {
+          "lot": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Lot",
+            "type": "string"
+          },
+          "wafers": {
+            "minimum": 0,
+            "title": "Wafers",
+            "type": "integer"
+          },
+          "pattern_counts": {
+            "additionalProperties": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "Center",
+                "Donut",
+                "Edge-Loc",
+                "Edge-Ring",
+                "Loc",
+                "Near-full",
+                "Random",
+                "Scratch",
+                "none"
+              ]
+            },
+            "title": "Pattern Counts",
+            "type": "object"
+          },
+          "tests": {
+            "items": {
+              "$ref": "#/components/schemas/PatternTest"
+            },
+            "title": "Tests",
+            "type": "array"
+          },
+          "flagged": {
+            "title": "Flagged",
+            "type": "boolean"
+          },
+          "stacked": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StackedMap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lot",
+          "wafers",
+          "pattern_counts",
+          "tests",
+          "flagged",
+          "stacked"
+        ],
+        "title": "LotItem",
+        "type": "object"
+      },
       "LotPage": {
         "properties": {
           "items": {
@@ -7059,6 +7664,34 @@
           "total"
         ],
         "title": "LotPage"
+      },
+      "LotResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "lot",
+            "default": "lot",
+            "title": "Stage",
+            "type": "string"
+          },
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/LotItem"
+            },
+            "title": "Lots",
+            "type": "array"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lots",
+          "method"
+        ],
+        "title": "LotResult",
+        "type": "object"
       },
       "LotSummary": {
         "properties": {
@@ -8004,6 +8637,69 @@
         "title": "PatternTest",
         "description": "One-sided binomial test of a pattern's count in a lot against the training-period rate."
       },
+      "PickRunCreate": {
+        "additionalProperties": false,
+        "description": "Real items the user chose from the dataset browsers.",
+        "properties": {
+          "source": {
+            "const": "pick",
+            "title": "Source",
+            "type": "string"
+          },
+          "unit_ids": {
+            "items": {
+              "description": "Production unit: row index (0-based) in secom.data.",
+              "examples": [
+                1043
+              ],
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 5000,
+            "title": "Unit Ids",
+            "type": "array"
+          },
+          "wafer_ids": {
+            "items": {
+              "description": "\"<lot>-<wafer index>\".",
+              "examples": [
+                "lot47542-12"
+              ],
+              "maxLength": 80,
+              "pattern": "^[A-Za-z0-9_.]+-\\d+$",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "Wafer Ids",
+            "type": "array"
+          },
+          "lot": {
+            "anyOf": [
+              {
+                "description": "WM-811K lot name.",
+                "examples": [
+                  "lot47542"
+                ],
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "All demo wafers of this lot.",
+            "title": "Lot"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "title": "PickRunCreate",
+        "type": "object"
+      },
       "PlantClock": {
         "properties": {
           "epoch": {
@@ -8522,6 +9218,66 @@
         "title": "ReportEvent",
         "type": "object"
       },
+      "RiskFeature": {
+        "additionalProperties": false,
+        "properties": {
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          },
+          "sensor": {
+            "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+            "examples": [
+              "S060"
+            ],
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
+            "type": "string"
+          },
+          "indicator": {
+            "description": "True for a missingness indicator feature.",
+            "title": "Indicator",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "shap": {
+            "description": "TreeSHAP contribution in log-odds.",
+            "title": "Shap",
+            "type": "number"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          }
+        },
+        "required": [
+          "feature",
+          "sensor",
+          "indicator",
+          "value",
+          "shap",
+          "group_id"
+        ],
+        "title": "RiskFeature",
+        "type": "object"
+      },
       "RoleAssignment": {
         "properties": {
           "role": {
@@ -8708,6 +9464,670 @@
           "usage"
         ],
         "title": "RoleUsage"
+      },
+      "Run": {
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RunOrigin"
+          },
+          "units": {
+            "minimum": 0,
+            "title": "Units",
+            "type": "integer"
+          },
+          "wafers": {
+            "minimum": 0,
+            "title": "Wafers",
+            "type": "integer"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageState"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "alarms": {
+            "items": {
+              "$ref": "#/components/schemas/RunAlarm"
+            },
+            "title": "Alarms",
+            "type": "array"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "created_at",
+          "status",
+          "origin",
+          "units",
+          "wafers",
+          "stages",
+          "alarms",
+          "expires_at"
+        ],
+        "title": "Run",
+        "type": "object"
+      },
+      "RunAlarm": {
+        "additionalProperties": false,
+        "description": "An alarm raised by a rule during the run. Messages are written by code.",
+        "properties": {
+          "alarm_id": {
+            "description": "Alarm within one run, numbered in the order raised.",
+            "examples": [
+              "RA-3"
+            ],
+            "pattern": "^RA-\\d{1,6}$",
+            "title": "Alarm Id",
+            "type": "string"
+          },
+          "run_id": {
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "risk",
+              "t2",
+              "spe",
+              "ewma",
+              "cusum",
+              "wafer_pattern",
+              "unknown_pattern",
+              "lot_excursion"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "warning",
+              "alarm"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "unit_index": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unit Index"
+          },
+          "unit_id": {
+            "anyOf": [
+              {
+                "description": "A name from the user's file (unit_id or lot), kept as written.",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unit Id"
+          },
+          "wafer_index": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Wafer Index"
+          },
+          "lot": {
+            "anyOf": [
+              {
+                "description": "A name from the user's file (unit_id or lot), kept as written.",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Lot"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "title": {
+            "examples": [
+              "Sensor relationships broke (SPE)"
+            ],
+            "maxLength": 120,
+            "title": "Title",
+            "type": "string"
+          },
+          "meaning": {
+            "description": "One plain sentence.",
+            "maxLength": 400,
+            "title": "Meaning",
+            "type": "string"
+          },
+          "sensors": {
+            "items": {
+              "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+              "examples": [
+                "S060"
+              ],
+              "pattern": "^S\\d{3}$",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Sensors",
+            "type": "array"
+          },
+          "investigation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Investigation Id"
+          }
+        },
+        "required": [
+          "alarm_id",
+          "run_id",
+          "stage",
+          "kind",
+          "severity",
+          "value",
+          "limit",
+          "title",
+          "meaning"
+        ],
+        "title": "RunAlarm",
+        "type": "object"
+      },
+      "RunCase": {
+        "additionalProperties": false,
+        "description": "A real situation found in the data by a fixed rule (not made up).",
+        "properties": {
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "rule": {
+            "description": "The rule that found it in the data.",
+            "title": "Rule",
+            "type": "string"
+          },
+          "datasets": {
+            "items": {
+              "enum": [
+                "secom",
+                "wm811k",
+                "user"
+              ],
+              "type": "string"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
+          "units": {
+            "minimum": 0,
+            "title": "Units",
+            "type": "integer"
+          },
+          "wafers": {
+            "minimum": 0,
+            "title": "Wafers",
+            "type": "integer"
+          },
+          "stations": {
+            "description": "Stations this case exercises.",
+            "items": {
+              "enum": [
+                "manufacturing",
+                "monitoring",
+                "wafer_test",
+                "investigation",
+                "decision"
+              ],
+              "type": "string"
+            },
+            "title": "Stations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "case_id",
+          "title",
+          "description",
+          "rule",
+          "datasets",
+          "units",
+          "wafers",
+          "stations"
+        ],
+        "title": "RunCase",
+        "type": "object"
+      },
+      "RunCaseList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunCase"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "RunCaseList",
+        "type": "object"
+      },
+      "RunCreate": {
+        "description": "Body of POST /runs, discriminated by `source`.",
+        "discriminator": {
+          "mapping": {
+            "case": "#/components/schemas/CaseRunCreate",
+            "drawn": "#/components/schemas/DrawnRunCreate",
+            "pick": "#/components/schemas/PickRunCreate",
+            "sample": "#/components/schemas/SampleRunCreate",
+            "upload": "#/components/schemas/UploadRunCreate"
+          },
+          "propertyName": "source"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SampleRunCreate"
+          },
+          {
+            "$ref": "#/components/schemas/CaseRunCreate"
+          },
+          {
+            "$ref": "#/components/schemas/PickRunCreate"
+          },
+          {
+            "$ref": "#/components/schemas/DrawnRunCreate"
+          },
+          {
+            "$ref": "#/components/schemas/UploadRunCreate"
+          }
+        ],
+        "title": "RunCreate"
+      },
+      "RunCreated": {
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "events_url": {
+            "examples": [
+              "/api/v1/runs/run_01jaf3k9x2m4q7r8s0t1v2w3x4/events"
+            ],
+            "title": "Events Url",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RunOrigin"
+          }
+        },
+        "required": [
+          "run_id",
+          "events_url",
+          "origin"
+        ],
+        "title": "RunCreated",
+        "type": "object"
+      },
+      "RunDoneEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "run_done",
+            "default": "run_done",
+            "title": "Type",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "alarms": {
+            "minimum": 0,
+            "title": "Alarms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "status",
+          "alarms"
+        ],
+        "title": "RunDoneEvent",
+        "type": "object"
+      },
+      "RunEvent": {
+        "description": "An event on GET /runs/{id}/events (SSE: `event` is the type, `id` is `seq`).",
+        "discriminator": {
+          "mapping": {
+            "alarm": "#/components/schemas/AlarmEvent",
+            "run_done": "#/components/schemas/RunDoneEvent",
+            "run_started": "#/components/schemas/RunStartedEvent",
+            "stage_failed": "#/components/schemas/StageFailedEvent",
+            "stage_result": "#/components/schemas/StageResultEvent",
+            "stage_skipped": "#/components/schemas/StageSkippedEvent",
+            "stage_started": "#/components/schemas/StageStartedEvent"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/RunStartedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/StageStartedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/StageResultEvent"
+          },
+          {
+            "$ref": "#/components/schemas/StageSkippedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/StageFailedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/AlarmEvent"
+          },
+          {
+            "$ref": "#/components/schemas/RunDoneEvent"
+          }
+        ],
+        "title": "RunEvent"
+      },
+      "RunOrigin": {
+        "additionalProperties": false,
+        "description": "Where the input came from, in words the page can show as is.",
+        "properties": {
+          "source": {
+            "enum": [
+              "sample",
+              "case",
+              "pick",
+              "drawn",
+              "upload"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "datasets": {
+            "items": {
+              "enum": [
+                "secom",
+                "wm811k",
+                "user"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Datasets",
+            "type": "array"
+          },
+          "title": {
+            "examples": [
+              "A random real sample"
+            ],
+            "maxLength": 200,
+            "title": "Title",
+            "type": "string"
+          },
+          "rule": {
+            "description": "How the input was chosen or built, e.g. the selection rule and its seed.",
+            "maxLength": 600,
+            "title": "Rule",
+            "type": "string"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Case Id"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Filename"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Seed"
+          }
+        },
+        "required": [
+          "source",
+          "datasets",
+          "title",
+          "rule"
+        ],
+        "title": "RunOrigin",
+        "type": "object"
+      },
+      "RunStartedEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "run_started",
+            "default": "run_started",
+            "title": "Type",
+            "type": "string"
+          },
+          "run_id": {
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/RunOrigin"
+          },
+          "stages": {
+            "description": "Every stage, pending or skipped with `needs`.",
+            "items": {
+              "$ref": "#/components/schemas/StageState"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "run_id",
+          "origin",
+          "stages"
+        ],
+        "title": "RunStartedEvent",
+        "type": "object"
+      },
+      "SampleRunCreate": {
+        "additionalProperties": false,
+        "description": "One click: the server picks real SECOM units and a real WM-811K lot at random.",
+        "properties": {
+          "source": {
+            "const": "sample",
+            "title": "Source",
+            "type": "string"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "maximum": 2147483647,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Repeat an earlier pick; omitted picks a new one.",
+            "title": "Seed"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "title": "SampleRunCreate",
+        "type": "object"
       },
       "SecomMetrics": {
         "properties": {
@@ -9053,6 +10473,44 @@
         ],
         "title": "SensorHealth"
       },
+      "SensorHealthItem": {
+        "additionalProperties": false,
+        "properties": {
+          "sensor": {
+            "description": "Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.",
+            "examples": [
+              "S060"
+            ],
+            "pattern": "^S\\d{3}$",
+            "title": "Sensor",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "watch",
+              "maintenance",
+              "dead"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sensor",
+          "status",
+          "reasons"
+        ],
+        "title": "SensorHealthItem",
+        "type": "object"
+      },
       "SensorHealthReport": {
         "properties": {
           "windows": {
@@ -9159,6 +10617,64 @@
         ],
         "title": "SensorReference",
         "description": "Range of the sensor in the FDC reference period."
+      },
+      "SensorRiskResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "sensor_risk",
+            "default": "sensor_risk",
+            "title": "Stage",
+            "type": "string"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitRiskResult"
+            },
+            "title": "Units",
+            "type": "array"
+          },
+          "threshold": {
+            "description": "Operating point chosen on the validation block.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Threshold",
+            "type": "number"
+          },
+          "operating_point": {
+            "examples": [
+              "5% false-alarm rate on the validation block"
+            ],
+            "title": "Operating Point",
+            "type": "string"
+          },
+          "skill": {
+            "description": "Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk.",
+            "items": {
+              "$ref": "#/components/schemas/Estimate"
+            },
+            "title": "Skill",
+            "type": "array"
+          },
+          "caution": {
+            "description": "Plain sentence on how weak the risk is.",
+            "title": "Caution",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/BundleRef"
+          }
+        },
+        "required": [
+          "units",
+          "threshold",
+          "operating_point",
+          "skill",
+          "caution",
+          "model"
+        ],
+        "title": "SensorRiskResult",
+        "type": "object"
       },
       "SensorSeries": {
         "properties": {
@@ -9341,6 +10857,76 @@
           "group_id"
         ],
         "title": "ShapContribution"
+      },
+      "SimilarItem": {
+        "additionalProperties": false,
+        "properties": {
+          "wafer_id": {
+            "description": "\"<lot>-<wafer index>\".",
+            "examples": [
+              "lot47542-12"
+            ],
+            "maxLength": 80,
+            "pattern": "^[A-Za-z0-9_.]+-\\d+$",
+            "title": "Wafer Id",
+            "type": "string"
+          },
+          "recorded_label": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Center",
+                  "Donut",
+                  "Edge-Loc",
+                  "Edge-Ring",
+                  "Loc",
+                  "Near-full",
+                  "Random",
+                  "Scratch",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded Label"
+          },
+          "predicted_label": {
+            "enum": [
+              "Center",
+              "Donut",
+              "Edge-Loc",
+              "Edge-Ring",
+              "Loc",
+              "Near-full",
+              "Random",
+              "Scratch",
+              "none"
+            ],
+            "title": "Predicted Label",
+            "type": "string"
+          },
+          "similarity": {
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Similarity",
+            "type": "number"
+          },
+          "map": {
+            "$ref": "#/components/schemas/WaferMap"
+          }
+        },
+        "required": [
+          "wafer_id",
+          "recorded_label",
+          "predicted_label",
+          "similarity",
+          "map"
+        ],
+        "title": "SimilarItem",
+        "type": "object"
       },
       "SimilarWafer": {
         "properties": {
@@ -9633,6 +11219,367 @@
         "title": "StackedMap",
         "description": "Share of wafers in the lot whose die at each position failed."
       },
+      "StageFailedEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "stage_failed",
+            "default": "stage_failed",
+            "title": "Type",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "problem": {
+            "$ref": "#/components/schemas/Problem"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "stage",
+          "problem"
+        ],
+        "title": "StageFailedEvent",
+        "type": "object"
+      },
+      "StageResultEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "stage_result",
+            "default": "stage_result",
+            "title": "Type",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "elapsed_ms": {
+            "description": "Server compute time of the stage.",
+            "minimum": 0,
+            "title": "Elapsed Ms",
+            "type": "number"
+          },
+          "result": {
+            "discriminator": {
+              "mapping": {
+                "control_charts": "#/components/schemas/ControlChartsResult",
+                "drift_health": "#/components/schemas/DriftHealthResult",
+                "final_test": "#/components/schemas/FinalTestResult",
+                "intake": "#/components/schemas/IntakeResult",
+                "lot": "#/components/schemas/LotResult",
+                "sensor_risk": "#/components/schemas/SensorRiskResult",
+                "wafer_pattern": "#/components/schemas/WaferPatternResult",
+                "wafer_similar": "#/components/schemas/WaferSimilarResult"
+              },
+              "propertyName": "stage"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IntakeResult"
+              },
+              {
+                "$ref": "#/components/schemas/SensorRiskResult"
+              },
+              {
+                "$ref": "#/components/schemas/ControlChartsResult"
+              },
+              {
+                "$ref": "#/components/schemas/DriftHealthResult"
+              },
+              {
+                "$ref": "#/components/schemas/WaferPatternResult"
+              },
+              {
+                "$ref": "#/components/schemas/WaferSimilarResult"
+              },
+              {
+                "$ref": "#/components/schemas/LotResult"
+              },
+              {
+                "$ref": "#/components/schemas/FinalTestResult"
+              }
+            ],
+            "title": "Result"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "stage",
+          "elapsed_ms",
+          "result"
+        ],
+        "title": "StageResultEvent",
+        "type": "object"
+      },
+      "StageSkippedEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "stage_skipped",
+            "default": "stage_skipped",
+            "title": "Type",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "needs": {
+            "title": "Needs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "stage",
+          "needs"
+        ],
+        "title": "StageSkippedEvent",
+        "type": "object"
+      },
+      "StageStartedEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "seq": {
+            "minimum": 0,
+            "title": "Seq",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "type": {
+            "const": "stage_started",
+            "default": "stage_started",
+            "title": "Type",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "stage"
+        ],
+        "title": "StageStartedEvent",
+        "type": "object"
+      },
+      "StageState": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "station": {
+            "enum": [
+              "manufacturing",
+              "monitoring",
+              "wafer_test",
+              "investigation",
+              "decision"
+            ],
+            "title": "Station",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "needs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Why the stage was skipped, in plain words.",
+            "title": "Needs"
+          },
+          "elapsed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Elapsed Ms"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "control_charts": "#/components/schemas/ControlChartsResult",
+                    "drift_health": "#/components/schemas/DriftHealthResult",
+                    "final_test": "#/components/schemas/FinalTestResult",
+                    "intake": "#/components/schemas/IntakeResult",
+                    "lot": "#/components/schemas/LotResult",
+                    "sensor_risk": "#/components/schemas/SensorRiskResult",
+                    "wafer_pattern": "#/components/schemas/WaferPatternResult",
+                    "wafer_similar": "#/components/schemas/WaferSimilarResult"
+                  },
+                  "propertyName": "stage"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/IntakeResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SensorRiskResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ControlChartsResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DriftHealthResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/WaferPatternResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/WaferSimilarResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LotResult"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FinalTestResult"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Result"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Problem"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "stage",
+          "station",
+          "status"
+        ],
+        "title": "StageState",
+        "type": "object"
+      },
       "StatusEvent": {
         "additionalProperties": false,
         "properties": {
@@ -9762,6 +11709,93 @@
           "folds"
         ],
         "title": "Tuning"
+      },
+      "UnitChartResult": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "unit_id": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "t2": {
+            "minimum": 0,
+            "title": "T2",
+            "type": "number"
+          },
+          "spe": {
+            "minimum": 0,
+            "title": "Spe",
+            "type": "number"
+          },
+          "level": {
+            "enum": [
+              "none",
+              "warning",
+              "alarm"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "top_t2": {
+            "items": {
+              "$ref": "#/components/schemas/FdcContributionItem"
+            },
+            "maxItems": 10,
+            "title": "Top T2",
+            "type": "array"
+          },
+          "top_spe": {
+            "items": {
+              "$ref": "#/components/schemas/FdcContributionItem"
+            },
+            "maxItems": 10,
+            "title": "Top Spe",
+            "type": "array"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Standardised reading of each monitored sensor (order of `features`), null where missing. Sent for at most the first 200 units; GET the run for the rest.",
+            "title": "Z"
+          }
+        },
+        "required": [
+          "index",
+          "unit_id",
+          "t2",
+          "spe",
+          "level",
+          "top_t2",
+          "top_spe"
+        ],
+        "title": "UnitChartResult",
+        "type": "object"
       },
       "UnitDetail": {
         "properties": {
@@ -10101,6 +12135,84 @@
         ],
         "title": "UnitRisk"
       },
+      "UnitRiskResult": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "Position of the unit in the run input.",
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "unit_id": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Unit Id",
+            "type": "string"
+          },
+          "risk": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Risk",
+            "type": "number"
+          },
+          "band": {
+            "enum": [
+              "low",
+              "elevated",
+              "high"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "above_threshold": {
+            "title": "Above Threshold",
+            "type": "boolean"
+          },
+          "validity": {
+            "description": "held_out: a SECOM unit the model never saw; in_training: a SECOM unit the model was fitted on (in-sample); new_data: not a SECOM unit.",
+            "enum": [
+              "held_out",
+              "in_training",
+              "new_data"
+            ],
+            "title": "Validity",
+            "type": "string"
+          },
+          "raw_score": {
+            "title": "Raw Score",
+            "type": "number"
+          },
+          "base_value": {
+            "title": "Base Value",
+            "type": "number"
+          },
+          "top": {
+            "description": "Largest |shap| first.",
+            "items": {
+              "$ref": "#/components/schemas/RiskFeature"
+            },
+            "maxItems": 15,
+            "title": "Top",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "unit_id",
+          "risk",
+          "band",
+          "above_threshold",
+          "validity",
+          "raw_score",
+          "base_value",
+          "top"
+        ],
+        "title": "UnitRiskResult",
+        "type": "object"
+      },
       "UnitSummary": {
         "properties": {
           "unit_id": {
@@ -10370,6 +12482,154 @@
         ],
         "title": "UnknownScore",
         "description": "Mahalanobis score of the CNN embedding; above the threshold, the wafer is an unknown pattern.\n\nThe score is the smallest squared Mahalanobis distance from the L2-normalised embedding to a\nclass mean (shared Ledoit-Wolf covariance). The threshold accepts 95% of validation wafers."
+      },
+      "UploadIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "row": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "1-based row in the file (the header is row 1).",
+            "title": "Row"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "severity",
+          "row",
+          "column",
+          "message"
+        ],
+        "title": "UploadIssue",
+        "type": "object"
+      },
+      "UploadRunCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "const": "upload",
+            "title": "Source",
+            "type": "string"
+          },
+          "upload_id": {
+            "examples": [
+              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^upl_[0-9a-z]{8,40}$",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "upload_id"
+        ],
+        "title": "UploadRunCreate",
+        "type": "object"
+      },
+      "UploadSummary": {
+        "additionalProperties": false,
+        "description": "A parsed and validated file, ready to run. Errors block the run; warnings do not.",
+        "properties": {
+          "upload_id": {
+            "examples": [
+              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ],
+            "pattern": "^upl_[0-9a-z]{8,40}$",
+            "title": "Upload Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "sensors",
+              "wafers"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "units": {
+            "minimum": 0,
+            "title": "Units",
+            "type": "integer"
+          },
+          "wafers": {
+            "minimum": 0,
+            "title": "Wafers",
+            "type": "integer"
+          },
+          "lots": {
+            "minimum": 0,
+            "title": "Lots",
+            "type": "integer"
+          },
+          "missing_readings": {
+            "minimum": 0,
+            "title": "Missing Readings",
+            "type": "integer"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/UploadIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "runnable": {
+            "title": "Runnable",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "kind",
+          "filename",
+          "units",
+          "wafers",
+          "lots",
+          "missing_readings",
+          "issues",
+          "runnable",
+          "expires_at"
+        ],
+        "title": "UploadSummary",
+        "type": "object"
       },
       "Usage": {
         "properties": {
@@ -10755,6 +13015,79 @@
         "title": "WaferHero",
         "description": "The wafer shown on the home page, with the rule that picked it."
       },
+      "WaferInput": {
+        "additionalProperties": false,
+        "description": "One wafer map with WM-811K values (0 no die, 1 pass, 2 fail).",
+        "properties": {
+          "lot": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Lot",
+            "type": "string"
+          },
+          "wafer": {
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Wafer",
+            "type": "integer"
+          },
+          "map": {
+            "$ref": "#/components/schemas/WaferMap"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Center",
+                  "Donut",
+                  "Edge-Loc",
+                  "Edge-Ring",
+                  "Loc",
+                  "Near-full",
+                  "Random",
+                  "Scratch",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Recorded WM-811K label, when the wafer comes from the real dataset.",
+            "title": "Label"
+          },
+          "source_wafer": {
+            "anyOf": [
+              {
+                "description": "\"<lot>-<wafer index>\".",
+                "examples": [
+                  "lot47542-12"
+                ],
+                "maxLength": 80,
+                "pattern": "^[A-Za-z0-9_.]+-\\d+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The WM-811K wafer this is, when it comes from the real dataset.",
+            "title": "Source Wafer"
+          }
+        },
+        "required": [
+          "lot",
+          "wafer",
+          "map"
+        ],
+        "title": "WaferInput",
+        "type": "object"
+      },
       "WaferMap": {
         "properties": {
           "height": {
@@ -10891,6 +13224,173 @@
         ],
         "title": "WaferPage"
       },
+      "WaferPatternItem": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "Position of the wafer in the run input.",
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "lot": {
+            "description": "A name from the user's file (unit_id or lot), kept as written.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:\\- ]+$",
+            "title": "Lot",
+            "type": "string"
+          },
+          "wafer": {
+            "title": "Wafer",
+            "type": "integer"
+          },
+          "top_label": {
+            "enum": [
+              "Center",
+              "Donut",
+              "Edge-Loc",
+              "Edge-Ring",
+              "Loc",
+              "Near-full",
+              "Random",
+              "Scratch",
+              "none"
+            ],
+            "title": "Top Label",
+            "type": "string"
+          },
+          "top_probability": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Top Probability",
+            "type": "number"
+          },
+          "probabilities": {
+            "description": "Calibrated, highest first.",
+            "items": {
+              "$ref": "#/components/schemas/ClassProbabilityItem"
+            },
+            "title": "Probabilities",
+            "type": "array"
+          },
+          "auto_accepted": {
+            "description": "Top probability clears the threshold set for 99% precision on validation.",
+            "title": "Auto Accepted",
+            "type": "boolean"
+          },
+          "unknown_score": {
+            "title": "Unknown Score",
+            "type": "number"
+          },
+          "unknown_threshold": {
+            "title": "Unknown Threshold",
+            "type": "number"
+          },
+          "is_unknown": {
+            "title": "Is Unknown",
+            "type": "boolean"
+          },
+          "energy_score": {
+            "title": "Energy Score",
+            "type": "number"
+          },
+          "spatial": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpatialTest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recorded_label": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Center",
+                  "Donut",
+                  "Edge-Loc",
+                  "Edge-Ring",
+                  "Loc",
+                  "Near-full",
+                  "Random",
+                  "Scratch",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded Label"
+          }
+        },
+        "required": [
+          "index",
+          "lot",
+          "wafer",
+          "top_label",
+          "top_probability",
+          "probabilities",
+          "auto_accepted",
+          "unknown_score",
+          "unknown_threshold",
+          "is_unknown",
+          "energy_score",
+          "spatial",
+          "recorded_label"
+        ],
+        "title": "WaferPatternItem",
+        "type": "object"
+      },
+      "WaferPatternResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "wafer_pattern",
+            "default": "wafer_pattern",
+            "title": "Stage",
+            "type": "string"
+          },
+          "wafers": {
+            "items": {
+              "$ref": "#/components/schemas/WaferPatternItem"
+            },
+            "title": "Wafers",
+            "type": "array"
+          },
+          "accept_threshold": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Accept Threshold",
+            "type": "number"
+          },
+          "temperature": {
+            "exclusiveMinimum": 0,
+            "title": "Temperature",
+            "type": "number"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "model": {
+            "$ref": "#/components/schemas/BundleRef"
+          }
+        },
+        "required": [
+          "wafers",
+          "accept_threshold",
+          "temperature",
+          "method",
+          "model"
+        ],
+        "title": "WaferPatternResult",
+        "type": "object"
+      },
       "WaferPrediction": {
         "properties": {
           "wafer_id": {
@@ -10956,6 +13456,82 @@
           "model"
         ],
         "title": "WaferPrediction"
+      },
+      "WaferSimilarItem": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "minimum": 0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "similar": {
+            "description": "Most similar first.",
+            "items": {
+              "$ref": "#/components/schemas/SimilarItem"
+            },
+            "maxItems": 10,
+            "title": "Similar",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "similar"
+        ],
+        "title": "WaferSimilarItem",
+        "type": "object"
+      },
+      "WaferSimilarResult": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "const": "wafer_similar",
+            "default": "wafer_similar",
+            "title": "Stage",
+            "type": "string"
+          },
+          "wafers": {
+            "items": {
+              "$ref": "#/components/schemas/WaferSimilarItem"
+            },
+            "title": "Wafers",
+            "type": "array"
+          },
+          "searched": {
+            "description": "Real WM-811K wafers searched.",
+            "minimum": 0,
+            "title": "Searched",
+            "type": "integer"
+          },
+          "precision_at_10": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Estimate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "causes": {
+            "$ref": "#/components/schemas/PatternCauses",
+            "description": "Literature causes for the predicted patterns in this run: hypotheses to check, not a diagnosis."
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          }
+        },
+        "required": [
+          "wafers",
+          "searched",
+          "precision_at_10",
+          "causes",
+          "method"
+        ],
+        "title": "WaferSimilarResult",
+        "type": "object"
       },
       "WaferSummary": {
         "properties": {

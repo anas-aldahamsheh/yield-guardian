@@ -957,6 +957,22 @@ export interface components {
       /** Value */
       value: number | null;
     };
+    /** AlarmEvent */
+    AlarmEvent: {
+      alarm: components["schemas"]["RunAlarm"];
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /** Seq */
+      seq: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "alarm";
+    };
     /** AlarmPage */
     AlarmPage: {
       /** Items */
@@ -1133,6 +1149,16 @@ export interface components {
       tokens_out: number | null;
       /** Tokens Reasoning */
       tokens_reasoning: number | null;
+    };
+    /** CaseRunCreate */
+    CaseRunCreate: {
+      /** Case Id */
+      case_id: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      source: "case";
     };
     /**
      * CatalogModel
@@ -1386,6 +1412,25 @@ export interface components {
       /** Probability */
       probability: number;
     };
+    /** ClassProbabilityItem */
+    ClassProbabilityItem: {
+      /**
+       * Label
+       * @enum {string}
+       */
+      label:
+        | "Center"
+        | "Donut"
+        | "Edge-Loc"
+        | "Edge-Ring"
+        | "Loc"
+        | "Near-full"
+        | "Random"
+        | "Scratch"
+        | "none";
+      /** Probability */
+      probability: number;
+    };
     /** ConfusionMatrix */
     ConfusionMatrix: {
       /**
@@ -1405,6 +1450,29 @@ export interface components {
         | "Scratch"
         | "none"
       )[];
+    };
+    /** ControlChartsResult */
+    ControlChartsResult: {
+      /** Explained Variance */
+      explained_variance: number;
+      /**
+       * Features
+       * @description Monitored sensors, in model order.
+       */
+      features: string[];
+      limits: components["schemas"]["FdcLimits"];
+      /** Method */
+      method: string;
+      model: components["schemas"]["BundleRef"];
+      /** N Components */
+      n_components: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "control_charts";
+      /** Units */
+      units: components["schemas"]["UnitChartResult"][];
     };
     /** CurvePoint */
     CurvePoint: {
@@ -1526,6 +1594,48 @@ export interface components {
       type: "decision";
       /** Work Order Id */
       work_order_id: string | null;
+    };
+    /**
+     * DrawnRunCreate
+     * @description Wafers the user painted; each map is labelled as the user's drawing on the page.
+     */
+    DrawnRunCreate: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      source: "drawn";
+      /** Wafers */
+      wafers: components["schemas"]["WaferInput"][];
+    };
+    /** DriftHealthResult */
+    DriftHealthResult: {
+      /** Cusum K */
+      cusum_k: number;
+      /** Ewma Lambda */
+      ewma_lambda: number;
+      /** Ewma Width */
+      ewma_width: number;
+      /** Groups */
+      groups: components["schemas"]["GroupDrift"][];
+      /**
+       * Health
+       * @description Sensors not ok; ok sensors are omitted.
+       */
+      health: components["schemas"]["SensorHealthItem"][];
+      /** Health Counts */
+      health_counts: {
+        [key: string]: number;
+      };
+      /** Method */
+      method: string;
+      /** Rules */
+      rules: string[];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "drift_health";
     };
     /**
      * EndEvent
@@ -1794,6 +1904,19 @@ export interface components {
        */
       value: number | null;
     };
+    /** FdcContributionItem */
+    FdcContributionItem: {
+      /** Contribution */
+      contribution: number;
+      /**
+       * Sensor
+       * @description Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.
+       * @example S060
+       */
+      sensor: string;
+      /** Share */
+      share: number;
+    };
     /** FdcContributions */
     FdcContributions: {
       /**
@@ -1929,6 +2052,40 @@ export interface components {
       /** Type */
       type: string;
     };
+    /**
+     * FinalTestResult
+     * @description How the warnings compare with the recorded results, when the input has them.
+     */
+    FinalTestResult: {
+      /**
+       * Failed Flagged
+       * @description Failed units whose risk was above the threshold.
+       */
+      failed_flagged: number;
+      /** Failed Units */
+      failed_units: number;
+      /**
+       * Passed Flagged
+       * @description Passed units whose risk was above the threshold.
+       */
+      passed_flagged: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "final_test";
+      /** Summary */
+      summary: string;
+      /** Units With Result */
+      units_with_result: number;
+      /**
+       * Wafers Agreeing
+       * @description Predicted pattern equals the recorded label.
+       */
+      wafers_agreeing: number;
+      /** Wafers With Label */
+      wafers_with_label: number;
+    };
     /** Finding */
     Finding: {
       /** Claim */
@@ -1952,6 +2109,33 @@ export interface components {
        * @description Sum of the members' SHAP values, in log-odds.
        */
       shap: number;
+    };
+    /** GroupDrift */
+    GroupDrift: {
+      /** Cusum H */
+      cusum_h: number;
+      /** Cusum Lower */
+      cusum_lower: number[];
+      /** Cusum Upper */
+      cusum_upper: number[];
+      /**
+       * Ewma
+       * @description EWMA of the standardised group score, per unit.
+       */
+      ewma: number[];
+      /** Ewma Limit */
+      ewma_limit: number;
+      /** First Cusum Alarm */
+      first_cusum_alarm: number | null;
+      /**
+       * First Ewma Alarm
+       * @description Index of the first unit over the limit.
+       */
+      first_ewma_alarm: number | null;
+      /** Group Id */
+      group_id: string;
+      /** Sensors */
+      sensors: string[];
     };
     /** GroupingMethod */
     GroupingMethod: {
@@ -2013,6 +2197,48 @@ export interface components {
       units: number;
       /** Window Id */
       window_id: number;
+    };
+    /** IntakeResult */
+    IntakeResult: {
+      /** First Timestamp */
+      first_timestamp: string | null;
+      /**
+       * In Time Order
+       * @description Units carry timestamps that never go back.
+       */
+      in_time_order: boolean;
+      /** Last Timestamp */
+      last_timestamp: string | null;
+      /** Lots */
+      lots: number;
+      /** Missing Readings */
+      missing_readings: number;
+      /** Missing Share */
+      missing_share: number;
+      /**
+       * Sensors
+       * @description Sensor columns per unit (590 in the SECOM layout).
+       */
+      sensors: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "intake";
+      /**
+       * Two Sources
+       * @description Both SECOM units and WM-811K wafers are present: they are different chips.
+       */
+      two_sources: boolean;
+      /** Units */
+      units: number;
+      /**
+       * Unmonitored Sensors
+       * @description Sensors the models do not use (constant or empty in training).
+       */
+      unmonitored_sensors: string[];
+      /** Wafers */
+      wafers: number;
     };
     /** Investigation */
     Investigation: {
@@ -2452,6 +2678,25 @@ export interface components {
       /** Wafers */
       wafers: components["schemas"]["WaferSummary"][];
     };
+    /** LotItem */
+    LotItem: {
+      /** Flagged */
+      flagged: boolean;
+      /**
+       * Lot
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      lot: string;
+      /** Pattern Counts */
+      pattern_counts: {
+        [key: string]: number;
+      };
+      stacked: components["schemas"]["StackedMap"] | null;
+      /** Tests */
+      tests: components["schemas"]["PatternTest"][];
+      /** Wafers */
+      wafers: number;
+    };
     /** LotPage */
     LotPage: {
       /** Items */
@@ -2460,6 +2705,18 @@ export interface components {
       next_cursor?: string | null;
       /** Total */
       total: number;
+    };
+    /** LotResult */
+    LotResult: {
+      /** Lots */
+      lots: components["schemas"]["LotItem"][];
+      /** Method */
+      method: string;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "lot";
     };
     /** LotSummary */
     LotSummary: {
@@ -2846,6 +3103,27 @@ export interface components {
       wafers: number;
     };
     /**
+     * PickRunCreate
+     * @description Real items the user chose from the dataset browsers.
+     */
+    PickRunCreate: {
+      /**
+       * Lot
+       * @description All demo wafers of this lot.
+       * @default null
+       */
+      lot: string | null;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      source: "pick";
+      /** Unit Ids */
+      unit_ids?: number[];
+      /** Wafer Ids */
+      wafer_ids?: string[];
+    };
+    /**
      * PlantClock
      * @description Replay position, computed from the wall clock so every visitor sees the same plant.
      *
@@ -3052,6 +3330,31 @@ export interface components {
        */
       type: "report";
     };
+    /** RiskFeature */
+    RiskFeature: {
+      /** Feature */
+      feature: string;
+      /** Group Id */
+      group_id: string | null;
+      /**
+       * Indicator
+       * @description True for a missingness indicator feature.
+       */
+      indicator: boolean;
+      /**
+       * Sensor
+       * @description Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.
+       * @example S060
+       */
+      sensor: string;
+      /**
+       * Shap
+       * @description TreeSHAP contribution in log-odds.
+       */
+      shap: number;
+      /** Value */
+      value: number | null;
+    };
     /** RoleAssignment */
     RoleAssignment: {
       /**
@@ -3128,6 +3431,305 @@ export interface components {
         | "ocr"
         | "vision";
       usage: components["schemas"]["Usage"];
+    };
+    /** Run */
+    Run: {
+      /** Alarms */
+      alarms: components["schemas"]["RunAlarm"][];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      origin: components["schemas"]["RunOrigin"];
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+      /** Stages */
+      stages: components["schemas"]["StageState"][];
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "queued" | "running" | "done" | "failed";
+      /** Units */
+      units: number;
+      /** Wafers */
+      wafers: number;
+    };
+    /**
+     * RunAlarm
+     * @description An alarm raised by a rule during the run. Messages are written by code.
+     */
+    RunAlarm: {
+      /**
+       * Alarm Id
+       * @description Alarm within one run, numbered in the order raised.
+       * @example RA-3
+       */
+      alarm_id: string;
+      /**
+       * Investigation Id
+       * @default null
+       */
+      investigation_id: string | null;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind:
+        | "risk"
+        | "t2"
+        | "spe"
+        | "ewma"
+        | "cusum"
+        | "wafer_pattern"
+        | "unknown_pattern"
+        | "lot_excursion";
+      /** Limit */
+      limit: number | null;
+      /**
+       * Lot
+       * @default null
+       */
+      lot: string | null;
+      /**
+       * Meaning
+       * @description One plain sentence.
+       */
+      meaning: string;
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+      /** Sensors */
+      sensors?: string[];
+      /**
+       * Severity
+       * @enum {string}
+       */
+      severity: "warning" | "alarm";
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * Title
+       * @example Sensor relationships broke (SPE)
+       */
+      title: string;
+      /**
+       * Unit Id
+       * @default null
+       */
+      unit_id: string | null;
+      /**
+       * Unit Index
+       * @default null
+       */
+      unit_index: number | null;
+      /** Value */
+      value: number | null;
+      /**
+       * Wafer Index
+       * @default null
+       */
+      wafer_index: number | null;
+    };
+    /**
+     * RunCase
+     * @description A real situation found in the data by a fixed rule (not made up).
+     */
+    RunCase: {
+      /** Case Id */
+      case_id: string;
+      /** Datasets */
+      datasets: ("secom" | "wm811k" | "user")[];
+      /** Description */
+      description: string;
+      /**
+       * Rule
+       * @description The rule that found it in the data.
+       */
+      rule: string;
+      /**
+       * Stations
+       * @description Stations this case exercises.
+       */
+      stations: (
+        | "manufacturing"
+        | "monitoring"
+        | "wafer_test"
+        | "investigation"
+        | "decision"
+      )[];
+      /** Title */
+      title: string;
+      /** Units */
+      units: number;
+      /** Wafers */
+      wafers: number;
+    };
+    /** RunCaseList */
+    RunCaseList: {
+      /** Items */
+      items: components["schemas"]["RunCase"][];
+    };
+    /**
+     * RunCreate
+     * @description Body of POST /runs, discriminated by `source`.
+     */
+    RunCreate:
+      | components["schemas"]["SampleRunCreate"]
+      | components["schemas"]["CaseRunCreate"]
+      | components["schemas"]["PickRunCreate"]
+      | components["schemas"]["DrawnRunCreate"]
+      | components["schemas"]["UploadRunCreate"];
+    /** RunCreated */
+    RunCreated: {
+      /**
+       * Events Url
+       * @example /api/v1/runs/run_01jaf3k9x2m4q7r8s0t1v2w3x4/events
+       */
+      events_url: string;
+      origin: components["schemas"]["RunOrigin"];
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+    };
+    /** RunDoneEvent */
+    RunDoneEvent: {
+      /** Alarms */
+      alarms: number;
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /** Seq */
+      seq: number;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "done" | "failed";
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "run_done";
+    };
+    /**
+     * RunEvent
+     * @description An event on GET /runs/{id}/events (SSE: `event` is the type, `id` is `seq`).
+     */
+    RunEvent:
+      | components["schemas"]["RunStartedEvent"]
+      | components["schemas"]["StageStartedEvent"]
+      | components["schemas"]["StageResultEvent"]
+      | components["schemas"]["StageSkippedEvent"]
+      | components["schemas"]["StageFailedEvent"]
+      | components["schemas"]["AlarmEvent"]
+      | components["schemas"]["RunDoneEvent"];
+    /**
+     * RunOrigin
+     * @description Where the input came from, in words the page can show as is.
+     */
+    RunOrigin: {
+      /**
+       * Case Id
+       * @default null
+       */
+      case_id: string | null;
+      /** Datasets */
+      datasets: ("secom" | "wm811k" | "user")[];
+      /**
+       * Filename
+       * @default null
+       */
+      filename: string | null;
+      /**
+       * Rule
+       * @description How the input was chosen or built, e.g. the selection rule and its seed.
+       */
+      rule: string;
+      /**
+       * Seed
+       * @default null
+       */
+      seed: number | null;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "sample" | "case" | "pick" | "drawn" | "upload";
+      /**
+       * Title
+       * @example A random real sample
+       */
+      title: string;
+    };
+    /** RunStartedEvent */
+    RunStartedEvent: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      origin: components["schemas"]["RunOrigin"];
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+      /** Seq */
+      seq: number;
+      /**
+       * Stages
+       * @description Every stage, pending or skipped with `needs`.
+       */
+      stages: components["schemas"]["StageState"][];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "run_started";
+    };
+    /**
+     * SampleRunCreate
+     * @description One click: the server picks real SECOM units and a real WM-811K lot at random.
+     */
+    SampleRunCreate: {
+      /**
+       * Seed
+       * @description Repeat an earlier pick; omitted picks a new one.
+       * @default null
+       */
+      seed: number | null;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      source: "sample";
     };
     /** SecomMetrics */
     SecomMetrics: {
@@ -3245,6 +3847,22 @@ export interface components {
       /** Stuck Value */
       stuck_value: number | null;
     };
+    /** SensorHealthItem */
+    SensorHealthItem: {
+      /** Reasons */
+      reasons: string[];
+      /**
+       * Sensor
+       * @description Sensor ID. Column i (0-based) of secom.data is sensor S{i+1:03d}: S001 to S590.
+       * @example S060
+       */
+      sensor: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "watch" | "maintenance" | "dead";
+    };
     /** SensorHealthReport */
     SensorHealthReport: {
       counts: components["schemas"]["HealthCounts"];
@@ -3290,6 +3908,37 @@ export interface components {
       q01: number;
       /** Q99 */
       q99: number;
+    };
+    /** SensorRiskResult */
+    SensorRiskResult: {
+      /**
+       * Caution
+       * @description Plain sentence on how weak the risk is.
+       */
+      caution: string;
+      model: components["schemas"]["BundleRef"];
+      /**
+       * Operating Point
+       * @example 5% false-alarm rate on the validation block
+       */
+      operating_point: string;
+      /**
+       * Skill
+       * @description Held-out test skill of this model (ROC-AUC, PR-AUC): shown next to every risk.
+       */
+      skill: components["schemas"]["Estimate"][];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "sensor_risk";
+      /**
+       * Threshold
+       * @description Operating point chosen on the validation block.
+       */
+      threshold: number;
+      /** Units */
+      units: components["schemas"]["UnitRiskResult"][];
     };
     /** SensorSeries */
     SensorSeries: {
@@ -3354,6 +4003,46 @@ export interface components {
        * @description The unit's reading (null if not measured); 0 or 1 for an indicator.
        */
       value: number | null;
+    };
+    /** SimilarItem */
+    SimilarItem: {
+      map: components["schemas"]["WaferMap"];
+      /**
+       * Predicted Label
+       * @enum {string}
+       */
+      predicted_label:
+        | "Center"
+        | "Donut"
+        | "Edge-Loc"
+        | "Edge-Ring"
+        | "Loc"
+        | "Near-full"
+        | "Random"
+        | "Scratch"
+        | "none";
+      /** Recorded Label */
+      recorded_label:
+        | (
+            | "Center"
+            | "Donut"
+            | "Edge-Loc"
+            | "Edge-Ring"
+            | "Loc"
+            | "Near-full"
+            | "Random"
+            | "Scratch"
+            | "none"
+          )
+        | null;
+      /** Similarity */
+      similarity: number;
+      /**
+       * Wafer Id
+       * @description "<lot>-<wafer index>".
+       * @example lot47542-12
+       */
+      wafer_id: string;
     };
     /** SimilarWafer */
     SimilarWafer: {
@@ -3470,6 +4159,196 @@ export interface components {
       /** Width */
       width: number;
     };
+    /** StageFailedEvent */
+    StageFailedEvent: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      problem: components["schemas"]["Problem"];
+      /** Seq */
+      seq: number;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "stage_failed";
+    };
+    /** StageResultEvent */
+    StageResultEvent: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /**
+       * Elapsed Ms
+       * @description Server compute time of the stage.
+       */
+      elapsed_ms: number;
+      /** Result */
+      result:
+        | components["schemas"]["IntakeResult"]
+        | components["schemas"]["SensorRiskResult"]
+        | components["schemas"]["ControlChartsResult"]
+        | components["schemas"]["DriftHealthResult"]
+        | components["schemas"]["WaferPatternResult"]
+        | components["schemas"]["WaferSimilarResult"]
+        | components["schemas"]["LotResult"]
+        | components["schemas"]["FinalTestResult"];
+      /** Seq */
+      seq: number;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "stage_result";
+    };
+    /** StageSkippedEvent */
+    StageSkippedEvent: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /** Needs */
+      needs: string;
+      /** Seq */
+      seq: number;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "stage_skipped";
+    };
+    /** StageStartedEvent */
+    StageStartedEvent: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /** Seq */
+      seq: number;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "stage_started";
+    };
+    /** StageState */
+    StageState: {
+      /**
+       * Elapsed Ms
+       * @default null
+       */
+      elapsed_ms: number | null;
+      /**
+       * Needs
+       * @description Why the stage was skipped, in plain words.
+       * @default null
+       */
+      needs: string | null;
+      /** @default null */
+      problem: components["schemas"]["Problem"] | null;
+      /**
+       * Result
+       * @default null
+       */
+      result:
+        | (
+            | components["schemas"]["IntakeResult"]
+            | components["schemas"]["SensorRiskResult"]
+            | components["schemas"]["ControlChartsResult"]
+            | components["schemas"]["DriftHealthResult"]
+            | components["schemas"]["WaferPatternResult"]
+            | components["schemas"]["WaferSimilarResult"]
+            | components["schemas"]["LotResult"]
+            | components["schemas"]["FinalTestResult"]
+          )
+        | null;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * Station
+       * @enum {string}
+       */
+      station:
+        | "manufacturing"
+        | "monitoring"
+        | "wafer_test"
+        | "investigation"
+        | "decision";
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "pending" | "running" | "done" | "skipped" | "failed";
+    };
     /** StatusEvent */
     StatusEvent: {
       /**
@@ -3528,6 +4407,35 @@ export interface components {
       sampler: string;
       /** Trials */
       trials: number;
+    };
+    /** UnitChartResult */
+    UnitChartResult: {
+      /** Index */
+      index: number;
+      /**
+       * Level
+       * @enum {string}
+       */
+      level: "none" | "warning" | "alarm";
+      /** Spe */
+      spe: number;
+      /** T2 */
+      t2: number;
+      /** Top Spe */
+      top_spe: components["schemas"]["FdcContributionItem"][];
+      /** Top T2 */
+      top_t2: components["schemas"]["FdcContributionItem"][];
+      /**
+       * Unit Id
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      unit_id: string;
+      /**
+       * Z
+       * @description Standardised reading of each monitored sensor (order of `features`), null where missing. Sent for at most the first 200 units; GET the run for the rest.
+       * @default null
+       */
+      z: (number | null)[] | null;
     };
     /**
      * UnitDetail
@@ -3647,6 +4555,43 @@ export interface components {
        * @example 1043
        */
       unit_id: number;
+    };
+    /** UnitRiskResult */
+    UnitRiskResult: {
+      /** Above Threshold */
+      above_threshold: boolean;
+      /**
+       * Band
+       * @enum {string}
+       */
+      band: "low" | "elevated" | "high";
+      /** Base Value */
+      base_value: number;
+      /**
+       * Index
+       * @description Position of the unit in the run input.
+       */
+      index: number;
+      /** Raw Score */
+      raw_score: number;
+      /** Risk */
+      risk: number;
+      /**
+       * Top
+       * @description Largest |shap| first.
+       */
+      top: components["schemas"]["RiskFeature"][];
+      /**
+       * Unit Id
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      unit_id: string;
+      /**
+       * Validity
+       * @description held_out: a SECOM unit the model never saw; in_training: a SECOM unit the model was fitted on (in-sample); new_data: not a SECOM unit.
+       * @enum {string}
+       */
+      validity: "held_out" | "in_training" | "new_data";
     };
     /**
      * UnitSummary
@@ -3777,6 +4722,71 @@ export interface components {
        * @constant
        */
       threshold_set_on: "validation";
+    };
+    /** UploadIssue */
+    UploadIssue: {
+      /** Column */
+      column: string | null;
+      /** Message */
+      message: string;
+      /**
+       * Row
+       * @description 1-based row in the file (the header is row 1).
+       */
+      row: number | null;
+      /**
+       * Severity
+       * @enum {string}
+       */
+      severity: "error" | "warning";
+    };
+    /** UploadRunCreate */
+    UploadRunCreate: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      source: "upload";
+      /**
+       * Upload Id
+       * @example upl_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      upload_id: string;
+    };
+    /**
+     * UploadSummary
+     * @description A parsed and validated file, ready to run. Errors block the run; warnings do not.
+     */
+    UploadSummary: {
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Filename */
+      filename: string;
+      /** Issues */
+      issues: components["schemas"]["UploadIssue"][];
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "sensors" | "wafers";
+      /** Lots */
+      lots: number;
+      /** Missing Readings */
+      missing_readings: number;
+      /** Runnable */
+      runnable: boolean;
+      /** Units */
+      units: number;
+      /**
+       * Upload Id
+       * @example upl_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      upload_id: string;
+      /** Wafers */
+      wafers: number;
     };
     /**
      * Usage
@@ -3936,6 +4946,44 @@ export interface components {
       wafer: components["schemas"]["WaferSummary"];
     };
     /**
+     * WaferInput
+     * @description One wafer map with WM-811K values (0 no die, 1 pass, 2 fail).
+     */
+    WaferInput: {
+      /**
+       * Label
+       * @description Recorded WM-811K label, when the wafer comes from the real dataset.
+       * @default null
+       */
+      label:
+        | (
+            | "Center"
+            | "Donut"
+            | "Edge-Loc"
+            | "Edge-Ring"
+            | "Loc"
+            | "Near-full"
+            | "Random"
+            | "Scratch"
+            | "none"
+          )
+        | null;
+      /**
+       * Lot
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      lot: string;
+      map: components["schemas"]["WaferMap"];
+      /**
+       * Source Wafer
+       * @description The WM-811K wafer this is, when it comes from the real dataset.
+       * @default null
+       */
+      source_wafer: string | null;
+      /** Wafer */
+      wafer: number;
+    };
+    /**
      * WaferMap
      * @description A die map. Decode `cells` from base64 to bytes: row-major, 0 = no die, 1 = pass, 2 = fail.
      */
@@ -3985,6 +5033,87 @@ export interface components {
       /** Total */
       total: number;
     };
+    /** WaferPatternItem */
+    WaferPatternItem: {
+      /**
+       * Auto Accepted
+       * @description Top probability clears the threshold set for 99% precision on validation.
+       */
+      auto_accepted: boolean;
+      /** Energy Score */
+      energy_score: number;
+      /**
+       * Index
+       * @description Position of the wafer in the run input.
+       */
+      index: number;
+      /** Is Unknown */
+      is_unknown: boolean;
+      /**
+       * Lot
+       * @description A name from the user's file (unit_id or lot), kept as written.
+       */
+      lot: string;
+      /**
+       * Probabilities
+       * @description Calibrated, highest first.
+       */
+      probabilities: components["schemas"]["ClassProbabilityItem"][];
+      /** Recorded Label */
+      recorded_label:
+        | (
+            | "Center"
+            | "Donut"
+            | "Edge-Loc"
+            | "Edge-Ring"
+            | "Loc"
+            | "Near-full"
+            | "Random"
+            | "Scratch"
+            | "none"
+          )
+        | null;
+      spatial: components["schemas"]["SpatialTest"] | null;
+      /**
+       * Top Label
+       * @enum {string}
+       */
+      top_label:
+        | "Center"
+        | "Donut"
+        | "Edge-Loc"
+        | "Edge-Ring"
+        | "Loc"
+        | "Near-full"
+        | "Random"
+        | "Scratch"
+        | "none";
+      /** Top Probability */
+      top_probability: number;
+      /** Unknown Score */
+      unknown_score: number;
+      /** Unknown Threshold */
+      unknown_threshold: number;
+      /** Wafer */
+      wafer: number;
+    };
+    /** WaferPatternResult */
+    WaferPatternResult: {
+      /** Accept Threshold */
+      accept_threshold: number;
+      /** Method */
+      method: string;
+      model: components["schemas"]["BundleRef"];
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "wafer_pattern";
+      /** Temperature */
+      temperature: number;
+      /** Wafers */
+      wafers: components["schemas"]["WaferPatternItem"][];
+    };
     /** WaferPrediction */
     WaferPrediction: {
       model: components["schemas"]["BundleRef"];
@@ -4018,6 +5147,36 @@ export interface components {
        * @example lot47542-12
        */
       wafer_id: string;
+    };
+    /** WaferSimilarItem */
+    WaferSimilarItem: {
+      /** Index */
+      index: number;
+      /**
+       * Similar
+       * @description Most similar first.
+       */
+      similar: components["schemas"]["SimilarItem"][];
+    };
+    /** WaferSimilarResult */
+    WaferSimilarResult: {
+      /** @description Literature causes for the predicted patterns in this run: hypotheses to check, not a diagnosis. */
+      causes: components["schemas"]["PatternCauses"];
+      /** Method */
+      method: string;
+      precision_at_10: components["schemas"]["Estimate"] | null;
+      /**
+       * Searched
+       * @description Real WM-811K wafers searched.
+       */
+      searched: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      stage: "wafer_similar";
+      /** Wafers */
+      wafers: components["schemas"]["WaferSimilarItem"][];
     };
     /** WaferSummary */
     WaferSummary: {
@@ -4161,6 +5320,7 @@ export interface components {
 }
 export type Action = components["schemas"]["Action"];
 export type Alarm = components["schemas"]["Alarm"];
+export type AlarmEvent = components["schemas"]["AlarmEvent"];
 export type AlarmPage = components["schemas"]["AlarmPage"];
 export type AuditEntry = components["schemas"]["AuditEntry"];
 export type AuditPage = components["schemas"]["AuditPage"];
@@ -4170,6 +5330,7 @@ export type BundleInfo = components["schemas"]["BundleInfo"];
 export type BundleRef = components["schemas"]["BundleRef"];
 export type Calibration = components["schemas"]["Calibration"];
 export type CallUsage = components["schemas"]["CallUsage"];
+export type CaseRunCreate = components["schemas"]["CaseRunCreate"];
 export type CatalogModel = components["schemas"]["CatalogModel"];
 export type ChatCitationEvent = components["schemas"]["ChatCitationEvent"];
 export type ChatContext = components["schemas"]["ChatContext"];
@@ -4185,7 +5346,10 @@ export type ChatToolEvent = components["schemas"]["ChatToolEvent"];
 export type ClaimVerdict = components["schemas"]["ClaimVerdict"];
 export type ClassMetrics = components["schemas"]["ClassMetrics"];
 export type ClassProbability = components["schemas"]["ClassProbability"];
+export type ClassProbabilityItem =
+  components["schemas"]["ClassProbabilityItem"];
 export type ConfusionMatrix = components["schemas"]["ConfusionMatrix"];
+export type ControlChartsResult = components["schemas"]["ControlChartsResult"];
 export type CurvePoint = components["schemas"]["CurvePoint"];
 export type CvFold = components["schemas"]["CvFold"];
 export type DatasetCard = components["schemas"]["DatasetCard"];
@@ -4193,6 +5357,8 @@ export type DatasetFile = components["schemas"]["DatasetFile"];
 export type Decision = components["schemas"]["Decision"];
 export type DecisionCreate = components["schemas"]["DecisionCreate"];
 export type DecisionEvent = components["schemas"]["DecisionEvent"];
+export type DrawnRunCreate = components["schemas"]["DrawnRunCreate"];
+export type DriftHealthResult = components["schemas"]["DriftHealthResult"];
 export type EndEvent = components["schemas"]["EndEvent"];
 export type ErrorEvent = components["schemas"]["ErrorEvent"];
 export type Estimate = components["schemas"]["Estimate"];
@@ -4202,6 +5368,7 @@ export type Evidence = components["schemas"]["Evidence"];
 export type EvidenceEvent = components["schemas"]["EvidenceEvent"];
 export type Explanation = components["schemas"]["Explanation"];
 export type FdcContribution = components["schemas"]["FdcContribution"];
+export type FdcContributionItem = components["schemas"]["FdcContributionItem"];
 export type FdcContributions = components["schemas"]["FdcContributions"];
 export type FdcLimits = components["schemas"]["FdcLimits"];
 export type FdcPoint = components["schemas"]["FdcPoint"];
@@ -4209,13 +5376,16 @@ export type FdcSeries = components["schemas"]["FdcSeries"];
 export type FdcValidation = components["schemas"]["FdcValidation"];
 export type Features = components["schemas"]["Features"];
 export type FieldError = components["schemas"]["FieldError"];
+export type FinalTestResult = components["schemas"]["FinalTestResult"];
 export type Finding = components["schemas"]["Finding"];
 export type GroupContribution = components["schemas"]["GroupContribution"];
+export type GroupDrift = components["schemas"]["GroupDrift"];
 export type GroupingMethod = components["schemas"]["GroupingMethod"];
 export type GuestSessionCreate = components["schemas"]["GuestSessionCreate"];
 export type Health = components["schemas"]["Health"];
 export type HealthCounts = components["schemas"]["HealthCounts"];
 export type HealthWindow = components["schemas"]["HealthWindow"];
+export type IntakeResult = components["schemas"]["IntakeResult"];
 export type Investigation = components["schemas"]["Investigation"];
 export type InvestigationCreate = components["schemas"]["InvestigationCreate"];
 export type InvestigationEvent = components["schemas"]["InvestigationEvent"];
@@ -4244,7 +5414,9 @@ export type LineUnitMessage = components["schemas"]["LineUnitMessage"];
 export type LlmCall = components["schemas"]["LlmCall"];
 export type LoginRequest = components["schemas"]["LoginRequest"];
 export type LotDetail = components["schemas"]["LotDetail"];
+export type LotItem = components["schemas"]["LotItem"];
 export type LotPage = components["schemas"]["LotPage"];
+export type LotResult = components["schemas"]["LotResult"];
 export type LotSummary = components["schemas"]["LotSummary"];
 export type MeasuredResult = components["schemas"]["MeasuredResult"];
 export type MeasuredResults = components["schemas"]["MeasuredResults"];
@@ -4265,6 +5437,7 @@ export type PairedComparison = components["schemas"]["PairedComparison"];
 export type PatternCause = components["schemas"]["PatternCause"];
 export type PatternCauses = components["schemas"]["PatternCauses"];
 export type PatternTest = components["schemas"]["PatternTest"];
+export type PickRunCreate = components["schemas"]["PickRunCreate"];
 export type PlantClock = components["schemas"]["PlantClock"];
 export type Pricing = components["schemas"]["Pricing"];
 export type Problem = components["schemas"]["Problem"];
@@ -4276,37 +5449,62 @@ export type ReferencePeriod = components["schemas"]["ReferencePeriod"];
 export type ReliabilityBin = components["schemas"]["ReliabilityBin"];
 export type Report = components["schemas"]["Report"];
 export type ReportEvent = components["schemas"]["ReportEvent"];
+export type RiskFeature = components["schemas"]["RiskFeature"];
 export type RoleAssignment = components["schemas"]["RoleAssignment"];
 export type RoleAssignmentUpdate =
   components["schemas"]["RoleAssignmentUpdate"];
 export type RoleModel = components["schemas"]["RoleModel"];
 export type RoleUsage = components["schemas"]["RoleUsage"];
+export type Run = components["schemas"]["Run"];
+export type RunAlarm = components["schemas"]["RunAlarm"];
+export type RunCase = components["schemas"]["RunCase"];
+export type RunCaseList = components["schemas"]["RunCaseList"];
+export type RunCreate = components["schemas"]["RunCreate"];
+export type RunCreated = components["schemas"]["RunCreated"];
+export type RunDoneEvent = components["schemas"]["RunDoneEvent"];
+export type RunEvent = components["schemas"]["RunEvent"];
+export type RunOrigin = components["schemas"]["RunOrigin"];
+export type RunStartedEvent = components["schemas"]["RunStartedEvent"];
+export type SampleRunCreate = components["schemas"]["SampleRunCreate"];
 export type SecomMetrics = components["schemas"]["SecomMetrics"];
 export type SeedResult = components["schemas"]["SeedResult"];
 export type SensorGroup = components["schemas"]["SensorGroup"];
 export type SensorGroups = components["schemas"]["SensorGroups"];
 export type SensorHealth = components["schemas"]["SensorHealth"];
+export type SensorHealthItem = components["schemas"]["SensorHealthItem"];
 export type SensorHealthReport = components["schemas"]["SensorHealthReport"];
 export type SensorPoint = components["schemas"]["SensorPoint"];
 export type SensorReference = components["schemas"]["SensorReference"];
+export type SensorRiskResult = components["schemas"]["SensorRiskResult"];
 export type SensorSeries = components["schemas"]["SensorSeries"];
 export type SessionInfo = components["schemas"]["SessionInfo"];
 export type ShapContribution = components["schemas"]["ShapContribution"];
+export type SimilarItem = components["schemas"]["SimilarItem"];
 export type SimilarWafer = components["schemas"]["SimilarWafer"];
 export type SimilarWafers = components["schemas"]["SimilarWafers"];
 export type SourceQuote = components["schemas"]["SourceQuote"];
 export type SpatialTest = components["schemas"]["SpatialTest"];
 export type SplitResult = components["schemas"]["SplitResult"];
 export type StackedMap = components["schemas"]["StackedMap"];
+export type StageFailedEvent = components["schemas"]["StageFailedEvent"];
+export type StageResultEvent = components["schemas"]["StageResultEvent"];
+export type StageSkippedEvent = components["schemas"]["StageSkippedEvent"];
+export type StageStartedEvent = components["schemas"]["StageStartedEvent"];
+export type StageState = components["schemas"]["StageState"];
 export type StatusEvent = components["schemas"]["StatusEvent"];
 export type StepEvent = components["schemas"]["StepEvent"];
 export type Tuning = components["schemas"]["Tuning"];
+export type UnitChartResult = components["schemas"]["UnitChartResult"];
 export type UnitDetail = components["schemas"]["UnitDetail"];
 export type UnitPage = components["schemas"]["UnitPage"];
 export type UnitRisk = components["schemas"]["UnitRisk"];
+export type UnitRiskResult = components["schemas"]["UnitRiskResult"];
 export type UnitSummary = components["schemas"]["UnitSummary"];
 export type UnivariateTest = components["schemas"]["UnivariateTest"];
 export type UnknownScore = components["schemas"]["UnknownScore"];
+export type UploadIssue = components["schemas"]["UploadIssue"];
+export type UploadRunCreate = components["schemas"]["UploadRunCreate"];
+export type UploadSummary = components["schemas"]["UploadSummary"];
 export type Usage = components["schemas"]["Usage"];
 export type UsageReport = components["schemas"]["UsageReport"];
 export type Verification = components["schemas"]["Verification"];
@@ -4315,10 +5513,15 @@ export type VerificationIssue = components["schemas"]["VerificationIssue"];
 export type WaferCalibration = components["schemas"]["WaferCalibration"];
 export type WaferDetail = components["schemas"]["WaferDetail"];
 export type WaferHero = components["schemas"]["WaferHero"];
+export type WaferInput = components["schemas"]["WaferInput"];
 export type WaferMap = components["schemas"]["WaferMap"];
 export type WaferMetrics = components["schemas"]["WaferMetrics"];
 export type WaferPage = components["schemas"]["WaferPage"];
+export type WaferPatternItem = components["schemas"]["WaferPatternItem"];
+export type WaferPatternResult = components["schemas"]["WaferPatternResult"];
 export type WaferPrediction = components["schemas"]["WaferPrediction"];
+export type WaferSimilarItem = components["schemas"]["WaferSimilarItem"];
+export type WaferSimilarResult = components["schemas"]["WaferSimilarResult"];
 export type WaferSummary = components["schemas"]["WaferSummary"];
 export type WorkOrder = components["schemas"]["WorkOrder"];
 export type WorkOrderPage = components["schemas"]["WorkOrderPage"];
