@@ -16,7 +16,7 @@ function directives(csp: string): Map<string, string> {
 
 describe("security headers", () => {
   const response = proxy(
-    new NextRequest("https://yield-guardian.example/line", {
+    new NextRequest("https://yield-guardian.example/how", {
       headers: { host: "yield-guardian.example" },
     }),
   );
@@ -62,14 +62,14 @@ describe("security headers", () => {
 
   it("upgrades insecure requests only when the gateway says the page came over HTTPS", () => {
     const viaHttp = proxy(
-      new NextRequest("http://yield-guardian.example:8080/line", {
+      new NextRequest("http://yield-guardian.example:8080/how", {
         headers: { host: "yield-guardian.example:8080", "x-forwarded-proto": "http" },
       }),
     );
     expect(viaHttp.headers.get("Content-Security-Policy")).not.toContain("upgrade-insecure-requests");
     expect(csp).not.toContain("upgrade-insecure-requests");
     const viaHttps = proxy(
-      new NextRequest("http://web:3000/line", {
+      new NextRequest("http://web:3000/how", {
         headers: { host: "yield-guardian.example", "x-forwarded-proto": "https, http" },
       }),
     );
@@ -81,10 +81,25 @@ describe("security headers", () => {
     expect(directives(value).get("connect-src")).toBe("'self'");
   });
 
+  it("redirects v1 pages permanently with a relative Location, keeping the query", () => {
+    const moved = proxy(new NextRequest("https://yield-guardian.example/sensors?sensor=S060"));
+    expect(moved.status).toBe(308);
+    expect(moved.headers.get("Location")).toBe("/?station=2&sensor=S060");
+    expect(proxy(new NextRequest("https://yield-guardian.example/methods")).headers.get("Location")).toBe("/how#methods");
+  });
+
+  it("leaves v2 pages and v1 work orders (resolved by their route) to Next.js", () => {
+    for (const path of ["/", "/how", "/investigations", "/work-orders/WO-000012"]) {
+      const response = proxy(new NextRequest(`https://yield-guardian.example${path}`));
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get("Content-Security-Policy"), path).toBeTruthy();
+    }
+  });
+
   it("runs on pages but not on static assets or the healthcheck", () => {
     const source = config.matcher[0]!.source;
     const matcher = new RegExp(`^${source}$`);
-    expect(matcher.test("/line")).toBe(true);
+    expect(matcher.test("/how")).toBe(true);
     expect(matcher.test("/_next/static/chunks/app.js")).toBe(false);
     expect(matcher.test("/healthz")).toBe(false);
   });

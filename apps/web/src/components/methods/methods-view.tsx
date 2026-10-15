@@ -2,87 +2,69 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
-import type { MeasuredResults, MethodsOverview } from "@yield-guardian/contracts";
-import { type ReactNode, useState } from "react";
+import type { MeasuredResults as MeasuredResultsData, MethodsOverview } from "@yield-guardian/contracts";
+import { useState } from "react";
 
 import { EstimateText } from "@/components/charts/interval";
 import { Markdown } from "@/components/markdown";
-import { PageFrame, PageHeader, Panel } from "@/components/page";
+import { Panel } from "@/components/page";
 import { EmptyState, Placeholder, QueryView } from "@/components/states";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatCompact, formatInt } from "@/lib/format";
 
-import { Limitations, SecomMethods } from "./secom-methods";
-import { WaferMethods } from "./wafer-methods";
+import { Limitations } from "./secom-methods";
 import { ScrollRegion } from "@/components/scroll-region";
 
-const SECTIONS = [
-  { id: "results", label: "Measured results" },
-  { id: "secom", label: "SECOM: control charts and failure risk" },
-  { id: "wafermap", label: "Wafer maps" },
-  { id: "provenance", label: "Data and provenance" },
-] as const;
+/*
+ * The expert sections of How it works (/how): every number the product reports, with its
+ * confidence interval, the data it was measured on and where it comes from. All of it is read
+ * from the API, which reads the bundles; nothing here is typed in.
+ */
 
-export function MethodsView() {
+/** The headline numbers. A row reads "Not measured yet" until it has been measured on held-out data. */
+export function MeasuredResults() {
   const api = useApi();
   const results = useQuery(q.results(api));
+  return (
+    <Panel bodyClassName="px-0 sm:px-0 pt-0">
+      <QueryView query={results} loading={<Placeholder className="mx-4 h-48 sm:mx-5" label="Loading results" />}>
+        {(r) => <ResultsTable data={r} />}
+      </QueryView>
+    </Panel>
+  );
+}
+
+/** The datasets with their sources, licences and checksums, the bundles the API loaded, and the product's limitations. */
+export function DataProvenance() {
+  const api = useApi();
   const overview = useQuery(q.methods(api));
   return (
-    <PageFrame>
-      <PageHeader
-        title="Methods"
-        description="Every number the product reports, with its confidence interval, the data it was measured on and where it comes from. Findings are associations in historical data, not causes."
-      />
-      <nav aria-label="On this page" className="mb-6 flex flex-wrap gap-x-5 gap-y-2 border-y border-hairline py-2.5 text-[13px]">
-        {SECTIONS.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className="text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
-            {s.label}
-          </a>
-        ))}
-      </nav>
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-12">
-        <Section id="results" title="Measured results" lede="The headline numbers. A row reads “Not measured yet” until it has been measured on held-out data.">
-          <Panel bodyClassName="px-0 sm:px-0 pt-0">
-            <QueryView query={results} loading={<Placeholder className="mx-4 h-48 sm:mx-5" label="Loading results" />}>
-              {(r) => <ResultsTable data={r} />}
-            </QueryView>
-          </Panel>
-        </Section>
-        <Section
-          id="secom"
-          title="SECOM: control charts and failure risk"
-          lede="The line screen leads with multivariate control charts; the failure-risk score beside them is experimental. Here is how both were measured."
-        >
-          <SecomMethods />
-        </Section>
-        <Section id="wafermap" title="Wafer maps" lede="The pattern classifier, the unknown-pattern check and similar-wafer retrieval on WM-811K.">
-          <WaferMethods />
-        </Section>
-        <Section id="provenance" title="Data and provenance" lede="The datasets with their checksums, the artifact bundles the API loaded, and the model cards.">
-          <QueryView query={overview} loading={<Placeholder className="h-64" label="Loading provenance" />}>
-            {(o) => <Provenance data={o} />}
-          </QueryView>
-        </Section>
-      </div>
-    </PageFrame>
+    <QueryView query={overview} loading={<Placeholder className="h-64" label="Loading provenance" />}>
+      {(o) => <Provenance data={o} />}
+    </QueryView>
   );
 }
 
-function Section({ id, title, lede, children }: { id: string; title: string; lede: string; children: ReactNode }) {
+/** The model cards the training pipelines wrote with the bundles. */
+export function ModelCardsPanel() {
+  const api = useApi();
+  const overview = useQuery(q.methods(api));
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20">
-      <h2 id={`${id}-title`} className="text-[22px] leading-8 font-semibold tracking-[-0.01em] text-ink">
-        {title}
-      </h2>
-      <p className="mt-1 mb-4 max-w-[80ch] text-[15px] leading-6 text-ink-2">{lede}</p>
-      {children}
-    </section>
+    <QueryView query={overview} loading={<Placeholder className="h-64" label="Loading the model cards" />}>
+      {(o) =>
+        o.model_cards.length ? (
+          <ModelCards cards={o.model_cards} />
+        ) : (
+          <EmptyState title="No model card">The API loaded no bundle with a model card.</EmptyState>
+        )
+      }
+    </QueryView>
   );
 }
 
-function ResultsTable({ data }: { data: MeasuredResults }) {
+function ResultsTable({ data }: { data: MeasuredResultsData }) {
   if (data.results.length === 0) return <EmptyState className="mx-4 mt-4 sm:mx-5" title="Not measured yet">No result has been recorded.</EmptyState>;
   return (
     <>
@@ -194,7 +176,6 @@ function Provenance({ data }: { data: MethodsOverview }) {
           </table>
         </ScrollRegion>
       </Panel>
-      {data.model_cards.length ? <ModelCards cards={data.model_cards} /> : null}
       <Limitations items={data.limitations} title="Limitations of the product" />
     </div>
   );

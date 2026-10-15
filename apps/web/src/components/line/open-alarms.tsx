@@ -12,6 +12,7 @@ import { useStartInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { ALARM_KIND } from "@/lib/labels";
+import { investigationHref, unitHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const SHOWN = 6;
@@ -70,7 +71,7 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
                     <span className="text-ink-3">{alarm.severity === "alarm" ? "Alarm" : "Warning"}</span>
                   </p>
                   <Link
-                    href={`/units/${alarm.unit_id}`}
+                    href={unitHref(alarm.unit_id)}
                     className="tnum shrink-0 text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
                   >
                     Unit {formatInt(alarm.unit_id)}
@@ -83,7 +84,7 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
                   </p>
                   {alarm.investigation_id ? (
                     <Link
-                      href={`/investigations/${alarm.investigation_id}`}
+                      href={investigationHref(alarm.investigation_id)}
                       className="text-[13px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
                     >
                       Open investigation

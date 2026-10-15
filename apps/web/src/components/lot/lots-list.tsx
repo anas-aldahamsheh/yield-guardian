@@ -12,6 +12,7 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatPValue } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
+import { lotHref } from "@/lib/routes";
 import { ScrollRegion } from "@/components/scroll-region";
 
 export function LotsList() {
@@ -62,7 +63,7 @@ export function LotsList() {
                 {query.data.items.map((l) => (
                   <tr key={l.lot} className="border-b border-hairline last:border-b-0 hover:bg-die-2">
                     <th scope="row" className="tnum px-4 py-2.5 font-normal sm:px-5">
-                      <Link href={`/lots/${encodeURIComponent(l.lot)}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+                      <Link href={lotHref(l.lot)} className="text-ink underline decoration-hairline-strong underline-offset-4">
                         {l.lot}
                       </Link>
                     </th>

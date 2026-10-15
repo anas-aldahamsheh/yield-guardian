@@ -2,6 +2,7 @@ import type { CallUsage, ChatContext, ChatEvent, ChatMessage, Evidence, Problem 
 
 import { ApiError, isProblem } from "@/lib/api/errors";
 import { UNVERIFIED_MARK } from "@/lib/investigation/events";
+import { type Pick, parsePick, STATIONS, type StationName, type StationNumber } from "@/lib/routes";
 
 /** One answer as it streams in, built only from the API's chat events. */
 export interface ChatAnswer {
@@ -151,20 +152,114 @@ export function segmentAnswer(text: string, unverifiedNumbers: string[]): TextPa
   return parts;
 }
 
-/** What the engineer is looking at, read from the page address. */
-export function contextFromLocation(pathname: string, params: URLSearchParams): ChatContext | null {
-  const unit = /^\/units\/(\d+)/.exec(pathname);
-  if (unit) return { unit_id: Number(unit[1]) };
-  const lot = /^\/lots\/([A-Za-z0-9_.]+)/.exec(pathname);
-  if (lot) return { lot: decodeURIComponent(lot[1]!) };
-  const inv = /^\/investigations\/(inv_[0-9a-z]+)/.exec(pathname);
-  if (inv) return { investigation_id: inv[1]! };
-  if (pathname.startsWith("/sensors") && /^S\d{3}$/.test(params.get("sensor") ?? "")) return { sensor: params.get("sensor")! };
-  if (pathname.startsWith("/wafers") && params.get("wafer")) return { wafer_id: params.get("wafer")! };
+/**
+ * The Line page's address, `/?run=<id>&station=<n>&unit=<index>|wafer=<index>|lot=<name>`, plus
+ * the real item a v1 link picked (`pick=unit:<id>`, see lib/routes.ts) and a SECOM sensor. Each
+ * value is kept only when it is well formed; the item is the first of unit, wafer, lot.
+ */
+export interface LineLocation {
+  runId: string | null;
+  station: StationNumber | null;
+  item: { kind: "unit"; index: number } | { kind: "wafer"; index: number } | { kind: "lot"; lot: string } | null;
+  pick: Pick | null;
+  sensor: string | null;
+}
+
+const RUN_ID = /^run_[0-9a-z]{8,40}$/;
+const INDEX = /^\d{1,6}$/;
+// The run contract's UserLabel: the lot name as the run's input wrote it.
+const LOT_LABEL = /^[A-Za-z0-9_.:\- ]{1,64}$/;
+
+export function parseLineLocation(params: URLSearchParams): LineLocation {
+  const run = params.get("run") ?? "";
+  const station = Number(params.get("station"));
+  const unit = params.get("unit") ?? "";
+  const wafer = params.get("wafer") ?? "";
+  const lot = params.get("lot") ?? "";
+  const sensor = params.get("sensor") ?? "";
+  return {
+    runId: RUN_ID.test(run) ? run : null,
+    station: Number.isInteger(station) && station >= 1 && station <= STATIONS.length ? (station as StationNumber) : null,
+    item: INDEX.test(unit)
+      ? { kind: "unit", index: Number(unit) }
+      : INDEX.test(wafer)
+        ? { kind: "wafer", index: Number(wafer) }
+        : LOT_LABEL.test(lot)
+          ? { kind: "lot", lot }
+          : null,
+    pick: parsePick(params.get("pick")),
+    sensor: /^S\d{3}$/.test(sensor) ? sensor : null,
+  };
+}
+
+/**
+ * The run fields the AI worker adds to ChatContext (V6). They are not in the contract on main
+ * yet, and the API rejects unknown context fields, so they are only sent once
+ * SEND_RUN_CONTEXT is switched on.
+ */
+export interface RunChatContext {
+  run_id: string;
+  station: StationName | null;
+  run_unit: number | null;
+  run_wafer: number | null;
+  run_lot: string | null;
+}
+
+/** Switch on at merge, once ChatContext carries the run fields (then drop the casts below). */
+export const SEND_RUN_CONTEXT = false;
+
+/** The run part of the Line's address as chat context, or null without a run. */
+export function runChatContext(line: LineLocation): RunChatContext | null {
+  if (!line.runId) return null;
+  return {
+    run_id: line.runId,
+    station: line.station ? STATIONS[line.station - 1]! : null,
+    run_unit: line.item?.kind === "unit" ? line.item.index : null,
+    run_wafer: line.item?.kind === "wafer" ? line.item.index : null,
+    run_lot: line.item?.kind === "lot" ? line.item.lot : null,
+  };
+}
+
+/** Chat context of the Line page: the run (once the contract has it), else the real item. */
+export function lineChatContext(line: LineLocation, sendRun = SEND_RUN_CONTEXT): ChatContext | null {
+  const run = sendRun ? runChatContext(line) : null;
+  if (run) return run as unknown as ChatContext;
+  if (line.pick?.kind === "unit") return { unit_id: line.pick.id };
+  if (line.pick?.kind === "wafer") return { wafer_id: line.pick.id };
+  if (line.pick?.kind === "lot") return { lot: line.pick.id };
+  if (line.sensor) return { sensor: line.sensor };
   return null;
 }
 
+/** What the engineer is looking at, read from the page address. */
+export function contextFromLocation(pathname: string, params: URLSearchParams): ChatContext | null {
+  if (pathname === "/") return lineChatContext(parseLineLocation(params));
+  const inv = /^\/investigations\/(inv_[0-9a-z]+)/.exec(pathname);
+  if (inv) return { investigation_id: inv[1]! };
+  return null;
+}
+
+const STATION_LABEL: Record<StationName, string> = {
+  manufacturing: "Manufacturing",
+  monitoring: "Monitoring",
+  wafer_test: "Wafer test",
+  investigation: "Investigation",
+  decision: "Decision",
+};
+
 export function describeContext(c: ChatContext): string {
+  const run = c as ChatContext & Partial<RunChatContext>;
+  if (run.run_id) {
+    const item =
+      run.run_unit != null
+        ? `, unit ${run.run_unit + 1}`
+        : run.run_wafer != null
+          ? `, wafer ${run.run_wafer + 1}`
+          : run.run_lot
+            ? `, lot ${run.run_lot}`
+            : "";
+    return `This run${run.station ? `, ${STATION_LABEL[run.station]}` : ""}${item}`;
+  }
   if (c.unit_id != null) return `Unit ${c.unit_id}`;
   if (c.sensor) return `Sensor ${c.sensor}`;
   if (c.wafer_id) return `Wafer ${c.wafer_id}`;

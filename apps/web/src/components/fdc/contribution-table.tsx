@@ -2,6 +2,7 @@ import type { FdcContributions } from "@yield-guardian/contracts";
 import Link from "next/link";
 
 import { formatPercent, formatReading } from "@/lib/format";
+import { sensorHref } from "@/lib/routes";
 
 /** Each sensor's share of a unit's T² or SPE, largest first, with the reading against the reference median. */
 export function ContributionTable({ data }: { data: FdcContributions }) {
@@ -26,7 +27,7 @@ export function ContributionTable({ data }: { data: FdcContributions }) {
           {data.contributions.map((c) => (
             <tr key={c.sensor} className="border-t border-hairline">
               <th scope="row" className="tnum py-1.5 pr-3 font-normal">
-                <Link href={`/sensors?sensor=${c.sensor}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+                <Link href={sensorHref(c.sensor)} className="text-ink underline decoration-hairline-strong underline-offset-4">
                   {c.sensor}
                 </Link>
               </th>

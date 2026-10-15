@@ -18,6 +18,7 @@ import { q } from "@/lib/api/queries";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { formatInt, formatPlantTime, formatProbability, formatReading, formatSigned } from "@/lib/format";
 import { ALARM_KIND, BAND_NAME, BLOCK_NAME } from "@/lib/labels";
+import { investigationHref, lineHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export function UnitView({ unitId }: { unitId: number }) {
@@ -44,7 +45,7 @@ export function UnitView({ unitId }: { unitId: number }) {
   const u = unit.data;
   return (
     <PageFrame>
-      <Link href="/line" className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
+      <Link href={lineHref()} className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
         Line
       </Link>
       <PageHeader
@@ -181,7 +182,7 @@ function UnitRecords({ unit: u }: { unit: UnitDetail }) {
           ))}
           {u.investigation_ids.map((id) => (
             <li key={id} className="border-t border-hairline pt-2">
-              <Link href={`/investigations/${id}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+              <Link href={investigationHref(id)} className="text-ink underline decoration-hairline-strong underline-offset-4">
                 Open investigation {id.slice(0, 12)}…
               </Link>
             </li>

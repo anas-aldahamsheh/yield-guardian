@@ -14,23 +14,24 @@ import { useApi } from "@/lib/api/context";
 import { unwrap } from "@/lib/api/client";
 import { formatInt } from "@/lib/format";
 import { ACTOR_ROLE, AUDIT_ACTION } from "@/lib/labels";
+import { investigationHref, workOrderHref } from "@/lib/routes";
 
 type Action = AuditEntry["action"];
 const PAGE = 50;
 
 /** Where an audited target lives in the product, when it has a page. */
 export function targetHref(kind: string, id: string): string | null {
-  if (kind === "investigation") return `/investigations/${encodeURIComponent(id)}`;
-  if (kind === "work_order") return `/work-orders/${encodeURIComponent(id)}`;
-  if (kind === "role") return "/models";
+  if (kind === "investigation") return investigationHref(id);
+  if (kind === "work_order") return workOrderHref(id);
+  if (kind === "role") return "/admin";
   return null;
 }
 
 /** A detail value as text, with product IDs as links. */
 function DetailValue({ value }: { value: unknown }) {
   if (typeof value === "string") {
-    if (/^inv_[0-9a-z]+$/.test(value)) return <Link href={`/investigations/${value}`} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
-    if (/^WO-\d{6}$/.test(value)) return <Link href={`/work-orders/${value}`} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
+    if (/^inv_[0-9a-z]+$/.test(value)) return <Link href={investigationHref(value)} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
+    if (/^WO-\d{6}$/.test(value)) return <Link href={workOrderHref(value)} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
     return <>{value}</>;
   }
   if (value == null) return <span className="text-ink-3">none</span>;

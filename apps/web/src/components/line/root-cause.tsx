@@ -11,6 +11,7 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatPlantTime } from "@/lib/format";
 import { ALARM_KIND } from "@/lib/labels";
+import { unitHref } from "@/lib/routes";
 
 const TOP = 8;
 
@@ -36,7 +37,7 @@ export function RootCause({ alarms, className }: { alarms: Alarm[]; className?: 
           <>
             <span className="tnum">
               {ALARM_KIND[alarm.kind]} {alarm.severity === "alarm" ? "alarm" : "warning"} on{" "}
-              <Link href={`/units/${alarm.unit_id}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+              <Link href={unitHref(alarm.unit_id)} className="text-ink underline decoration-hairline-strong underline-offset-4">
                 unit {formatInt(alarm.unit_id)}
               </Link>
               , {formatPlantTime(alarm.timestamp)}.

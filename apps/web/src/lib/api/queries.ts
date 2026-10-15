@@ -46,14 +46,6 @@ export const q = {
       staleTime: 5 * MINUTE,
     }),
 
-  lineState: (api: Api, window = 120) =>
-    queryOptions({
-      queryKey: ["line", "state", window],
-      queryFn: ({ signal }) =>
-        unwrap(api.GET("/api/v1/line/state", { params: { query: { window } }, signal })),
-      staleTime: 0,
-    }),
-
   fdcSeries: (api: Api, range: Range = {}) =>
     queryOptions({
       queryKey: ["fdc", "series", range.from_seq ?? null, range.to_seq ?? null],

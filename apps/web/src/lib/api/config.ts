@@ -1,9 +1,9 @@
-import { API_PREFIX, LINE_SOCKET_PATH } from "@yield-guardian/contracts";
+import { API_PREFIX } from "@yield-guardian/contracts";
 
 /**
  * Where the API is.
  *
- * Browsers always call the API on their own origin (`/api/v1/...` and `/ws/line`): in every
+ * Browsers always call the API on their own origin (`/api/v1/...`): in every
  * deployment a gateway routes those paths to the API, and in development `scripts/gateway.ts`
  * does the same. So the browser bundle contains no API address at all.
  *
@@ -28,10 +28,4 @@ export function serverApiOrigin(env: Env = process.env): string {
 export function originOf(url: string): string {
   const trimmed = url.replace(/\/+$/, "");
   return trimmed.endsWith(API_PREFIX) ? trimmed.slice(0, -API_PREFIX.length) : trimmed;
-}
-
-/** WebSocket URL of the live line on the page's own origin. */
-export function lineSocketUrl(location: Pick<Location, "protocol" | "host">): string {
-  const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-  return `${scheme}//${location.host}${LINE_SOCKET_PATH}`;
 }

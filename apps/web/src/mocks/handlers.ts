@@ -123,8 +123,7 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     }),
     http.post(`${API}/session/logout`, () => new HttpResponse(null, { status: 204 })),
 
-    // Line
-    http.get(`${API}/line/state`, json("get_line_state")),
+    // Units and alarms
     http.get(`${API}/alarms`, json("list_alarms")),
     http.get(`${API}/units`, json("list_units")),
     http.get(`${API}/fdc/series`, json("get_fdc_series")),

@@ -1,7 +1,6 @@
 "use client";
 
 import type { ChatContext, ChatMessage, Evidence } from "@yield-guardian/contracts";
-import { MessageSquareText } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type FormEvent, type KeyboardEvent, useRef, useState } from "react";
 
@@ -13,15 +12,27 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { describeError } from "@/lib/api/errors";
 import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
-import { applyChatEvent, type ChatAnswer, contextFromLocation, describeContext, emptyAnswer, segmentAnswer, streamChat } from "@/lib/chat/chat";
+import {
+  applyChatEvent,
+  type ChatAnswer,
+  contextFromLocation,
+  describeContext,
+  emptyAnswer,
+  type RunChatContext,
+  segmentAnswer,
+  streamChat,
+} from "@/lib/chat/chat";
 import { formatDuration, formatNumber, formatReported } from "@/lib/format";
 import { TOOL_NAME } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+
+import { AskButton } from "./ask-button";
 
 type Turn = { id: number; question: string; context: ChatContext | null; answer: ChatAnswer; failed: string | null; streaming: boolean };
 
 /** Questions that only name the object on screen; the numbers come from the answer. */
 function suggestions(context: ChatContext | null): string[] {
+  if ((context as Partial<RunChatContext> | null)?.run_id) return ["Summarise this run.", "What does this station's result mean?"];
   if (context?.unit_id != null) return [`Why was unit ${context.unit_id} flagged?`, `Which sensors moved most on unit ${context.unit_id}?`];
   if (context?.sensor) return [`Is ${context.sensor} healthy?`, `Which group is ${context.sensor} in?`];
   if (context?.wafer_id) return [`What pattern is wafer ${context.wafer_id}?`, `Which wafers look like ${context.wafer_id}?`];
@@ -101,10 +112,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <MessageSquareText className="size-4" aria-hidden="true" />
-          Ask
-        </Button>
+        <AskButton />
       </SheetTrigger>
       <SheetContent side="right" className="flex w-[min(520px,100vw)] flex-col gap-0 border-hairline bg-die p-0 sm:max-w-[520px]">
         <SheetHeader className="border-b border-hairline px-5 py-4">
@@ -178,7 +186,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
                   onKeyDown={onKeyDown}
                   maxLength={4000}
                   rows={2}
-                  placeholder="Ask about a unit, sensor, wafer or lot"
+                  placeholder="Ask about a run, unit, wafer or lot"
                   aria-label="Question"
                   className="min-h-[44px] resize-none"
                 />

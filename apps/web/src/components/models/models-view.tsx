@@ -19,7 +19,11 @@ import { cn } from "@/lib/utils";
 import { RoleDialog } from "./role-dialog";
 import { ScrollRegion } from "@/components/scroll-region";
 
-export function ModelsView() {
+/**
+ * The hidden admin page: which model does each job, how the candidates were evaluated, today's
+ * usage and the catalog. Anyone can read it; only an admin can change a role.
+ */
+export function AdminView() {
   const api = useApi();
   const roles = useQuery(q.llmRoles(api));
   const catalog = useQuery(q.llmCatalog(api));
@@ -29,13 +33,13 @@ export function ModelsView() {
   return (
     <PageFrame>
       <PageHeader
-        title="Models"
-        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory."
+        title="Model roles"
+        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory. Only an admin can change a role."
       />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
         <Panel title="Roles" description="One model per job, with the fallbacks tried when it is unavailable." bodyClassName="px-0 sm:px-0">
           <QueryView query={roles} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}>
-            {(r) => <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />}
+            {(r) => <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} editable />}
           </QueryView>
         </Panel>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
@@ -60,8 +64,53 @@ export function ModelsView() {
   );
 }
 
-function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; catalog: CatalogModel[]; evaluations?: Evaluations }) {
-  const { isAdmin } = useSession();
+/**
+ * The language-model roles on AMD, for How it works: the model behind each job and how it
+ * scored on its evaluation, with the measured latency. Read only; roles change on the admin page.
+ */
+export function AiRoles() {
+  const api = useApi();
+  const roles = useQuery(q.llmRoles(api));
+  const catalog = useQuery(q.llmCatalog(api));
+  const evaluations = useQuery(q.llmEvaluations(api));
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
+      <Panel
+        title="Language-model roles"
+        description="One model per job, with the fallbacks tried when it is unavailable. All of them run on AMD Token Factory."
+        bodyClassName="px-0 sm:px-0"
+      >
+        <QueryView query={roles} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}>
+          {(r) => <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />}
+        </QueryView>
+      </Panel>
+      <Panel
+        title="Evaluations"
+        description="Each candidate on the same task set for its role: success rate with its interval, contract violations, median latency and points, as measured."
+        bodyClassName="px-0 sm:px-0"
+      >
+        <QueryView query={evaluations} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}>
+          {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
+        </QueryView>
+      </Panel>
+    </div>
+  );
+}
+
+function RolesTable({
+  roles,
+  catalog,
+  evaluations,
+  editable = false,
+}: {
+  roles: RoleAssignment[];
+  catalog: CatalogModel[];
+  evaluations?: Evaluations;
+  /** Offers "Change" to an admin (on the admin page); elsewhere the table only reads. */
+  editable?: boolean;
+}) {
+  const session = useSession();
+  const isAdmin = editable && session.isAdmin;
   const [editing, setEditing] = useState<RoleAssignment["role"] | null>(null);
   const current = roles.find((r) => r.role === editing);
   if (roles.length === 0) return <EmptyState className="mx-4 sm:mx-5" title="No roles">The API has no role assignments.</EmptyState>;
@@ -119,7 +168,7 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
           </tbody>
         </table>
       </ScrollRegion>
-      {!isAdmin ? <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">Only an admin can change a role.</p> : null}
+      {editable && !isAdmin ? <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">Only an admin can change a role.</p> : null}
       {current ? <RoleDialog key={current.role} assignment={current} catalog={catalog} open onOpenChange={(o) => !o && setEditing(null)} /> : null}
     </>
   );

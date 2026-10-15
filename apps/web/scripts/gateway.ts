@@ -1,7 +1,7 @@
 /**
  * Local gateway: one origin for the web app and the API, like the reverse proxy of every
- * deployment. Browsers call /api/v1/... and /ws/line on the page's own origin; this routes them
- * to the API (or to the development fixtures with --mock) and everything else to Next.js.
+ * deployment. Browsers call /api/v1/... on the page's own origin; this routes it to the API (or
+ * to the development fixtures with --mock) and everything else to Next.js.
  *
  *   tsx scripts/gateway.ts --mode dev            next dev behind the gateway, real API
  *   tsx scripts/gateway.ts --mode dev --mock     next dev, fixture API (development data)
@@ -17,10 +17,8 @@ import { Readable } from "node:stream";
 import { parseArgs } from "node:util";
 
 import { getResponse } from "msw";
-import { WebSocketServer } from "ws";
 
 import { createHandlers } from "../src/mocks/handlers";
-import { replayLineSocket } from "../src/mocks/line-socket";
 
 const { values } = parseArgs({
   options: {
@@ -118,15 +116,8 @@ const server = http.createServer((req, res) => {
   forward(req, res, nextOrigin);
 });
 
-// WebSockets: the line socket (API or fixtures) and Next's hot reload.
-const lineSockets = new WebSocketServer({ noServer: true });
-lineSockets.on("connection", (socket) => replayLineSocket(socket));
-
+// WebSockets: Next's hot reload (and any API socket, passed through).
 server.on("upgrade", (req, socket, head) => {
-  if (values.mock && req.url?.startsWith("/ws/line")) {
-    lineSockets.handleUpgrade(req, socket, head, (ws) => lineSockets.emit("connection", ws, req));
-    return;
-  }
   const target = isApiPath(req.url) ? api : nextOrigin;
   const upstream = net.connect(Number(target.port || 80), target.hostname, () => {
     const lines = [`${req.method} ${req.url} HTTP/${req.httpVersion}`];

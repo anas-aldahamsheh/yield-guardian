@@ -9,6 +9,7 @@ import { Panel } from "@/components/page";
 import { Button } from "@/components/ui/button";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { BAND_NAME } from "@/lib/labels";
+import { unitHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { ScrollRegion } from "@/components/scroll-region";
 
@@ -54,7 +55,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
                 )}
               >
                 <th scope="row" className="tnum px-4 py-2 font-normal sm:px-5">
-                  <Link href={`/units/${u.unit_id}`} className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink">
+                  <Link href={unitHref(u.unit_id)} className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink">
                     {formatInt(u.unit_id)}
                   </Link>
                 </th>

@@ -18,6 +18,7 @@ import { useSession } from "@/lib/api/session";
 import { useParam } from "@/lib/use-param";
 import { formatInt, formatNumber, formatPercent, formatPValue, formatReading } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
+import { lotHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { DieMap } from "./die-map";
@@ -158,7 +159,7 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
       description={
         <>
           Lot{" "}
-          <Link href={`/lots/${w.lot}`} className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4">
+          <Link href={lotHref(w.lot)} className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4">
             {w.lot}
           </Link>
           , wafer {w.wafer_index}. Official split: {w.official_split ?? "unlabelled"}.

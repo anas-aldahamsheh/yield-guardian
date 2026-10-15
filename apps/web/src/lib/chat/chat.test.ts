@@ -3,7 +3,18 @@ import { describe, expect, it } from "vitest";
 
 import { fixture } from "@/mocks/fixtures";
 
-import { applyChatEvent, contextFromLocation, emptyAnswer, parseSse, segmentAnswer } from "./chat";
+import {
+  applyChatEvent,
+  contextFromLocation,
+  describeContext,
+  emptyAnswer,
+  lineChatContext,
+  parseLineLocation,
+  parseSse,
+  runChatContext,
+  segmentAnswer,
+  SEND_RUN_CONTEXT,
+} from "./chat";
 
 function streamOf(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -50,11 +61,61 @@ describe("segmentAnswer", () => {
   });
 });
 
+describe("parseLineLocation", () => {
+  const parse = (query: string) => parseLineLocation(new URLSearchParams(query));
+
+  it("reads the run, the station and the item of the Line's address", () => {
+    expect(parse("run=run_01jb2c3d4e&station=2&unit=14")).toEqual({
+      runId: "run_01jb2c3d4e",
+      station: 2,
+      item: { kind: "unit", index: 14 },
+      pick: null,
+      sensor: null,
+    });
+    expect(parse("run=run_01jb2c3d4e&station=3&wafer=0").item).toEqual({ kind: "wafer", index: 0 });
+    expect(parse("run=run_01jb2c3d4e&station=3&lot=lot47542").item).toEqual({ kind: "lot", lot: "lot47542" });
+  });
+
+  it("drops values that are not well formed", () => {
+    expect(parse("run=inv_123&station=9&unit=-1&wafer=x&lot=")).toEqual({ runId: null, station: null, item: null, pick: null, sensor: null });
+    expect(parse("station=0").station).toBeNull();
+    expect(parse("station=2.5").station).toBeNull();
+    expect(parse("sensor=S06").sensor).toBeNull();
+  });
+
+  it("reads a pick and a sensor from v1 links", () => {
+    expect(parse("pick=unit:1062").pick).toEqual({ kind: "unit", id: 1062 });
+    expect(parse("station=2&sensor=S060").sensor).toBe("S060");
+  });
+});
+
+describe("run chat context", () => {
+  const line = parseLineLocation(new URLSearchParams("run=run_01jb2c3d4e&station=3&wafer=4&pick=unit:1062"));
+
+  it("maps the run part to the fields V6 adds", () => {
+    expect(runChatContext(line)).toEqual({ run_id: "run_01jb2c3d4e", station: "wafer_test", run_unit: null, run_wafer: 4, run_lot: null });
+    expect(runChatContext(parseLineLocation(new URLSearchParams("station=2")))).toBeNull();
+  });
+
+  it("is not sent until the contract has it", () => {
+    expect(SEND_RUN_CONTEXT).toBe(false);
+    expect(lineChatContext(line)).toEqual({ unit_id: 1062 });
+    expect(lineChatContext(line, true)).toEqual(runChatContext(line));
+  });
+
+  it("describes a run context in words", () => {
+    expect(describeContext(lineChatContext(line, true)!)).toBe("This run, Wafer test, wafer 5");
+  });
+});
+
 describe("contextFromLocation", () => {
   it("reads the object on screen", () => {
-    expect(contextFromLocation("/units/1062", new URLSearchParams())).toEqual({ unit_id: 1062 });
-    expect(contextFromLocation("/sensors", new URLSearchParams("sensor=S060"))).toEqual({ sensor: "S060" });
-    expect(contextFromLocation("/wafers", new URLSearchParams("wafer=lot1-2"))).toEqual({ wafer_id: "lot1-2" });
-    expect(contextFromLocation("/line", new URLSearchParams())).toBeNull();
+    expect(contextFromLocation("/", new URLSearchParams("pick=unit:1062"))).toEqual({ unit_id: 1062 });
+    expect(contextFromLocation("/", new URLSearchParams("station=2&sensor=S060"))).toEqual({ sensor: "S060" });
+    expect(contextFromLocation("/", new URLSearchParams("pick=wafer:lot1-2"))).toEqual({ wafer_id: "lot1-2" });
+    expect(contextFromLocation("/", new URLSearchParams("pick=lot:lot47542"))).toEqual({ lot: "lot47542" });
+    expect(contextFromLocation("/investigations/inv_01jae5x9k3m2", new URLSearchParams())).toEqual({ investigation_id: "inv_01jae5x9k3m2" });
+    expect(contextFromLocation("/", new URLSearchParams())).toBeNull();
+    expect(contextFromLocation("/how", new URLSearchParams("pick=unit:1062"))).toBeNull();
   });
 });

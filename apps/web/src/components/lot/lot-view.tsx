@@ -18,6 +18,7 @@ import { q } from "@/lib/api/queries";
 import { useSession } from "@/lib/api/session";
 import { formatInt, formatPercent, formatPValue } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
+import { lineHref, waferHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import type { StackWafer } from "./lot-stack-scene";
@@ -75,7 +76,7 @@ function LotContent({ detail }: { detail: LotDetail }) {
 
   return (
     <PageFrame>
-      <Link href="/lots" className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
+      <Link href={lineHref({ station: 3 })} className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
         All lots
       </Link>
       <PageHeader
@@ -144,7 +145,7 @@ function LotContent({ detail }: { detail: LotDetail }) {
             }
             actions={
               current ? (
-                <Link href={`/wafers?wafer=${encodeURIComponent(current.wafer_id)}`} className="text-[13px] text-ink underline decoration-hairline-strong underline-offset-4">
+                <Link href={waferHref(current.wafer_id)} className="text-[13px] text-ink underline decoration-hairline-strong underline-offset-4">
                   Open in the wafer lab
                 </Link>
               ) : null

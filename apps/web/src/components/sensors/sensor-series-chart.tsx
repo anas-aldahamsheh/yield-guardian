@@ -7,6 +7,7 @@ import { type MouseEvent, useMemo, useState } from "react";
 
 import { useWidth } from "@/components/charts/use-width";
 import { formatInt, formatPlantTime, formatReading } from "@/lib/format";
+import { unitHref } from "@/lib/routes";
 
 /**
  * One sensor's readings in time order, against its reference range (1st to 99th percentile of
@@ -109,7 +110,7 @@ export function SensorSeriesChart({
         {hovered ? (
           <>
             <Item label="Unit">
-              <Link href={`/units/${hovered.unit_id}`} className="underline decoration-hairline-strong underline-offset-4">
+              <Link href={unitHref(hovered.unit_id)} className="underline decoration-hairline-strong underline-offset-4">
                 {formatInt(hovered.unit_id)}
               </Link>
             </Item>
