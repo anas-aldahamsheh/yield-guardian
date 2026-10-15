@@ -24,7 +24,7 @@ const LOT_ID = /^[A-Za-z0-9_.]{1,64}$/;
 const UNIT_ID = /^\d{1,6}$/;
 const WORK_ORDER_ID = /^WO-\d{6}$/;
 
-/** `unit:1062`, `wafer:lot47542-1`, `lot:lot47542`; null for anything else. */
+/** `unit:<unit id>`, `wafer:<lot>-<wafer index>`, `lot:<lot>`; null for anything else. */
 export function parsePick(value: string | null | undefined): Pick | null {
   const m = /^(unit|wafer|lot):(.+)$/.exec(value ?? "");
   if (!m) return null;
