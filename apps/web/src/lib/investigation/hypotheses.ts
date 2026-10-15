@@ -97,7 +97,7 @@ export interface ConfirmedCause {
  * with the sentence and the hypothesis (by text or by its index in the report's table).
  */
 export function readConfirmedCause(order: WorkOrder, hypotheses: HypothesisRow[] | null = null): ConfirmedCause | null {
-  const raw = (order as WorkOrder & { confirmed_cause?: unknown }).confirmed_cause;
+  const raw: unknown = order.confirmed_cause;
   if (typeof raw === "string") return raw.trim() ? { text: raw, hypothesis: null, confirmedBy: null, confirmedAt: null } : null;
   if (!isRecord(raw)) return null;
   const text = firstString(raw, ["text", "cause", "description"]);

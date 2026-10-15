@@ -13,7 +13,8 @@ const withHypotheses = (hypotheses: unknown) => ({ ...report, hypotheses }) as u
 
 describe("readHypotheses", () => {
   it("is null for a report without the field, and empty for an empty table", () => {
-    expect(readHypotheses(report)).toBeNull();
+    expect(readHypotheses(withHypotheses(undefined))).toBeNull();
+    expect(readHypotheses(report)).toEqual([]);
     expect(readHypotheses(null)).toBeNull();
     expect(readHypotheses(withHypotheses([]))).toEqual([]);
   });
@@ -59,11 +60,11 @@ describe("readConfirmedCause", () => {
   it("is null while the work order has no confirmed cause", () => {
     expect(readConfirmedCause(order)).toBeNull();
     expect(readConfirmedCause({ ...order, confirmed_cause: null } as WorkOrder)).toBeNull();
-    expect(readConfirmedCause({ ...order, confirmed_cause: "  " } as WorkOrder)).toBeNull();
+    expect(readConfirmedCause({ ...order, confirmed_cause: "  " } as unknown as WorkOrder)).toBeNull();
   });
 
   it("reads a sentence or an object with the hypothesis it confirms", () => {
-    expect(readConfirmedCause({ ...order, confirmed_cause: "Worn chuck pins" } as WorkOrder)?.text).toBe("Worn chuck pins");
+    expect(readConfirmedCause({ ...order, confirmed_cause: "Worn chuck pins" } as unknown as WorkOrder)?.text).toBe("Worn chuck pins");
     const rows = readHypotheses(withHypotheses([{ hypothesis: "Chuck contamination", assessment: "inconclusive" }]));
     expect(
       readConfirmedCause({ ...order, confirmed_cause: { text: "Particles on the chuck", hypothesis_index: 0, confirmed_by: "Engineer" } } as WorkOrder, rows),
