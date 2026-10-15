@@ -14446,6 +14446,11 @@
             "minimum": 0.0,
             "title": "Accept Threshold"
           },
+          "energy_threshold": {
+            "type": "number",
+            "title": "Energy Threshold",
+            "description": "A wafer whose energy score is above this counts as unknown in the lot test (as the training-period reference rates did), not as its predicted pattern."
+          },
           "temperature": {
             "type": "number",
             "exclusiveMinimum": 0.0,
@@ -14464,6 +14469,7 @@
         "required": [
           "wafers",
           "accept_threshold",
+          "energy_threshold",
           "temperature",
           "method",
           "model"

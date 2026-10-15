@@ -194,7 +194,7 @@ def build_run() -> Run:
                 )
                 for i in range(3)
             ],
-            accept_threshold=0.9, temperature=1.2, method="CNN", model=bundle("wafermap"),
+            accept_threshold=0.9, energy_threshold=-2.6, temperature=1.2, method="CNN", model=bundle("wafermap"),
         ),
         "wafer_similar": WaferSimilarResult(
             wafers=[

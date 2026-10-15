@@ -293,6 +293,7 @@ class WaferDouble:
             return WaferPatternResult(
                 wafers=items,
                 accept_threshold=0.9,
+                energy_threshold=-2.6,
                 temperature=1.0,
                 method="test double",
                 model=DOUBLE_REF,

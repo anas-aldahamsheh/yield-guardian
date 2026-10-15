@@ -224,6 +224,7 @@ class LiveWafers:
                 self._pattern_item(i, w, grids[i], scores, spatial[i]) for i, w in enumerate(wafers)
             ],
             accept_threshold=self.accept_threshold,
+            energy_threshold=self.bundle.lot_reference.energy_threshold,
             temperature=self.bundle.temperature,
             method=self.pattern_method(),
             model=self.bundle.bundle.info.bundle,

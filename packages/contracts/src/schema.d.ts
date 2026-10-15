@@ -5506,6 +5506,11 @@ export interface components {
     WaferPatternResult: {
       /** Accept Threshold */
       accept_threshold: number;
+      /**
+       * Energy Threshold
+       * @description A wafer whose energy score is above this counts as unknown in the lot test (as the training-period reference rates did), not as its predicted pattern.
+       */
+      energy_threshold: number;
       /** Method */
       method: string;
       model: components["schemas"]["BundleRef"];
