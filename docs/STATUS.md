@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 09:14 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 10:18 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 90 of 96 done (94%), 3 in progress, 3 not started
+## Progress: 92 of 96 done (96%), 1 in progress, 3 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 8 of 14 | 3 | 3 |
+| V: Version 2, the live story | 10 of 14 | 1 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -215,8 +215,8 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V4 | Runs: store, orchestrator, SSE with resume, cases, uploads, templates, example files; replay loop retired | Cloud | ✅ | Merged 660816b: [services/runs.py](../services/api/src/yield_guardian/services/runs.py), [live/runs.py](../services/api/src/yield_guardian/live/runs.py), migration 0003, 48 tests. Real engines only in the product. Measured on this machine: a 40-unit sample with one real lot reaches run_done in 2.0 s; a 5,000-unit upload in 18.6 s (7.4 s compute). Replay clock removed |
 | V5 | Investigator over runs, hypothesis table, confirmed cause on work orders | Cloud | ✅ | Merged 13b4a82: run_alarm trigger, run tools, hypotheses with evidence for and against checked by the verifier, confirmed cause on closing a work order (migration 0004) |
 | V6 | Chat run tools and page context | Cloud | ✅ | Merged 13b4a82: ChatContext carries the run, station and item; run tools; a suggestion event offers an investigation the user starts |
-| V7 | Line page: input bar, cases and browsers, drawing, upload, station cards, drawers, alarms rail, banner | Cloud | 🟡 | Story worker, branch v2/story |
-| V8 | The line animation, driven by run events | Cloud | 🟡 | Story worker, branch v2/story, alongside V7 |
+| V7 | Line page: input bar, cases and browsers, drawing, upload, station cards, drawers, alarms rail, banner | Cloud | ✅ | Merged 39b0b14: four ways in on the real runs API, five stations, drawers that reuse the v1 views, alarms rail with Investigate, two-sources banner, URL state (run, station, item, alarm, pick). Story e2e 14 of 14, all Playwright projects 115 passed and 2 conditional skips, 297 web unit tests |
+| V8 | The line animation, driven by run events | Cloud | ✅ | Merged 39b0b14: one timeline per run advanced only by arrived results; sensor bank, T²/SPE and risk gauges at the computed values against the model's limits, prober in real die order, 25-slot carrier, final-test stamp; reduced motion gives a static stepper. Lighthouse mobile on / (median of 5): performance 94, accessibility 100, best practices 100; axe 0 at 360, 768 and 1440 px |
 | V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | ✅ | Merged 6bf8d10: Line, Investigations (live progress, hypothesis table, work orders tab, confirmed cause), How it works (plain Arabic, then experts), hidden /admin, permanent redirects for every v1 address, floating Ask with run context and investigation suggestions. 224 web unit tests; mock e2e 59 of 59; axe strict on /how and /investigations |
 | V10 | Savings calculator | Cloud | ✅ | On /how#calculator: empty until the user types costs; rates and their 95% CIs read from the API (96.0% auto-classified, 1.9% control-chart false alarms); every line shows its formula and range |
 | V11 | Guide rewritten for v2 (Arabic) | Cloud | 🟡 | Text done as /how#guide; ten screenshot slots wait for the Line page (V7) |
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 10:18 | V7 and V8 done and merged on local main (39b0b14): the Line page and its animation on the real runs API. Station 3 counts match the lot test; unknown maps are a caution beside the prediction. Wafer pattern result now carries the lot test's energy threshold (cb76555). 92 of 96 |
 | 2026-10-15 09:14 | V9 and V10 done and merged on local main (6bf8d10): three pages, How it works with the savings calculator, redirects, floating chat; Arabic guide text in place (screenshots after V7). Web: typecheck, lint, 224 unit tests pass. 90 of 96 |
 | 2026-10-15 08:48 | V4, V5 and V6 done and merged on local main (328ca1a): live runs with real engines, run investigations with hypotheses, chat over runs. Full API suite 1,218 passed; web typecheck, lint and 216 unit tests pass. GitHub Actions minutes are used up: pushes paused, every gate runs locally, CI limited to main and pull requests. 88 of 96 |
 | 2026-10-15 08:10 | V3 done and merged (391edeb): the live wafer engine equals the stored model on all 10,253 demo wafers; wafer file parser round-trips demo wafers. Size guard of 2 million dies per run added (join-count cost). Full API suite on main: 1,126 passed. 85 of 96 |
