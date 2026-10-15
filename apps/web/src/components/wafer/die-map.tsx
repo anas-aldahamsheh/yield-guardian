@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from "react";
 
-import { hexToLinearSrgb, linearSrgbToHex, linearSrgbToOklab, oklabToLinearSrgb, type Vec3 } from "@/lib/optics/oklab";
+import {
+  hexToLinearSrgb,
+  linearSrgbToHex,
+  linearSrgbToOklab,
+  oklabToLinearSrgb,
+  type Vec3,
+} from "@/lib/optics/oklab";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,7 +36,9 @@ export function mixOklab(a: string, b: string, t: number): string {
 
 /** Ramp stops for frequency maps: 0 is the panel colour stepped once, 1 is the fail colour. */
 export function frequencyRamp(surface: string, fail: string, steps = 9): string[] {
-  return Array.from({ length: steps }, (_, i) => mixOklab(mixOklab(surface, fail, 0.08), fail, i / (steps - 1)));
+  return Array.from({ length: steps }, (_, i) =>
+    mixOklab(mixOklab(surface, fail, 0.08), fail, i / (steps - 1)),
+  );
 }
 
 export function DieMap({
@@ -82,11 +90,23 @@ export function DieMap({
             colour = cell === 2 ? fail : cell === 1 ? pass : null;
           } else {
             const v = data.values[i];
-            if (v != null) colour = ramp[Math.min(ramp.length - 1, Math.round((Math.min(v, max) / max) * (ramp.length - 1)))]!;
+            if (v != null)
+              colour =
+                ramp[
+                  Math.min(
+                    ramp.length - 1,
+                    Math.round((Math.min(v, max) / max) * (ramp.length - 1)),
+                  )
+                ]!;
           }
           if (!colour) continue;
           ctx.fillStyle = colour;
-          ctx.fillRect(ox + c * pitch + gap / 2, oy + r * pitch + gap / 2, pitch - gap, pitch - gap);
+          ctx.fillRect(
+            ox + c * pitch + gap / 2,
+            oy + r * pitch + gap / 2,
+            pitch - gap,
+            pitch - gap,
+          );
         }
       }
       if (highlight != null && highlight >= 0) {
@@ -102,14 +122,24 @@ export function DieMap({
     observer.observe(canvas);
     // Redraw when the theme changes (tokens are read at draw time).
     const themeObserver = new MutationObserver(draw);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
     return () => {
       observer.disconnect();
       themeObserver.disconnect();
     };
   }, [data, max, highlight]);
 
-  return <canvas ref={ref} role="img" aria-label={label} className={cn("block aspect-square w-full", className)} />;
+  return (
+    <canvas
+      ref={ref}
+      role="img"
+      aria-label={label}
+      className={cn("block aspect-square w-full", className)}
+    />
+  );
 }
 
 /** Legend for a frequency map: the ramp with its end values. */
@@ -123,7 +153,11 @@ export function FrequencyLegend({ max = 1, className }: { max?: number; classNam
   });
   return (
     <div className={cn("text-[12px] leading-4 text-ink-3", className)}>
-      <div ref={ref} aria-hidden="true" className="h-2.5 w-full rounded-[2px] border border-hairline" />
+      <div
+        ref={ref}
+        aria-hidden="true"
+        className="h-2.5 w-full rounded-[2px] border border-hairline"
+      />
       <div className="tnum mt-1 flex justify-between">
         <span>0%</span>
         <span>{Math.round(max * 100)}% of wafers failed at this die</span>

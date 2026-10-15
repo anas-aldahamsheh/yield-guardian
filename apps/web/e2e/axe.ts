@@ -10,8 +10,16 @@ export const VIEWPORTS = [
 ] as const;
 export const SCHEMES = ["light", "dark"] as const;
 
-/** Runs axe on the page as it is; logs every finding and fails on serious or critical ones. */
-export async function expectAccessible(page: Page, label: string, include?: string) {
+/**
+ * Runs axe on the page as it is; logs every finding and fails on serious or critical ones, or on
+ * any finding at all when `strict`.
+ */
+export async function expectAccessible(
+  page: Page,
+  label: string,
+  include?: string,
+  strict = false,
+) {
   let builder = new AxeBuilder({ page }).withTags(TAGS);
   if (include) builder = builder.include(include);
   const results = await builder.analyze();
@@ -19,12 +27,20 @@ export async function expectAccessible(page: Page, label: string, include?: stri
     (v) =>
       `${v.impact} ${v.id}: ${v.help}\n${v.nodes
         .slice(0, 6)
-        .map((n) => `    ${n.target.join(" ")}  ${n.failureSummary?.split("\n").slice(1, 2).join("") ?? ""}`)
+        .map(
+          (n) =>
+            `    ${n.target.join(" ")}  ${n.failureSummary?.split("\n").slice(1, 2).join("") ?? ""}`,
+        )
         .join("\n")}`,
   );
   if (lines.length) console.log(`${label}\n  ${lines.join("\n  ")}`);
-  const blocking = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
-  expect(blocking.map((v) => v.id), `serious or critical axe violations on ${label}`).toEqual([]);
+  const blocking = strict
+    ? results.violations
+    : results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  expect(
+    blocking.map((v) => v.id),
+    `${strict ? "axe" : "serious or critical axe"} violations on ${label}`,
+  ).toEqual([]);
 }
 
 /** Loads a route and lets data and entrance motion settle before axe measures contrast. */

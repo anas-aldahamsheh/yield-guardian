@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
+import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/shell/site-footer";
 import { TopBar } from "@/components/shell/top-bar";
@@ -40,8 +41,14 @@ const readingItalic = localFont({
 /** Text a language model wrote. Optical sizes keep it crisp at report sizes. */
 const written = localFont({
   src: [
-    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2", style: "normal" },
-    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2", style: "italic" },
+    {
+      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2",
+      style: "normal",
+    },
+    {
+      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2",
+      style: "italic",
+    },
   ],
   weight: "200 900",
   variable: "--font-written",
@@ -75,7 +82,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}
+    >
       <body className="flex min-h-dvh flex-col">
         <Providers nonce={nonce}>
           <a href="#main" className="skip-link">
@@ -86,6 +97,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             {children}
           </main>
           <SiteFooter />
+          <ChatLauncher />
         </Providers>
       </body>
     </html>

@@ -6,13 +6,24 @@ import {
   createNonce,
   forwardedHttps,
 } from "@/lib/security";
+import { legacyRedirect } from "@/lib/routes";
+
+/** v1 work order addresses are resolved by their route handler, which looks the order up. */
+const WORK_ORDER_PAGE = /^\/work-orders\/[^/]+\/?$/;
 
 /**
  * Sets a Content-Security-Policy with a fresh nonce on every page request. Next.js reads the
  * nonce from the request's CSP header and adds it to its own scripts; the root layout passes it
- * to the theme script.
+ * to the theme script. A v1 address is redirected permanently to its v2 place first
+ * (lib/routes.ts).
  */
 export function proxy(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+  const moved = WORK_ORDER_PAGE.test(pathname) ? null : legacyRedirect(pathname, searchParams);
+  // Next needs an absolute URL here, and makes it relative again when it is on the request's
+  // own host, so the Location the browser sees is right behind any gateway.
+  if (moved) return NextResponse.redirect(new URL(moved, request.url), 308);
+
   const nonce = createNonce();
   const csp = contentSecurityPolicy({
     nonce,
@@ -40,5 +51,16 @@ export const config = {
         { type: "header", key: "purpose", value: "prefetch" },
       ],
     },
+    // v1 addresses, also when the router prefetches a link to one: the prefetch then follows
+    // the redirect instead of getting a 404 whose request never settles in the browser.
+    { source: "/line" },
+    { source: "/wafers/:path*" },
+    { source: "/lots/:path*" },
+    { source: "/units/:path*" },
+    { source: "/sensors" },
+    { source: "/work-orders" },
+    { source: "/models" },
+    { source: "/methods" },
+    { source: "/guide" },
   ],
 };

@@ -9,15 +9,27 @@ from pydantic import TypeAdapter
 
 from yield_guardian.contracts.chat import ChatEvent
 from yield_guardian.contracts.investigation import InvestigationEvent
-from yield_guardian.contracts.line import LineEvent
 
 FIXTURES = Path(__file__).resolve().parents[4] / "packages" / "contracts" / "fixtures"
 STREAMS: dict[str, Any] = {
     "stream_investigation_events": list[InvestigationEvent],
     "chat": list[ChatEvent],
-    "line_socket": list[LineEvent],
 }
 NO_FIXTURE = {"get_health", "get_readiness", "logout"}
+# Live runs and uploads (PLAN_V2 §3) have no synthetic fixtures: real data only. Their tests run
+# real inputs through the routes (tests/api/test_runs.py, tests/live/test_runs_real.py), and the
+# downloads are files, not JSON.
+NO_FIXTURE |= {
+    "create_run",
+    "get_run",
+    "get_run_unit_chart",
+    "list_run_cases",
+    "list_draw_layouts",
+    "stream_run_events",
+    "create_upload",
+    "get_upload_template",
+    "get_upload_example",
+}
 
 
 def _walk(routes: list[Any]) -> list[APIRoute]:

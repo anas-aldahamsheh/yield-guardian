@@ -48,10 +48,16 @@ export function WaferAttribution({
           onClick={() => setOpen((o) => !o)}
           className="inline-block min-h-6 cursor-pointer rounded-sm py-0.5 text-left text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
         >
-          {children ? "How it was chosen, licence and full attribution" : "Licence and full attribution"}
+          {children
+            ? "How it was chosen, licence and full attribution"
+            : "Licence and full attribution"}
         </button>
       </p>
-      <div id={id} hidden={!open} className="swap-in mt-3 grid grid-cols-[minmax(0,1fr)] gap-3 break-words">
+      <div
+        id={id}
+        hidden={!open}
+        className="swap-in mt-3 grid grid-cols-[minmax(0,1fr)] gap-3 break-words"
+      >
         {children}
         {open ? (
           <Markdown className="[&_h2]:text-[14px] [&_li]:text-[13px] [&_li]:leading-5 [&_p]:text-[13px] [&_p]:leading-5 [&_ul]:text-[13px]">

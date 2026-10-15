@@ -342,7 +342,8 @@ class UnitChartResult(Contract):
     z: list[float | None] | None = Field(
         None,
         description="Standardised reading of each monitored sensor (order of `features`), null "
-        "where missing. Sent for at most the first 200 units; GET the run for the rest.",
+        "where missing. Sent for at most the first 200 units; any unit's is at "
+        "GET /runs/{run_id}/units/{index}/chart.",
     )
 
 
@@ -420,6 +421,10 @@ class WaferPatternResult(Contract):
     stage: Literal["wafer_pattern"] = "wafer_pattern"
     wafers: list[WaferPatternItem]
     accept_threshold: Probability
+    energy_threshold: float = Field(
+        description="A wafer whose energy score is above this counts as unknown in the lot test "
+        "(as the training-period reference rates did), not as its predicted pattern."
+    )
     temperature: float = Field(gt=0)
     method: str
     model: BundleRef

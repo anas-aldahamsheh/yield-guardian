@@ -40,7 +40,10 @@ function show(kind: Kind, title: string, options?: Options) {
   });
 }
 
-export const toast = Object.assign((title: string, options?: Options) => show("message", title, options), {
-  success: (title: string, options?: Options) => show("success", title, options),
-  error: (title: string, options?: Options) => show("error", title, options),
-});
+export const toast = Object.assign(
+  (title: string, options?: Options) => show("message", title, options),
+  {
+    success: (title: string, options?: Options) => show("success", title, options),
+    error: (title: string, options?: Options) => show("error", title, options),
+  },
+);

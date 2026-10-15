@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronDown, Search } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
-import { PageFrame } from "@/components/page";
+import { ScrollRegion } from "@/components/scroll-region";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -34,8 +35,8 @@ function blockText(block: Block): string {
       return block.items.join(" ");
     case "table":
       return [...block.head, ...block.rows.flat()].join(" ");
-    case "fix":
-      return [block.problem, block.solution, block.result ?? ""].join(" ");
+    case "shot":
+      return block.caption;
   }
 }
 
@@ -53,7 +54,11 @@ export function matchEntries(entries: readonly Entry[], query: string): Entry[] 
   });
 }
 
-export function GuideView() {
+/**
+ * The Arabic guide as the last section of How it works: search, categories and entries that
+ * open in place. `#<entry id>` in the address opens that entry.
+ */
+export function GuideSection() {
   const [category, setCategory] = useState<string>(ALL);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set());
@@ -104,100 +109,101 @@ export function GuideView() {
   })).filter((g) => g.entries.length > 0);
 
   return (
-    <PageFrame>
-      <div lang="ar" dir="rtl" className="guide mx-auto max-w-[920px]">
-        <header className="mb-6">
-          <h1 className="text-[28px] leading-10 font-semibold text-ink sm:text-[34px] sm:leading-[48px]">
-            دليل الاستخدام
-          </h1>
-          <p className="mt-2 text-[16px] leading-8 text-ink-2">
-            شرح كامل لـ Yield Guardian بكلام بسيط: ماذا يفعل، وكيف تستخدم كل شاشة، وما الموديلات
-            وعلى كم بيانات تدربت، ومن أين تأتي البيانات وإلى أين تذهب، والمشاكل التي واجهناها وكيف
-            حللناها، وكيف تتحقق من النجاح بنفسك. كل رقم هنا منقول من بطاقات الموديلات وتقارير
-            القياس، ولا يوجد رقم مقدّر.
-          </p>
-        </header>
+    <div className="guide mx-auto max-w-[920px]">
+      <header className="mb-6">
+        <h2
+          id="guide-title"
+          className="text-[26px] leading-10 font-semibold text-ink sm:text-[30px] sm:leading-[44px]"
+        >
+          دليل الاستخدام
+        </h2>
+        <p className="mt-2 max-w-[68ch] text-[16px] leading-8 text-ink-2">
+          البرنامج خطوة بخطوة بكلام بسيط: الصفحات، وطرق البدء، والمحطات، والإنذارات، والتحقيق،
+          والموافقة، وأوامر العمل، والمحادثة، والحاسبة، والحدود. أسماء الأزرار بالإنجليزية كما تظهر
+          على الشاشة. لا يحتوي الدليل أرقاماً مقاسة: الأرقام كلها في الأقسام أعلاه، تُقرأ مباشرة من
+          الموديلات.
+        </p>
+      </header>
 
-        <div className="sticky top-bar z-20 -mx-gutter mb-8 border-y border-hairline bg-room px-gutter py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="relative min-w-0 flex-1 basis-56">
-              <span className="sr-only">ابحث في الدليل</span>
-              <Search
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-ink-3"
-              />
-              <Input
-                type="search"
-                value={query}
-                onChange={(e) => onSearch(e.target.value)}
-                placeholder="ابحث: مثلاً «الإنذار» أو «CNN» أو «البيانات»"
-                className="h-10 pr-9 text-[15px]"
-              />
-            </label>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setOpen(new Set(shown.map((e) => e.id)))}
-              >
-                افتح الكل
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setOpen(new Set())}>
-                أغلق الكل
-              </Button>
-            </div>
-          </div>
-          <div
-            role="group"
-            aria-label="اختر قسماً"
-            className="-mx-gutter mt-3 flex gap-1.5 overflow-x-auto px-gutter pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
-          >
-            <Chip
-              active={category === ALL}
-              onClick={() => setCategory(ALL)}
-              label="الكل"
-              count={counts.all}
+      <div className="sticky top-bar z-20 -mx-gutter mb-8 border-y border-hairline bg-room px-gutter py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="relative min-w-0 flex-1 basis-56">
+            <span className="sr-only">ابحث في الدليل</span>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-ink-3"
             />
-            {CATEGORIES.map((c) => (
-              <Chip
-                key={c.id}
-                active={category === c.id}
-                onClick={() => setCategory(c.id)}
-                label={c.label}
-                count={counts.byCategory.get(c.id) ?? 0}
-              />
-            ))}
+            <Input
+              type="search"
+              value={query}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="ابحث: مثلاً «الإنذار» أو «Investigate» أو «ملف»"
+              className="h-10 pr-9 text-[15px]"
+            />
+          </label>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOpen(new Set(shown.map((e) => e.id)))}
+            >
+              افتح الكل
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setOpen(new Set())}>
+              أغلق الكل
+            </Button>
           </div>
         </div>
-
-        {groups.length === 0 ? (
-          <div className="panel px-5 py-8 text-center text-[15px] leading-7 text-ink-2">
-            لا توجد نتيجة لـ «{query}» في هذا القسم. جرّب كلمة أخرى أو اختر «الكل».
-          </div>
-        ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-12">
-            {groups.map(({ category: c, entries }) => (
-              <section key={c.id} aria-labelledby={`cat-${c.id}`}>
-                <h2 id={`cat-${c.id}`} className="text-[22px] leading-9 font-semibold text-ink">
-                  {c.label}
-                </h2>
-                <p className="mt-1 mb-4 text-[15px] leading-7 text-ink-2">{c.lede}</p>
-                <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-                  {entries.map((e) => (
-                    <EntryPanel
-                      key={e.id}
-                      entry={e}
-                      open={open.has(e.id)}
-                      onToggle={(o) => toggle(e.id, o)}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+        <div
+          role="group"
+          aria-label="اختر قسماً"
+          className="-mx-gutter mt-3 flex gap-1.5 overflow-x-auto px-gutter pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+        >
+          <Chip
+            active={category === ALL}
+            onClick={() => setCategory(ALL)}
+            label="الكل"
+            count={counts.all}
+          />
+          {CATEGORIES.map((c) => (
+            <Chip
+              key={c.id}
+              active={category === c.id}
+              onClick={() => setCategory(c.id)}
+              label={c.label}
+              count={counts.byCategory.get(c.id) ?? 0}
+            />
+          ))}
+        </div>
       </div>
-    </PageFrame>
+
+      {groups.length === 0 ? (
+        <div className="panel px-5 py-8 text-center text-[15px] leading-7 text-ink-2">
+          لا توجد نتيجة لـ «{query}» في هذا القسم. جرّب كلمة أخرى أو اختر «الكل».
+        </div>
+      ) : (
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-12">
+          {groups.map(({ category: c, entries }) => (
+            <section key={c.id} aria-labelledby={`guide-cat-${c.id}`}>
+              <h3 id={`guide-cat-${c.id}`} className="text-[21px] leading-9 font-semibold text-ink">
+                {c.label}
+              </h3>
+              <p className="mt-1 mb-4 text-[15px] leading-7 text-ink-2">{c.lede}</p>
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+                {entries.map((e) => (
+                  <EntryPanel
+                    key={e.id}
+                    entry={e}
+                    open={open.has(e.id)}
+                    onToggle={(o) => toggle(e.id, o)}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -255,14 +261,14 @@ function EntryPanel({
       </summary>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 border-t border-hairline px-4 pt-4 pb-5 text-[15px] leading-8 text-ink sm:px-5">
         {entry.blocks.map((b, i) => (
-          <BlockView key={i} block={b} />
+          <BlockView key={i} block={b} label={`جدول ${i + 1}: ${entry.title}`} />
         ))}
       </div>
     </details>
   );
 }
 
-function BlockView({ block }: { block: Block }) {
+function BlockView({ block, label }: { block: Block; label: string }) {
   switch (block.type) {
     case "p":
       return <p>{block.text}</p>;
@@ -291,7 +297,7 @@ function BlockView({ block }: { block: Block }) {
     case "table": {
       const hasHead = block.head.some((h) => h.trim() !== "");
       return (
-        <div className="overflow-x-auto">
+        <ScrollRegion label={label}>
           <table className="w-full min-w-[480px] border-collapse text-[14px] leading-7">
             {hasHead ? (
               <thead>
@@ -330,27 +336,26 @@ function BlockView({ block }: { block: Block }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       );
     }
-    case "fix":
+    case "shot":
+      // A screenshot of the real product, at most its own width (a narrow crop is not blown up).
+      // The files are already compressed (public/guide/), so they are served as they are and the
+      // interface text in them stays sharp.
       return (
-        <dl className="grid grid-cols-[minmax(0,1fr)] gap-3">
-          <div>
-            <dt className="text-[13px] font-semibold text-fail">المشكلة</dt>
-            <dd>{block.problem}</dd>
-          </div>
-          <div>
-            <dt className="text-[13px] font-semibold text-pass">الحل</dt>
-            <dd>{block.solution}</dd>
-          </div>
-          {block.result ? (
-            <div>
-              <dt className="text-[13px] font-semibold text-ink-3">النتيجة</dt>
-              <dd>{block.result}</dd>
-            </div>
-          ) : null}
-        </dl>
+        <figure className="grid gap-2" data-shot={block.id}>
+          <Image
+            src={block.src}
+            alt={block.alt}
+            width={block.width}
+            height={block.height}
+            unoptimized
+            style={{ maxWidth: block.width }}
+            className="h-auto w-full border border-hairline"
+          />
+          <figcaption className="text-[13px] leading-6 text-ink-3">{block.caption}</figcaption>
+        </figure>
       );
   }
 }

@@ -9,16 +9,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
 from yield_guardian import APP_NAME, __version__
+from yield_guardian.api.limits import BodyLimit
 from yield_guardian.api.openapi import build_openapi
 from yield_guardian.api.problems import install_problem_handlers
 from yield_guardian.api.routes import (
+    alarms,
     chat,
     investigations,
     knowledge,
-    line,
     llm,
     meta,
     methods,
+    runs,
     secom,
     session,
     wafers,
@@ -26,17 +28,21 @@ from yield_guardian.api.routes import (
 )
 from yield_guardian.core.logging import configure_logging
 from yield_guardian.core.settings import Settings, get_settings
+from yield_guardian.live.tabular import MAX_BYTES
 from yield_guardian.services.registry import Resource, ServiceRegistry
 
 API_PREFIX = "/api/v1"
+UPLOAD_BODY_LIMIT = MAX_BYTES + 1_048_576
+"""An uploaded file may hold MAX_BYTES; the multipart framing around it gets 1 MB more."""
 
 DESCRIPTION = """\
 Yield Guardian API: semiconductor yield investigation on real fab data (SECOM, WM-811K).
 
 * Errors are RFC 9457 `application/problem+json` (schema `Problem`).
 * Investigator events stream as server-sent events (schema `InvestigationEvent`).
-* The live line streams on the WebSocket `/ws/line` as JSON text frames (schema `LineEvent`).
-* Actions need a session cookie and the `X-CSRF-Token` header (see `/session`).
+* Run events stream as server-sent events (schema `RunEvent`).
+* Runs and uploads need no sign-in. Actions (investigations, decisions, work orders) need a
+  session cookie and the `X-CSRF-Token` header (see `/session`).
 """
 
 
@@ -79,6 +85,7 @@ def create_app(
     )
     app.state.registry = registry
     install_problem_handlers(app)
+    app.add_middleware(BodyLimit, paths=(f"{API_PREFIX}/uploads",), max_bytes=UPLOAD_BODY_LIMIT)
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -89,7 +96,8 @@ def create_app(
         )
     for module in (
         meta,
-        line,
+        runs,
+        alarms,
         secom,
         investigations,
         work,
@@ -101,7 +109,6 @@ def create_app(
         session,
     ):
         app.include_router(module.router, prefix=API_PREFIX)
-    app.include_router(line.ws_router)
 
     def openapi() -> dict[str, Any]:
         if app.openapi_schema is None:

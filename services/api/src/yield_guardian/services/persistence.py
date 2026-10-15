@@ -1,4 +1,5 @@
-"""Builds the database-backed services: sessions, investigations, work orders, audit, alarm states."""
+"""Builds the database-backed services: sessions, investigations, work orders, audit, alarm
+states and live runs."""
 
 from dataclasses import dataclass, field
 
@@ -10,6 +11,7 @@ from yield_guardian.services.audit import DbAuditLog
 from yield_guardian.services.investigations import DbInvestigationStore
 from yield_guardian.services.jobs import JobWorker, RunnerProvider
 from yield_guardian.services.registry import Resource, ServiceRegistry
+from yield_guardian.services.runs import DbRunStore
 from yield_guardian.services.sessions import DbSessionManager
 from yield_guardian.services.workorders import DbWorkOrderStore
 
@@ -24,6 +26,7 @@ class Persistence:
     audit: DbAuditLog
     alarms: DbAlarmStateStore
     jobs: JobWorker
+    runs: DbRunStore
     resources: list[Resource] = field(default_factory=list)
 
     def install(self, registry: ServiceRegistry) -> None:
@@ -32,6 +35,7 @@ class Persistence:
         registry.investigations = self.investigations
         registry.work_orders = self.work_orders
         registry.audit = self.audit
+        registry.run_reader = self.runs
         registry.resources.extend(self.resources)
 
         def on_status(ok: bool) -> None:
@@ -60,5 +64,6 @@ def build_persistence(
         audit=DbAuditLog(database.sessionmaker),
         alarms=DbAlarmStateStore(database.sessionmaker),
         jobs=jobs,
+        runs=DbRunStore(database.sessionmaker, notifier),
         resources=[database, notifier, jobs],
     )

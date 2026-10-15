@@ -9,32 +9,58 @@ import { useState } from "react";
 import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useApi } from "@/lib/api/context";
 import { unwrap } from "@/lib/api/client";
 import { formatInt } from "@/lib/format";
 import { ACTOR_ROLE, AUDIT_ACTION } from "@/lib/labels";
+import { investigationHref, workOrderHref } from "@/lib/routes";
 
 type Action = AuditEntry["action"];
 const PAGE = 50;
 
 /** Where an audited target lives in the product, when it has a page. */
 export function targetHref(kind: string, id: string): string | null {
-  if (kind === "investigation") return `/investigations/${encodeURIComponent(id)}`;
-  if (kind === "work_order") return `/work-orders/${encodeURIComponent(id)}`;
-  if (kind === "role") return "/models";
+  if (kind === "investigation") return investigationHref(id);
+  if (kind === "work_order") return workOrderHref(id);
+  if (kind === "role") return "/admin";
   return null;
 }
 
 /** A detail value as text, with product IDs as links. */
 function DetailValue({ value }: { value: unknown }) {
   if (typeof value === "string") {
-    if (/^inv_[0-9a-z]+$/.test(value)) return <Link href={`/investigations/${value}`} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
-    if (/^WO-\d{6}$/.test(value)) return <Link href={`/work-orders/${value}`} className="underline decoration-hairline-strong underline-offset-4">{value}</Link>;
+    if (/^inv_[0-9a-z]+$/.test(value))
+      return (
+        <Link
+          href={investigationHref(value)}
+          className="underline decoration-hairline-strong underline-offset-4"
+        >
+          {value}
+        </Link>
+      );
+    if (/^WO-\d{6}$/.test(value))
+      return (
+        <Link
+          href={workOrderHref(value)}
+          className="underline decoration-hairline-strong underline-offset-4"
+        >
+          {value}
+        </Link>
+      );
     return <>{value}</>;
   }
   if (value == null) return <span className="text-ink-3">none</span>;
-  if (Array.isArray(value)) return <>{value.map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v))).join(", ")}</>;
+  if (Array.isArray(value))
+    return (
+      <>{value.map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v))).join(", ")}</>
+    );
   if (typeof value === "object") return <>{JSON.stringify(value)}</>;
   return <>{String(value)}</>;
 }
@@ -52,13 +78,21 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
     queryFn: ({ pageParam, signal }) =>
       unwrap(
         api.GET("/api/v1/audit", {
-          params: { query: { limit: targetId ? 200 : PAGE, ...(pageParam ? { cursor: pageParam } : {}), ...(action !== "all" ? { action } : {}) } },
+          params: {
+            query: {
+              limit: targetId ? 200 : PAGE,
+              ...(pageParam ? { cursor: pageParam } : {}),
+              ...(action !== "all" ? { action } : {}),
+            },
+          },
           signal,
         }),
       ),
     getNextPageParam: (last) => last.next_cursor ?? undefined,
   });
-  const entries = (query.data?.pages.flatMap((p) => p.items) ?? []).filter((e) => !targetId || e.target_id === targetId);
+  const entries = (query.data?.pages.flatMap((p) => p.items) ?? []).filter(
+    (e) => !targetId || e.target_id === targetId,
+  );
   const total = query.data?.pages[0]?.total;
 
   return (
@@ -92,7 +126,11 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
       bodyClassName="px-0 sm:px-0"
     >
       {query.isError ? (
-        <ErrorState className="mx-4 sm:mx-5" error={query.error} onRetry={() => void query.refetch()} />
+        <ErrorState
+          className="mx-4 sm:mx-5"
+          error={query.error}
+          onRetry={() => void query.refetch()}
+        />
       ) : !query.data ? (
         <Placeholder className="mx-4 h-40 sm:mx-5" label="Loading the audit log" />
       ) : entries.length === 0 ? (
@@ -106,13 +144,23 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
               const href = targetHref(e.target_kind, e.target_id);
               const details = Object.entries(e.details ?? {});
               return (
-                <li key={e.audit_id} className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5">
+                <li
+                  key={e.audit_id}
+                  className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5"
+                >
                   <LocalDateTime iso={e.at} className="tnum text-[12px] leading-5 text-ink-3" />
                   <div className="min-w-0 text-[14px] leading-5">
                     <p className="text-ink">
-                      <span className={e.action === "session.login_failed" ? "text-fail" : undefined}>{AUDIT_ACTION[e.action] ?? e.action}</span>{" "}
+                      <span
+                        className={e.action === "session.login_failed" ? "text-fail" : undefined}
+                      >
+                        {AUDIT_ACTION[e.action] ?? e.action}
+                      </span>{" "}
                       {href ? (
-                        <Link href={href} className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
+                        <Link
+                          href={href}
+                          className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+                        >
                           {e.target_id}
                         </Link>
                       ) : e.target_id ? (
@@ -142,7 +190,12 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
           </ol>
           {query.hasNextPage && !targetId ? (
             <div className="px-4 pt-3 sm:px-5">
-              <Button variant="outline" size="sm" onClick={() => void query.fetchNextPage()} disabled={query.isFetchingNextPage}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void query.fetchNextPage()}
+                disabled={query.isFetchingNextPage}
+              >
                 {query.isFetchingNextPage ? "Loading…" : "Show older entries"}
               </Button>
             </div>

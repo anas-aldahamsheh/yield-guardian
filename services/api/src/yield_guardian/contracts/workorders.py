@@ -24,6 +24,16 @@ AuditAction = Literal[
 ]
 
 
+class ConfirmedCause(Contract):
+    """The cause the fab confirmed when it closed the work order. It is the fab's own record,
+    shown as such; it is never given to a language model, as evidence or as a prediction."""
+
+    text: str = Field(min_length=1, max_length=2000)
+    hypothesis_index: Count | None = Field(
+        None, description="The hypothesis of the investigation's report it confirms, if any."
+    )
+
+
 class WorkOrder(Contract):
     work_order_id: WorkOrderId
     investigation_id: InvestigationId
@@ -38,6 +48,9 @@ class WorkOrder(Contract):
     outcome_confirmed: bool = Field(
         description="An engineer confirmed the outcome; only then may later reports use causal wording."
     )
+    confirmed_cause: ConfirmedCause | None = Field(
+        None, description="Recorded when the work order closed (status done)."
+    )
 
 
 class WorkOrderUpdate(Contract):
@@ -45,6 +58,11 @@ class WorkOrderUpdate(Contract):
     note: str | None = Field(None, max_length=2000)
     outcome: str | None = Field(None, max_length=2000)
     outcome_confirmed: bool | None = None
+    confirmed_cause: ConfirmedCause | None = Field(
+        None,
+        description="Only with the work order closed (status done, now or in this update); "
+        "an explicit null clears it. Reopening the work order withdraws it.",
+    )
 
 
 class WorkOrderPage(Contract):

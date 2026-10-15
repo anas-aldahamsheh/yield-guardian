@@ -1,6 +1,6 @@
 /**
  * Types of the Yield Guardian API, generated from openapi.json (see README.md).
- * Every schema is exported by name, for example `LineState` or `InvestigationEvent`.
+ * Every schema is exported by name, for example `RunEvent` or `InvestigationEvent`.
  */
 export type * from "./schema";
 export type { components, operations, paths } from "./schema";

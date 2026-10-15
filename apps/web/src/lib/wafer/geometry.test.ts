@@ -11,16 +11,25 @@ function grid(rows: string[]) {
 
 describe("decodeWaferCells", () => {
   it("decodes base64 row-major bytes", () => {
-    const cells = decodeWaferCells({ encoding: "uint8-base64", height: 2, width: 3, cells: btoa("\x00\x01\x02\x01\x01\x00") });
+    const cells = decodeWaferCells({
+      encoding: "uint8-base64",
+      height: 2,
+      width: 3,
+      cells: btoa("\x00\x01\x02\x01\x01\x00"),
+    });
     expect(Array.from(cells)).toEqual([0, 1, 2, 1, 1, 0]);
   });
 
   it("rejects a map whose size does not match", () => {
-    expect(() => decodeWaferCells({ encoding: "uint8-base64", height: 2, width: 2, cells: btoa("\x00\x01") })).toThrow();
+    expect(() =>
+      decodeWaferCells({ encoding: "uint8-base64", height: 2, width: 2, cells: btoa("\x00\x01") }),
+    ).toThrow();
   });
 
   it("rejects values other than 0, 1 and 2", () => {
-    expect(() => decodeWaferCells({ encoding: "uint8-base64", height: 1, width: 1, cells: btoa("\x03") })).toThrow();
+    expect(() =>
+      decodeWaferCells({ encoding: "uint8-base64", height: 1, width: 1, cells: btoa("\x03") }),
+    ).toThrow();
   });
 });
 

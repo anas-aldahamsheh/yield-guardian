@@ -3,7 +3,7 @@
 One compose file runs the whole product: PostgreSQL with pgvector, a one-shot migration, the API, the web app and a Caddy gateway. Only the gateway is published.
 
 ```
-browser ──► gateway (Caddy) ──/api/*, /ws/*──► api:8000 ──► db:5432 (pgvector)
+browser ──► gateway (Caddy) ──/api/*────────► api:8000 ──► db:5432 (pgvector)
                             └─everything else─► web:3000 ──(server side)──► api:8000
 ```
 
@@ -51,7 +51,7 @@ Every setting comes from `deploy/compose/.env` and is documented in the reposito
 | api | `PUBLIC_URL` | `.env` value, else `http://localhost:${HTTP_PORT}` |
 | api (image) | `ARTIFACTS_DIR`, `SECOM_DATA_DIR` | `/app/artifacts`, `/app/data/secom` |
 | web | `API_INTERNAL_URL` | `http://api:8000` (server-side requests) |
-| web | `API_PUBLIC_URL` | `/api/v1` (browsers use the gateway's origin; the live line is `/ws/line`) |
+| web | `API_PUBLIC_URL` | `/api/v1` (browsers use the gateway's origin; runs stream as server-sent events under it) |
 | gateway | `SITE_ADDRESS` | `DOMAIN`, else `:80` |
 
 The API and the migration receive the whole `.env` file; the web app receives only the two URLs above. Leave optional settings commented out rather than empty, and quote values containing `$` with single quotes.

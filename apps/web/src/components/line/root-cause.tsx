@@ -11,12 +11,15 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatPlantTime } from "@/lib/format";
 import { ALARM_KIND } from "@/lib/labels";
+import { unitHref } from "@/lib/routes";
 
 const TOP = 8;
 
 /** The newest open T² or SPE alarm (alarms arrive newest first). */
 export function newestControlAlarm(alarms: Alarm[]): (Alarm & { kind: "t2" | "spe" }) | undefined {
-  return alarms.find((a): a is Alarm & { kind: "t2" | "spe" } => a.kind === "t2" || a.kind === "spe");
+  return alarms.find(
+    (a): a is Alarm & { kind: "t2" | "spe" } => a.kind === "t2" || a.kind === "spe",
+  );
 }
 
 /**
@@ -26,7 +29,10 @@ export function newestControlAlarm(alarms: Alarm[]): (Alarm & { kind: "t2" | "sp
 export function RootCause({ alarms, className }: { alarms: Alarm[]; className?: string }) {
   const api = useApi();
   const alarm = newestControlAlarm(alarms);
-  const query = useQuery({ ...q.contributions(api, alarm?.unit_id ?? 0, alarm?.kind ?? "t2", TOP), enabled: alarm != null });
+  const query = useQuery({
+    ...q.contributions(api, alarm?.unit_id ?? 0, alarm?.kind ?? "t2", TOP),
+    enabled: alarm != null,
+  });
 
   return (
     <Panel
@@ -36,12 +42,16 @@ export function RootCause({ alarms, className }: { alarms: Alarm[]; className?: 
           <>
             <span className="tnum">
               {ALARM_KIND[alarm.kind]} {alarm.severity === "alarm" ? "alarm" : "warning"} on{" "}
-              <Link href={`/units/${alarm.unit_id}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+              <Link
+                href={unitHref(alarm.unit_id)}
+                className="text-ink underline decoration-hairline-strong underline-offset-4"
+              >
                 unit {formatInt(alarm.unit_id)}
               </Link>
               , {formatPlantTime(alarm.timestamp)}.
             </span>{" "}
-            The sensors that account for most of the statistic. They move with the alarm; that does not make them its cause.
+            The sensors that account for most of the statistic. They move with the alarm; that does
+            not make them its cause.
           </>
         ) : (
           "The sensors that account for most of a control-chart statistic, for the newest T² or SPE alarm."
@@ -50,7 +60,11 @@ export function RootCause({ alarms, className }: { alarms: Alarm[]; className?: 
       className={className}
     >
       {alarm ? (
-        <QueryView query={query} loading={<Placeholder className="h-64" label="Loading contributions" />} compactError>
+        <QueryView
+          query={query}
+          loading={<Placeholder className="h-64" label="Loading contributions" />}
+          compactError
+        >
           {(c) => <ContributionTable data={c} />}
         </QueryView>
       ) : (

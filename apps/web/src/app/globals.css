@@ -333,7 +333,8 @@
 
   /* Italic reading text takes the italic family, which is not preloaded (see layout.tsx). */
   :is(em, i, .italic) {
-    font-family: var(--font-reading-italic), var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+    font-family:
+      var(--font-reading-italic), var(--font-reading), ui-sans-serif, system-ui, sans-serif;
   }
   :is(.font-serif, .written) :is(em, i, .italic) {
     font-family: inherit;
@@ -396,10 +397,14 @@
       linear-gradient(var(--fid-c), var(--fid-c)) top left / var(--fid-w) var(--fid-len) no-repeat,
       linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-len) var(--fid-w) no-repeat,
       linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-w) var(--fid-len) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-len) var(--fid-w) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-w) var(--fid-len) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-len) var(--fid-w) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-w) var(--fid-len) no-repeat;
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-len) var(--fid-w)
+        no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-w) var(--fid-len)
+        no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-len) var(--fid-w)
+        no-repeat,
+      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-w) var(--fid-len)
+        no-repeat;
   }
 
   /*

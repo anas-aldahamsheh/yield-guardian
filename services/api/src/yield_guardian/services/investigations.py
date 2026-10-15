@@ -20,6 +20,7 @@ import structlog
 from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from yield_guardian.agent.run_results import find_alarm, parse_run_alarm_ref
 from yield_guardian.contracts.base import Problem
 from yield_guardian.contracts.investigation import (
     Decision,
@@ -46,9 +47,11 @@ from yield_guardian.contracts.investigation import (
     VerificationEvent,
 )
 from yield_guardian.contracts.models import Usage
-from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
+from yield_guardian.contracts.runs import RunAlarm
+from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError, NotReadyError
 from yield_guardian.db.notify import EVENTS_CHANNEL, JOBS_CHANNEL, Notifier
 from yield_guardian.db.tables import InvestigationEventRow, InvestigationJobRow, InvestigationRow
+from yield_guardian.live.protocols import RunReader
 from yield_guardian.services import alarms, audit, cursors
 from yield_guardian.services.errors import ConflictError
 from yield_guardian.services.protocols import ActiveSession
@@ -108,7 +111,41 @@ def trigger_title(trigger: InvestigationTrigger) -> str:
         return f"Wafer {ref}"
     if trigger.kind == "lot" and _LOT_REF.match(ref):
         return f"Lot {ref}"
+    if trigger.kind == "run_alarm" and (parsed := parse_run_alarm_ref(ref)):
+        return f"Run alarm {parsed[1]} in {parsed[0]}"
     raise InvalidArgumentError(f"{ref!r} is not a valid {trigger.kind} reference.")
+
+
+def run_alarm_title(alarm: RunAlarm) -> str:
+    """A run alarm's investigation title, from the alarm's own code-written title."""
+    if alarm.unit_index is not None:
+        item = f"unit {alarm.unit_id or alarm.unit_index}"
+    elif alarm.wafer_index is not None:
+        item = f"wafer {alarm.wafer_index}" + (f" of lot {alarm.lot}" if alarm.lot else "")
+    elif alarm.lot is not None:
+        item = f"lot {alarm.lot}"
+    else:
+        item = "the run"
+    return f"{alarm.title} on {item} ({alarm.alarm_id})"
+
+
+async def check_run_alarm(reader: RunReader | None, trigger: InvestigationTrigger) -> str:
+    """For a ``run_alarm`` trigger: the run and the alarm must exist; returns the title.
+    NotReadyError without a run store, NotFoundError for an unknown run or alarm."""
+    trigger_title(trigger)
+    parsed = parse_run_alarm_ref(trigger.ref)
+    if parsed is None:  # trigger_title has refused it already
+        raise InvalidArgumentError(f"{trigger.ref!r} is not a valid run_alarm reference.")
+    if reader is None:
+        raise NotReadyError("The run store is not available yet.")
+    run_id, alarm_id = parsed
+    run = await reader.get_run(run_id)
+    if run is None:
+        raise NotFoundError(f"Run {run_id} does not exist or has expired.")
+    alarm = find_alarm(run, alarm_id)
+    if alarm is None:
+        raise NotFoundError(f"Run {run_id} has no alarm {alarm_id}.")
+    return run_alarm_title(alarm)
 
 
 def _trigger(row: InvestigationRow) -> InvestigationTrigger:
@@ -350,13 +387,14 @@ class DbInvestigationStore:
         return StoreSink(self._sessionmaker, investigation_id, resuming=resuming)
 
     async def create(
-        self, trigger: InvestigationTrigger, *, session: ActiveSession
+        self, trigger: InvestigationTrigger, *, session: ActiveSession, title: str | None = None
     ) -> Investigation:
-        """Store a queued investigation and enqueue its run.
+        """Store a queued investigation and enqueue its run; ``title`` replaces the one
+        :func:`trigger_title` writes (a run alarm's title read from the run).
 
-        An alarm that is already being investigated returns that investigation instead.
+        An alarm or run alarm already being investigated returns that investigation instead.
         """
-        return await self._create(trigger, audit.Actor.of(session), recorded=False)
+        return await self._create(trigger, audit.Actor.of(session), recorded=False, title=title)
 
     async def create_recorded(
         self, trigger: InvestigationTrigger, *, actor: audit.Actor, as_of: int
@@ -373,8 +411,10 @@ class DbInvestigationStore:
         *,
         recorded: bool,
         as_of: int | None = None,
+        title: str | None = None,
     ) -> Investigation:
-        title = trigger_title(trigger)
+        default_title = trigger_title(trigger)  # also refuses a reference that does not fit
+        title = title or default_title
         now = datetime.now(UTC)
         async with self._sessionmaker() as db, db.begin():
             if trigger.kind == "alarm":
@@ -383,6 +423,21 @@ class DbInvestigationStore:
                     current = await db.get(InvestigationRow, alarm.investigation_id)
                     if current is not None and current.status not in TERMINAL:
                         return to_investigation(current)
+            if trigger.kind == "run_alarm":
+                # Run alarms live in the run store; one transaction at a time per alarm.
+                await db.execute(select(func.pg_advisory_xact_lock(func.hashtext(trigger.ref))))
+                current = await db.scalar(
+                    select(InvestigationRow)
+                    .where(
+                        InvestigationRow.trigger_kind == "run_alarm",
+                        InvestigationRow.trigger_ref == trigger.ref,
+                        InvestigationRow.status.not_in(TERMINAL),
+                    )
+                    .order_by(InvestigationRow.created_at.desc())
+                    .limit(1)
+                )
+                if current is not None:
+                    return to_investigation(current)
             row = InvestigationRow(
                 investigation_id=new_investigation_id(),
                 title=title,
@@ -487,6 +542,21 @@ class DbInvestigationStore:
         )
         async with self._sessionmaker() as db:
             return builtins.list((await db.scalars(query)).all())
+
+    async def for_run(self, run_id: str) -> dict[str, str]:
+        """Alarm ID to the newest investigation of that alarm, for one run's alarms (the run
+        store fills ``RunAlarm.investigation_id`` from it)."""
+        query = (
+            select(InvestigationRow.trigger_ref, InvestigationRow.investigation_id)
+            .where(
+                InvestigationRow.trigger_kind == "run_alarm",
+                InvestigationRow.trigger_ref.startswith(f"{run_id}:", autoescape=True),
+            )
+            .order_by(InvestigationRow.created_at, InvestigationRow.investigation_id)
+        )
+        async with self._sessionmaker() as db:
+            rows = (await db.execute(query)).all()
+        return {ref.split(":", 1)[1]: investigation_id for ref, investigation_id in rows}
 
     async def get_evidence(self, investigation_id: str, evidence_id: str) -> Evidence:
         investigation = await self.get(investigation_id)

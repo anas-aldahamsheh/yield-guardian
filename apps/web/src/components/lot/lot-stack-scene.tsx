@@ -29,14 +29,32 @@ function buildStack(wafers: StackWafer[]) {
   const passTone = readColour("--ink-3", "#96948a");
   const disc = new THREE.CylinderGeometry(1, 1, 0.012, 96);
   const die = new THREE.BoxGeometry(1, 0.004, 1);
-  const discMaterial = new THREE.MeshBasicMaterial({ color: readColour("--die-2", "#24221b"), transparent: true, opacity: 0.92 });
-  const edgeMaterial = new THREE.LineBasicMaterial({ color: readColour("--hairline-strong", "#4f4c43") });
+  const discMaterial = new THREE.MeshBasicMaterial({
+    color: readColour("--die-2", "#24221b"),
+    transparent: true,
+    opacity: 0.92,
+  });
+  const edgeMaterial = new THREE.LineBasicMaterial({
+    color: readColour("--hairline-strong", "#4f4c43"),
+  });
   const failMaterial = new THREE.MeshBasicMaterial({ color: fail });
-  const passMaterial = new THREE.MeshBasicMaterial({ color: passTone, transparent: true, opacity: 0.18 });
+  const passMaterial = new THREE.MeshBasicMaterial({
+    color: passTone,
+    transparent: true,
+    opacity: 0.18,
+  });
   const ring = new THREE.EdgesGeometry(new THREE.CylinderGeometry(1, 1, 0.012, 96), 30);
   const slots: THREE.Group[] = [];
   const m = new THREE.Matrix4();
-  const disposables: { dispose(): void }[] = [disc, die, discMaterial, edgeMaterial, failMaterial, passMaterial, ring];
+  const disposables: { dispose(): void }[] = [
+    disc,
+    die,
+    discMaterial,
+    edgeMaterial,
+    failMaterial,
+    passMaterial,
+    ring,
+  ];
 
   for (const w of wafers) {
     const g = new THREE.Group();

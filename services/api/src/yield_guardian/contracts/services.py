@@ -4,12 +4,12 @@ The lead implements `SecomService`, `WaferService` and `KnowledgeService` (read-
 value from a verified artifact bundle or the database). The AI layer calls them through its tools
 and implements `InvestigationRunner`, `ChatResponder` and `LlmAdmin`, which the API calls.
 
-Services never return units after the plant clock's position: those have not come off the line.
+SECOM reads cover every unit; a recorded investigation reads the data as of its alarm.
 """
 
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from yield_guardian.contracts.base import Problem, ProblemCode
 from yield_guardian.contracts.chat import ChatEventPayload, ChatRequest
@@ -59,6 +59,9 @@ from yield_guardian.contracts.wafer import (
     WaferPage,
     WaferPrediction,
 )
+
+if TYPE_CHECKING:
+    from yield_guardian.live.protocols import RunReader
 
 
 class ServiceError(Exception):
@@ -201,6 +204,8 @@ class ScienceServices:
     secom: SecomService
     wafer: WaferService
     knowledge: KnowledgeService
+    runs: "RunReader | None" = None
+    """The run store, for the run tools; None where runs are not served."""
 
 
 class InvestigationSink(Protocol):
@@ -236,7 +241,7 @@ class InvestigationRunner(Protocol):
         """Run until the graph waits for the human decision (status `awaiting_decision`).
 
         `as_of` (recorded runs only, set by the server, never by a request) is the line position
-        the tools read the data as of; None follows the replay clock.
+        the tools read the data as of; None reads every unit.
 
         Model or tool failures are reported through `sink.error` and status `failed`, not raised.
         """

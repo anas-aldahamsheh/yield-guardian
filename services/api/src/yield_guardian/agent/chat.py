@@ -4,7 +4,11 @@ Every reply is written by the chat model; no answer, refusal or capability text 
 advance by code (the owner's rule: the product's intelligence is the model's).
 
 1. **Gather evidence**: the chat model, told what the product is and given every read-only
-   tool, chooses which tools to call (at most eight calls in four rounds), or none.
+   tool, chooses which tools to call (at most eight calls in four rounds), or none. The run
+   tools are offered when the engineer is looking at a run (``context.run_id``). The model may
+   also offer to start an investigation (``suggest_investigation``): code checks that the alarm
+   or item exists and sends a ``suggestion`` event; the page shows a button, and nothing starts
+   until the engineer clicks it.
 2. **Answer**: the chat model writes the reply from the evidence, streamed sentence by sentence.
    Code still checks each sentence before it is sent (PLAN rule 4): every number or identifier
    the evidence does not hold is replaced by a marker and listed in ``done.numbers_unverified``.
@@ -22,17 +26,22 @@ from datetime import UTC, datetime
 from typing import Any
 
 import structlog
+from pydantic import Field, ValidationError
 
-from yield_guardian.agent.graph import llm_problem
+from yield_guardian.agent.graph import llm_problem, services_whole_line
 from yield_guardian.agent.grounding import (
     REDACTED,
     REDACTED_IDENTIFIER,
     EvidenceFacts,
     check_text,
+    is_literal_name,
 )
 from yield_guardian.agent.numbers import NumberMention, scan
-from yield_guardian.agent.prompts import CHAT_SYSTEM, data_message
+from yield_guardian.agent.prompts import CHAT_SYSTEM, data_json, data_message
+from yield_guardian.agent.tool_base import ToolArgs, argument_schema
 from yield_guardian.agent.tools import (
+    ALL_TOOL_NAMES,
+    SCIENCE_TOOL_NAMES,
     TOOLS,
     EvidenceLedger,
     ToolExecutor,
@@ -49,21 +58,28 @@ from yield_guardian.contracts.chat import (
     ChatEventPayload,
     ChatRequest,
     ChatRouteEvent,
+    ChatSuggestionEvent,
     ChatTokenEvent,
     ChatToolEvent,
 )
-from yield_guardian.contracts.investigation import Evidence
+from yield_guardian.contracts.investigation import (
+    Evidence,
+    InvestigationTrigger,
+    ToolName,
+    TriggerKind,
+)
 from yield_guardian.contracts.models import CallUsage
-from yield_guardian.contracts.services import ScienceServices
+from yield_guardian.contracts.services import ScienceServices, ServiceError
 from yield_guardian.contracts.session import SessionInfo
 from yield_guardian.llm.admin import RouteLog
 from yield_guardian.llm.calllog import LlmCallRecord, to_call_usage
 from yield_guardian.llm.errors import LlmError
 from yield_guardian.llm.gateway import CallOptions, LlmGateway
-from yield_guardian.llm.messages import ChatMessage
+from yield_guardian.llm.messages import ChatMessage, FunctionSpec, ToolSpec
 from yield_guardian.llm.messages import ChatRequest as LlmChatRequest
 from yield_guardian.llm.registry import Role
 from yield_guardian.llm.results import ChatResult, StreamDelta
+from yield_guardian.services.investigations import check_run_alarm, trigger_title
 
 log = structlog.get_logger(__name__)
 
@@ -75,11 +91,53 @@ MAX_TOOL_ROUNDS = 4
 HISTORY_MESSAGES = 10
 PRODUCT_NAMES = frozenset({"WM-811K"})
 """Names in the system prompt that contain digits; the model may write them, they are not data."""
+SUGGEST_TOOL = "suggest_investigation"
+SUGGEST_DESCRIPTION = (
+    "Offer the engineer a button to start an investigation of an alarm or item; it starts "
+    "nothing. kind run_alarm with ref '<run_id>:<alarm_id>' for an alarm of a run; alarm, unit, "
+    "wafer or lot with the SECOM alarm ID, SECOM unit ID, WM-811K wafer ID or lot."
+)
 SYSTEM = CHAT_SYSTEM.format(
-    tools="\n".join(f"- {name}: {tool.description}" for name, tool in TOOLS.items())
+    tools="\n".join(
+        [f"- {name}: {tool.description}" for name, tool in TOOLS.items()]
+        + [f"- {SUGGEST_TOOL}: {SUGGEST_DESCRIPTION}"]
+    )
 )
 """The chat system prompt with every tool listed, so the model knows all it can look up. Static,
 so the provider can reuse its prompt cache."""
+
+
+class SuggestArgs(ToolArgs):
+    kind: TriggerKind
+    ref: str = Field(min_length=1, max_length=80, description="What to investigate.")
+
+
+SUGGEST_SPEC = ToolSpec(
+    function=FunctionSpec(
+        name=SUGGEST_TOOL, description=SUGGEST_DESCRIPTION, parameters=argument_schema(SuggestArgs)
+    )
+)
+NOT_STARTED = "The engineer sees a button to start this investigation; nothing has started."
+
+
+def chat_tools(context: ChatContext | None) -> tuple[ToolName, ...]:
+    """The read tools offered: the run tools too when the engineer is looking at a run."""
+    return ALL_TOOL_NAMES if context is not None and context.run_id else SCIENCE_TOOL_NAMES
+
+
+def chat_services(services: ScienceServices, context: ChatContext | None) -> ScienceServices:
+    """For a run, every SECOM unit is visible (its real units come from the whole dataset)."""
+    return services_whole_line(services) if context is not None and context.run_id else services
+
+
+def names_item(trigger: InvestigationTrigger, facts: EvidenceFacts) -> bool:
+    """The unit, wafer, lot or alarm a suggestion names is in the evidence, the question or what
+    the engineer is looking at."""
+    if trigger.kind == "unit":
+        return trigger.ref.isdigit() and int(trigger.ref) in facts.ints.get("unit", set())
+    return trigger.ref in facts.strings
+
+
 _BOUNDARY = re.compile(r"(?<=[.!?:;])\s+|\n+")
 _LIST_MARKER = re.compile(r"^\s*(?:[-*•]\s*)?\d{1,2}[.)](?=\s|$)")
 """A numbered-list marker at the start of a line ("1." or "2)"): layout, not a quantity."""
@@ -157,15 +215,22 @@ def question_facts(
             units.extend(int(v) for v in identifier.values)
         else:
             strings.extend(identifier.values)
+    names: list[str] = []
     if context is not None:
         strings.extend(v for v in (context.sensor, context.wafer_id, context.lot) if v)
-        if context.unit_id is not None:
-            units.append(context.unit_id)
+        strings.extend(v for v in (context.run_id, context.run_alarm) if v)
+        if context.run_lot:
+            strings.append(context.run_lot)
+            names.append(context.run_lot)
+        units.extend(v for v in (context.unit_id, context.run_unit) if v is not None)
     strings.extend(PRODUCT_NAMES)
     facts = EvidenceFacts.build(evidence, strings=strings, units=units)
+    if context is not None and context.run_wafer is not None:
+        facts.ints.setdefault("wafer_index", set()).add(context.run_wafer)
     for mention in found.numbers:
         facts.numbers.append(mention.value / 100 if mention.percent else mention.value)
     facts.known_identifiers.update(s for s in strings if "-" in s or s.startswith("lot"))
+    facts.known_identifiers.update(n for n in names if is_literal_name(n))
     facts.known_identifiers.update(PRODUCT_NAMES)
     return facts
 
@@ -207,6 +272,7 @@ def _payload(
     context: ChatContext | None,
     evidence: Sequence[Evidence],
     failed: Sequence[str],
+    offered: str | None = None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {"question": question}
     if history:
@@ -216,6 +282,8 @@ def _payload(
     payload["evidence"] = [model_view(e) for e in evidence]
     if failed:
         payload["failed_lookups"] = list(failed)
+    if offered:
+        payload["investigation_offered"] = {"title": offered, "note": NOT_STARTED}
     return payload
 
 
@@ -268,22 +336,27 @@ class ChatAnswerer:
         await self.route_log.record("model", "general", self.wall_clock())
         yield ChatRouteEvent(type="route", route="model", intent="general", model_id=None)
 
+        context = request.context
         ledger = EvidenceLedger(None)
-        executor = ToolExecutor(self.services, ledger, wall_clock=self.wall_clock)
+        services = chat_services(self.services, context)
+        allowed = chat_tools(context)
+        executor = ToolExecutor(services, ledger, wall_clock=self.wall_clock, allowed=allowed)
         outcomes: list[ToolOutcome] = []
+        offers: list[ChatSuggestionEvent] = []
         async for event in self._model_tools(
-            question, history, request.context, executor, outcomes, options
+            question, history, context, executor, allowed, outcomes, offers, options
         ):
             yield event
 
         evidence = ledger.items
         failed = [f"{o.title}: {o.error}" for o in outcomes if o.evidence is None and o.error]
-        gate = SentenceGate(question_facts(evidence, question, request.context))
+        gate = SentenceGate(question_facts(evidence, question, context))
+        offered = offers[0].title if offers else None
         final = LlmChatRequest(
             messages=(
                 ChatMessage.system(SYSTEM),
                 ChatMessage.user(
-                    data_message(_payload(question, history, request.context, evidence, failed))
+                    data_message(_payload(question, history, context, evidence, failed, offered))
                 ),
             ),
             max_tokens=CHAT_MAX_TOKENS,
@@ -307,10 +380,13 @@ class ChatAnswerer:
         history: Sequence[dict[str, str]],
         context: ChatContext | None,
         executor: ToolExecutor,
+        allowed: Sequence[ToolName],
         outcomes: list[ToolOutcome],
+        offers: list[ChatSuggestionEvent],
         options: CallOptions,
     ) -> AsyncIterator[ChatEventPayload]:
-        """Let the chat model choose read-only tools: at most eight calls in four rounds."""
+        """Let the chat model choose read-only tools: at most eight calls in four rounds. A
+        suggestion counts as a call."""
         messages: list[ChatMessage] = [
             ChatMessage.system(SYSTEM),
             ChatMessage.user(data_message(_payload(question, history, context, [], []))),
@@ -322,7 +398,7 @@ class ChatAnswerer:
             request = LlmChatRequest(
                 messages=tuple(messages),
                 max_tokens=TOOL_ROUND_MAX_TOKENS,
-                tools=tool_specs(),
+                tools=(*tool_specs(allowed), SUGGEST_SPEC),
                 tool_choice="auto",
             )
             result: ChatResult = await self.gateway.complete(Role.CHAT, request, options=options)
@@ -335,6 +411,15 @@ class ChatAnswerer:
                     messages.append(ChatMessage.tool(call.id or "call", refusal))
                     continue
                 used += 1
+                if call.function.name == SUGGEST_TOOL:
+                    offer, reply = await self._suggest(
+                        call.function.arguments, question, context, executor, offers
+                    )
+                    if offer is not None:
+                        offers.append(offer)
+                        yield offer
+                    messages.append(ChatMessage.tool(call.id or "call", reply))
+                    continue
                 prepared = executor.prepare(call.function.name, call.function.arguments)
                 if prepared.tool is not None and prepared.arguments is not None:
                     yield ChatToolEvent(
@@ -345,3 +430,37 @@ class ChatAnswerer:
                 if outcome.status == "new" and outcome.evidence is not None:
                     yield ChatCitationEvent(type="citation", evidence=outcome.evidence)
                 messages.append(ChatMessage.tool(call.id or "call", outcome.message_for_model()))
+
+    async def _suggest(
+        self,
+        raw_arguments: str | None,
+        question: str,
+        context: ChatContext | None,
+        executor: ToolExecutor,
+        offers: Sequence[ChatSuggestionEvent],
+    ) -> tuple[ChatSuggestionEvent | None, str]:
+        """Check a suggested investigation; the event to send (or None) and the tool reply."""
+
+        def refuse(reason: str) -> tuple[None, str]:
+            return None, data_json({"error": f"not offered: {reason}"[:400]})
+
+        if offers:
+            return refuse("an investigation was already offered in this answer")
+        try:
+            args = SuggestArgs.model_validate_json(raw_arguments or "{}")
+            trigger = InvestigationTrigger(kind=args.kind, ref=args.ref.strip())
+            title = trigger_title(trigger)
+            if trigger.kind == "run_alarm":
+                title = await check_run_alarm(executor.services.runs, trigger)
+        except ValidationError as exc:
+            return refuse(f"invalid arguments ({exc.error_count()} errors)")
+        except ServiceError as exc:
+            return refuse(exc.detail)
+        if trigger.kind != "run_alarm":
+            facts = question_facts(executor.ledger.items, question, context)
+            if not names_item(trigger, facts):
+                return refuse(f"{trigger.ref} is not in the evidence or on the engineer's page")
+        offer = ChatSuggestionEvent(
+            type="suggestion", action="start_investigation", trigger=trigger, title=title
+        )
+        return offer, data_json({"offered": title, "note": NOT_STARTED})

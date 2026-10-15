@@ -4,7 +4,12 @@ import { cn } from "@/lib/utils";
 
 /** Page frame: the console's width and gutters. Settles in once when the page arrives. */
 export function PageFrame({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("page-enter mx-auto w-full max-w-[1600px] px-gutter pt-8 pb-16", className)} {...props} />;
+  return (
+    <div
+      className={cn("page-enter mx-auto w-full max-w-[1600px] px-gutter pt-8 pb-16", className)}
+      {...props}
+    />
+  );
 }
 
 /** Title row of a console page: what this page is for, and its actions. */
@@ -24,8 +29,12 @@ export function PageHeader({
   return (
     <div className={cn("mb-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-4", className)}>
       <div className="max-w-[72ch] min-w-0">
-        <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.02em] text-ink sm:text-title">{title}</h1>
-        {description ? <p className="mt-2 text-[15px] leading-6 text-ink-2">{description}</p> : null}
+        <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.02em] text-ink sm:text-title">
+          {title}
+        </h1>
+        {description ? (
+          <p className="mt-2 text-[15px] leading-6 text-ink-2">{description}</p>
+        ) : null}
         {meta ? <div className="mt-2 text-sm text-ink-3">{meta}</div> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -62,13 +71,19 @@ export function Panel({
       {title || actions ? (
         <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 px-4 pt-3.5 pb-2 sm:px-5">
           <div className="min-w-0">
-            {title ? <h2 className="text-[15px] leading-6 font-semibold text-ink">{title}</h2> : null}
+            {title ? (
+              <h2 className="text-[15px] leading-6 font-semibold text-ink">{title}</h2>
+            ) : null}
             {description ? <p className="text-[13px] leading-5 text-ink-3">{description}</p> : null}
           </div>
-          {actions ? <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
+          {actions ? (
+            <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2">{actions}</div>
+          ) : null}
         </header>
       ) : null}
-      <div className={cn("px-4 pb-4 sm:px-5", !(title || actions) && "pt-4", bodyClassName)}>{children}</div>
+      <div className={cn("px-4 pb-4 sm:px-5", !(title || actions) && "pt-4", bodyClassName)}>
+        {children}
+      </div>
     </Tag>
   );
 }

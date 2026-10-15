@@ -1,6 +1,5 @@
 """Configuration. Every setting comes from an environment variable (documented in .env.example)."""
 
-from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -36,10 +35,6 @@ class Settings(BaseSettings):
         None, description="scrypt hash from scripts/hash_password.py"
     )
     cors_origins: list[str] = Field(default_factory=list)
-
-    replay_epoch: datetime = datetime(2026, 10, 12, tzinfo=UTC)
-    replay_seconds_per_unit: float = Field(6.0, gt=0)
-    final_test_lag_units: int = Field(25, ge=0)
 
 
 @lru_cache(maxsize=1)

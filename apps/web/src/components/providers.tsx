@@ -25,7 +25,13 @@ function makeQueryClient() {
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [client] = useState(makeQueryClient);
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      nonce={nonce}
+    >
       <ApiProvider>
         <QueryClientProvider client={client}>
           {children}

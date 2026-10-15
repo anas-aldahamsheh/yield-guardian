@@ -15,7 +15,10 @@ export function StatusLabel({ status }: { status: Investigation["status"] }) {
           : "bg-mark-muted";
   return (
     <span className="inline-flex items-center gap-1.5 text-ink">
-      <span aria-hidden="true" className={cn("size-2 rounded-full", status === "running" ? "live-dot" : tone)} />
+      <span
+        aria-hidden="true"
+        className={cn("size-2 rounded-full", status === "running" ? "live-dot" : tone)}
+      />
       {INVESTIGATION_STATUS[status] ?? status}
     </span>
   );

@@ -2,7 +2,7 @@
 
 Alarm choice (code only, no model, the same on every host with the same bundle):
 
-1. take the alarms the replay raises on units of the held-out **test** block, at **alarm**
+1. take the alarms the SECOM alarm rules raise on units of the held-out **test** block, at **alarm**
    severity (failure risk at or above the default operating point; T² or SPE beyond its 99.9%
    control limit), in plant order;
 2. pick round-robin over the kinds in the order risk, T², SPE: the first risk alarm, the first
@@ -28,7 +28,7 @@ from yield_guardian.bundles.secom import SecomBundle
 from yield_guardian.contracts.investigation import InvestigationTrigger
 from yield_guardian.llm.profiles import ProfileCatalog
 from yield_guardian.llm.registry import ModelRegistry, Role
-from yield_guardian.replay.line import AlarmRule, alarm_rules
+from yield_guardian.science.secom.alarms import AlarmRule, alarm_rules
 
 KINDS = ("risk", "t2", "spe")
 SELECTION_RULE = (

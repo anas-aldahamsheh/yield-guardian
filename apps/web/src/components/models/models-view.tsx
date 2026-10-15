@@ -2,7 +2,14 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
-import type { CatalogModel, EvaluationResult, Evaluations, RoleAssignment, Usage, UsageReport } from "@yield-guardian/contracts";
+import type {
+  CatalogModel,
+  EvaluationResult,
+  Evaluations,
+  RoleAssignment,
+  Usage,
+  UsageReport,
+} from "@yield-guardian/contracts";
 import { Fragment, useState } from "react";
 
 import { EstimateText, IntervalMark } from "@/components/charts/interval";
@@ -12,14 +19,25 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { useSession } from "@/lib/api/session";
-import { formatCompact, formatDuration, formatInt, formatNumber, formatPercent, formatReported } from "@/lib/format";
+import {
+  formatCompact,
+  formatDuration,
+  formatInt,
+  formatNumber,
+  formatPercent,
+  formatReported,
+} from "@/lib/format";
 import { ROLE_JOBS, ROLE_NAMES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 import { RoleDialog } from "./role-dialog";
 import { ScrollRegion } from "@/components/scroll-region";
 
-export function ModelsView() {
+/**
+ * The hidden admin page: which model does each job, how the candidates were evaluated, today's
+ * usage and the catalog. Anyone can read it; only an admin can change a role.
+ */
+export function AdminView() {
   const api = useApi();
   const roles = useQuery(q.llmRoles(api));
   const catalog = useQuery(q.llmCatalog(api));
@@ -29,29 +47,63 @@ export function ModelsView() {
   return (
     <PageFrame>
       <PageHeader
-        title="Models"
-        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory."
+        title="Model roles"
+        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory. Only an admin can change a role."
       />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
-        <Panel title="Roles" description="One model per job, with the fallbacks tried when it is unavailable." bodyClassName="px-0 sm:px-0">
-          <QueryView query={roles} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}>
-            {(r) => <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />}
+        <Panel
+          title="Roles"
+          description="One model per job, with the fallbacks tried when it is unavailable."
+          bodyClassName="px-0 sm:px-0"
+        >
+          <QueryView
+            query={roles}
+            loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}
+          >
+            {(r) => (
+              <RolesTable
+                roles={r}
+                catalog={catalog.data ?? []}
+                evaluations={evaluations.data}
+                editable
+              />
+            )}
           </QueryView>
         </Panel>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
-          <Panel title="Evaluations" description="Each candidate on the same task set for its role." bodyClassName="px-0 sm:px-0">
-            <QueryView query={evaluations} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}>
+          <Panel
+            title="Evaluations"
+            description="Each candidate on the same task set for its role."
+            bodyClassName="px-0 sm:px-0"
+          >
+            <QueryView
+              query={evaluations}
+              loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}
+            >
               {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
             </QueryView>
           </Panel>
-          <Panel title="Usage today" description="For information only: the product never limits calls.">
-            <QueryView query={usage} loading={<Placeholder className="h-56" label="Loading usage" />}>
+          <Panel
+            title="Usage today"
+            description="For information only: the product never limits calls."
+          >
+            <QueryView
+              query={usage}
+              loading={<Placeholder className="h-56" label="Loading usage" />}
+            >
               {(u) => <UsagePanel report={u} />}
             </QueryView>
           </Panel>
         </div>
-        <Panel title="Catalog" description="Models the product can assign, with the capability profile requests are built from." bodyClassName="px-0 sm:px-0">
-          <QueryView query={catalog} loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading the catalog" />}>
+        <Panel
+          title="Catalog"
+          description="Models the product can assign, with the capability profile requests are built from."
+          bodyClassName="px-0 sm:px-0"
+        >
+          <QueryView
+            query={catalog}
+            loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading the catalog" />}
+          >
             {(c) => <CatalogTable models={c} roles={roles.data ?? []} />}
           </QueryView>
         </Panel>
@@ -60,11 +112,69 @@ export function ModelsView() {
   );
 }
 
-function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; catalog: CatalogModel[]; evaluations?: Evaluations }) {
-  const { isAdmin } = useSession();
+/**
+ * The language-model roles on AMD, for How it works: the model behind each job and how it
+ * scored on its evaluation, with the measured latency. Read only; roles change on the admin page.
+ */
+export function AiRoles() {
+  const api = useApi();
+  const roles = useQuery(q.llmRoles(api));
+  const catalog = useQuery(q.llmCatalog(api));
+  const evaluations = useQuery(q.llmEvaluations(api));
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
+      <Panel
+        title="Language-model roles"
+        description="One model per job, with the fallbacks tried when it is unavailable. All of them run on AMD Token Factory."
+        bodyClassName="px-0 sm:px-0"
+      >
+        <QueryView
+          query={roles}
+          loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}
+        >
+          {(r) => (
+            <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />
+          )}
+        </QueryView>
+      </Panel>
+      <Panel
+        title="Evaluations"
+        description="Each candidate on the same task set for its role: success rate with its interval, contract violations, median latency and points, as measured."
+        bodyClassName="px-0 sm:px-0"
+      >
+        <QueryView
+          query={evaluations}
+          loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}
+        >
+          {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
+        </QueryView>
+      </Panel>
+    </div>
+  );
+}
+
+function RolesTable({
+  roles,
+  catalog,
+  evaluations,
+  editable = false,
+}: {
+  roles: RoleAssignment[];
+  catalog: CatalogModel[];
+  evaluations?: Evaluations;
+  /** Offers "Change" to an admin (on the admin page); elsewhere the table only reads. */
+  editable?: boolean;
+}) {
+  const session = useSession();
+  const isAdmin = editable && session.isAdmin;
   const [editing, setEditing] = useState<RoleAssignment["role"] | null>(null);
   const current = roles.find((r) => r.role === editing);
-  if (roles.length === 0) return <EmptyState className="mx-4 sm:mx-5" title="No roles">The API has no role assignments.</EmptyState>;
+  if (roles.length === 0)
+    return (
+      <EmptyState className="mx-4 sm:mx-5" title="No roles">
+        The API has no role assignments.
+      </EmptyState>
+    );
   return (
     <>
       <ScrollRegion label="Role assignments">
@@ -72,17 +182,31 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
           <caption className="sr-only">Role assignments</caption>
           <thead>
             <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Role</th>
-              <th scope="col" className="px-2 py-2 font-normal">Model</th>
-              <th scope="col" className="px-2 py-2 font-normal">Effort</th>
-              <th scope="col" className="px-2 py-2 font-normal">Fallbacks</th>
-              <th scope="col" className="px-2 py-2 font-normal">Evaluated success</th>
-              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">{isAdmin ? "" : "Changed"}</th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Role
+              </th>
+              <th scope="col" className="px-2 py-2 font-normal">
+                Model
+              </th>
+              <th scope="col" className="px-2 py-2 font-normal">
+                Effort
+              </th>
+              <th scope="col" className="px-2 py-2 font-normal">
+                Fallbacks
+              </th>
+              <th scope="col" className="px-2 py-2 font-normal">
+                Evaluated success
+              </th>
+              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                {isAdmin ? "" : "Changed"}
+              </th>
             </tr>
           </thead>
           <tbody>
             {roles.map((r) => {
-              const evaluation = evaluations?.results.find((e) => e.role === r.role && e.model_id === r.model_id);
+              const evaluation = evaluations?.results.find(
+                (e) => e.role === r.role && e.model_id === r.model_id,
+              );
               const model = catalog.find((m) => m.model_id === r.model_id);
               return (
                 <tr key={r.role} className="border-b border-hairline last:border-b-0">
@@ -92,16 +216,35 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
                   </th>
                   <td className="tnum px-2 py-2.5 align-top text-ink">
                     {r.model_id}
-                    {model && !model.available ? <span className="block text-[12px] text-fail">Not in the live catalog</span> : null}
+                    {model && !model.available ? (
+                      <span className="block text-[12px] text-fail">Not in the live catalog</span>
+                    ) : null}
                   </td>
-                  <td className="px-2 py-2.5 align-top text-ink-2">{r.reasoning_effort ?? <span className="text-ink-3">default</span>}</td>
-                  <td className="tnum px-2 py-2.5 align-top text-[13px] text-ink-2">{r.fallbacks.length ? r.fallbacks.join(", ") : <span className="text-ink-3">None</span>}</td>
+                  <td className="px-2 py-2.5 align-top text-ink-2">
+                    {r.reasoning_effort ?? <span className="text-ink-3">default</span>}
+                  </td>
+                  <td className="tnum px-2 py-2.5 align-top text-[13px] text-ink-2">
+                    {r.fallbacks.length ? (
+                      r.fallbacks.join(", ")
+                    ) : (
+                      <span className="text-ink-3">None</span>
+                    )}
+                  </td>
                   <td className="px-2 py-2.5 align-top text-[13px]">
-                    {evaluation ? <EstimateText estimate={evaluation.success_rate} format="percent" /> : <span className="text-ink-3">Not evaluated</span>}
+                    {evaluation ? (
+                      <EstimateText estimate={evaluation.success_rate} format="percent" />
+                    ) : (
+                      <span className="text-ink-3">Not evaluated</span>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-right align-top text-[12px] text-ink-3 sm:px-5">
                     {isAdmin ? (
-                      <Button size="sm" variant="outline" onClick={() => setEditing(r.role)} disabled={catalog.length === 0}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditing(r.role)}
+                        disabled={catalog.length === 0}
+                      >
                         Change
                       </Button>
                     ) : r.updated_at ? (
@@ -119,8 +262,20 @@ function RolesTable({ roles, catalog, evaluations }: { roles: RoleAssignment[]; 
           </tbody>
         </table>
       </ScrollRegion>
-      {!isAdmin ? <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">Only an admin can change a role.</p> : null}
-      {current ? <RoleDialog key={current.role} assignment={current} catalog={catalog} open onOpenChange={(o) => !o && setEditing(null)} /> : null}
+      {editable && !isAdmin ? (
+        <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">
+          Only an admin can change a role.
+        </p>
+      ) : null}
+      {current ? (
+        <RoleDialog
+          key={current.role}
+          assignment={current}
+          catalog={catalog}
+          open
+          onOpenChange={(o) => !o && setEditing(null)}
+        />
+      ) : null}
     </>
   );
 }
@@ -145,11 +300,21 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
           <caption className="sr-only">Model evaluations by role</caption>
           <thead>
             <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Model</th>
-              <th scope="col" className="w-[26%] px-2 py-2 font-normal">Success, 0 to 100%</th>
-              <th scope="col" className="px-2 py-2 text-right font-normal">Violations</th>
-              <th scope="col" className="px-2 py-2 text-right font-normal">Median latency</th>
-              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">Points</th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Model
+              </th>
+              <th scope="col" className="w-[26%] px-2 py-2 font-normal">
+                Success, 0 to 100%
+              </th>
+              <th scope="col" className="px-2 py-2 text-right font-normal">
+                Violations
+              </th>
+              <th scope="col" className="px-2 py-2 text-right font-normal">
+                Median latency
+              </th>
+              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                Points
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -159,15 +324,31 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
               return (
                 <Fragment key={`${head.role}-${head.task_set}`}>
                   <tr className="border-b border-hairline bg-die-2">
-                    <th scope="colgroup" colSpan={5} className="px-4 py-1.5 text-[12px] font-normal text-ink-2 sm:px-5">
-                      <span className="font-medium text-ink">{ROLE_NAMES[head.role] ?? head.role}</span>, task set <span className="tnum">{head.task_set}</span> ({formatInt(head.tasks)} tasks)
+                    <th
+                      scope="colgroup"
+                      colSpan={5}
+                      className="px-4 py-1.5 text-[12px] font-normal text-ink-2 sm:px-5"
+                    >
+                      <span className="font-medium text-ink">
+                        {ROLE_NAMES[head.role] ?? head.role}
+                      </span>
+                      , task set <span className="tnum">{head.task_set}</span> (
+                      {formatInt(head.tasks)} tasks)
                     </th>
                   </tr>
                   {rows.map((r) => (
                     <tr key={r.model_id} className="border-b border-hairline">
                       <th scope="row" className="tnum px-4 py-2 align-top font-normal sm:px-5">
-                        <span className={cn(r.model_id === assigned ? "font-medium text-ink" : "text-ink-2")}>{r.model_id}</span>
-                        {r.model_id === assigned ? <span className="block text-[12px] text-ink-3">Assigned</span> : null}
+                        <span
+                          className={cn(
+                            r.model_id === assigned ? "font-medium text-ink" : "text-ink-2",
+                          )}
+                        >
+                          {r.model_id}
+                        </span>
+                        {r.model_id === assigned ? (
+                          <span className="block text-[12px] text-ink-3">Assigned</span>
+                        ) : null}
                       </th>
                       <td className="px-2 py-2 align-top">
                         <IntervalMark estimate={r.success_rate} />
@@ -175,9 +356,17 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
                           <EstimateText estimate={r.success_rate} format="percent" />
                         </span>
                       </td>
-                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">{formatInt(r.violations)}</td>
-                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">{r.latency_ms_p50 == null ? "not reported" : formatDuration(r.latency_ms_p50)}</td>
-                      <td className="tnum px-4 py-2 text-right align-top text-ink-2 sm:px-5">{formatNumber(r.points, 4)}</td>
+                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                        {formatInt(r.violations)}
+                      </td>
+                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                        {r.latency_ms_p50 == null
+                          ? "not reported"
+                          : formatDuration(r.latency_ms_p50)}
+                      </td>
+                      <td className="tnum px-4 py-2 text-right align-top text-ink-2 sm:px-5">
+                        {formatNumber(r.points, 4)}
+                      </td>
                     </tr>
                   ))}
                 </Fragment>
@@ -187,7 +376,9 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
         </table>
       </ScrollRegion>
       <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">
-        {data.results[0]?.success_rate.method ? `Intervals: ${data.results[0].success_rate.method}. ` : ""}
+        {data.results[0]?.success_rate.method
+          ? `Intervals: ${data.results[0].success_rate.method}. `
+          : ""}
         {data.note}
       </p>
     </>
@@ -208,14 +399,24 @@ function UsagePanel({ report }: { report: UsageReport }) {
         Since <LocalDateTime iso={report.since} />.
       </p>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
-        <Reading label="Model calls" value={formatInt(t.requests)} detail={t.cache_hits ? `${formatInt(t.cache_hits)} from cache` : undefined} />
+        <Reading
+          label="Model calls"
+          value={formatInt(t.requests)}
+          detail={t.cache_hits ? `${formatInt(t.cache_hits)} from cache` : undefined}
+        />
         <Reading label="Tokens in" value={formatCompact(t.tokens_in)} />
-        <Reading label="Tokens out" value={formatCompact(t.tokens_out)} detail={t.tokens_reasoning ? `${formatCompact(t.tokens_reasoning)} reasoning` : undefined} />
+        <Reading
+          label="Tokens out"
+          value={formatCompact(t.tokens_out)}
+          detail={t.tokens_reasoning ? `${formatCompact(t.tokens_reasoning)} reasoning` : undefined}
+        />
         <Reading label="Points" value={formatNumber(t.points, 4)} />
       </dl>
       {t.requests_without_usage > 0 ? (
         <p className="rounded-sm bg-die-2 px-3 py-2 text-[13px] leading-5 text-ink-2">
-          {formatInt(t.requests_without_usage)} {t.requests_without_usage === 1 ? "call" : "calls"} did not report usage, so the sums leave {t.requests_without_usage === 1 ? "it" : "them"} out.
+          {formatInt(t.requests_without_usage)} {t.requests_without_usage === 1 ? "call" : "calls"}{" "}
+          did not report usage, so the sums leave {t.requests_without_usage === 1 ? "it" : "them"}{" "}
+          out.
         </p>
       ) : null}
 
@@ -224,16 +425,22 @@ function UsagePanel({ report }: { report: UsageReport }) {
         {share != null ? (
           <div className="mt-1.5">
             <div className="h-2 rounded-[2px] bg-hairline" aria-hidden="true">
-              <div className="h-2 rounded-[2px] bg-ink-2" style={{ width: `${Math.min(100, share * 100)}%` }} />
+              <div
+                className="h-2 rounded-[2px] bg-ink-2"
+                style={{ width: `${Math.min(100, share * 100)}%` }}
+              />
             </div>
             <p className="tnum mt-1 text-[12px] leading-4 text-ink-3">
-              {formatNumber(quota.used, 4)} of {formatNumber(quota.limit, 4)} points used ({formatPercent(share)})
+              {formatNumber(quota.used, 4)} of {formatNumber(quota.limit, 4)} points used (
+              {formatPercent(share)})
               {quota.resets_at ? (
                 <>
                   , resets <LocalDateTime iso={quota.resets_at} />
                 </>
               ) : null}
-              {quota.rpm_limit != null ? `. ${formatInt(quota.rpm_limit)} requests per minute.` : "."}
+              {quota.rpm_limit != null
+                ? `. ${formatInt(quota.rpm_limit)} requests per minute.`
+                : "."}
             </p>
           </div>
         ) : (
@@ -244,13 +451,28 @@ function UsagePanel({ report }: { report: UsageReport }) {
       <div>
         <h3 className="text-[13px] leading-5 font-medium text-ink">Chat answers</h3>
         <p className="tnum mt-0.5 text-[13px] leading-5 text-ink-2">
-          {formatInt(report.deterministic_answers)} answered by rules without a model, {formatInt(report.model_answers)} by a model.
+          {formatInt(report.deterministic_answers)} answered by rules without a model,{" "}
+          {formatInt(report.model_answers)} by a model.
         </p>
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
-        <UsageList title="By role" rows={report.by_role.map((r) => ({ key: r.role, label: ROLE_NAMES[r.role] ?? r.role, usage: r.usage }))} />
-        <UsageList title="By model" rows={report.by_model.map((r) => ({ key: r.model_id, label: r.model_id, usage: r.usage }))} />
+        <UsageList
+          title="By role"
+          rows={report.by_role.map((r) => ({
+            key: r.role,
+            label: ROLE_NAMES[r.role] ?? r.role,
+            usage: r.usage,
+          }))}
+        />
+        <UsageList
+          title="By model"
+          rows={report.by_model.map((r) => ({
+            key: r.model_id,
+            label: r.model_id,
+            usage: r.usage,
+          }))}
+        />
       </div>
 
       <div>
@@ -260,13 +482,20 @@ function UsagePanel({ report }: { report: UsageReport }) {
         ) : (
           <ol className="mt-1 divide-y divide-hairline border-y border-hairline">
             {report.recent.slice(0, 10).map((c, i) => (
-              <li key={i} className="tnum grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 py-1.5 text-[12px] leading-4">
+              <li
+                key={i}
+                className="tnum grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 py-1.5 text-[12px] leading-4"
+              >
                 <LocalDateTime iso={c.at} timeOnly className="text-ink-3" />
                 <span className="min-w-0">
-                  <span className="text-ink">{ROLE_NAMES[c.role] ?? c.role}</span> <span className="text-ink-2">{c.model_id}</span>
+                  <span className="text-ink">{ROLE_NAMES[c.role] ?? c.role}</span>{" "}
+                  <span className="text-ink-2">{c.model_id}</span>
                   <span className="block text-ink-3">
                     {c.status === "error" || c.status === "refused" ? (
-                      <span className="text-fail">{c.status === "error" ? "Error" : "Refused"}{c.error ? `: ${c.error}` : ""}</span>
+                      <span className="text-fail">
+                        {c.status === "error" ? "Error" : "Refused"}
+                        {c.error ? `: ${c.error}` : ""}
+                      </span>
                     ) : c.status === "cached" ? (
                       "From cache"
                     ) : c.tokens_in == null && c.tokens_out == null ? (
@@ -277,7 +506,11 @@ function UsagePanel({ report }: { report: UsageReport }) {
                   </span>
                 </span>
                 <span className="text-right text-ink-2">
-                  {c.points == null ? <span className="text-ink-3">not reported</span> : formatNumber(c.points, 5)}
+                  {c.points == null ? (
+                    <span className="text-ink-3">not reported</span>
+                  ) : (
+                    formatNumber(c.points, 5)
+                  )}
                   <span className="block text-ink-3">{formatDuration(c.latency_ms)}</span>
                 </span>
               </li>
@@ -289,7 +522,13 @@ function UsagePanel({ report }: { report: UsageReport }) {
   );
 }
 
-function UsageList({ title, rows }: { title: string; rows: { key: string; label: string; usage: Usage }[] }) {
+function UsageList({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { key: string; label: string; usage: Usage }[];
+}) {
   const max = Math.max(1e-9, ...rows.map((r) => r.usage.points));
   return (
     <div className="min-w-0">
@@ -305,11 +544,17 @@ function UsageList({ title, rows }: { title: string; rows: { key: string; label:
                 <span className="tnum shrink-0 text-ink-2">{formatNumber(r.usage.points, 4)}</span>
               </div>
               <div className="mt-0.5 h-1.5 rounded-[2px] bg-hairline" aria-hidden="true">
-                <div className="h-1.5 rounded-[2px] bg-ink-3" style={{ width: `${(r.usage.points / max) * 100}%` }} />
+                <div
+                  className="h-1.5 rounded-[2px] bg-ink-3"
+                  style={{ width: `${(r.usage.points / max) * 100}%` }}
+                />
               </div>
               <span className="tnum text-ink-3">
-                {formatInt(r.usage.requests)} {r.usage.requests === 1 ? "call" : "calls"}, {usageLine(r.usage)}
-                {r.usage.requests_without_usage > 0 ? `, ${formatInt(r.usage.requests_without_usage)} without usage` : ""}
+                {formatInt(r.usage.requests)} {r.usage.requests === 1 ? "call" : "calls"},{" "}
+                {usageLine(r.usage)}
+                {r.usage.requests_without_usage > 0
+                  ? `, ${formatInt(r.usage.requests_without_usage)} without usage`
+                  : ""}
               </span>
             </li>
           ))}
@@ -320,47 +565,100 @@ function UsageList({ title, rows }: { title: string; rows: { key: string; label:
 }
 
 function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAssignment[] }) {
-  if (models.length === 0) return <EmptyState className="mx-4 sm:mx-5" title="Empty catalog">The API reports no models.</EmptyState>;
+  if (models.length === 0)
+    return (
+      <EmptyState className="mx-4 sm:mx-5" title="Empty catalog">
+        The API reports no models.
+      </EmptyState>
+    );
   return (
     <ScrollRegion label="Model catalog">
       <table className="w-full min-w-[880px] border-collapse text-left text-[13px] leading-5">
         <caption className="sr-only">Model catalog</caption>
         <thead>
           <tr className="border-y border-hairline text-[12px] text-ink-3">
-            <th scope="col" className="px-4 py-2 font-normal sm:px-5">Model</th>
-            <th scope="col" className="px-2 py-2 font-normal">Kind</th>
-            <th scope="col" className="px-2 py-2 text-right font-normal">Context</th>
-            <th scope="col" className="px-2 py-2 font-normal">Inputs</th>
-            <th scope="col" className="px-2 py-2 font-normal">Reasoning</th>
-            <th scope="col" className="px-2 py-2 font-normal">JSON schema</th>
-            <th scope="col" className="px-2 py-2 font-normal">Tools</th>
-            <th scope="col" className="px-2 py-2 text-right font-normal">Price in / out</th>
-            <th scope="col" className="px-4 py-2 font-normal sm:px-5">Used as</th>
+            <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              Model
+            </th>
+            <th scope="col" className="px-2 py-2 font-normal">
+              Kind
+            </th>
+            <th scope="col" className="px-2 py-2 text-right font-normal">
+              Context
+            </th>
+            <th scope="col" className="px-2 py-2 font-normal">
+              Inputs
+            </th>
+            <th scope="col" className="px-2 py-2 font-normal">
+              Reasoning
+            </th>
+            <th scope="col" className="px-2 py-2 font-normal">
+              JSON schema
+            </th>
+            <th scope="col" className="px-2 py-2 font-normal">
+              Tools
+            </th>
+            <th scope="col" className="px-2 py-2 text-right font-normal">
+              Price in / out
+            </th>
+            <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              Used as
+            </th>
           </tr>
         </thead>
         <tbody>
           {models.map((m) => {
-            const usedAs = roles.filter((r) => r.model_id === m.model_id).map((r) => ROLE_NAMES[r.role] ?? r.role);
+            const usedAs = roles
+              .filter((r) => r.model_id === m.model_id)
+              .map((r) => ROLE_NAMES[r.role] ?? r.role);
             return (
-              <tr key={m.model_id} className={cn("border-b border-hairline last:border-b-0", !m.available && "text-ink-3")}>
+              <tr
+                key={m.model_id}
+                className={cn(
+                  "border-b border-hairline last:border-b-0",
+                  !m.available && "text-ink-3",
+                )}
+              >
                 <th scope="row" className="tnum px-4 py-2 align-top font-normal sm:px-5">
                   <span className={m.available ? "text-ink" : undefined}>{m.model_id}</span>
-                  {!m.available ? <span className="block text-[12px]">Not in the live catalog</span> : null}
-                  {m.profile === "catalog_only" ? <span className="block text-[12px] text-ink-3">Profile from the catalog only</span> : null}
+                  {!m.available ? (
+                    <span className="block text-[12px]">Not in the live catalog</span>
+                  ) : null}
+                  {m.profile === "catalog_only" ? (
+                    <span className="block text-[12px] text-ink-3">
+                      Profile from the catalog only
+                    </span>
+                  ) : null}
                 </th>
-                <td className="px-2 py-2 align-top uppercase text-ink-2">{m.kind}</td>
-                <td className="tnum px-2 py-2 text-right align-top text-ink-2">{m.context_length == null ? "–" : formatCompact(m.context_length)}</td>
+                <td className="px-2 py-2 align-top text-ink-2 uppercase">{m.kind}</td>
+                <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                  {m.context_length == null ? "–" : formatCompact(m.context_length)}
+                </td>
                 <td className="px-2 py-2 align-top text-ink-2">{m.inputs.join(", ")}</td>
                 <td className="px-2 py-2 align-top text-ink-2">
-                  {m.reasoning_efforts.length ? m.reasoning_efforts.join(", ") : <span className="text-ink-3">–</span>}
-                  {m.thinks_by_default ? <span className="block text-[12px] text-ink-3">thinks by default</span> : null}
+                  {m.reasoning_efforts.length ? (
+                    m.reasoning_efforts.join(", ")
+                  ) : (
+                    <span className="text-ink-3">–</span>
+                  )}
+                  {m.thinks_by_default ? (
+                    <span className="block text-[12px] text-ink-3">thinks by default</span>
+                  ) : null}
                 </td>
-                <td className="px-2 py-2 align-top text-ink-2">{m.json_schema ? "Strict" : "No"}</td>
+                <td className="px-2 py-2 align-top text-ink-2">
+                  {m.json_schema ? "Strict" : "No"}
+                </td>
                 <td className="px-2 py-2 align-top text-ink-2">{m.tools ? "Yes" : "No"}</td>
                 <td className="tnum px-2 py-2 text-right align-top text-ink-2">
-                  {m.pricing ? `${formatNumber(m.pricing.input, 3)} / ${formatNumber(m.pricing.output, 3)}` : <span className="text-ink-3">not listed</span>}
+                  {m.pricing ? (
+                    `${formatNumber(m.pricing.input, 3)} / ${formatNumber(m.pricing.output, 3)}`
+                  ) : (
+                    <span className="text-ink-3">not listed</span>
+                  )}
                 </td>
-                <td className="px-4 py-2 align-top text-ink-2 sm:px-5">{usedAs.length ? usedAs.join(", ") : <span className="text-ink-3">–</span>}</td>
+                <td className="px-4 py-2 align-top text-ink-2 sm:px-5">
+                  {usedAs.length ? usedAs.join(", ") : <span className="text-ink-3">–</span>}
+                </td>
               </tr>
             );
           })}

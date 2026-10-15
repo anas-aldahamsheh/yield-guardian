@@ -9,7 +9,8 @@ import { defineConfig, devices } from "@playwright/test";
  * Chromium comes from PW_CHROMIUM or the preinstalled browser; nothing is downloaded.
  */
 const preinstalled = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const executablePath = process.env.PW_CHROMIUM ?? (existsSync(preinstalled) ? preinstalled : undefined);
+const executablePath =
+  process.env.PW_CHROMIUM ?? (existsSync(preinstalled) ? preinstalled : undefined);
 
 export default defineConfig({
   testDir: "./e2e/stack",
@@ -18,19 +19,33 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: process.env.CI ? [["list"], ["html", { open: "never", outputFolder: "playwright-report/stack" }]] : "list",
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never", outputFolder: "playwright-report/stack" }]]
+    : "list",
   outputDir: "test-results/stack",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
-    launchOptions: { executablePath, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
+    launchOptions: {
+      executablePath,
+      args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+    },
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "desktop", testMatch: /flows\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    {
+      name: "desktop",
+      testMatch: /flows\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+    },
     {
       name: "375",
       testMatch: /overflow\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true },
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 375, height: 812 },
+        isMobile: true,
+        hasTouch: true,
+      },
     },
     { name: "a11y", testMatch: /a11y\.spec\.ts/, use: { ...devices["Desktop Chrome"] } },
   ],

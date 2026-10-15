@@ -89,7 +89,8 @@ export function describeError(error: unknown): ErrorCopy {
       default:
         return {
           title: "The API returned an error",
-          detail: detail ?? `Status ${error.status}. Try again; if it persists, check the API logs.`,
+          detail:
+            detail ?? `Status ${error.status}. Try again; if it persists, check the API logs.`,
         };
     }
   }

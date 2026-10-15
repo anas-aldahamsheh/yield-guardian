@@ -18,14 +18,18 @@ export function useAssignRole() {
   const { csrf } = useSession();
   return useMutation({
     mutationFn: ({ role, body }: { role: Role; body: RoleAssignmentUpdate }) =>
-      unwrap(api.PUT("/api/v1/llm/roles/{role}", { params: { path: { role } }, body, headers: csrf })),
+      unwrap(
+        api.PUT("/api/v1/llm/roles/{role}", { params: { path: { role } }, body, headers: csrf }),
+      ),
     onSuccess: (assignment) => {
       client.setQueryData<RoleAssignment[]>(["llm", "roles"], (prev) =>
         prev?.map((a) => (a.role === assignment.role ? assignment : a)),
       );
       void client.invalidateQueries({ queryKey: ["llm", "roles"] });
       void client.invalidateQueries({ queryKey: ["audit"] });
-      toast.success("Role updated", { description: `${assignment.model_id} answers from the next call.` });
+      toast.success("Role updated", {
+        description: `${assignment.model_id} answers from the next call.`,
+      });
     },
     onError: (error) => {
       const copy = describeError(error);

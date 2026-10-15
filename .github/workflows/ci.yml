@@ -1,8 +1,10 @@
 name: CI
 
 on:
+  # Worker branches are checked locally; CI runs on main and on pull requests only (Actions
+  # minutes are limited).
   push:
-    branches: ["**"]
+    branches: ["main"]
     paths-ignore: ["docs/**", "**/*.md"]
   pull_request:
     paths-ignore: ["docs/**", "**/*.md"]
@@ -94,6 +96,9 @@ jobs:
       - name: Lint
         if: steps.web.outputs.present == 'true'
         run: pnpm --filter @yield-guardian/web run lint
+      - name: Format
+        if: steps.web.outputs.present == 'true'
+        run: pnpm --filter @yield-guardian/web run format:check
       - name: Typecheck
         if: steps.web.outputs.present == 'true'
         run: pnpm --filter @yield-guardian/web run typecheck

@@ -1,9 +1,9 @@
 """SecomService on a verified SECOM bundle: risk, explanations, FDC, sensor groups and health.
 
-Every value comes from the bundle or the SECOM source files. Units after the plant clock's
-position have not come off the line and are never returned. A recorded investigation reads the
-data as of its alarm instead (:meth:`SecomInference.as_of`); that view is made only by the
-investigator for runs the server stored as recorded, never from a request.
+Every value comes from the bundle or the SECOM source files. Reads cover every SECOM unit (there
+is no replay clock). A recorded investigation reads the data as of its alarm instead
+(:meth:`SecomInference.as_of`): units after that position stay hidden. That view is made only by
+the investigator for runs the server stored as recorded, never from a request.
 """
 
 import base64
@@ -44,7 +44,7 @@ from yield_guardian.contracts.secom import (
     UnitRisk,
 )
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
-from yield_guardian.replay.line import LineReplay
+from yield_guardian.science.secom.alarms import SecomAlarms
 
 GROUP_WORDING = (
     "These sensor groups are associated with failure in this data. Association is not causation: "
@@ -98,11 +98,11 @@ class SecomInference:
     def __init__(
         self,
         bundle: SecomBundle,
-        line: LineReplay,
+        alarms: SecomAlarms,
         investigations: UnitInvestigations | None = None,
     ) -> None:
         self.bundle = bundle
-        self.line = line
+        self.alarms = alarms
         self.investigations = investigations or NoUnitInvestigations()
         self.timeline = bundle.timeline
         self.group_of = {s: g.group_id for g in bundle.groups.groups for s in g.sensors}
@@ -114,7 +114,7 @@ class SecomInference:
 
     def as_of(self, position: int) -> "SecomInference":
         """The same service with the line stopped at ``position`` (a recorded run evaluated as
-        of its alarm): units after it stay hidden, whatever the replay clock says."""
+        of its alarm): units after it stay hidden."""
         if not 0 <= position < len(self.timeline):
             raise InvalidArgumentError(
                 f"position {position} is outside the line (0 to {len(self.timeline) - 1})"
@@ -126,7 +126,7 @@ class SecomInference:
     def _position(self) -> int:
         if self.fixed_position is not None:
             return self.fixed_position
-        return self.line.clock().position
+        return len(self.timeline) - 1
 
     def _sequence(self, unit_id: int, position: int) -> int:
         if not 0 <= unit_id < len(self.timeline):
@@ -135,7 +135,9 @@ class SecomInference:
             )
         sequence = int(self.timeline.sequence_of[unit_id])
         if sequence > position:
-            raise NotFoundError(f"Unit {unit_id} has not come off the line yet.")
+            raise NotFoundError(
+                f"Unit {unit_id} had not come off the line yet at this investigation's alarm."
+            )
         return sequence
 
     @staticmethod
@@ -169,7 +171,7 @@ class SecomInference:
         page = sequences[start : start + limit]
         more = start + limit < len(sequences)
         return UnitPage(
-            items=[self.line.summary(s, position) for s in page],
+            items=[self.alarms.summary(s) for s in page],
             next_cursor=_encode(page[-1]) if more and page else None,
             total=len(sequences),
         )
@@ -177,7 +179,7 @@ class SecomInference:
     def _risk(self, sequence: int) -> UnitRisk:
         t = self.timeline
         risk = _number(float(t.risk[sequence]))
-        op = self.line.operating_point
+        op = self.alarms.operating_point
         return UnitRisk(
             unit_id=int(t.unit_id[sequence]),
             block=t.block[sequence],
@@ -198,12 +200,12 @@ class SecomInference:
         readings = self.bundle.source.readings[unit_id]
         measured = int(np.isfinite(readings).sum())
         return UnitDetail(
-            **self.line.summary(sequence, position).model_dump(),
+            **self.alarms.summary(sequence).model_dump(),
             risk_detail=self._risk(sequence),
             sensors_measured=measured,
             sensors_missing=N_SENSORS - measured,
             explanation_available=not bool(np.isnan(self.bundle.shap.values[unit_id]).all()),
-            alarms=await self.line.alarms_for(sequence, position),
+            alarms=await self.alarms.alarms_for(sequence),
             investigation_ids=await self.investigations.for_unit(unit_id),
         )
 
@@ -382,8 +384,8 @@ class SecomInference:
             if unknown:
                 raise InvalidArgumentError(f"Unknown sensor IDs: {', '.join(unknown[:10])}.")
         position = self._position()
-        plant_time = self.timeline.timestamp[position]
-        started = [w.start <= plant_time for w in health.windows]
+        latest = self.timeline.timestamp[position]
+        started = [w.start <= latest for w in health.windows]
         wanted = set(sensors) if sensors is not None else None
         report = [
             SensorHealth(

@@ -29,7 +29,10 @@ function shortestDigits(abs: number): [integer: string, fraction: string] {
  */
 export function formatFixed(value: number, digits: number): string {
   if (Math.abs(value) >= 1e21) {
-    return new Intl.NumberFormat(LOCALE, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+    return new Intl.NumberFormat(LOCALE, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(value);
   }
   let [int, frac] = shortestDigits(Math.abs(value));
   if (frac.length > digits) {
@@ -196,6 +199,9 @@ export function plural(count: number, one: string, many = `${one}s`): string {
 }
 
 /** A count the model endpoint may not report: null reads "not reported", never 0. */
-export function formatReported(value: number | null | undefined, format: (v: number) => string = formatInt): string {
+export function formatReported(
+  value: number | null | undefined,
+  format: (v: number) => string = formatInt,
+): string {
   return value == null ? "not reported" : format(value);
 }

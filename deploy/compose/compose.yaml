@@ -3,8 +3,8 @@
 #   cp .env.example deploy/compose/.env    # then fill in the values (see README.md)
 #   docker compose -f deploy/compose/compose.yaml up -d --build --wait
 #
-# The gateway (Caddy) is the only published service: /api/* and /ws/* go to the API, everything
-# else to the web app. Every setting comes from deploy/compose/.env; no secret is in this file
+# The gateway (Caddy) is the only published service: /api/* (with its server-sent event
+# streams) goes to the API, everything else to the web app. Every setting comes from deploy/compose/.env; no secret is in this file
 # or in an image.
 
 name: yield-guardian

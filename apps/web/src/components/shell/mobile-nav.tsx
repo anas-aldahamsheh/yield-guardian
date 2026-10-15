@@ -14,7 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
-import { PlantClockLink } from "./plant-clock";
 import { SessionControl } from "./session-control";
 import { MenuButton } from "./top-bar";
 
@@ -57,7 +56,6 @@ export default function MobileNavSheet({ pathname }: { pathname: string }) {
           </ul>
         </nav>
         <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-3 border-t border-hairline px-5 py-4">
-          <PlantClockLink className="sm:hidden" />
           <SessionControl stacked className="md:hidden" />
         </div>
       </SheetContent>

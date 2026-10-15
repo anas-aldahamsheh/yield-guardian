@@ -89,6 +89,7 @@ class FakeRunner:
 
     def __init__(self, behaviour: Behaviour = "report") -> None:
         self.behaviour: Behaviour = behaviour
+        self.report = REPORT
         self.runs: list[str] = []
         self.as_of: list[int | None] = []
         self.resumes: list[tuple[str, Decision]] = []
@@ -135,7 +136,7 @@ class FakeRunner:
             return
         if self.behaviour == "incomplete":
             return
-        await sink.report(REPORT, round=0)
+        await sink.report(self.report, round=0)
         await sink.verification(VERIFICATION, round=0)
         await sink.status("awaiting_decision")
 

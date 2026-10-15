@@ -99,12 +99,22 @@ export function buildWafer(
   const substrateMaterial = new THREE.ShaderMaterial({
     vertexShader: substrateVertexShader,
     fragmentShader: substrateFragmentShader,
-    uniforms: { ...shared, uReveal: { value: 0 }, uNativeOxide: { value: 2 }, uLampColour: { value: lamp } },
+    uniforms: {
+      ...shared,
+      uReveal: { value: 0 },
+      uNativeOxide: { value: 2 },
+      uLampColour: { value: lamp },
+    },
   });
   const stageMaterial = new THREE.ShaderMaterial({
     vertexShader: stageVertexShader,
     fragmentShader: stageFragmentShader,
-    uniforms: { uLamp: { value: lamp }, uField: { value: field }, uFieldOn: { value: 0 }, uReveal: { value: 0 } },
+    uniforms: {
+      uLamp: { value: lamp },
+      uField: { value: field },
+      uFieldOn: { value: 0 },
+      uReveal: { value: 0 },
+    },
     transparent: true,
     depthWrite: false,
   });

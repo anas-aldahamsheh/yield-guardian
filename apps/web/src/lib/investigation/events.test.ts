@@ -28,13 +28,17 @@ describe("applyInvestigationEvent", () => {
     const rebuilt = stream().reduce(applyInvestigationEvent, emptyRun(inv));
     expect(rebuilt.status).toBe(inv.status);
     expect(rebuilt.steps).toEqual(inv.steps);
-    expect(rebuilt.evidence.map((e) => e.evidence_id)).toEqual(inv.evidence.map((e) => e.evidence_id));
+    expect(rebuilt.evidence.map((e) => e.evidence_id)).toEqual(
+      inv.evidence.map((e) => e.evidence_id),
+    );
     expect(rebuilt.report).toEqual(inv.report);
     expect(rebuilt.verification).toEqual(inv.verification);
   });
 
   it("replaces a running step with its finished version", () => {
-    const events = stream().filter((e) => e.type === "step").slice(0, 2);
+    const events = stream()
+      .filter((e) => e.type === "step")
+      .slice(0, 2);
     const run = events.reduce(applyInvestigationEvent, emptyRun(stored()));
     expect(run.steps).toHaveLength(1);
     expect(run.steps[0]!.status).toBe("completed");
@@ -52,7 +56,13 @@ describe("applyInvestigationEvent", () => {
       type: "decision",
       seq: 99,
       at: "2026-10-14T12:00:00Z",
-      decision: { verdict: "approve", actions: [0], note: null, decided_by: "engineer", decided_at: "2026-10-14T12:00:00Z" },
+      decision: {
+        verdict: "approve",
+        actions: [0],
+        note: null,
+        decided_by: "engineer",
+        decided_at: "2026-10-14T12:00:00Z",
+      },
       work_order_id: "WO-000013",
     });
     expect(next.status).toBe("approved");
@@ -85,13 +95,18 @@ describe("segmentNumbers", () => {
   });
 
   it("prefers the longer written form", () => {
-    expect(segmentNumbers("99.9% limit", [ref("99.9"), ref("99.9%")])[0]).toEqual({ text: "99.9%", number: 1 });
+    expect(segmentNumbers("99.9% limit", [ref("99.9"), ref("99.9%")])[0]).toEqual({
+      text: "99.9%",
+      number: 1,
+    });
   });
 
   it("finds every number of the fixture report in its text", () => {
     const report = stored().report!;
     const text = [report.summary, ...report.findings.map((f) => f.claim)].join(" ");
-    const found = new Set(segmentNumbers(text, report.numbers).flatMap((s) => (s.number != null ? [s.number] : [])));
+    const found = new Set(
+      segmentNumbers(text, report.numbers).flatMap((s) => (s.number != null ? [s.number] : [])),
+    );
     expect(found.size).toBe(report.numbers.length);
   });
 });
@@ -112,8 +127,16 @@ describe("issues and pointers", () => {
 
 describe("unverified marker", () => {
   it("splits [unverified] out as its own segment", () => {
-    const segs = segmentNumbers("Yield fell to [unverified] after 18.4%.", [{ as_written: "18.4%" } as never]);
-    expect(segs.map((s) => s.text)).toEqual(["Yield fell to ", "[unverified]", " after ", "18.4%", "."]);
+    const segs = segmentNumbers("Yield fell to [unverified] after 18.4%.", [
+      { as_written: "18.4%" } as never,
+    ]);
+    expect(segs.map((s) => s.text)).toEqual([
+      "Yield fell to ",
+      "[unverified]",
+      " after ",
+      "18.4%",
+      ".",
+    ]);
     expect(segs[1]!.unverified).toBe(true);
     expect(segs[3]!.number).toBe(0);
   });

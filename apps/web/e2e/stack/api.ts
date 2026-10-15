@@ -10,12 +10,21 @@ export async function getJson<T>(request: APIRequestContext, path: string): Prom
 type Page<T> = { items: T[]; total: number };
 
 export async function discover(request: APIRequestContext) {
-  const alarms = await getJson<Page<{ unit_id: number; alarm_id: string }>>(request, "/alarms?limit=1");
+  const alarms = await getJson<Page<{ unit_id: number; alarm_id: string }>>(
+    request,
+    "/alarms?limit=1",
+  );
   const units = await getJson<Page<{ unit_id: number }>>(request, "/units?limit=1");
   const lots = await getJson<Page<{ lot: string; wafers: number }>>(request, "/lots?limit=1");
   const wafers = await getJson<Page<{ wafer_id: string }>>(request, "/wafers?limit=1");
-  const workOrders = await getJson<Page<{ work_order_id: string }>>(request, "/work-orders?limit=1");
-  const investigations = await getJson<Page<{ investigation_id: string }>>(request, "/investigations?limit=1");
+  const workOrders = await getJson<Page<{ work_order_id: string }>>(
+    request,
+    "/work-orders?limit=1",
+  );
+  const investigations = await getJson<Page<{ investigation_id: string }>>(
+    request,
+    "/investigations?limit=1",
+  );
   return {
     unit: alarms.items[0]?.unit_id ?? units.items[0]!.unit_id,
     lot: lots.items[0]!.lot,

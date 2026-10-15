@@ -1,204 +1,259 @@
 "use client";
 
 import { LocalDateTime } from "@/components/local-date-time";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { InvestigationSummary } from "@yield-guardian/contracts";
 import Link from "next/link";
 import { useState } from "react";
 
-import { PageFrame, PageHeader, Panel } from "@/components/page";
+import { Panel } from "@/components/page";
+import { ScrollRegion } from "@/components/scroll-region";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { q } from "@/lib/api/queries";
+import { LIVE_STATUSES } from "@/lib/investigation/events";
 import { formatInt, formatNumber, plural } from "@/lib/format";
 import { TRIGGER_KIND } from "@/lib/labels";
+import { investigationHref, lineHref, workOrderHref } from "@/lib/routes";
 
+import { Elapsed } from "./elapsed";
 import { StatusLabel } from "./status-label";
-import { ScrollRegion } from "@/components/scroll-region";
 
 type Status = InvestigationSummary["status"];
-const FILTERS: { value: Status | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "awaiting_decision", label: "Awaiting decision" },
-  { value: "running", label: "Running" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-  { value: "failed", label: "Failed" },
+type GroupId = "running" | "awaiting" | "decided" | "failed";
+
+const GROUPS: {
+  id: GroupId;
+  title: string;
+  description: string;
+  statuses: Status[];
+  empty: string;
+}[] = [
+  {
+    id: "running",
+    title: "Running",
+    description: "Gathering evidence or writing the report now, with the real elapsed time.",
+    statuses: ["queued", "running"],
+    empty: "Nothing is running.",
+  },
+  {
+    id: "awaiting",
+    title: "Awaiting decision",
+    description: "A checked report is ready: an engineer approves actions or rejects it.",
+    statuses: ["awaiting_decision"],
+    empty: "No report is waiting for a decision.",
+  },
+  {
+    id: "decided",
+    title: "Decided",
+    description: "Approved (with the work order it opened) or rejected.",
+    statuses: ["approved", "rejected"],
+    empty: "No report has been decided yet.",
+  },
+  {
+    id: "failed",
+    title: "Failed",
+    description: "Runs that stopped before a report, with the reason on their page.",
+    statuses: ["failed"],
+    empty: "",
+  },
 ];
 
-export function InvestigationsList() {
+/** While something runs, the list checks for new statuses every few seconds; otherwise it is still. */
+const RUNNING_REFRESH_MS = 4000;
+
+/**
+ * The investigations, grouped by where they stand: running, awaiting a decision, decided.
+ * Attempts to record a demo run that failed stay behind a button, so the runs people open come
+ * first.
+ */
+export function InvestigationsIndex() {
   const api = useApi();
-  const [status, setStatus] = useState<Status | "all">("all");
   const [showFailedRecordings, setShowFailedRecordings] = useState(false);
-  const query = useQuery(q.investigations(api, status === "all" ? {} : { status }));
   const { liveInvestigations } = useFeatures();
-  // Attempts to record a demo run that failed stay in the database and under the "Failed"
-  // filter; the full list keeps them behind a button so the runs people open come first.
-  const items = query.data?.items ?? [];
-  const failedRecordings =
-    status === "all" ? items.filter((inv) => inv.recorded && inv.status === "failed") : [];
-  const rows = showFailedRecordings
+  const query = useInfiniteQuery({
+    ...q.investigationPages(api),
+    refetchInterval: (state) =>
+      state.state.data?.pages.some((p) => p.items.some((inv) => LIVE_STATUSES.has(inv.status)))
+        ? RUNNING_REFRESH_MS
+        : false,
+  });
+
+  const items = query.data?.pages.flatMap((p) => p.items) ?? [];
+  const total = query.data?.pages[0]?.total;
+  const failedRecordings = items.filter((inv) => inv.recorded && inv.status === "failed");
+  const shown = showFailedRecordings
     ? items
-    : items.filter((inv) => !failedRecordings.includes(inv));
+    : items.filter((inv) => !(inv.recorded && inv.status === "failed"));
 
   return (
-    <PageFrame>
-      <PageHeader
-        title="Investigations"
-        description="Each one gathers evidence with data tools, writes a report whose numbers are checked, and waits for an engineer's decision."
-      />
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
       {liveInvestigations === false ? <NotConfiguredNote /> : null}
-      <Panel
-        title="Runs"
-        description={
-          query.data ? `${formatInt(query.data.total)} in total, newest first.` : undefined
-        }
-        actions={
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            value={status}
-            onValueChange={(v) => v && setStatus(v as Status | "all")}
-            aria-label="Filter by status"
-            className="flex-wrap"
-          >
-            {FILTERS.map((f) => (
-              <ToggleGroupItem key={f.value} value={f.value} className="px-2.5">
-                {f.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        }
-        bodyClassName="px-0 sm:px-0"
-      >
-        {query.isError ? (
-          <ErrorState
-            className="mx-4 sm:mx-5"
-            error={query.error}
-            onRetry={() => void query.refetch()}
-          />
-        ) : !query.data ? (
-          <Placeholder className="mx-4 h-48 sm:mx-5" label="Loading investigations" />
-        ) : items.length === 0 ? (
+      {query.isError ? (
+        <ErrorState error={query.error} onRetry={() => void query.refetch()} />
+      ) : !query.data ? (
+        <Placeholder className="h-64" label="Loading investigations" />
+      ) : items.length === 0 ? (
+        <Panel>
           <EmptyState
-            className="mx-4 sm:mx-5"
-            title={status === "all" ? "No investigations yet" : "None with this status"}
+            title="No investigations yet"
             action={
               <Link
-                href="/line"
+                href={lineHref()}
                 className="text-[14px] text-ink underline decoration-hairline-strong underline-offset-4"
               >
                 Open the line
               </Link>
             }
           >
-            Start one from an open alarm on the line, or from a unit, wafer or lot.
+            Run a sample or your own data on the line, then choose Investigate on an alarm.
           </EmptyState>
-        ) : (
-          <>
-            {rows.length > 0 ? (
-              <ScrollRegion label="Investigations">
-                <table className="w-full min-w-[760px] border-collapse text-left text-[14px] leading-5">
-                  <caption className="sr-only">Investigations</caption>
-                  <thead>
-                    <tr className="border-y border-hairline text-[12px] text-ink-3">
-                      <th scope="col" className="px-4 py-2 font-normal sm:px-5">
-                        Investigation
-                      </th>
-                      <th scope="col" className="px-3 py-2 font-normal">
-                        Status
-                      </th>
-                      <th scope="col" className="px-3 py-2 font-normal">
-                        From
-                      </th>
-                      <th scope="col" className="px-3 py-2 font-normal">
-                        Started
-                      </th>
-                      <th scope="col" className="px-3 py-2 text-right font-normal">
-                        Points
-                      </th>
-                      <th scope="col" className="px-4 py-2 font-normal sm:px-5">
-                        Work order
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((inv) => (
-                      <tr
-                        key={inv.investigation_id}
-                        className="border-b border-hairline last:border-b-0 hover:bg-die-2"
-                      >
-                        <th scope="row" className="px-4 py-2.5 font-normal sm:px-5">
-                          <Link
-                            href={`/investigations/${inv.investigation_id}`}
-                            className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
-                          >
-                            {inv.title}
-                          </Link>
-                          {inv.recorded ? (
-                            <span className="ml-2 text-[12px] text-ink-3">Recorded</span>
-                          ) : null}
-                        </th>
-                        <td className="px-3 py-2.5 whitespace-nowrap">
-                          <StatusLabel status={inv.status} />
-                        </td>
-                        <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">
-                          {TRIGGER_KIND[inv.trigger.kind]} {inv.trigger.ref}
-                        </td>
-                        <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">
-                          <LocalDateTime iso={inv.created_at} />
-                        </td>
-                        <td className="tnum px-3 py-2.5 text-right text-ink-2">
-                          {inv.usage ? formatNumber(inv.usage.points, 5) : "–"}
-                        </td>
-                        <td className="tnum px-4 py-2.5 sm:px-5">
-                          {inv.work_order_id ? (
-                            <Link
-                              href={`/work-orders/${inv.work_order_id}`}
-                              className="text-ink underline decoration-hairline-strong underline-offset-4"
-                            >
-                              {inv.work_order_id}
-                            </Link>
-                          ) : (
-                            <span className="text-ink-3">–</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </ScrollRegion>
+        </Panel>
+      ) : (
+        <>
+          {GROUPS.map((g) => {
+            const rows = shown.filter((inv) => g.statuses.includes(inv.status));
+            if (g.id === "failed" && rows.length === 0) return null;
+            return <Group key={g.id} group={g} rows={rows} />;
+          })}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 pt-1 text-[13px] leading-5 text-ink-2">
+            {total != null ? (
+              <span className="tnum">
+                {formatInt(items.length)} of {formatInt(total)} shown, newest first.
+              </span>
+            ) : null}
+            {query.hasNextPage ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void query.fetchNextPage()}
+                disabled={query.isFetchingNextPage}
+              >
+                {query.isFetchingNextPage ? "Loading…" : "Show older investigations"}
+              </Button>
             ) : null}
             {failedRecordings.length > 0 ? (
-              <p className="px-4 pt-3 text-[13px] leading-5 text-ink-2 sm:px-5">
-                <button
-                  type="button"
-                  aria-pressed={showFailedRecordings}
-                  onClick={() => setShowFailedRecordings((shown) => !shown)}
-                  className="inline-block min-h-6 cursor-pointer rounded-sm py-0.5 text-left underline decoration-hairline-strong underline-offset-4 hover:text-ink"
-                >
-                  {showFailedRecordings
-                    ? "Hide the failed recording attempts"
-                    : `Show ${plural(failedRecordings.length, "failed recording attempt")}`}
-                </button>
-              </p>
+              <button
+                type="button"
+                aria-pressed={showFailedRecordings}
+                onClick={() => setShowFailedRecordings((on) => !on)}
+                className="inline-block min-h-6 cursor-pointer rounded-sm py-0.5 text-left underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+              >
+                {showFailedRecordings
+                  ? "Hide the failed recording attempts"
+                  : `Show ${plural(failedRecordings.length, "failed recording attempt")}`}
+              </button>
             ) : null}
-          </>
-        )}
-      </Panel>
-    </PageFrame>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Group({ group, rows }: { group: (typeof GROUPS)[number]; rows: InvestigationSummary[] }) {
+  const titleId = `group-${group.id}`;
+  return (
+    <Panel
+      aria-labelledby={titleId}
+      data-group={group.id}
+      title={
+        <span id={titleId}>
+          {group.title}{" "}
+          <span className="tnum font-normal text-ink-3">{formatInt(rows.length)}</span>
+        </span>
+      }
+      description={group.description}
+      bodyClassName="px-0 sm:px-0"
+    >
+      {rows.length === 0 ? (
+        <p className="px-4 pt-1 text-[14px] leading-5 text-ink-3 sm:px-5">{group.empty}</p>
+      ) : (
+        <ScrollRegion label={group.title}>
+          <table className="w-full min-w-[760px] border-collapse text-left text-[14px] leading-5">
+            <caption className="sr-only">{group.title}</caption>
+            <thead>
+              <tr className="border-y border-hairline text-[12px] text-ink-3">
+                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                  Investigation
+                </th>
+                <th scope="col" className="px-3 py-2 font-normal">
+                  Status
+                </th>
+                <th scope="col" className="px-3 py-2 font-normal">
+                  From
+                </th>
+                <th scope="col" className="px-3 py-2 font-normal">
+                  {group.id === "running" ? "Elapsed" : "Started"}
+                </th>
+                <th scope="col" className="px-3 py-2 text-right font-normal">
+                  Points
+                </th>
+                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                  Work order
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((inv) => (
+                <tr
+                  key={inv.investigation_id}
+                  className="border-b border-hairline last:border-b-0 hover:bg-die-2"
+                >
+                  <th scope="row" className="px-4 py-2.5 font-normal sm:px-5">
+                    <Link
+                      href={investigationHref(inv.investigation_id)}
+                      className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+                    >
+                      {inv.title}
+                    </Link>
+                    {inv.recorded ? (
+                      <span className="ml-2 text-[12px] text-ink-3">Recorded</span>
+                    ) : null}
+                  </th>
+                  <td className="px-3 py-2.5 whitespace-nowrap">
+                    <StatusLabel status={inv.status} />
+                  </td>
+                  <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">
+                    {TRIGGER_KIND[inv.trigger.kind] ?? inv.trigger.kind} {inv.trigger.ref}
+                  </td>
+                  <td className="tnum px-3 py-2.5 whitespace-nowrap text-ink-2">
+                    {LIVE_STATUSES.has(inv.status) ? (
+                      <Elapsed from={inv.created_at} running />
+                    ) : (
+                      <LocalDateTime iso={inv.created_at} />
+                    )}
+                  </td>
+                  <td className="tnum px-3 py-2.5 text-right text-ink-2">
+                    {inv.usage ? formatNumber(inv.usage.points, 5) : "–"}
+                  </td>
+                  <td className="tnum px-4 py-2.5 sm:px-5">
+                    {inv.work_order_id ? (
+                      <Link
+                        href={workOrderHref(inv.work_order_id, inv.investigation_id)}
+                        className="text-ink underline decoration-hairline-strong underline-offset-4"
+                      >
+                        {inv.work_order_id}
+                      </Link>
+                    ) : (
+                      <span className="text-ink-3">–</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ScrollRegion>
+      )}
+    </Panel>
   );
 }
 
 function NotConfiguredNote() {
   return (
-    <div
-      role="note"
-      className="mb-6 rounded-md border border-hairline-strong bg-die px-4 py-3 sm:px-5"
-    >
+    <div role="note" className="rounded-md border border-hairline-strong bg-die px-4 py-3 sm:px-5">
       <p className="text-[14px] leading-5 font-medium text-ink">
         {NOT_CONFIGURED.investigations.title}
       </p>

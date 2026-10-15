@@ -41,7 +41,7 @@ from typing import Any, Literal
 Comparator = Literal["<", "<=", ">", ">="]
 IdentifierKind = Literal[
     "unit", "sequence", "sensor", "evidence", "alarm", "wafer", "lot", "wafer_index", "window",
-    "date", "time", "name",
+    "date", "time", "name", "run",
 ]  # fmt: skip
 
 _MINUS = "-\u2212\u2013\u2012"  # hyphen-minus, minus sign, en dash, figure dash
@@ -94,7 +94,8 @@ def _keyword(singular: str, plural: str, prefix: str = "") -> re.Pattern[str]:
 
 
 _IDENTIFIER_PATTERNS: tuple[tuple[IdentifierKind, re.Pattern[str]], ...] = (
-    ("alarm", re.compile(r"\bAL-[0-9]+-(?:risk|t2|spe|ewma|cusum)\b")),
+    ("run", re.compile(r"\brun_[0-9a-z]{8,40}\b")),
+    ("alarm", re.compile(r"\b(?:AL-[0-9]+-(?:risk|t2|spe|ewma|cusum)|RA-[0-9]{1,6})\b")),
     (
         "date",
         re.compile(

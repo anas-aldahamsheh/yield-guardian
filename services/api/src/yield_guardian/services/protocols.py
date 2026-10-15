@@ -1,4 +1,4 @@
-"""Interfaces of the API's own services (stores, sessions, replay). Implementations live next to
+"""Interfaces of the API's own services (stores, sessions, alarms). Implementations live next to
 this module; the science and AI interfaces are in yield_guardian.contracts.services."""
 
 from collections.abc import AsyncIterator
@@ -15,19 +15,7 @@ from yield_guardian.contracts.investigation import (
     InvestigationStatus,
     InvestigationTrigger,
 )
-from yield_guardian.contracts.line import (
-    AlarmKind,
-    AlarmPage,
-    AlarmStatus,
-    LineAlarmMessage,
-    LineCycle,
-    LineFinalTestMessage,
-    LineHeartbeat,
-    LineHello,
-    LineState,
-    LineUnitMessage,
-    PlantClock,
-)
+from yield_guardian.contracts.line import AlarmKind, AlarmPage, AlarmStatus
 from yield_guardian.contracts.methods import MeasuredResults, MethodsOverview, ModelCard
 from yield_guardian.contracts.session import (
     GuestSessionCreate,
@@ -41,15 +29,6 @@ from yield_guardian.contracts.workorders import (
     WorkOrder,
     WorkOrderPage,
     WorkOrderUpdate,
-)
-
-LineMessage = (
-    LineHello
-    | LineUnitMessage
-    | LineAlarmMessage
-    | LineFinalTestMessage
-    | LineHeartbeat
-    | LineCycle
 )
 
 
@@ -77,14 +56,8 @@ VISITOR = ActiveSession(
 )
 
 
-class LineService(Protocol):
-    def clock(self) -> PlantClock: ...
-
-    async def state(self, *, window: int = 120) -> LineState: ...
-
-    def stream(self) -> AsyncIterator[LineMessage]:
-        """Hello first, then units, alarms, final-test results, heartbeats and cycles."""
-        ...
+class AlarmService(Protocol):
+    """The SECOM unit alarms (``AL-<unit>-<kind>``) over every unit, newest first."""
 
     async def list_alarms(
         self,
@@ -98,7 +71,7 @@ class LineService(Protocol):
 
 class InvestigationStore(Protocol):
     async def create(
-        self, trigger: InvestigationTrigger, *, session: ActiveSession
+        self, trigger: InvestigationTrigger, *, session: ActiveSession, title: str | None = None
     ) -> Investigation: ...
 
     async def get(self, investigation_id: str) -> Investigation: ...

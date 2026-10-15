@@ -94,13 +94,17 @@ export function planExposure(grid: DieGrid, layout: DieLayout, fieldsAcross = 6)
   const fieldCols = Math.ceil(grid.width / diesPerField);
   const occupied = new Set<number>();
   for (const die of layout.dies) {
-    occupied.add(Math.floor(die.row / diesPerField) * fieldCols + Math.floor(die.col / diesPerField));
+    occupied.add(
+      Math.floor(die.row / diesPerField) * fieldCols + Math.floor(die.col / diesPerField),
+    );
   }
 
   const fields: ExposureField[] = [];
   const orderOf = new Map<number, number>();
   for (let fr = 0; fr < fieldRows; fr += 1) {
-    const cols = Array.from({ length: fieldCols }, (_, i) => (fr % 2 === 0 ? i : fieldCols - 1 - i));
+    const cols = Array.from({ length: fieldCols }, (_, i) =>
+      fr % 2 === 0 ? i : fieldCols - 1 - i,
+    );
     for (const fc of cols) {
       const key = fr * fieldCols + fc;
       if (!occupied.has(key)) continue;

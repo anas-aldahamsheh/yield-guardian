@@ -23,7 +23,9 @@ function ringColour(ring: number, angleDeg: number): string {
 /** Bare silicon with its native oxide, dimmed like the substrate in the 3D view. */
 function bareSilicon(angleDeg: number): string {
   samples ??= spectralSamples();
-  return linearSrgbToHex(sampledFilmColor(samples, 2, angleDeg).map((c) => c * 0.82) as [number, number, number]);
+  return linearSrgbToHex(
+    sampledFilmColor(samples, 2, angleDeg).map((c) => c * 0.82) as [number, number, number],
+  );
 }
 
 /** The hero is always the dark bay, so the poster carries that theme's --fail. */
@@ -61,11 +63,16 @@ export function WaferPoster({
     for (const die of layout.dies) {
       const ring = Math.min(RINGS - 1, Math.floor(Math.hypot(die.x, die.y) * RINGS));
       rings[ring]!.push(`M${k(die.x - s / 2)} ${k(die.y - s / 2)}h${k(s)}v${k(s)}h${k(-s)}z`);
-      if (die.failed) inks.push(`M${k(die.x)} ${k(die.y)}m${k(-s * 0.27)} 0a${k(s * 0.27)} ${k(s * 0.27)} 0 1 0 ${k(s * 0.54)} 0a${k(s * 0.27)} ${k(s * 0.27)} 0 1 0 ${k(-s * 0.54)} 0`);
+      if (die.failed)
+        inks.push(
+          `M${k(die.x)} ${k(die.y)}m${k(-s * 0.27)} 0a${k(s * 0.27)} ${k(s * 0.27)} 0 1 0 ${k(s * 0.54)} 0a${k(s * 0.27)} ${k(s * 0.27)} 0 1 0 ${k(-s * 0.54)} 0`,
+        );
     }
     const paths = [
       `<path d="M-0.035 -0.999A1 1 0 1 0 0.035 -0.999L0 -0.958Z" transform="rotate(180)" fill="${bareSilicon(angleDeg)}"/>`,
-      ...rings.map((d, i) => (d.length ? `<path d="${d.join("")}" fill="${ringColour(i, angleDeg)}"/>` : "")),
+      ...rings.map((d, i) =>
+        d.length ? `<path d="${d.join("")}" fill="${ringColour(i, angleDeg)}"/>` : "",
+      ),
       inks.length ? `<path d="${inks.join("")}" fill="${FAIL_DARK}"/>` : "",
     ];
     return svgDataUri(
@@ -74,6 +81,16 @@ export function WaferPoster({
   }, [grid, angleDeg]);
 
   // A data URI: next/image would add nothing. Decorative, as the figure around it is labelled.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" width={780} height={780} decoding="sync" fetchPriority="high" className={cn("block size-full", className)} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      width={780}
+      height={780}
+      decoding="sync"
+      fetchPriority="high"
+      className={cn("block size-full", className)}
+    />
+  );
 }

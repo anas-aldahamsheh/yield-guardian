@@ -25,7 +25,10 @@ export default function ThemeMenuFull() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-xs font-normal text-ink-3">Theme</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={mounted ? (theme ?? "system") : "system"} onValueChange={setTheme}>
+        <DropdownMenuRadioGroup
+          value={mounted ? (theme ?? "system") : "system"}
+          onValueChange={setTheme}
+        >
           <DropdownMenuRadioItem value="system">Match the system</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark">Dark: the yellow room</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="light">Light: inspection light</DropdownMenuRadioItem>

@@ -1,7 +1,7 @@
 /**
  * Local gateway: one origin for the web app and the API, like the reverse proxy of every
- * deployment. Browsers call /api/v1/... and /ws/line on the page's own origin; this routes them
- * to the API (or to the development fixtures with --mock) and everything else to Next.js.
+ * deployment. Browsers call /api/v1/... on the page's own origin; this routes it to the API (or
+ * to the development fixtures with --mock) and everything else to Next.js.
  *
  *   tsx scripts/gateway.ts --mode dev            next dev behind the gateway, real API
  *   tsx scripts/gateway.ts --mode dev --mock     next dev, fixture API (development data)
@@ -17,10 +17,8 @@ import { Readable } from "node:stream";
 import { parseArgs } from "node:util";
 
 import { getResponse } from "msw";
-import { WebSocketServer } from "ws";
 
 import { createHandlers } from "../src/mocks/handlers";
-import { replayLineSocket } from "../src/mocks/line-socket";
 
 const { values } = parseArgs({
   options: {
@@ -36,7 +34,7 @@ const { values } = parseArgs({
 const port = Number(values.port);
 const nextPort = Number(values["next-port"]);
 const api = new URL(values.api!);
-const isApiPath = (url = "") => url.startsWith("/api/") || url.startsWith("/ws/");
+const isApiPath = (url = "") => url.startsWith("/api/");
 
 // Next.js, started as a child process on its own port.
 const next = spawn(
@@ -58,7 +56,9 @@ process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 next.on("exit", (code) => process.exit(code ?? 0));
 
-const handlers = values.mock ? createHandlers({ streamDelayMs: Number(values["stream-delay"]) }) : [];
+const handlers = values.mock
+  ? createHandlers({ streamDelayMs: Number(values["stream-delay"]) })
+  : [];
 
 async function answerFromFixtures(req: IncomingMessage, res: ServerResponse) {
   const body =
@@ -74,7 +74,14 @@ async function answerFromFixtures(req: IncomingMessage, res: ServerResponse) {
   const response = await getResponse(handlers, request);
   if (!response) {
     res.writeHead(404, { "Content-Type": "application/problem+json" });
-    res.end(JSON.stringify({ title: "Not found", status: 404, code: "not_found", detail: `${req.method} ${req.url} has no development fixture.` }));
+    res.end(
+      JSON.stringify({
+        title: "Not found",
+        status: 404,
+        code: "not_found",
+        detail: `${req.method} ${req.url} has no development fixture.`,
+      }),
+    );
     return;
   }
   const headers: Record<string, string | string[]> = {};
@@ -89,7 +96,13 @@ async function answerFromFixtures(req: IncomingMessage, res: ServerResponse) {
 
 function forward(req: IncomingMessage, res: ServerResponse, target: URL) {
   const upstream = http.request(
-    { host: target.hostname, port: target.port || 80, method: req.method, path: req.url, headers: { ...req.headers, "x-forwarded-host": req.headers.host ?? "" } },
+    {
+      host: target.hostname,
+      port: target.port || 80,
+      method: req.method,
+      path: req.url,
+      headers: { ...req.headers, "x-forwarded-host": req.headers.host ?? "" },
+    },
     (upstreamRes) => {
       res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
       upstreamRes.pipe(res);
@@ -97,7 +110,9 @@ function forward(req: IncomingMessage, res: ServerResponse, target: URL) {
   );
   upstream.on("error", () => {
     if (!res.headersSent) res.writeHead(502, { "Content-Type": "text/plain" });
-    res.end(isApiPath(req.url) ? `The API at ${target.origin} did not answer.` : "Next.js is starting…");
+    res.end(
+      isApiPath(req.url) ? `The API at ${target.origin} did not answer.` : "Next.js is starting…",
+    );
   });
   req.pipe(upstream);
 }
@@ -118,19 +133,13 @@ const server = http.createServer((req, res) => {
   forward(req, res, nextOrigin);
 });
 
-// WebSockets: the line socket (API or fixtures) and Next's hot reload.
-const lineSockets = new WebSocketServer({ noServer: true });
-lineSockets.on("connection", (socket) => replayLineSocket(socket));
-
+// WebSockets: Next's hot reload in dev mode (the API has none).
 server.on("upgrade", (req, socket, head) => {
-  if (values.mock && req.url?.startsWith("/ws/line")) {
-    lineSockets.handleUpgrade(req, socket, head, (ws) => lineSockets.emit("connection", ws, req));
-    return;
-  }
   const target = isApiPath(req.url) ? api : nextOrigin;
   const upstream = net.connect(Number(target.port || 80), target.hostname, () => {
     const lines = [`${req.method} ${req.url} HTTP/${req.httpVersion}`];
-    for (let i = 0; i < req.rawHeaders.length; i += 2) lines.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
+    for (let i = 0; i < req.rawHeaders.length; i += 2)
+      lines.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
     upstream.write(`${lines.join("\r\n")}\r\n\r\n`);
     if (head.length) upstream.write(head);
     socket.pipe(upstream).pipe(socket);
@@ -141,5 +150,7 @@ server.on("upgrade", (req, socket, head) => {
 
 server.listen(port, () => {
   const source = values.mock ? "development fixtures (not real results)" : api.origin;
-  console.log(`Gateway on http://localhost:${port}: API from ${source}, pages from next ${values.mode} on :${nextPort}`);
+  console.log(
+    `Gateway on http://localhost:${port}: API from ${source}, pages from next ${values.mode} on :${nextPort}`,
+  );
 });

@@ -65,17 +65,7 @@ from yield_guardian.contracts.knowledge import (
 from yield_guardian.contracts.line import (
     Alarm,
     AlarmPage,
-    LineAlarmMessage,
-    LineCycle,
-    LineEvent,
-    LineFinalTestMessage,
-    LineHeartbeat,
-    LineHello,
-    LineKpis,
-    LineState,
-    LineUnitMessage,
     OperatingPointRef,
-    PlantClock,
     UnitSummary,
 )
 from yield_guardian.contracts.meta import Features, Meta
@@ -315,17 +305,6 @@ def unit(seq: int, position: int = POSITION) -> UnitSummary:
 units = [unit(s) for s in range(POSITION + 1)]
 FOCUS = units[FOCUS_SEQ]
 
-clock = PlantClock(
-    epoch=EPOCH,
-    now=NOW,
-    seconds_per_unit=SECONDS_PER_UNIT,
-    units_total=N_UNITS,
-    position=POSITION,
-    cycle=CYCLE,
-    plant_time=times[POSITION],
-    final_test_lag_units=LAG,
-)
-
 
 def alarms_for(u: UnitSummary) -> list[Alarm]:
     out: list[Alarm] = []
@@ -410,22 +389,6 @@ all_alarms = [a for u in units for a in alarms_for(u)]
 open_alarms = sorted((a for a in all_alarms if a.status != "closed"), key=lambda a: -a.sequence)
 
 
-def kpis(window: list[UnitSummary]) -> LineKpis:
-    return LineKpis(
-        window_units=len(window),
-        high_risk=sum(u.risk_band == "high" for u in window),
-        elevated_risk=sum(u.risk_band == "elevated" for u in window),
-        fdc_warnings=sum(u.fdc_alarm == "warning" for u in window),
-        fdc_alarms=sum(u.fdc_alarm == "alarm" for u in window),
-        failures_revealed=sum(u.final_test == "fail" for u in window),
-    )
-
-
-recent = units[-120:]
-line_state = LineState(
-    clock=clock, operating_point=OP, recent=recent, kpis=kpis(recent), open_alarms=open_alarms[:20]
-)
-write("get_line_state", line_state)
 write(
     "list_alarms",
     AlarmPage(
@@ -435,36 +398,6 @@ write(
     ),
 )
 write("list_units", UnitPage(items=units[:200], next_cursor="200", total=len(units)))
-
-next_unit = unit(POSITION + 1, POSITION + 1)
-write(
-    "line_socket",
-    [
-        LineEvent(LineHello(type="hello", state=line_state)),
-        LineEvent(
-            LineUnitMessage(
-                type="unit",
-                clock=clock.model_copy(update={"position": POSITION + 1}),
-                unit=next_unit,
-            )
-        ),
-        LineEvent(LineAlarmMessage(type="alarm", alarm=open_alarms[0])),
-        LineEvent(
-            LineFinalTestMessage(
-                type="final_test",
-                unit_id=units[POSITION + 1 - LAG].unit_id,
-                sequence=POSITION + 1 - LAG,
-                result="pass",
-            )
-        ),
-        LineEvent(LineHeartbeat(type="heartbeat", clock=clock)),
-        LineEvent(
-            LineCycle(
-                type="cycle", clock=clock.model_copy(update={"position": 0, "cycle": CYCLE + 1})
-            )
-        ),
-    ],
-)
 
 # ---------------------------------------------------------------- unit detail, SHAP, FDC
 

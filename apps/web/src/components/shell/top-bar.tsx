@@ -9,10 +9,7 @@ import { type ComponentProps, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { ChatLauncher } from "@/components/chat/chat-launcher";
-
 import { NAV_ITEMS, isActive } from "./nav-items";
-import { PlantClockLink, ReplayTrack } from "./plant-clock";
 import { SessionControl } from "./session-control";
 import { ThemeMenu } from "./theme-menu";
 import { Wordmark } from "./wordmark";
@@ -20,14 +17,23 @@ import { Wordmark } from "./wordmark";
 /** The narrow-screen menu button. */
 export function MenuButton(props: ComponentProps<typeof Button>) {
   return (
-    <Button variant="ghost" size="icon-sm" className="xl:hidden" aria-label="Open the menu" {...props}>
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      className="md:hidden"
+      aria-label="Open the menu"
+      {...props}
+    >
       <Menu className="size-4" aria-hidden="true" />
     </Button>
   );
 }
 
 const loadNav = () => import("./mobile-nav");
-const MobileNavSheet = dynamic(loadNav, { ssr: false, loading: () => <MenuButton aria-haspopup="dialog" disabled /> });
+const MobileNavSheet = dynamic(loadNav, {
+  ssr: false,
+  loading: () => <MenuButton aria-haspopup="dialog" disabled />,
+});
 
 /**
  * The menu on narrow screens. Its sheet (Radix Dialog, focus trap and scroll lock) is fetched
@@ -52,15 +58,11 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-room">
-      <ReplayTrack />
       <div className="mx-auto flex h-bar max-w-[1600px] items-stretch gap-6 px-gutter">
         <Wordmark className="self-center" />
         <DesktopNav pathname={pathname} />
 
         <div className="ml-auto flex items-center gap-2">
-          <PlantClockLink className="hidden sm:flex" />
-          <span className="mx-1 hidden h-5 w-px bg-hairline sm:block" aria-hidden="true" />
-          <ChatLauncher />
           <ThemeMenu />
           <SessionControl className="hidden md:flex" />
           <MobileNav pathname={pathname} />
@@ -93,7 +95,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
   }, [activeHref]);
 
   return (
-    <nav aria-label="Main" className="hidden items-stretch xl:flex">
+    <nav aria-label="Main" className="hidden items-stretch md:flex">
       <ul ref={list} className="relative flex items-stretch">
         {NAV_ITEMS.map((item) => {
           const active = item.href === activeHref;
@@ -103,7 +105,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex items-center px-2 text-sm no-underline transition-colors duration-[var(--dur-micro)] 2xl:px-3",
+                  "relative flex items-center px-3 text-sm no-underline transition-colors duration-[var(--dur-micro)]",
                   active ? "font-medium text-ink" : "text-ink-2 hover:text-ink",
                 )}
               >
@@ -128,7 +130,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
   );
 }
 
-/** The bar spans the link's text, inside its padding (which narrows below 2xl so nine pages fit). */
+/** The bar spans the link's text, inside its padding. */
 function underText(link: HTMLElement): { left: number; width: number } {
   const pad = Number.parseFloat(getComputedStyle(link).paddingLeft) || 0;
   return { left: link.offsetLeft + pad, width: link.offsetWidth - 2 * pad };

@@ -1,12 +1,20 @@
 "use client";
 
-import type { NumberRef, Report as ReportData, Verification, VerificationIssue } from "@yield-guardian/contracts";
+import type {
+  NumberRef,
+  Report as ReportData,
+  Verification,
+  VerificationIssue,
+} from "@yield-guardian/contracts";
 import { Fragment } from "react";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { issuesByTarget, segmentNumbers } from "@/lib/investigation/events";
+import { readHypotheses } from "@/lib/investigation/hypotheses";
 import { CLAIM_VERDICT, ISSUE_CODE, STRENGTH } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+
+import { HypothesisTable } from "./hypothesis-table";
 
 /** What the reader has selected: an evidence record, and optionally one value inside it. */
 export interface EvidenceSelection {
@@ -29,6 +37,7 @@ export function Report({
   selection,
   onSelect,
   actionsSlot,
+  testsHypotheses = false,
 }: {
   report: ReportData;
   verification: Verification | null;
@@ -36,6 +45,8 @@ export function Report({
   onSelect: (selection: EvidenceSelection) => void;
   /** Replaces the plain action list, for choosing actions to approve. */
   actionsSlot?: React.ReactNode;
+  /** The trigger is an alarm raised in a run: the only kind whose report tests hypotheses. */
+  testsHypotheses?: boolean;
 }) {
   const shared: Shared = {
     numbers: report.numbers,
@@ -44,6 +55,9 @@ export function Report({
     onSelect,
   };
   const verdicts = new Map(verification?.claims.map((c) => [c.finding_index, c]) ?? []);
+  // Only a run alarm's report tests hypotheses; any other report has an empty list, and no table.
+  const hypotheses = readHypotheses(report);
+  const showHypotheses = hypotheses != null && (hypotheses.length > 0 || testsHypotheses);
 
   return (
     <article className="min-w-0" aria-labelledby="report-summary">
@@ -55,7 +69,9 @@ export function Report({
       </p>
       <Flags issues={shared.issues.get("summary")} />
 
-      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Findings</h3>
+      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+        Findings
+      </h3>
       <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-5">
         {report.findings.map((finding, i) => {
           const verdict = verdicts.get(i);
@@ -68,7 +84,9 @@ export function Report({
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-5">
                   <EvidenceChips ids={finding.evidence_ids} {...shared} />
-                  <span className="text-ink-3">{STRENGTH[finding.strength] ?? finding.strength}</span>
+                  <span className="text-ink-3">
+                    {STRENGTH[finding.strength] ?? finding.strength}
+                  </span>
                   {verdict ? (
                     <span
                       className={cn(
@@ -91,7 +109,11 @@ export function Report({
         })}
       </ol>
 
-      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Proposed actions</h3>
+      {showHypotheses ? <HypothesisTable rows={hypotheses} {...shared} /> : null}
+
+      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+        Proposed actions
+      </h3>
       {actionsSlot ?? (
         <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-4">
           {report.actions.map((action, i) => (
@@ -105,8 +127,10 @@ export function Report({
 
       {report.limitations.length ? (
         <>
-          <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">Limitations</h3>
-          <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] max-w-[68ch] list-disc gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
+          <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+            Limitations
+          </h3>
+          <ul className="mt-2 grid max-w-[68ch] list-disc grid-cols-[minmax(0,1fr)] gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
             {report.limitations.map((l, i) => (
               <li key={i}>{l}</li>
             ))}
@@ -139,7 +163,13 @@ export function ActionBody({
 }
 
 /** Written text with its listed numbers as links to the evidence value they came from. */
-function WrittenText({ text, numbers, issues, selection, onSelect }: { text: string } & Shared) {
+export function WrittenText({
+  text,
+  numbers,
+  issues,
+  selection,
+  onSelect,
+}: { text: string } & Shared) {
   return (
     <>
       {segmentNumbers(text, numbers).map((segment, i) => {
@@ -151,7 +181,9 @@ function WrittenText({ text, numbers, issues, selection, onSelect }: { text: str
         const button = (
           <button
             type="button"
-            onClick={() => onSelect({ evidenceId: ref.evidence_id, path: ref.path, number: segment.number })}
+            onClick={() =>
+              onSelect({ evidenceId: ref.evidence_id, path: ref.path, number: segment.number })
+            }
             className={cn(
               "tnum inline cursor-pointer rounded-[2px] px-0.5 underline decoration-1 underline-offset-[5px]",
               flagged
@@ -167,7 +199,9 @@ function WrittenText({ text, numbers, issues, selection, onSelect }: { text: str
         return flagged ? (
           <Tooltip key={i}>
             <TooltipTrigger asChild>{button}</TooltipTrigger>
-            <TooltipContent className="max-w-[320px] font-sans">{flagged.map((f) => f.message).join(" ")}</TooltipContent>
+            <TooltipContent className="max-w-[320px] font-sans">
+              {flagged.map((f) => f.message).join(" ")}
+            </TooltipContent>
           </Tooltip>
         ) : (
           <Fragment key={i}>{button}</Fragment>
@@ -190,12 +224,18 @@ export function UnverifiedMark() {
           unverified
         </span>
       </TooltipTrigger>
-      <TooltipContent className="max-w-[280px] font-sans">The verifier hid a value here because it could not trace it to the evidence.</TooltipContent>
+      <TooltipContent className="max-w-[280px] font-sans">
+        The verifier hid a value here because it could not trace it to the evidence.
+      </TooltipContent>
     </Tooltip>
   );
 }
 
-export function EvidenceChips({ ids, selection, onSelect }: { ids: string[] } & Pick<Shared, "selection" | "onSelect">) {
+export function EvidenceChips({
+  ids,
+  selection,
+  onSelect,
+}: { ids: string[] } & Pick<Shared, "selection" | "onSelect">) {
   return (
     <span className="inline-flex flex-wrap gap-1">
       {ids.map((id) => (
@@ -218,12 +258,15 @@ export function EvidenceChips({ ids, selection, onSelect }: { ids: string[] } & 
 }
 
 /** Issues the checks left on this part of the report, shown where they apply. */
-function Flags({ issues }: { issues: VerificationIssue[] | undefined }) {
+export function Flags({ issues }: { issues: VerificationIssue[] | undefined }) {
   if (!issues?.length) return null;
   return (
     <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1">
       {issues.map((issue, i) => (
-        <li key={i} className="flex max-w-[66ch] gap-2 rounded-sm border-l-2 border-fail bg-fail-wash px-3 py-1.5 text-[13px] leading-5 text-ink">
+        <li
+          key={i}
+          className="flex max-w-[66ch] gap-2 rounded-sm border-l-2 border-fail bg-fail-wash px-3 py-1.5 text-[13px] leading-5 text-ink"
+        >
           <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}.</span>
           <span className="text-ink-2">{issue.message}</span>
         </li>

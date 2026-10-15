@@ -4,7 +4,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { API_PREFIX, type Investigation, type InvestigationEvent } from "@yield-guardian/contracts";
 import { useCallback, useEffect, useState } from "react";
 
-import { INVESTIGATION_EVENT_TYPES, LIVE_STATUSES, applyInvestigationEvent, emptyRun } from "./events";
+import {
+  INVESTIGATION_EVENT_TYPES,
+  LIVE_STATUSES,
+  applyInvestigationEvent,
+  emptyRun,
+} from "./events";
 
 export type StreamState = "idle" | "streaming" | "reconnecting" | "ended";
 

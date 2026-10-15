@@ -66,7 +66,9 @@ export function SensorField({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
       const gap = pitch >= 12 ? 2 : 1;
-      const colours = Object.fromEntries(Object.entries(STATUS_TOKEN).map(([k, v]) => [k, token(canvas, v)])) as Record<HealthStatus, string>;
+      const colours = Object.fromEntries(
+        Object.entries(STATUS_TOKEN).map(([k, v]) => [k, token(canvas, v)]),
+      ) as Record<HealthStatus, string>;
       sensors.forEach((s, i) => {
         const status = s.status as HealthStatus;
         const x = (i % FIELD_COLUMNS) * pitch + gap / 2;
@@ -95,7 +97,10 @@ export function SensorField({
     const observer = new ResizeObserver(draw);
     observer.observe(canvas);
     const themeObserver = new MutationObserver(draw);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class"],
+    });
     return () => {
       observer.disconnect();
       themeObserver.disconnect();
@@ -108,13 +113,24 @@ export function SensorField({
     const col = Math.floor((e.clientX - rect.left) / pitch);
     const row = Math.floor((e.clientY - rect.top) / pitch);
     const i = row * FIELD_COLUMNS + col;
-    return col >= 0 && col < FIELD_COLUMNS && i >= 0 && i < sensors.length ? { i, x: e.clientX - rect.left, y: e.clientY - rect.top } : null;
+    return col >= 0 && col < FIELD_COLUMNS && i >= 0 && i < sensors.length
+      ? { i, x: e.clientX - rect.left, y: e.clientY - rect.top }
+      : null;
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLCanvasElement>) => {
-    const step: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -FIELD_COLUMNS, ArrowDown: FIELD_COLUMNS };
+    const step: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -FIELD_COLUMNS,
+      ArrowDown: FIELD_COLUMNS,
+    };
     let next: number | null = null;
-    if (e.key in step) next = Math.min(sensors.length - 1, Math.max(0, (selectedIndex < 0 ? 0 : selectedIndex) + step[e.key]!));
+    if (e.key in step)
+      next = Math.min(
+        sensors.length - 1,
+        Math.max(0, (selectedIndex < 0 ? 0 : selectedIndex) + step[e.key]!),
+      );
     else if (e.key === "Home") next = 0;
     else if (e.key === "End") next = sensors.length - 1;
     if (next == null) return;
@@ -150,7 +166,8 @@ export function SensorField({
           className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-sm border border-hairline bg-die px-2 py-1 text-[12px] leading-4 whitespace-nowrap text-ink shadow-sm"
           style={{ left: hover.x, top: hover.y + 16 }}
         >
-          <span className="tnum font-medium">{hovered.sensor}</span> <span className="text-ink-2">{HEALTH_STATUS[hovered.status]}</span>
+          <span className="tnum font-medium">{hovered.sensor}</span>{" "}
+          <span className="text-ink-2">{HEALTH_STATUS[hovered.status]}</span>
           <span className="tnum text-ink-3">, {formatPercent(hovered.missing_rate)} missing</span>
         </div>
       ) : null}

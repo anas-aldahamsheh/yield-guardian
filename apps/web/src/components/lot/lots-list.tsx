@@ -12,6 +12,7 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt, formatPValue } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
+import { lotHref } from "@/lib/routes";
 import { ScrollRegion } from "@/components/scroll-region";
 
 export function LotsList() {
@@ -38,12 +39,21 @@ export function LotsList() {
         bodyClassName="px-0 sm:px-0"
       >
         {query.isError ? (
-          <ErrorState className="mx-4 sm:mx-5" error={query.error} onRetry={() => void query.refetch()} />
+          <ErrorState
+            className="mx-4 sm:mx-5"
+            error={query.error}
+            onRetry={() => void query.refetch()}
+          />
         ) : !query.data ? (
           <Placeholder className="mx-4 h-48 sm:mx-5" label="Loading lots" />
         ) : query.data.items.length === 0 ? (
-          <EmptyState className="mx-4 sm:mx-5" title={flaggedOnly ? "No lot has a flagged pattern" : "No lots"}>
-            {flaggedOnly ? "Every pattern occurs at about its expected rate. Show all lots to browse them." : "The wafer bundle has no lots."}
+          <EmptyState
+            className="mx-4 sm:mx-5"
+            title={flaggedOnly ? "No lot has a flagged pattern" : "No lots"}
+          >
+            {flaggedOnly
+              ? "Every pattern occurs at about its expected rate. Show all lots to browse them."
+              : "The wafer bundle has no lots."}
           </EmptyState>
         ) : (
           <ScrollRegion label="Lots">
@@ -51,31 +61,55 @@ export function LotsList() {
               <caption className="sr-only">Lots</caption>
               <thead>
                 <tr className="border-y border-hairline text-[12px] text-ink-3">
-                  <th scope="col" className="px-4 py-2 font-normal sm:px-5">Lot</th>
-                  <th scope="col" className="px-3 py-2 text-right font-normal">Wafers</th>
-                  <th scope="col" className="px-3 py-2 text-right font-normal">Labelled</th>
-                  <th scope="col" className="px-3 py-2 font-normal">More than expected</th>
-                  <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">Smallest q</th>
+                  <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                    Lot
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-right font-normal">
+                    Wafers
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-right font-normal">
+                    Labelled
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-normal">
+                    More than expected
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                    Smallest q
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {query.data.items.map((l) => (
-                  <tr key={l.lot} className="border-b border-hairline last:border-b-0 hover:bg-die-2">
+                  <tr
+                    key={l.lot}
+                    className="border-b border-hairline last:border-b-0 hover:bg-die-2"
+                  >
                     <th scope="row" className="tnum px-4 py-2.5 font-normal sm:px-5">
-                      <Link href={`/lots/${encodeURIComponent(l.lot)}`} className="text-ink underline decoration-hairline-strong underline-offset-4">
+                      <Link
+                        href={lotHref(l.lot)}
+                        className="text-ink underline decoration-hairline-strong underline-offset-4"
+                      >
                         {l.lot}
                       </Link>
                     </th>
-                    <td className="tnum px-3 py-2.5 text-right text-ink-2">{formatInt(l.wafers)}</td>
-                    <td className="tnum px-3 py-2.5 text-right text-ink-2">{formatInt(l.labelled)}</td>
+                    <td className="tnum px-3 py-2.5 text-right text-ink-2">
+                      {formatInt(l.wafers)}
+                    </td>
+                    <td className="tnum px-3 py-2.5 text-right text-ink-2">
+                      {formatInt(l.labelled)}
+                    </td>
                     <td className="px-3 py-2.5">
                       {l.flagged_labels.length ? (
-                        <span className="text-ink">{l.flagged_labels.map((x) => patternName(x as PatternLabel)).join(", ")}</span>
+                        <span className="text-ink">
+                          {l.flagged_labels.map((x) => patternName(x as PatternLabel)).join(", ")}
+                        </span>
                       ) : (
                         <span className="text-ink-3">None</span>
                       )}
                     </td>
-                    <td className="tnum px-4 py-2.5 text-right text-ink-2 sm:px-5">{l.min_q_value == null ? "not tested" : formatPValue(l.min_q_value)}</td>
+                    <td className="tnum px-4 py-2.5 text-right text-ink-2 sm:px-5">
+                      {l.min_q_value == null ? "not tested" : formatPValue(l.min_q_value)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

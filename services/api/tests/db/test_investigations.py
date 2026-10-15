@@ -7,6 +7,7 @@ import pytest
 from pydantic import SecretStr
 from sqlalchemy import select, update
 
+from tests.agent.run_helpers import LOT, RUN_ID, FakeRuns
 from tests.db.conftest import clean
 from tests.db.fakes import REPORT, FakeRunner
 from yield_guardian.contracts.investigation import (
@@ -14,13 +15,17 @@ from yield_guardian.contracts.investigation import (
     InvestigationEventPayload,
     InvestigationTrigger,
 )
-from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
+from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError, NotReadyError
 from yield_guardian.contracts.session import GuestSessionCreate
 from yield_guardian.core.settings import Settings
 from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
 from yield_guardian.services.alarms import AlarmStateStore
 from yield_guardian.services.errors import ConflictError
-from yield_guardian.services.investigations import new_investigation_id, trigger_title
+from yield_guardian.services.investigations import (
+    check_run_alarm,
+    new_investigation_id,
+    trigger_title,
+)
 from yield_guardian.services.jobs import JobWorker, RunnerProvider
 from yield_guardian.services.persistence import Persistence, build_persistence
 from yield_guardian.services.protocols import ActiveSession, InvestigationStore
@@ -493,3 +498,53 @@ async def test_a_run_left_running_without_a_live_job_is_failed_at_startup(
     assert investigation.error is not None
     assert investigation.error.title == "Investigation interrupted"
     assert (await persistence.alarms.get("AL-1043-t2")).status == "open"
+
+
+RUN_ALARM = InvestigationTrigger(kind="run_alarm", ref=f"{RUN_ID}:RA-1")
+
+
+async def test_run_alarm_references_and_titles() -> None:
+    assert trigger_title(RUN_ALARM) == f"Run alarm RA-1 in {RUN_ID}"
+    for ref in ("RA-1", f"{RUN_ID}:AL-1-t2", f"{RUN_ID}:RA-1234567", "run_x:RA-1"):
+        with pytest.raises(InvalidArgumentError):
+            trigger_title(InvestigationTrigger(kind="run_alarm", ref=ref))
+    runs = FakeRuns()
+    assert await check_run_alarm(runs, RUN_ALARM) == (
+        "Sensor relationships broke (SPE) on unit U-3 (RA-1)"
+    )
+    lot = InvestigationTrigger(kind="run_alarm", ref=f"{RUN_ID}:RA-3")
+    assert await check_run_alarm(runs, lot) == f"Pattern repeats in the lot on lot {LOT} (RA-3)"
+    with pytest.raises(NotFoundError, match="has no alarm RA-9"):
+        await check_run_alarm(runs, InvestigationTrigger(kind="run_alarm", ref=f"{RUN_ID}:RA-9"))
+    with pytest.raises(NotFoundError, match="does not exist or has expired"):
+        await check_run_alarm(
+            runs, InvestigationTrigger(kind="run_alarm", ref="run_doesnotexist:RA-1")
+        )
+    with pytest.raises(NotReadyError):
+        await check_run_alarm(None, RUN_ALARM)
+
+
+async def test_a_run_alarm_is_investigated_once_at_a_time_and_found_by_run(
+    persistence: Persistence,
+) -> None:
+    store = persistence.investigations
+    session = await _engineer(persistence)
+    title = await check_run_alarm(FakeRuns(), RUN_ALARM)
+    first = await store.create(RUN_ALARM, session=session, title=title)
+    assert first.title == title
+    again = await store.create(RUN_ALARM, session=session, title=title)
+    assert again.investigation_id == first.investigation_id
+    other = await store.create(
+        InvestigationTrigger(kind="run_alarm", ref=f"{RUN_ID}:RA-2"), session=session
+    )
+    await _collect(persistence, first.investigation_id)
+    await store.decide(first.investigation_id, DecisionCreate(verdict="reject"), session=session)
+    await _collect(persistence, first.investigation_id, after=9)
+    newer = await store.create(RUN_ALARM, session=session, title=title)
+    assert newer.investigation_id != first.investigation_id  # the first one is closed
+    assert await store.for_run(RUN_ID) == {
+        "RA-1": newer.investigation_id,
+        "RA-2": other.investigation_id,
+    }
+    assert await store.for_run("run_testcase000") == {}  # a prefix of the ID is another run
+    assert await store.for_run("run_testcase_001") == {}  # "_" is not a wildcard

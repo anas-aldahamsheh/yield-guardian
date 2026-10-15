@@ -1,7 +1,15 @@
 "use client";
 
 import { scaleLinear } from "d3";
-import { type MouseEvent, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  type MouseEvent,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { usePrefersReducedMotion } from "@/components/motion";
 import { cn } from "@/lib/utils";
@@ -51,10 +59,17 @@ const DASH: Record<LimitLine["pattern"], string | undefined> = {
 
 /** A top for the y axis that shows every limit and nearly every value, rounded to a nice step. */
 export function axisMax(values: (number | null)[], limits: number[], floor = 0): number {
-  const finite = values.filter((v): v is number => v != null && Number.isFinite(v)).sort((a, b) => a - b);
-  const high = finite.length ? finite[Math.min(finite.length - 1, Math.floor(finite.length * 0.97))]! : 0;
+  const finite = values
+    .filter((v): v is number => v != null && Number.isFinite(v))
+    .sort((a, b) => a - b);
+  const high = finite.length
+    ? finite[Math.min(finite.length - 1, Math.floor(finite.length * 0.97))]!
+    : 0;
   const top = Math.max(floor, high * 1.08, ...limits.map((l) => l * 1.25));
-  const domain = scaleLinear().domain([0, top || 1]).nice(4).domain();
+  const domain = scaleLinear()
+    .domain([0, top || 1])
+    .nice(4)
+    .domain();
   return domain[1]!;
 }
 
@@ -130,9 +145,14 @@ export function ControlChart({
   const top = 28;
   const plotBottom = height - rugHeight - axisHeight - (rug || showXAxis ? 0 : 10);
   const x = useMemo(() => xScaleFor(xDomain, width), [xDomain, width]);
-  const y = useMemo(() => scaleLinear().domain([0, yMax]).range([plotBottom, top]), [yMax, plotBottom]);
+  const y = useMemo(
+    () => scaleLinear().domain([0, yMax]).range([plotBottom, top]),
+    [yMax, plotBottom],
+  );
   const yTicks = y.ticks(3);
-  const xTicks = showXAxis ? x.ticks(Math.max(2, Math.floor(width / 110))).filter(Number.isInteger) : [];
+  const xTicks = showXAxis
+    ? x.ticks(Math.max(2, Math.floor(width / 110))).filter(Number.isInteger)
+    : [];
   const step = Math.abs(x(1) - x(0));
   const r = step >= 5 ? 2.6 : step >= 2.5 ? 2 : 1.5;
   const shift = useArrivalShift(xDomain[0], step, reduced);
@@ -162,7 +182,8 @@ export function ControlChart({
 
   // Marks that carry state are drawn last so they sit on top of ordinary points.
   const ordered = useMemo(
-    () => [...points].sort((a, b) => (a.tone === "neutral" ? 0 : 1) - (b.tone === "neutral" ? 0 : 1)),
+    () =>
+      [...points].sort((a, b) => (a.tone === "neutral" ? 0 : 1) - (b.tone === "neutral" ? 0 : 1)),
     [points],
   );
   const newest = newestX != null ? points.find((pt) => pt.x === newestX) : undefined;
@@ -191,20 +212,46 @@ export function ControlChart({
     >
       <defs>
         <clipPath id={clipId}>
-          <rect x={CHART_MARGIN.left} y={0} width={Math.max(0, right - CHART_MARGIN.left)} height={height} />
+          <rect
+            x={CHART_MARGIN.left}
+            y={0}
+            width={Math.max(0, right - CHART_MARGIN.left)}
+            height={height}
+          />
         </clipPath>
       </defs>
 
       {/* The alarm zone: everything beyond the outer limit. */}
       {zoneTop != null ? (
-        <rect x={CHART_MARGIN.left} y={top} width={Math.max(0, right - CHART_MARGIN.left)} height={Math.max(0, zoneTop - top)} fill="var(--fail-wash)" opacity={0.4} />
+        <rect
+          x={CHART_MARGIN.left}
+          y={top}
+          width={Math.max(0, right - CHART_MARGIN.left)}
+          height={Math.max(0, zoneTop - top)}
+          fill="var(--fail-wash)"
+          opacity={0.4}
+        />
       ) : null}
 
       {/* Grid and y axis. */}
       {yTicks.map((t) => (
         <g key={t}>
-          <line x1={CHART_MARGIN.left} x2={right} y1={y(t)} y2={y(t)} stroke="var(--hairline)" strokeWidth={1} shapeRendering="crispEdges" />
-          <text x={CHART_MARGIN.left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="tnum fill-ink-3 text-[11px]">
+          <line
+            x1={CHART_MARGIN.left}
+            x2={right}
+            y1={y(t)}
+            y2={y(t)}
+            stroke="var(--hairline)"
+            strokeWidth={1}
+            shapeRendering="crispEdges"
+          />
+          <text
+            x={CHART_MARGIN.left - 8}
+            y={y(t)}
+            dy="0.32em"
+            textAnchor="end"
+            className="tnum fill-ink-3 text-[11px]"
+          >
             {formatTick(t)}
           </text>
         </g>
@@ -240,7 +287,12 @@ export function ControlChart({
               y={ly - 4}
               textAnchor="end"
               className="tnum fill-ink-2 text-[11px]"
-              style={{ paintOrder: "stroke", stroke: "var(--die)", strokeWidth: 3, strokeLinejoin: "round" }}
+              style={{
+                paintOrder: "stroke",
+                stroke: "var(--die)",
+                strokeWidth: 3,
+                strokeLinejoin: "round",
+              }}
             >
               {limit.label}
             </text>
@@ -256,7 +308,13 @@ export function ControlChart({
             transition: shift.animate ? "transform var(--dur-arrive) var(--ease-arrive)" : "none",
           }}
         >
-          <path d={path} fill="none" stroke="var(--mark-muted)" strokeWidth={1} strokeLinejoin="round" />
+          <path
+            d={path}
+            fill="none"
+            stroke="var(--mark-muted)"
+            strokeWidth={1}
+            strokeLinejoin="round"
+          />
           {ordered.map((p) => {
             if (p.y == null) return null;
             const cx = x(p.x);
@@ -289,13 +347,27 @@ export function ControlChart({
           {/* The newest unit: a steady ring of safelight; on arrival one widening ring, and two
               fail-coloured rings if it arrived beyond a limit. */}
           {latest && latest.y != null ? (
-            <g transform={`translate(${x(latest.x)},${latest.y > yMax ? top + r + 2 : y(latest.y)})`}>
+            <g
+              transform={`translate(${x(latest.x)},${latest.y > yMax ? top + r + 2 : y(latest.y)})`}
+            >
               {newest === latest ? (
                 <g key={`new-${newestX}`}>
                   {latest.tone === "fail" ? (
-                    <circle r={r + 4} fill="none" stroke="var(--fail)" strokeWidth={1.5} className="alarm-pulse" />
+                    <circle
+                      r={r + 4}
+                      fill="none"
+                      stroke="var(--fail)"
+                      strokeWidth={1.5}
+                      className="alarm-pulse"
+                    />
                   ) : null}
-                  <circle r={r + 5} fill="none" stroke="var(--safelight)" strokeWidth={1.5} className="arrival" />
+                  <circle
+                    r={r + 5}
+                    fill="none"
+                    stroke="var(--safelight)"
+                    strokeWidth={1.5}
+                    className="arrival"
+                  />
                 </g>
               ) : null}
               <circle r={r + 3} fill="none" stroke="var(--safelight)" strokeWidth={1.5} />
@@ -322,7 +394,13 @@ export function ControlChart({
         </g>
       </g>
       {rug ? (
-        <text x={CHART_MARGIN.left - 8} y={plotBottom + 12} dy="0.32em" textAnchor="end" className="fill-ink-3 text-[11px]">
+        <text
+          x={CHART_MARGIN.left - 8}
+          y={plotBottom + 12}
+          dy="0.32em"
+          textAnchor="end"
+          className="fill-ink-3 text-[11px]"
+        >
           {rug.label}
         </text>
       ) : null}
@@ -331,7 +409,13 @@ export function ControlChart({
       {showXAxis ? (
         <g>
           {xTicks.map((t) => (
-            <text key={t} x={x(t)} y={height - 6} textAnchor="middle" className="tnum fill-ink-3 text-[11px]">
+            <text
+              key={t}
+              x={x(t)}
+              y={height - 6}
+              textAnchor="middle"
+              className="tnum fill-ink-3 text-[11px]"
+            >
               {t}
             </text>
           ))}

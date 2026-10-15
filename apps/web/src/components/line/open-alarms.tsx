@@ -12,6 +12,7 @@ import { useStartInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { ALARM_KIND } from "@/lib/labels";
+import { investigationHref, unitHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const SHOWN = 6;
@@ -45,8 +46,15 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
         <>
           {!canAct ? (
             <div className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-die-2 px-3 py-2 sm:mx-5">
-              <p className="text-[13px] leading-5 text-ink-2">Investigating an alarm needs an engineer session.</p>
-              <Button size="sm" variant="outline" onClick={() => guest.mutate()} disabled={guest.isPending}>
+              <p className="text-[13px] leading-5 text-ink-2">
+                Investigating an alarm needs an engineer session.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => guest.mutate()}
+                disabled={guest.isPending}
+              >
                 {guest.isPending ? "Signing in…" : "Try as engineer"}
               </Button>
             </div>
@@ -55,7 +63,11 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
             {shown.map((alarm) => (
               <li
                 key={alarm.alarm_id}
-                className={cn("px-4 py-3 sm:px-5", fresh.has(alarm.alarm_id) && (alarm.severity === "alarm" ? "flash-alarm" : "flash-new"))}
+                className={cn(
+                  "px-4 py-3 sm:px-5",
+                  fresh.has(alarm.alarm_id) &&
+                    (alarm.severity === "alarm" ? "flash-alarm" : "flash-new"),
+                )}
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="flex min-w-0 items-baseline gap-2 text-[14px] leading-5">
@@ -66,11 +78,15 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
                         alarm.severity === "alarm" ? "bg-fail" : "bg-concern",
                       )}
                     />
-                    <span className="font-medium text-ink">{ALARM_KIND[alarm.kind] ?? alarm.kind}</span>
-                    <span className="text-ink-3">{alarm.severity === "alarm" ? "Alarm" : "Warning"}</span>
+                    <span className="font-medium text-ink">
+                      {ALARM_KIND[alarm.kind] ?? alarm.kind}
+                    </span>
+                    <span className="text-ink-3">
+                      {alarm.severity === "alarm" ? "Alarm" : "Warning"}
+                    </span>
                   </p>
                   <Link
-                    href={`/units/${alarm.unit_id}`}
+                    href={unitHref(alarm.unit_id)}
                     className="tnum shrink-0 text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
                   >
                     Unit {formatInt(alarm.unit_id)}
@@ -79,11 +95,12 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
                 <p className="mt-1 text-[14px] leading-5 text-ink-2">{alarm.message}</p>
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="tnum text-[12px] leading-4 text-ink-3">
-                    {reading(alarm, alarm.value)} against {reading(alarm, alarm.limit)}, {formatPlantTime(alarm.timestamp)}
+                    {reading(alarm, alarm.value)} against {reading(alarm, alarm.limit)},{" "}
+                    {formatPlantTime(alarm.timestamp)}
                   </p>
                   {alarm.investigation_id ? (
                     <Link
-                      href={`/investigations/${alarm.investigation_id}`}
+                      href={investigationHref(alarm.investigation_id)}
                       className="text-[13px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
                     >
                       Open investigation
@@ -95,7 +112,9 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
                       disabled={start.isPending}
                       onClick={() => start.mutate({ kind: "alarm", ref: alarm.alarm_id })}
                     >
-                      {start.isPending && start.variables?.ref === alarm.alarm_id ? "Starting…" : "Investigate"}
+                      {start.isPending && start.variables?.ref === alarm.alarm_id
+                        ? "Starting…"
+                        : "Investigate"}
                     </Button>
                   ) : null}
                 </div>
