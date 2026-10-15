@@ -161,6 +161,31 @@ test("the wafer drawer keeps the prediction of a map the model does not know, wi
   await expectAccessible(page, "line, wafer drawer", undefined, true);
 });
 
+test("a mouse stroke paints the dies under it, in every part of the wafer", async ({ page }) => {
+  await page.goto(`${proxy.origin}/`);
+  await page.getByRole("button", { name: "Draw a defect" }).click();
+  const canvas = page
+    .getByRole("application", { name: /Wafer 1 of your drawing/ })
+    .locator("canvas");
+  const box = (await canvas.boundingBox())!;
+  // A stroke across the lower right quarter, well inside the round die area.
+  await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.72);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.78, box.y + box.height * 0.72, { steps: 8 });
+  await page.mouse.up();
+  await page.getByRole("button", { name: "Run your drawing" }).click();
+  await expect(page).toHaveURL(new RegExp(`run=${RUN_ID}`));
+  const { map } = (lastCreated() as { wafers: WaferInput[] }).wafers[0]!;
+  const failed = Array.from(decodeWaferCells(map)).flatMap((c, i) =>
+    c === WAFER_CELL.fail ? [{ row: Math.floor(i / map.width), col: i % map.width }] : [],
+  );
+  expect(failed.length).toBeGreaterThan(1);
+  for (const { row, col } of failed) {
+    expect(row).toBeGreaterThan(map.height / 2);
+    expect(col).toBeGreaterThan(map.width / 2);
+  }
+});
+
 test("a drawing runs as drawn wafers", async ({ page }) => {
   await page.goto(`${proxy.origin}/`);
   await page.getByRole("button", { name: "Draw a defect" }).click();

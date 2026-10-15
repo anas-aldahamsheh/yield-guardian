@@ -85,7 +85,12 @@ def create_app(
     )
     app.state.registry = registry
     install_problem_handlers(app)
-    app.add_middleware(BodyLimit, paths=(f"{API_PREFIX}/uploads",), max_bytes=UPLOAD_BODY_LIMIT)
+    app.add_middleware(
+        BodyLimit,
+        paths=(f"{API_PREFIX}/uploads",),
+        max_bytes=UPLOAD_BODY_LIMIT,
+        file_bytes=MAX_BYTES,
+    )
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,

@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 11:13 UTC (updated as each item changes)
-**Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, on main; deploy in progress)
+**Last updated:** 2026-10-15 12:50 UTC (updated as each item changes)
+**Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live)
 
 <!-- progress:start -->
-## Progress: 95 of 96 done (99%), 1 in progress, 0 not started
+## Progress: 96 of 96 done (100%), 0 in progress, 0 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 13 of 14 | 1 | 0 |
+| V: Version 2, the live story | 14 of 14 | 0 | 0 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -222,7 +222,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V11 | Guide rewritten for v2 (Arabic) | Cloud | ✅ | /how#guide (ef29c23): Arabic text plus nine screenshots taken from the real API behind the production gateway, each 150 KB or less with Arabic alt text; the hypotheses slot is text only (no real investigation with hypotheses exists yet). Web: 303 unit tests pass |
 | V12 | Tests: parsers, parity, SSE order and resume, Playwright story, axe, Lighthouse | Cloud | ✅ | Local main 727014a: API pytest 1,218 passed; web 297 unit tests, lint, typecheck, format, production build; Playwright desktop, mobile and axe 115 passed (2 conditional skips); stack e2e on the real API and bundles 40 passed (5 skipped: no investigation or work order in that database); Lighthouse mobile on / 94, 100, 100; a real 40-unit sample run reaches run_done in 1.1 s |
 | V13 | Merge, gates, STATUS, PR | Cloud | ✅ | [PR #2](https://github.com/anas-aldahamsheh/yield-guardian/pull/2) merged into main as f754631. Gates run locally (no Actions minutes): API 1,216 passed; web 303 unit tests, lint, typecheck, format, production build, no fixture in the build; Playwright 115 passed (2 conditional skips) on a fresh build |
-| V14 | Deploy, live checks, owner demo | PC | 🟡 | Worker 3: images built from d9d873d with the live site still on v1; the fast deploy of f754631 was handed over (owner's choice) |
+| V14 | Deploy, live checks, owner demo | PC | ✅ | Worker 3: live at https://yield-guardian.anaslabs.com since 11:29 UTC, /api/v1/meta git_commit f754631; compose backed up, /ws removed from the Traefik rule; /ready true, alembic head 0004. A real sample run finished its 8 stages in about 0.5 s and streamed through the tunnel to run_done (24 alarms); a reload mid-run resumed. A drawn edge ring: Edge-Ring at 0.999, marked unknown. The real sensors example upload ran; a 33 MiB body got the API's 413 problem+json. /, /investigations and /how at 375 px dark and 1440 px light: no console error, no sideways scroll; v1 addresses answer 308. Lighthouse mobile on /: performance 95, accessibility 100, best practices 100, SEO 100. No model call |
 
 ## Waiting on you
 
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 12:50 | V14 done: v2 live from main f754631 with the live checks passing (worker 3). Two notes from the live checks: the 413 message named the body limit (33 MB) instead of the 32 MB file limit, fixed on main; automated mouse strokes on the draw canvas only registered in its top-left half, which a new browser test shows is the automation tool, not the page. 96 of 96 |
 | 2026-10-15 11:13 | V13 done: PR #2 merged into main (f754631). A stale build had failed two browser tests; on a fresh build all 115 pass. One fixture lot ID in a code comment reached the production source maps and was replaced. Worker 3 deploys with short checks. 95 of 96 |
 | 2026-10-15 10:56 | V11 done and merged (ef29c23): guide screenshots from real runs; wafer views mark the wafers the lot test counts as unknown. The owner chose the fast deploy: worker 3 builds from the integration branch while the lead merges to main. 94 of 96 |
 | 2026-10-15 10:41 | V12 done: every suite passes on local main (727014a), including the stack browser tests against the real API and bundles. One stale v1 stack test now reads the results table on How it works; unused v1 home components removed. 93 of 96 |

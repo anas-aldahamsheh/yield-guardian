@@ -548,6 +548,7 @@ async def test_upload_problems(api: Api) -> None:
     )
     assert too_big.status_code == 413
     assert too_big.json()["code"] == "bad_request"
+    assert too_big.json()["detail"] == "The file is larger than 32 MB. Split it into smaller files."
     gone = await api.client.post(
         "/api/v1/runs", json={"source": "upload", "upload_id": "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"}
     )
