@@ -5,15 +5,20 @@
  */
 import type {
   ChatEvent,
+  ChatRequest,
+  Hypothesis,
   Investigation,
   InvestigationEvent,
   Problem,
   SessionInfo,
+  WorkOrder,
+  WorkOrderUpdate,
 } from "@yield-guardian/contracts";
 import { CSRF_HEADER, PROBLEM_MEDIA_TYPE } from "@yield-guardian/contracts";
 import { http, HttpResponse, type HttpHandler } from "msw";
 
 import { fixture } from "./fixtures";
+import { TEST_DOUBLE } from "./test-doubles";
 
 const API = "*/api/v1";
 const SESSION_COOKIE = "yg_session";
@@ -59,6 +64,78 @@ function eventStream<T>(
   });
 }
 
+/**
+ * Test doubles for the v2 report fields (V5): an investigation whose report carries a
+ * hypothesis table, and its work order, closed with a confirmed cause. Built from the fixtures'
+ * own evidence IDs, numbers and literature source, and labelled as test doubles; development
+ * and tests only, like every handler here.
+ */
+function hypothesisDouble(base: Investigation): Investigation {
+  const source = fixture<{ sources: { source_id: string }[] }>("get_pattern_causes").sources[0]
+    ?.source_id;
+  const share = base.report?.numbers.find((n) => n.evidence_id === "E2");
+  const hypotheses: Hypothesis[] = [
+    {
+      hypothesis:
+        "Test double: the sensor group with the largest T² share is associated with the alarm.",
+      source_ids: source ? [source] : [],
+      evidence_for: [
+        {
+          evidence_id: "E2",
+          observation: share
+            ? `Its share of T² is ${share.as_written}.`
+            : "Its share of T² is the largest.",
+        },
+      ],
+      evidence_against: [
+        { evidence_id: "E3", observation: "Test double: similar units did not raise the alarm." },
+      ],
+      assessment: "supported",
+    },
+    {
+      hypothesis: "Test double: a single faulty sensor, not the group.",
+      source_ids: [],
+      evidence_for: [],
+      evidence_against: [
+        { evidence_id: "E4", observation: "Test double: more than one sensor of the group moved." },
+      ],
+      assessment: "not_supported",
+    },
+  ];
+  return {
+    ...base,
+    investigation_id: TEST_DOUBLE.investigationId,
+    title: "Test double: report with a hypothesis table",
+    work_order_id: TEST_DOUBLE.workOrderId,
+    report: base.report ? { ...base.report, hypotheses } : base.report,
+  };
+}
+
+function workOrderDouble(): WorkOrder {
+  const base = fixture<{ items: WorkOrder[] }>("list_work_orders").items[0]!;
+  return {
+    ...base,
+    work_order_id: TEST_DOUBLE.workOrderId,
+    investigation_id: TEST_DOUBLE.investigationId,
+    title: "Test double: work order closed with a confirmed cause",
+    status: "done",
+    confirmed_cause: {
+      text: "Test double: the engineer found the cause on the tool.",
+      hypothesis_index: 0,
+    },
+  };
+}
+
+/** The chat's offer to investigate the unit on screen (a test double of the model's suggestion). */
+function offerDouble(unitId: number): ChatEvent {
+  return {
+    type: "suggestion",
+    action: "start_investigation",
+    trigger: { kind: "unit", ref: String(unitId) },
+    title: `Unit ${unitId}`,
+  };
+}
+
 export interface MockOptions {
   /** Milliseconds between streamed events; 0 in tests. */
   streamDelayMs?: number;
@@ -68,6 +145,15 @@ export interface MockOptions {
 export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpHandler[] {
   const sessions = new Map<string, SessionInfo>();
   const decided = new Set<string>();
+  const updatedOrders = new Map<string, WorkOrder>();
+
+  const workOrderFor = (id: string): WorkOrder | null =>
+    updatedOrders.get(id) ??
+    (id === TEST_DOUBLE.workOrderId
+      ? workOrderDouble()
+      : (fixture<{ items: WorkOrder[] }>("list_work_orders").items.find(
+          (item) => item.work_order_id === id,
+        ) ?? null));
 
   const sessionOf = (request: Request): SessionInfo => {
     const cookie = request.headers.get("cookie") ?? "";
@@ -87,7 +173,12 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
   const guard = (request: Request, role: "engineer" | "admin" = "engineer") => {
     const session = sessionOf(request);
     if (session.role === "visitor") {
-      return problem(401, "unauthorized", "Sign in first", "Start a session with “Try as engineer”.");
+      return problem(
+        401,
+        "unauthorized",
+        "Sign in first",
+        "Start a session with “Try as engineer”.",
+      );
     }
     if (role === "admin" && session.role !== "admin") {
       return problem(403, "forbidden", "Admins only", "Only an admin can assign models to roles.");
@@ -99,6 +190,8 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
   };
 
   const investigationFor = (id: string): Investigation | null => {
+    if (id === TEST_DOUBLE.investigationId)
+      return hypothesisDouble(fixture<Investigation>("decide_investigation"));
     const name = decided.has(id) ? "decide_investigation" : "get_investigation";
     const inv = fixture<Investigation>(name);
     if (inv.investigation_id === id) return inv;
@@ -146,11 +239,16 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
         : notInFixtures(`The explanation of unit ${String(params.unitId)}`);
     }),
     http.get(`${API}/units/:unitId/contributions`, ({ params, request }) => {
-      const contributions = fixture<{ unit_id: number; statistic: string }>("get_unit_contributions");
+      const contributions = fixture<{ unit_id: number; statistic: string }>(
+        "get_unit_contributions",
+      );
       const statistic = new URL(request.url).searchParams.get("statistic") ?? "t2";
-      return Number(params.unitId) === contributions.unit_id && statistic === contributions.statistic
+      return Number(params.unitId) === contributions.unit_id &&
+        statistic === contributions.statistic
         ? HttpResponse.json(contributions)
-        : notInFixtures(`The ${statistic.toUpperCase()} contributions of unit ${String(params.unitId)}`);
+        : notInFixtures(
+            `The ${statistic.toUpperCase()} contributions of unit ${String(params.unitId)}`,
+          );
     }),
 
     // Sensors
@@ -180,8 +278,9 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
       const inv = investigationFor(id);
       if (!inv) return notInFixtures(`Investigation ${id}`);
       const after = Number(request.headers.get("Last-Event-ID") ?? "0") || 0;
-      const events = fixture<InvestigationEvent[]>("stream_investigation_events")
-        .filter((event) => event.seq > after);
+      const events = fixture<InvestigationEvent[]>("stream_investigation_events").filter(
+        (event) => event.seq > after,
+      );
       return eventStream(
         events,
         (event) => `event: ${event.type}\nid: ${event.seq}\ndata: ${JSON.stringify(event)}\n\n`,
@@ -210,27 +309,48 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     http.get(`${API}/investigations/:id/evidence/:evidenceId`, ({ params }) => {
       const inv = investigationFor(String(params.id));
       const evidence = inv?.evidence.find((item) => item.evidence_id === params.evidenceId);
-      return evidence ? HttpResponse.json(evidence) : notInFixtures(`Evidence ${String(params.evidenceId)}`);
+      return evidence
+        ? HttpResponse.json(evidence)
+        : notInFixtures(`Evidence ${String(params.evidenceId)}`);
     }),
 
     // Work orders and audit
     http.get(`${API}/work-orders`, json("list_work_orders")),
     http.get(`${API}/work-orders/:id`, ({ params }) => {
-      const order = fixture<{ items: { work_order_id: string }[] }>("list_work_orders").items.find(
-        (item) => item.work_order_id === params.id,
-      );
+      const order = workOrderFor(String(params.id));
       return order ? HttpResponse.json(order) : notInFixtures(`Work order ${String(params.id)}`);
     }),
     http.patch(`${API}/work-orders/:id`, async ({ params, request }) => {
       const denied = guard(request);
       if (denied) return denied;
-      const order = fixture<{ items: { work_order_id: string }[] }>("list_work_orders").items.find(
-        (item) => item.work_order_id === params.id,
-      );
+      const order = workOrderFor(String(params.id));
       if (!order) return notInFixtures(`Work order ${String(params.id)}`);
-      const patch = (await request.json()) as Record<string, unknown>;
-      const changes = Object.fromEntries(Object.entries(patch).filter(([, v]) => v != null));
-      return HttpResponse.json({ ...order, ...changes, updated_at: new Date().toISOString() });
+      const patch = (await request.json()) as WorkOrderUpdate;
+      const status = patch.status ?? order.status;
+      if (patch.confirmed_cause && status !== "done") {
+        return problem(
+          400,
+          "bad_request",
+          "Invalid argument",
+          'A confirmed cause is recorded when the work order is closed: send it with status "done".',
+        );
+      }
+      const next: WorkOrder = {
+        ...order,
+        status,
+        note: "note" in patch ? (patch.note ?? null) : order.note,
+        outcome: "outcome" in patch ? (patch.outcome ?? null) : order.outcome,
+        outcome_confirmed: patch.outcome_confirmed ?? order.outcome_confirmed,
+        confirmed_cause:
+          status !== "done"
+            ? null
+            : "confirmed_cause" in patch
+              ? (patch.confirmed_cause ?? null)
+              : (order.confirmed_cause ?? null),
+        updated_at: new Date().toISOString(),
+      };
+      updatedOrders.set(next.work_order_id, next);
+      return HttpResponse.json(next);
     }),
     http.get(`${API}/audit`, json("list_audit_entries")),
 
@@ -270,7 +390,9 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     http.get(`${API}/lots`, json("list_lots")),
     http.get(`${API}/lots/:lot`, ({ params }) => {
       const lot = fixture<{ lot: string }>("get_lot");
-      return params.lot === lot.lot ? HttpResponse.json(lot) : notInFixtures(`Lot ${String(params.lot)}`);
+      return params.lot === lot.lot
+        ? HttpResponse.json(lot)
+        : notInFixtures(`Lot ${String(params.lot)}`);
     }),
 
     // Knowledge
@@ -278,10 +400,16 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     http.get(`${API}/knowledge/patterns`, json("get_pattern_causes")),
 
     // Chat (SSE over POST)
-    http.post(`${API}/chat`, ({ request }) => {
+    http.post(`${API}/chat`, async ({ request }) => {
       const denied = guard(request);
       if (denied) return denied;
+      const body = (await request.json().catch(() => null)) as ChatRequest | null;
+      const unitId = body?.context?.unit_id;
       const events = fixture<ChatEvent[]>("chat");
+      if (unitId != null) {
+        const at = events.findIndex((e) => e.type === "token");
+        events.splice(at < 0 ? events.length - 1 : at, 0, offerDouble(unitId));
+      }
       return eventStream(
         events,
         (event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`,
@@ -290,8 +418,12 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     }),
 
     // Models
-    http.get(`${API}/llm/catalog`, () => HttpResponse.json(fixture<unknown[]>("get_model_catalog"))),
-    http.get(`${API}/llm/roles`, () => HttpResponse.json(fixture<unknown[]>("get_role_assignments"))),
+    http.get(`${API}/llm/catalog`, () =>
+      HttpResponse.json(fixture<unknown[]>("get_model_catalog")),
+    ),
+    http.get(`${API}/llm/roles`, () =>
+      HttpResponse.json(fixture<unknown[]>("get_role_assignments")),
+    ),
     http.put(`${API}/llm/roles/:role`, async ({ params, request }) => {
       const denied = guard(request, "admin");
       if (denied) return denied;

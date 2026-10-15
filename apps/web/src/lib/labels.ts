@@ -137,6 +137,7 @@ export const ISSUE_CODE: Record<string, string> = {
 };
 
 export const TRIGGER_KIND: Record<string, string> = {
+  run_alarm: "Run alarm",
   alarm: "Alarm",
   unit: "Unit",
   wafer: "Wafer",

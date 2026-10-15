@@ -12,7 +12,13 @@ export const DAYS_PER_MONTH = 30;
 /** Inputs larger than this are refused: no fab has a trillion of anything per day. */
 export const INPUT_MAX = 1e12;
 
-export const INPUTS = ["waferCost", "engineerHourCost", "downtimeHourCost", "wafersPerDay", "minutesPerMap"] as const;
+export const INPUTS = [
+  "waferCost",
+  "engineerHourCost",
+  "downtimeHourCost",
+  "wafersPerDay",
+  "minutesPerMap",
+] as const;
 export type InputName = (typeof INPUTS)[number];
 export type Inputs = Record<InputName, number | null>;
 
@@ -27,9 +33,11 @@ export function parseInput(raw: string): Parsed {
   if (text === "") return { value: null, error: null };
   const plain = /^\d{1,3}(,\d{3})+(\.\d+)?$/.test(text) ? text.replaceAll(",", "") : text;
   if (/^-/.test(plain)) return { value: null, error: "Enter 0 or more." };
-  if (!/^(\d+\.?\d*|\.\d+)$/.test(plain)) return { value: null, error: "Enter a number, such as 1250 or 2.5." };
+  if (!/^(\d+\.?\d*|\.\d+)$/.test(plain))
+    return { value: null, error: "Enter a number, such as 1250 or 2.5." };
   const value = Number(plain);
-  if (!Number.isFinite(value) || value > INPUT_MAX) return { value: null, error: "This number is too large." };
+  if (!Number.isFinite(value) || value > INPUT_MAX)
+    return { value: null, error: "This number is too large." };
   return { value, error: null };
 }
 
@@ -55,7 +63,8 @@ export interface Rates {
   falseAlarmRate: Rate | null;
 }
 
-export type LineId = "maps" | "hours" | "engineerMoney" | "falseAlarms" | "downtimeMoney" | "waferMoney";
+export type LineId =
+  "maps" | "hours" | "engineerMoney" | "falseAlarms" | "downtimeMoney" | "waferMoney";
 export type Need = InputName | "autoShare" | "falseAlarmRate";
 
 export interface Line {
@@ -75,7 +84,13 @@ function scale(rate: Estimate, factor: number): Range {
   };
 }
 
-function line(id: LineId, needs: [Need, number | null | undefined][], rate: Rate | null, rateNeed: Need, factor: (n: Record<string, number>) => number): Line {
+function line(
+  id: LineId,
+  needs: [Need, number | null | undefined][],
+  rate: Rate | null,
+  rateNeed: Need,
+  factor: (n: Record<string, number>) => number,
+): Line {
   const missing = needs.filter(([, v]) => v == null).map(([k]) => k);
   if (!rate) missing.push(rateNeed);
   if (missing.length || !rate) return { id, range: null, needs: missing };
@@ -99,17 +114,54 @@ export function computeSavings(inputs: Inputs, rates: Rates): Line[] {
   const f = rates.falseAlarmRate;
   return [
     line("maps", [["wafersPerDay", n]], s, "autoShare", (v) => v.wafersPerDay! * DAYS_PER_MONTH),
-    line("hours", [["wafersPerDay", n], ["minutesPerMap", m]], s, "autoShare", (v) => (v.wafersPerDay! * DAYS_PER_MONTH * v.minutesPerMap!) / 60),
+    line(
+      "hours",
+      [
+        ["wafersPerDay", n],
+        ["minutesPerMap", m],
+      ],
+      s,
+      "autoShare",
+      (v) => (v.wafersPerDay! * DAYS_PER_MONTH * v.minutesPerMap!) / 60,
+    ),
     line(
       "engineerMoney",
-      [["wafersPerDay", n], ["minutesPerMap", m], ["engineerHourCost", inputs.engineerHourCost]],
+      [
+        ["wafersPerDay", n],
+        ["minutesPerMap", m],
+        ["engineerHourCost", inputs.engineerHourCost],
+      ],
       s,
       "autoShare",
       (v) => ((v.wafersPerDay! * DAYS_PER_MONTH * v.minutesPerMap!) / 60) * v.engineerHourCost!,
     ),
-    line("falseAlarms", [["wafersPerDay", n]], f, "falseAlarmRate", (v) => v.wafersPerDay! * DAYS_PER_MONTH),
-    line("downtimeMoney", [["wafersPerDay", n], ["downtimeHourCost", inputs.downtimeHourCost]], f, "falseAlarmRate", (v) => v.wafersPerDay! * DAYS_PER_MONTH * v.downtimeHourCost!),
-    line("waferMoney", [["wafersPerDay", n], ["waferCost", inputs.waferCost]], f, "falseAlarmRate", (v) => v.wafersPerDay! * DAYS_PER_MONTH * v.waferCost!),
+    line(
+      "falseAlarms",
+      [["wafersPerDay", n]],
+      f,
+      "falseAlarmRate",
+      (v) => v.wafersPerDay! * DAYS_PER_MONTH,
+    ),
+    line(
+      "downtimeMoney",
+      [
+        ["wafersPerDay", n],
+        ["downtimeHourCost", inputs.downtimeHourCost],
+      ],
+      f,
+      "falseAlarmRate",
+      (v) => v.wafersPerDay! * DAYS_PER_MONTH * v.downtimeHourCost!,
+    ),
+    line(
+      "waferMoney",
+      [
+        ["wafersPerDay", n],
+        ["waferCost", inputs.waferCost],
+      ],
+      f,
+      "falseAlarmRate",
+      (v) => v.wafersPerDay! * DAYS_PER_MONTH * v.waferCost!,
+    ),
   ];
 }
 
@@ -125,7 +177,7 @@ const MONEY = new Set<LineId>(["engineerMoney", "downtimeMoney", "waferMoney"]);
  * to whole numbers, with one decimal below 10 so a small line does not round to nothing.
  */
 export function roundFor(id: LineId, value: number): { value: number; digits: number } {
-  if (MONEY.has(id) || value >= 10) return { value: Math.round(value), digits: 0 };
+  if (MONEY.has(id) || value >= 10 || value === 0) return { value: Math.round(value), digits: 0 };
   return { value: Math.round(value * 10) / 10, digits: 1 };
 }
 

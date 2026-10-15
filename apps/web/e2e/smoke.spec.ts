@@ -1,21 +1,20 @@
 import { expect, type Page, test } from "@playwright/test";
 
-/** Every screen loads, has one h1 and a main landmark, and raises no page error or CSP violation. */
+import { TEST_DOUBLE } from "../src/mocks/test-doubles";
+
+/**
+ * Every screen loads, has one h1 and a main landmark, and raises no page error or CSP violation.
+ * v1 addresses redirect (e2e/pages.spec.ts); a followed redirect lands on a screen listed here.
+ */
 const ROUTES: { path: string; heading: RegExp }[] = [
   { path: "/", heading: /./ },
-  { path: "/line", heading: /^Line$/ },
   { path: "/investigations", heading: /^Investigations$/ },
+  { path: "/investigations?tab=work-orders", heading: /^Investigations$/ },
+  { path: "/investigations?tab=work-orders&order=WO-000012", heading: /^Investigations$/ },
   { path: "/investigations/inv_01jae5x9k3m2q7r8s0t1v2w3x4", heading: /./ },
-  { path: "/units/1062", heading: /^Unit 1,062$/ },
-  { path: "/wafers", heading: /^Wafer lab$/ },
-  { path: "/lots", heading: /^Lots$/ },
-  { path: "/lots/lot47542", heading: /^Lot lot47542$/ },
-  { path: "/sensors?sensor=S060", heading: /^Sensor health$/ },
-  { path: "/work-orders", heading: /^Work orders$/ },
-  { path: "/work-orders/WO-000012", heading: /./ },
-  { path: "/models", heading: /^Models$/ },
-  { path: "/methods", heading: /^Methods$/ },
-  { path: "/guide", heading: /^دليل الاستخدام$/ },
+  { path: `/investigations/${TEST_DOUBLE.investigationId}`, heading: /./ },
+  { path: "/how", heading: /^كيف يعمل Yield Guardian$/ },
+  { path: "/admin", heading: /^Model roles$/ },
 ];
 
 function watch(page: Page) {
@@ -50,6 +49,11 @@ test("an unknown page is a 404 with a way back", async ({ page }) => {
   const response = await page.goto("/does-not-exist");
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("link").first()).toBeVisible();
+});
+
+test("the admin page stays out of search engines", async ({ page }) => {
+  await page.goto("/admin");
+  await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
 });
 
 test("health check answers ok", async ({ request }) => {

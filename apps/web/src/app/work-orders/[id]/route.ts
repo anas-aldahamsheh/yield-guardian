@@ -22,5 +22,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       // The API did not answer: the Work orders tab still finds the order.
     }
   }
-  return new Response(null, { status: 308, headers: { Location: target, "Cache-Control": "no-store" } });
+  return new Response(null, {
+    status: 308,
+    headers: { Location: target, "Cache-Control": "no-store" },
+  });
 }

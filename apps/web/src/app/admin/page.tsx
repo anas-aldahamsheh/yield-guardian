@@ -18,7 +18,10 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   const api = await serverApi();
   const client = serverQueryClient();
-  await Promise.all([client.prefetchQuery(q.llmRoles(api)), client.prefetchQuery(q.llmCatalog(api))]);
+  await Promise.all([
+    client.prefetchQuery(q.llmRoles(api)),
+    client.prefetchQuery(q.llmCatalog(api)),
+  ]);
   return (
     <HydrationBoundary state={dehydrate(client)}>
       <AdminView />

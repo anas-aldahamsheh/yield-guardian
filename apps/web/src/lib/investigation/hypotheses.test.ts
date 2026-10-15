@@ -1,73 +1,98 @@
-import type { Investigation, Report, WorkOrder } from "@yield-guardian/contracts";
+import type { Hypothesis, Investigation, Report, WorkOrder } from "@yield-guardian/contracts";
 import { describe, expect, it } from "vitest";
 
 import { fixture } from "@/mocks/fixtures";
 
-import { hypothesisEvidenceIds, readConfirmedCause, readEvidence, readHypotheses } from "./hypotheses";
+import {
+  confirmedCauseUpdate,
+  confirmedHypothesis,
+  hypothesisEvidenceIds,
+  readConfirmedCause,
+  readHypotheses,
+} from "./hypotheses";
 
 const report = fixture<Investigation>("get_investigation").report!;
 const order = fixture<{ items: WorkOrder[] }>("list_work_orders").items[0]!;
 
-// Test inputs only: the shape of PLAN_V2 §7.3, written here to exercise the reader.
-const withHypotheses = (hypotheses: unknown) => ({ ...report, hypotheses }) as unknown as Report;
+// Test inputs only, in the contract's shape.
+const rows: Hypothesis[] = [
+  {
+    hypothesis: "The Edge-Ring pattern is associated in the literature with edge exposure drift.",
+    source_ids: ["wu2015"],
+    evidence_for: [
+      { evidence_id: "E1", observation: "The predicted pattern is Edge-Ring." },
+      { evidence_id: "E2", observation: "The lot repeats it." },
+    ],
+    evidence_against: [{ evidence_id: "E1", observation: "One wafer of the lot differs." }],
+    assessment: "supported",
+  },
+  {
+    hypothesis: "A chuck contamination.",
+    source_ids: [],
+    evidence_for: [],
+    evidence_against: [{ evidence_id: "E3", observation: "No centre defects." }],
+    assessment: "not_supported",
+  },
+];
+const closed: WorkOrder = { ...order, status: "done", confirmed_cause: null };
 
 describe("readHypotheses", () => {
-  it("is null for a report without the field, and empty for an empty table", () => {
-    expect(readHypotheses(withHypotheses(undefined))).toBeNull();
-    expect(readHypotheses(report)).toEqual([]);
+  it("is null for a report without the field, and the list otherwise", () => {
+    expect(readHypotheses({ ...report, hypotheses: undefined } as Report)).toBeNull();
     expect(readHypotheses(null)).toBeNull();
-    expect(readHypotheses(withHypotheses([]))).toEqual([]);
+    expect(readHypotheses(report)).toEqual([]);
+    expect(readHypotheses({ ...report, hypotheses: rows })).toBe(rows);
   });
 
-  it("reads the plan's shape with evidence IDs", () => {
-    const rows = readHypotheses(
-      withHypotheses([
-        { hypothesis: "Edge exposure drift", source_ids: ["wu2015"], evidence_for: ["E1", "E2"], evidence_against: ["E3"], assessment: "supported" },
-      ]),
-    );
-    expect(rows).toEqual([
-      {
-        hypothesis: "Edge exposure drift",
-        sourceIds: ["wu2015"],
-        evidenceFor: [
-          { text: null, evidenceIds: ["E1"] },
-          { text: null, evidenceIds: ["E2"] },
-        ],
-        evidenceAgainst: [{ text: null, evidenceIds: ["E3"] }],
-        assessment: "supported",
-      },
-    ]);
-    expect(hypothesisEvidenceIds(rows!)).toEqual(["E1", "E2", "E3"]);
-  });
-
-  it("reads sentences, with or without their evidence", () => {
-    expect(readEvidence(["Lot repeats the pattern", { text: "Confidence is high", evidence_ids: ["E4", "nope"] }, { claim: "Similar wafers agree", evidence_id: "E5" }, {}, 3])).toEqual([
-      { text: "Lot repeats the pattern", evidenceIds: [] },
-      { text: "Confidence is high", evidenceIds: ["E4"] },
-      { text: "Similar wafers agree", evidenceIds: ["E5"] },
-    ]);
-  });
-
-  it("drops rows without a hypothesis and unknown assessments", () => {
-    const rows = readHypotheses(withHypotheses([{ source_ids: [] }, { hypothesis: "Chuck contamination", assessment: "proven" }]));
-    expect(rows).toHaveLength(1);
-    expect(rows![0]!.assessment).toBeNull();
-    expect(rows![0]!.evidenceFor).toEqual([]);
+  it("lists the evidence the table cites, once each", () => {
+    expect(hypothesisEvidenceIds(rows)).toEqual(["E1", "E2", "E3"]);
+    expect(hypothesisEvidenceIds([])).toEqual([]);
   });
 });
 
-describe("readConfirmedCause", () => {
-  it("is null while the work order has no confirmed cause", () => {
+describe("confirmed cause", () => {
+  it("is null while the work order has none", () => {
     expect(readConfirmedCause(order)).toBeNull();
-    expect(readConfirmedCause({ ...order, confirmed_cause: null } as WorkOrder)).toBeNull();
-    expect(readConfirmedCause({ ...order, confirmed_cause: "  " } as unknown as WorkOrder)).toBeNull();
+    expect(readConfirmedCause(closed)).toBeNull();
+    expect(
+      readConfirmedCause({ ...closed, confirmed_cause: { text: "  ", hypothesis_index: null } }),
+    ).toBeNull();
   });
 
-  it("reads a sentence or an object with the hypothesis it confirms", () => {
-    expect(readConfirmedCause({ ...order, confirmed_cause: "Worn chuck pins" } as unknown as WorkOrder)?.text).toBe("Worn chuck pins");
-    const rows = readHypotheses(withHypotheses([{ hypothesis: "Chuck contamination", assessment: "inconclusive" }]));
+  it("names the hypothesis it confirms, when that hypothesis exists", () => {
+    const cause = { text: "Worn chuck pins", hypothesis_index: 1 };
+    expect(readConfirmedCause({ ...closed, confirmed_cause: cause })).toEqual(cause);
+    expect(confirmedHypothesis(cause, rows)).toEqual({ index: 1, hypothesis: rows[1] });
+    expect(confirmedHypothesis(cause, null)).toBeNull();
+    expect(confirmedHypothesis({ ...cause, hypothesis_index: 5 }, rows)).toBeNull();
+    expect(confirmedHypothesis({ ...cause, hypothesis_index: null }, rows)).toBeNull();
+  });
+});
+
+describe("confirmedCauseUpdate", () => {
+  const draft = { text: " Worn chuck pins ", hypothesisIndex: 0 };
+
+  it("is sent only for a closed work order", () => {
+    expect(confirmedCauseUpdate(order, "in_progress", draft)).toBeUndefined();
+    expect(confirmedCauseUpdate(order, "done", draft)).toEqual({
+      text: "Worn chuck pins",
+      hypothesis_index: 0,
+    });
+  });
+
+  it("sends nothing when it is unchanged, and null to clear it", () => {
+    const recorded = {
+      ...closed,
+      confirmed_cause: { text: "Worn chuck pins", hypothesis_index: 0 },
+    };
+    expect(confirmedCauseUpdate(recorded, "done", draft)).toBeUndefined();
+    expect(confirmedCauseUpdate(recorded, "done", { ...draft, hypothesisIndex: null })).toEqual({
+      text: "Worn chuck pins",
+      hypothesis_index: null,
+    });
+    expect(confirmedCauseUpdate(recorded, "done", { text: " ", hypothesisIndex: 0 })).toBeNull();
     expect(
-      readConfirmedCause({ ...order, confirmed_cause: { text: "Particles on the chuck", hypothesis_index: 0, confirmed_by: "Engineer" } } as WorkOrder, rows),
-    ).toEqual({ text: "Particles on the chuck", hypothesis: "Chuck contamination", confirmedBy: "Engineer", confirmedAt: null });
+      confirmedCauseUpdate(closed, "done", { text: "", hypothesisIndex: null }),
+    ).toBeUndefined();
   });
 });

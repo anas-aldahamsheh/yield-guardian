@@ -1,7 +1,15 @@
 import type { Estimate } from "@yield-guardian/contracts";
 import { describe, expect, it } from "vitest";
 
-import { computeSavings, DAYS_PER_MONTH, type Inputs, isEmpty, parseInput, type Rates, roundFor } from "./savings";
+import {
+  computeSavings,
+  DAYS_PER_MONTH,
+  type Inputs,
+  isEmpty,
+  parseInput,
+  type Rates,
+  roundFor,
+} from "./savings";
 
 // Test inputs only: rates shaped like the API's estimates, with round numbers to check the arithmetic.
 const estimate = (value: number, ci_low: number | null, ci_high: number | null): Estimate => ({
@@ -12,11 +20,32 @@ const estimate = (value: number, ci_low: number | null, ci_high: number | null):
   method: "test",
   n: 100,
 });
-const rate = (e: Estimate) => ({ estimate: e, label: "test rate", data: "test data", source: "test" });
-const rates: Rates = { autoShare: rate(estimate(0.9, 0.8, 0.95)), falseAlarmRate: rate(estimate(0.02, 0.01, 0.05)) };
-const none: Inputs = { waferCost: null, engineerHourCost: null, downtimeHourCost: null, wafersPerDay: null, minutesPerMap: null };
-const all: Inputs = { waferCost: 500, engineerHourCost: 60, downtimeHourCost: 2000, wafersPerDay: 100, minutesPerMap: 2 };
-const byId = (inputs: Inputs, r: Rates = rates) => Object.fromEntries(computeSavings(inputs, r).map((l) => [l.id, l]));
+const rate = (e: Estimate) => ({
+  estimate: e,
+  label: "test rate",
+  data: "test data",
+  source: "test",
+});
+const rates: Rates = {
+  autoShare: rate(estimate(0.9, 0.8, 0.95)),
+  falseAlarmRate: rate(estimate(0.02, 0.01, 0.05)),
+};
+const none: Inputs = {
+  waferCost: null,
+  engineerHourCost: null,
+  downtimeHourCost: null,
+  wafersPerDay: null,
+  minutesPerMap: null,
+};
+const all: Inputs = {
+  waferCost: 500,
+  engineerHourCost: 60,
+  downtimeHourCost: 2000,
+  wafersPerDay: 100,
+  minutesPerMap: 2,
+};
+const byId = (inputs: Inputs, r: Rates = rates) =>
+  Object.fromEntries(computeSavings(inputs, r).map((l) => [l.id, l]));
 
 describe("parseInput", () => {
   it("reads empty as no value, not zero", () => {
@@ -44,7 +73,11 @@ describe("computeSavings", () => {
     expect(isEmpty(none)).toBe(true);
     const lines = computeSavings(none, rates);
     expect(lines.every((l) => l.range == null)).toBe(true);
-    expect(byId(none).engineerMoney!.needs).toEqual(["wafersPerDay", "minutesPerMap", "engineerHourCost"]);
+    expect(byId(none).engineerMoney!.needs).toEqual([
+      "wafersPerDay",
+      "minutesPerMap",
+      "engineerHourCost",
+    ]);
     expect(byId(none).waferMoney!.needs).toEqual(["wafersPerDay", "waferCost"]);
   });
 
@@ -55,7 +88,11 @@ describe("computeSavings", () => {
     expect(l.hours!.range!.value).toBeCloseTo((wafers * 0.9 * 2) / 60, 9);
     expect(l.hours!.range!.low).toBeCloseTo((wafers * 0.8 * 2) / 60, 9);
     expect(l.engineerMoney!.range!.high).toBeCloseTo(((wafers * 0.95 * 2) / 60) * 60, 9);
-    expect(l.falseAlarms!.range).toEqual({ value: wafers * 0.02, low: wafers * 0.01, high: wafers * 0.05 });
+    expect(l.falseAlarms!.range).toEqual({
+      value: wafers * 0.02,
+      low: wafers * 0.01,
+      high: wafers * 0.05,
+    });
     expect(l.downtimeMoney!.range!.value).toBeCloseTo(wafers * 0.02 * 2000, 9);
     expect(l.waferMoney!.range!.high).toBeCloseTo(wafers * 0.05 * 500, 9);
   });
@@ -90,5 +127,6 @@ describe("roundFor", () => {
     expect(roundFor("hours", 9.94)).toEqual({ value: 9.9, digits: 1 });
     expect(roundFor("hours", 12.5)).toEqual({ value: 13, digits: 0 });
     expect(roundFor("falseAlarms", 0.69)).toEqual({ value: 0.7, digits: 1 });
+    expect(roundFor("falseAlarms", 0)).toEqual({ value: 0, digits: 0 });
   });
 });

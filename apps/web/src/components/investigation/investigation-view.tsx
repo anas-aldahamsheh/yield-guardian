@@ -4,21 +4,25 @@ import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { Investigation } from "@yield-guardian/contracts";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PageFrame, PageHeader, Panel } from "@/components/page";
+import { WorkOrderSection } from "@/components/work-orders/work-order-view";
 import { ErrorState, Placeholder } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
 import { q } from "@/lib/api/queries";
 import { LIVE_STATUSES, issuesByTarget, triggerUnit } from "@/lib/investigation/events";
+import { readHypotheses } from "@/lib/investigation/hypotheses";
 import { useInvestigationStream } from "@/lib/investigation/use-investigation-stream";
 import { formatInt, formatNumber, formatPlantTime, plural } from "@/lib/format";
 import { ISSUE_CODE, ROLE_NAMES, TRIGGER_KIND } from "@/lib/labels";
+import { WORK_ORDER_ANCHOR, triggerHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { DecisionActions } from "./decision";
+import { Elapsed } from "./elapsed";
 import { EvidencePanel } from "./evidence-panel";
 import { type EvidenceSelection, Report } from "./report";
 import { StatusLabel } from "./status-label";
@@ -45,7 +49,10 @@ export function InvestigationView({ id }: { id: string }) {
       <PageFrame>
         <BackLink />
         <PageHeader title={notFound ? "Investigation not found" : "Investigation"} />
-        <ErrorState error={query.error} onRetry={notFound ? undefined : () => void query.refetch()} />
+        <ErrorState
+          error={query.error}
+          onRetry={notFound ? undefined : () => void query.refetch()}
+        />
       </PageFrame>
     );
   }
@@ -75,25 +82,41 @@ export function InvestigationView({ id }: { id: string }) {
           <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <StatusLabel status={inv.status} />
             <span>
-              From {TRIGGER_KIND[inv.trigger.kind]?.toLowerCase()} <TriggerLink investigation={inv} />
+              From {TRIGGER_KIND[inv.trigger.kind]?.toLowerCase()}{" "}
+              <TriggerLink investigation={inv} />
             </span>
-            <span className="tnum">Started <LocalDateTime iso={inv.created_at} /></span>
+            <span className="tnum">
+              Started <LocalDateTime iso={inv.created_at} />
+            </span>
+            <span className="tnum" data-run-elapsed>
+              {running ? "Running for " : "Took "}
+              <Elapsed from={inv.created_at} to={finishedAt(inv)} running={running} />
+            </span>
             {inv.recorded ? <RecordedLabel investigation={inv} /> : null}
           </span>
         }
         actions={
           !LIVE_STATUSES.has(stored.status) && !(stored.recorded && stored.status === "failed") ? (
-            <Button variant="outline" size="sm" disabled={replay != null && state === "streaming"} onClick={startReplay}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={replay != null && state === "streaming"}
+              onClick={startReplay}
+            >
               {replay != null && state === "streaming" ? "Replaying…" : "Replay the run"}
             </Button>
           ) : null
         }
       />
       {inv.trigger.question ? (
-        <p className="-mt-3 mb-6 max-w-[72ch] text-[15px] leading-6 text-ink-2">Question: {inv.trigger.question}</p>
+        <p className="-mt-3 mb-6 max-w-[72ch] text-[15px] leading-6 text-ink-2">
+          Question: {inv.trigger.question}
+        </p>
       ) : null}
 
-      {inv.error ? <ErrorState className="mb-4" error={new ApiError(inv.error.status, inv.error)} /> : null}
+      {inv.error ? (
+        <ErrorState className="mb-4" error={new ApiError(inv.error.status, inv.error)} />
+      ) : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,1fr)_440px]">
         <Panel
@@ -108,7 +131,12 @@ export function InvestigationView({ id }: { id: string }) {
               verification={v}
               selection={selection}
               onSelect={select}
-              actionsSlot={replay ? undefined : <DecisionActions investigation={inv} report={inv.report} shared={shared} />}
+              testsHypotheses={inv.trigger.kind === "run_alarm"}
+              actionsSlot={
+                replay ? undefined : (
+                  <DecisionActions investigation={inv} report={inv.report} shared={shared} />
+                )
+              }
             />
           ) : (
             <p className="py-8 text-[15px] leading-6 text-ink-3">
@@ -119,29 +147,93 @@ export function InvestigationView({ id }: { id: string }) {
           )}
         </Panel>
 
-        <div className="grid grid-cols-[minmax(0,1fr)] min-w-0 content-start gap-street">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-street">
           <Panel
             live={running}
             title="Run"
             description={<RunDescription investigation={inv} />}
-            actions={running ? <span className="text-[13px] text-ink-2">{state === "reconnecting" ? "Reconnecting…" : "Running"}</span> : null}
+            actions={
+              running ? (
+                <span className="text-[13px] text-ink-2">
+                  {state === "reconnecting" ? "Reconnecting…" : "Running"}
+                </span>
+              ) : null
+            }
           >
             <Steps steps={inv.steps} running={running} selection={selection} onSelect={select} />
+            <StepAnnouncer investigation={inv} />
           </Panel>
           <div ref={evidenceRef} className="scroll-mt-[calc(var(--bar-height)+16px)]">
-            <Panel title="Evidence" description="Tool results exactly as stored. The report may cite only these.">
-              <EvidencePanel evidence={inv.evidence} numbers={inv.report?.numbers ?? []} issues={issues} selection={selection} onSelect={select} />
+            <Panel
+              title="Evidence"
+              description="Tool results exactly as stored. The report may cite only these."
+            >
+              <EvidencePanel
+                evidence={inv.evidence}
+                numbers={inv.report?.numbers ?? []}
+                issues={issues}
+                selection={selection}
+                onSelect={select}
+              />
             </Panel>
           </div>
         </div>
       </div>
+
+      {inv.work_order_id && !replay ? (
+        <section
+          id={WORK_ORDER_ANCHOR}
+          aria-label={`Work order ${inv.work_order_id}`}
+          className="mt-10 border-t border-hairline-strong pt-8"
+        >
+          <WorkOrderSection id={inv.work_order_id} hypotheses={readHypotheses(inv.report) ?? []} />
+        </section>
+      ) : null}
     </PageFrame>
+  );
+}
+
+/** When the run's last step finished; null while it runs or when no step has finished. */
+function finishedAt(inv: Investigation): string | null {
+  let last: string | null = null;
+  for (const step of inv.steps)
+    if (step.finished_at && (!last || step.finished_at > last)) last = step.finished_at;
+  return last;
+}
+
+/**
+ * Says each new step once, politely, for screen readers: the visible list updates in place.
+ * Steps already there when the page opens are not read out.
+ */
+function StepAnnouncer({ investigation }: { investigation: Investigation }) {
+  const seen = useRef<number | null>(null);
+  const [said, setSaid] = useState("");
+  const steps = investigation.steps;
+  useEffect(() => {
+    if (seen.current == null) {
+      seen.current = steps.length;
+      return;
+    }
+    if (steps.length > seen.current) {
+      const step = steps[steps.length - 1]!;
+      seen.current = steps.length;
+      const id = window.setTimeout(() => setSaid(`Step ${steps.length}: ${step.title}`), 0);
+      return () => window.clearTimeout(id);
+    }
+  }, [steps]);
+  return (
+    <p className="sr-only" role="status" aria-live="polite">
+      {said}
+    </p>
   );
 }
 
 function BackLink() {
   return (
-    <Link href="/investigations" className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink">
+    <Link
+      href="/investigations"
+      className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+    >
       All investigations
     </Link>
   );
@@ -158,7 +250,11 @@ function RecordedLabel({ investigation }: { investigation: Investigation }) {
   const failed = investigation.status === "failed";
   return (
     <>
-      <span>{failed ? "Recorded run: it failed when it was generated and is not replayed" : "Recorded run: generated once, replayed without calling a model"}</span>
+      <span>
+        {failed
+          ? "Recorded run: it failed when it was generated and is not replayed"
+          : "Recorded run: generated once, replayed without calling a model"}
+      </span>
       {unitId != null ? (
         <span className="tnum">
           Data as of unit {unitId}
@@ -170,11 +266,13 @@ function RecordedLabel({ investigation }: { investigation: Investigation }) {
 }
 
 function TriggerLink({ investigation }: { investigation: Investigation }) {
-  const { kind, ref } = investigation.trigger;
-  const unit = kind === "alarm" ? ref.match(/^AL-(\d+)-/)?.[1] : kind === "unit" ? ref : null;
-  const href = unit ? `/units/${unit}` : kind === "wafer" ? `/wafers/${ref}` : kind === "lot" ? `/lots/${ref}` : null;
+  const { ref } = investigation.trigger;
+  const href = triggerHref(investigation.trigger);
   return href ? (
-    <Link href={href} className="tnum text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink">
+    <Link
+      href={href}
+      className="tnum text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+    >
       {ref}
     </Link>
   ) : (
@@ -184,7 +282,9 @@ function TriggerLink({ investigation }: { investigation: Investigation }) {
 
 function RunDescription({ investigation }: { investigation: Investigation }) {
   const u = investigation.usage;
-  const models = investigation.models.map((m) => `${ROLE_NAMES[m.role] ?? m.role} ${m.model_id}`).join(", ");
+  const models = investigation.models
+    .map((m) => `${ROLE_NAMES[m.role] ?? m.role} ${m.model_id}`)
+    .join(", ");
   return (
     <span className="tnum">
       {models}
@@ -230,21 +330,32 @@ function VerificationSummary({ investigation }: { investigation: Investigation }
             : "Every check passed"}
         </p>
         <div aria-hidden="true" className="tnum flex gap-x-6 text-ink">
-          <CheckFigure label="numbers match evidence" value={v.numbers_matched} of={v.numbers_checked} />
+          <CheckFigure
+            label="numbers match evidence"
+            value={v.numbers_matched}
+            of={v.numbers_checked}
+          />
           <CheckFigure label="findings supported" value={supported} of={v.claims.length} />
         </div>
       </div>
       <p className="tnum mt-1.5 text-[13px] leading-5 text-ink-2">
-        {formatInt(v.numbers_matched)} of {formatInt(v.numbers_checked)} numbers match their evidence.{" "}
-        {plural(v.claims.length, "finding")} checked by {v.verifier_model ?? "no verifier model"}.{" "}
-        {v.rounds === 0 ? "No revision was needed." : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}
+        {formatInt(v.numbers_matched)} of {formatInt(v.numbers_checked)} numbers match their
+        evidence. {plural(v.claims.length, "finding")} checked by{" "}
+        {v.verifier_model ?? "no verifier model"}.{" "}
+        {v.rounds === 0
+          ? "No revision was needed."
+          : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}
       </p>
       {remaining ? (
         <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5">
           {v.issues.map((issue, i) => (
             <li key={i} className="text-ink">
               <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}</span>
-              <span className="text-ink-2"> at {issue.location}{issue.severity === "warning" ? ", warning" : ""}. </span>
+              <span className="text-ink-2">
+                {" "}
+                at {issue.location}
+                {issue.severity === "warning" ? ", warning" : ""}.{" "}
+              </span>
               <span className="text-ink-2">{issue.message}</span>
             </li>
           ))}

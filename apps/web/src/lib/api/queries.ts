@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import type { paths } from "@yield-guardian/contracts";
 
 import { type Api, unwrap } from "./client";
@@ -13,7 +13,9 @@ const MINUTE = 60_000;
 type Range = { from_seq?: number | null; to_seq?: number | null };
 
 /** Query parameters of a GET operation, straight from the contract. */
-export type QueryOf<P extends keyof paths> = paths[P] extends { get: { parameters: { query?: infer Q } } }
+export type QueryOf<P extends keyof paths> = paths[P] extends {
+  get: { parameters: { query?: infer Q } };
+}
   ? NonNullable<Q>
   : never;
 
@@ -58,23 +60,19 @@ export const q = {
     queryOptions({
       queryKey: ["fdc", "model"],
       queryFn: ({ signal }) =>
-        unwrap(api.GET("/api/v1/fdc/series", { params: { query: { from_seq: 0, to_seq: 0 } }, signal })),
+        unwrap(
+          api.GET("/api/v1/fdc/series", { params: { query: { from_seq: 0, to_seq: 0 } }, signal }),
+        ),
       staleTime: 30 * MINUTE,
     }),
 
-  alarms: (
-    api: Api,
-    query: QueryOf<"/api/v1/alarms"> = {},
-  ) =>
+  alarms: (api: Api, query: QueryOf<"/api/v1/alarms"> = {}) =>
     queryOptions({
       queryKey: ["alarms", query],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/alarms", { params: { query }, signal })),
     }),
 
-  units: (
-    api: Api,
-    query: QueryOf<"/api/v1/units"> = {},
-  ) =>
+  units: (api: Api, query: QueryOf<"/api/v1/units"> = {}) =>
     queryOptions({
       queryKey: ["units", query],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/units", { params: { query }, signal })),
@@ -84,7 +82,9 @@ export const q = {
     queryOptions({
       queryKey: ["units", unitId],
       queryFn: ({ signal }) =>
-        unwrap(api.GET("/api/v1/units/{unit_id}", { params: { path: { unit_id: unitId } }, signal })),
+        unwrap(
+          api.GET("/api/v1/units/{unit_id}", { params: { path: { unit_id: unitId } }, signal }),
+        ),
     }),
 
   explanation: (api: Api, unitId: number, top = 15) =>
@@ -147,14 +147,26 @@ export const q = {
       staleTime: 30 * MINUTE,
     }),
 
-  investigations: (
-    api: Api,
-    query: QueryOf<"/api/v1/investigations"> = {},
-  ) =>
+  investigations: (api: Api, query: QueryOf<"/api/v1/investigations"> = {}) =>
     queryOptions({
       queryKey: ["investigations", "list", query],
       queryFn: ({ signal }) =>
         unwrap(api.GET("/api/v1/investigations", { params: { query }, signal })),
+    }),
+
+  /** Every investigation, newest first, a page at a time (the grouped list on Investigations). */
+  investigationPages: (api: Api, limit = 100) =>
+    infiniteQueryOptions({
+      queryKey: ["investigations", "list", "pages", limit],
+      initialPageParam: null as string | null,
+      queryFn: ({ pageParam, signal }) =>
+        unwrap(
+          api.GET("/api/v1/investigations", {
+            params: { query: { limit, ...(pageParam ? { cursor: pageParam } : {}) } },
+            signal,
+          }),
+        ),
+      getNextPageParam: (last) => last.next_cursor ?? undefined,
     }),
 
   investigation: (api: Api, investigationId: string) =>
@@ -185,7 +197,23 @@ export const q = {
   workOrders: (api: Api, query: { cursor?: string | null; limit?: number } = {}) =>
     queryOptions({
       queryKey: ["work-orders", "list", query],
-      queryFn: ({ signal }) => unwrap(api.GET("/api/v1/work-orders", { params: { query }, signal })),
+      queryFn: ({ signal }) =>
+        unwrap(api.GET("/api/v1/work-orders", { params: { query }, signal })),
+    }),
+
+  /** Every work order, newest first, a page at a time (the Work orders tab). */
+  workOrderPages: (api: Api, limit = 50) =>
+    infiniteQueryOptions({
+      queryKey: ["work-orders", "list", "pages", limit],
+      initialPageParam: null as string | null,
+      queryFn: ({ pageParam, signal }) =>
+        unwrap(
+          api.GET("/api/v1/work-orders", {
+            params: { query: { limit, ...(pageParam ? { cursor: pageParam } : {}) } },
+            signal,
+          }),
+        ),
+      getNextPageParam: (last) => last.next_cursor ?? undefined,
     }),
 
   workOrder: (api: Api, workOrderId: string) =>
@@ -206,10 +234,7 @@ export const q = {
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/audit", { params: { query }, signal })),
     }),
 
-  wafers: (
-    api: Api,
-    query: QueryOf<"/api/v1/wafers"> = {},
-  ) =>
+  wafers: (api: Api, query: QueryOf<"/api/v1/wafers"> = {}) =>
     queryOptions({
       queryKey: ["wafers", "list", query],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/wafers", { params: { query }, signal })),
@@ -261,7 +286,9 @@ export const q = {
     queryOptions({
       queryKey: ["knowledge", "search", text, limit],
       queryFn: ({ signal }) =>
-        unwrap(api.GET("/api/v1/knowledge/search", { params: { query: { q: text, limit } }, signal })),
+        unwrap(
+          api.GET("/api/v1/knowledge/search", { params: { query: { q: text, limit } }, signal }),
+        ),
       staleTime: 30 * MINUTE,
     }),
 
@@ -324,7 +351,9 @@ export const q = {
     queryOptions({
       queryKey: ["methods", "model-card", name],
       queryFn: ({ signal }) =>
-        unwrap(api.GET("/api/v1/methods/model-cards/{name}", { params: { path: { name } }, signal })),
+        unwrap(
+          api.GET("/api/v1/methods/model-cards/{name}", { params: { path: { name } }, signal }),
+        ),
       staleTime: 30 * MINUTE,
     }),
 };

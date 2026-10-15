@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDecideInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
+import { workOrderHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { ActionBody, type Shared } from "./report";
@@ -77,7 +78,9 @@ export function DecisionActions({
               <div className="min-w-0">
                 <ActionBody action={action} index={i} {...shared} />
                 {decision ? (
-                  <p className="mt-1 text-[13px] leading-5 text-ink-3">{approved ? "Approved" : "Not approved"}</p>
+                  <p className="mt-1 text-[13px] leading-5 text-ink-3">
+                    {approved ? "Approved" : "Not approved"}
+                  </p>
                 ) : null}
               </div>
             </li>
@@ -86,17 +89,24 @@ export function DecisionActions({
       </ol>
 
       {decision ? (
-        <div className={cn("swap-in mt-6 rounded-sm border-l-2 px-4 py-3", decision.verdict === "approve" ? "border-pass bg-pass-wash" : "border-ink bg-die-2")}>
+        <div
+          className={cn(
+            "swap-in mt-6 rounded-sm border-l-2 px-4 py-3",
+            decision.verdict === "approve" ? "border-pass bg-pass-wash" : "border-ink bg-die-2",
+          )}
+        >
           <p className="text-[15px] leading-6 text-ink">
             {decision.verdict === "approve"
               ? `Approved ${plural(decision.actions.length, "action")}`
               : "Rejected"}{" "}
             by {decision.decided_by}, <LocalDateTime iso={decision.decided_at} />.
           </p>
-          {decision.note ? <p className="mt-1 text-[14px] leading-5 text-ink-2">{decision.note}</p> : null}
+          {decision.note ? (
+            <p className="mt-1 text-[14px] leading-5 text-ink-2">{decision.note}</p>
+          ) : null}
           {investigation.work_order_id ? (
             <Link
-              href={`/work-orders/${investigation.work_order_id}`}
+              href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
               className="mt-2 inline-block text-[14px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
             >
               Work order {investigation.work_order_id}
@@ -105,8 +115,15 @@ export function DecisionActions({
         </div>
       ) : investigation.status === "awaiting_decision" && !canAct ? (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-die-2 px-4 py-3">
-          <p className="text-[14px] leading-5 text-ink-2">Approving or rejecting a report needs an engineer session.</p>
-          <Button size="sm" variant="outline" onClick={() => guest.mutate()} disabled={guest.isPending}>
+          <p className="text-[14px] leading-5 text-ink-2">
+            Approving or rejecting a report needs an engineer session.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => guest.mutate()}
+            disabled={guest.isPending}
+          >
             {guest.isPending ? "Signing in…" : "Try as engineer"}
           </Button>
         </div>
@@ -129,7 +146,11 @@ export function DecisionActions({
             <Button
               disabled={chosen.size === 0 || decide.isPending}
               onClick={() =>
-                decide.mutate({ verdict: "approve", actions: [...chosen].sort((a, b) => a - b), note: note.trim() || null })
+                decide.mutate({
+                  verdict: "approve",
+                  actions: [...chosen].sort((a, b) => a - b),
+                  note: note.trim() || null,
+                })
               }
             >
               {decide.isPending && decide.variables?.verdict === "approve"
@@ -146,18 +167,25 @@ export function DecisionActions({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Reject this report?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    No work order is opened. The report and its evidence stay on record, marked as rejected.
+                    No work order is opened. The report and its evidence stay on record, marked as
+                    rejected.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Keep it open</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => decide.mutate({ verdict: "reject", actions: [], note: note.trim() || null })}>
+                  <AlertDialogAction
+                    onClick={() =>
+                      decide.mutate({ verdict: "reject", actions: [], note: note.trim() || null })
+                    }
+                  >
                     Reject report
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <p className="text-[13px] leading-5 text-ink-3">Approving opens one work order with the chosen actions.</p>
+            <p className="text-[13px] leading-5 text-ink-3">
+              Approving opens one work order with the chosen actions.
+            </p>
           </div>
         </div>
       ) : null}

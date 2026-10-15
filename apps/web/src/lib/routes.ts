@@ -5,12 +5,19 @@
  */
 
 /** The Line page's stations, numbered as the page draws them (PLAN_V2 §3.2). */
-export const STATIONS = ["manufacturing", "monitoring", "wafer_test", "investigation", "decision"] as const;
+export const STATIONS = [
+  "manufacturing",
+  "monitoring",
+  "wafer_test",
+  "investigation",
+  "decision",
+] as const;
 export type StationName = (typeof STATIONS)[number];
 export type StationNumber = 1 | 2 | 3 | 4 | 5;
 
 /** A real dataset item to open on the Line: a SECOM unit, a WM-811K wafer or a lot. */
-export type Pick = { kind: "unit"; id: number } | { kind: "wafer"; id: string } | { kind: "lot"; id: string };
+export type Pick =
+  { kind: "unit"; id: number } | { kind: "wafer"; id: string } | { kind: "lot"; id: string };
 
 const WAFER_ID = /^[A-Za-z0-9_.]+-\d+$/;
 const LOT_ID = /^[A-Za-z0-9_.]{1,64}$/;
@@ -45,6 +52,9 @@ export function lineHref({ station, pick }: { station?: StationNumber; pick?: Pi
   return withQuery("/", params);
 }
 
+/** A live run on the Line (the investigator's run alarms point here). */
+export const runHref = (runId: string) => withQuery("/", new URLSearchParams({ run: runId }));
+
 export const unitHref = (unitId: number) => lineHref({ pick: { kind: "unit", id: unitId } });
 export const waferHref = (waferId: string) => lineHref({ pick: { kind: "wafer", id: waferId } });
 export const lotHref = (lot: string) => lineHref({ pick: { kind: "lot", id: lot } });
@@ -65,13 +75,30 @@ export const WORK_ORDER_ANCHOR = "work-order";
  */
 export function workOrderHref(workOrderId: string, investigationId?: string | null): string {
   if (investigationId) return `${investigationHref(investigationId)}#${WORK_ORDER_ANCHOR}`;
-  return withQuery("/investigations", new URLSearchParams({ tab: "work-orders", order: workOrderId }));
+  return withQuery(
+    "/investigations",
+    new URLSearchParams({ tab: "work-orders", order: workOrderId }),
+  );
 }
 
 export const workOrdersHref = () => "/investigations?tab=work-orders";
 
-export const howHref = (anchor?: "models" | "methods" | "calculator" | "guide" | "limits") =>
-  anchor ? `/how#${anchor}` : "/how";
+/** The sections of How it works: the plain Arabic part, then the expert part, then the guide. */
+export const HOW_ANCHORS = [
+  "what",
+  "sources",
+  "limits",
+  "experts",
+  "results",
+  "models",
+  "methods",
+  "data",
+  "calculator",
+  "guide",
+] as const;
+export type HowAnchor = (typeof HOW_ANCHORS)[number];
+
+export const howHref = (anchor?: HowAnchor) => (anchor ? `/how#${anchor}` : "/how");
 
 /**
  * The v2 address of a v1 page, or null when the path is not a v1 page. Query strings are kept;
@@ -86,7 +113,8 @@ export function legacyRedirect(pathname: string, search: URLSearchParams): strin
   params.delete("_rsc");
   const at = (target: string, extra: Record<string, string>, drop: string[] = []) => {
     const next = new URLSearchParams(extra);
-    for (const [key, value] of params) if (!drop.includes(key) && !(key in extra)) next.append(key, value);
+    for (const [key, value] of params)
+      if (!drop.includes(key) && !(key in extra)) next.append(key, value);
     return withQuery(target, next);
   };
   const segment = (prefix: string) => {
@@ -120,6 +148,23 @@ export function legacyRedirect(pathname: string, search: URLSearchParams): strin
   if (unit != null) return at("/", { pick: `unit:${unit}` });
   const order = segment("/work-orders");
   if (order != null) return at("/investigations", { tab: "work-orders", order });
+  return null;
+}
+
+/**
+ * Where an investigation's trigger lives on the Line: the run of a run alarm (`<run_id>:<alarm_id>`),
+ * or the real unit, wafer or lot.
+ */
+export function triggerHref(trigger: { kind: string; ref: string }): string | null {
+  const { kind, ref } = trigger;
+  if (kind === "run_alarm") {
+    const run = /^(run_[0-9a-z]{8,40}):/.exec(ref)?.[1];
+    return run ? runHref(run) : null;
+  }
+  const unit = kind === "alarm" ? ref.match(/^AL-(\d+)-/)?.[1] : kind === "unit" ? ref : null;
+  if (unit && /^\d+$/.test(unit)) return unitHref(Number(unit));
+  if (kind === "wafer") return waferHref(ref);
+  if (kind === "lot") return lotHref(ref);
   return null;
 }
 

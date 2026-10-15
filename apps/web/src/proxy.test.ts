@@ -24,7 +24,9 @@ describe("security headers", () => {
   const policy = directives(csp);
 
   it("sets a Content-Security-Policy with a fresh nonce for scripts", () => {
-    expect(policy.get("script-src")).toMatch(/^'self' 'nonce-[A-Za-z0-9+/=]{20,}' 'strict-dynamic'$/);
+    expect(policy.get("script-src")).toMatch(
+      /^'self' 'nonce-[A-Za-z0-9+/=]{20,}' 'strict-dynamic'$/,
+    );
     const other = proxy(new NextRequest("https://yield-guardian.example/"));
     expect(other.headers.get("Content-Security-Policy")).not.toBe(csp);
   });
@@ -66,7 +68,9 @@ describe("security headers", () => {
         headers: { host: "yield-guardian.example:8080", "x-forwarded-proto": "http" },
       }),
     );
-    expect(viaHttp.headers.get("Content-Security-Policy")).not.toContain("upgrade-insecure-requests");
+    expect(viaHttp.headers.get("Content-Security-Policy")).not.toContain(
+      "upgrade-insecure-requests",
+    );
     expect(csp).not.toContain("upgrade-insecure-requests");
     const viaHttps = proxy(
       new NextRequest("http://web:3000/how", {
@@ -77,15 +81,23 @@ describe("security headers", () => {
   });
 
   it("ignores a Host header that is not a host name", () => {
-    const value = contentSecurityPolicy({ nonce: createNonce(), host: "evil.example; script-src *" });
+    const value = contentSecurityPolicy({
+      nonce: createNonce(),
+      host: "evil.example; script-src *",
+    });
     expect(directives(value).get("connect-src")).toBe("'self'");
   });
 
-  it("redirects v1 pages permanently with a relative Location, keeping the query", () => {
+  it("redirects v1 pages permanently on the request's own host, keeping the query", () => {
+    // Next turns a Location on the request's host into a relative one (checked end to end).
     const moved = proxy(new NextRequest("https://yield-guardian.example/sensors?sensor=S060"));
     expect(moved.status).toBe(308);
-    expect(moved.headers.get("Location")).toBe("/?station=2&sensor=S060");
-    expect(proxy(new NextRequest("https://yield-guardian.example/methods")).headers.get("Location")).toBe("/how#methods");
+    expect(moved.headers.get("Location")).toBe(
+      "https://yield-guardian.example/?station=2&sensor=S060",
+    );
+    expect(
+      proxy(new NextRequest("https://yield-guardian.example/methods")).headers.get("Location"),
+    ).toBe("https://yield-guardian.example/how#methods");
   });
 
   it("leaves v2 pages and v1 work orders (resolved by their route) to Next.js", () => {

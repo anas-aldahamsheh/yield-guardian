@@ -15,12 +15,14 @@ const WORK_ORDER_PAGE = /^\/work-orders\/[^/]+\/?$/;
  * Sets a Content-Security-Policy with a fresh nonce on every page request. Next.js reads the
  * nonce from the request's CSP header and adds it to its own scripts; the root layout passes it
  * to the theme script. A v1 address is redirected permanently to its v2 place first
- * (lib/routes.ts), with a relative Location so it is right behind any gateway.
+ * (lib/routes.ts).
  */
 export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const moved = WORK_ORDER_PAGE.test(pathname) ? null : legacyRedirect(pathname, searchParams);
-  if (moved) return new NextResponse(null, { status: 308, headers: { Location: moved } });
+  // Next needs an absolute URL here, and makes it relative again when it is on the request's
+  // own host, so the Location the browser sees is right behind any gateway.
+  if (moved) return NextResponse.redirect(new URL(moved, request.url), 308);
 
   const nonce = createNonce();
   const csp = contentSecurityPolicy({
