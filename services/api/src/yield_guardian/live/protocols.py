@@ -22,6 +22,7 @@ from yield_guardian.contracts.runs import (
     Run,
     SensorRiskResult,
     SensorUnitInput,
+    UnitChartResult,
     UploadIssue,
     WaferInput,
     WaferPatternResult,
@@ -134,8 +135,14 @@ class RunReader(Protocol):
     """
 
     async def get_run(self, run_id: str) -> Run | None:
-        """The run as GET /runs/{run_id} returns it: every stage state and result (z for every
-        unit, not only the first 200) and every listed alarm. None when absent or expired."""
+        """The run as GET /runs/{run_id} returns it: every stage state and result (z for at
+        most the first 200 units, as streamed) and every listed alarm. None when absent or
+        expired."""
+        ...
+
+    async def get_unit_chart(self, run_id: str, index: int) -> UnitChartResult | None:
+        """Control-chart result of unit `index` with `z` (every monitored sensor's standardised
+        reading), for any unit of the run. None when absent or not computed."""
         ...
 
     async def get_unit_input(self, run_id: str, index: int) -> SensorUnitInput | None:

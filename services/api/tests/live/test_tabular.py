@@ -60,7 +60,7 @@ def test_plain_errors(data: bytes, name: str, fragment: str) -> None:
 
 
 def test_size_guard() -> None:
-    with pytest.raises(TableError, match="limit is 20 MB"):
+    with pytest.raises(TableError, match=f"limit is {MAX_BYTES // 1_048_576} MB"):
         read_table(b"a\n" + b"1\n" * (MAX_BYTES // 2 + 1), "big.csv")
 
 

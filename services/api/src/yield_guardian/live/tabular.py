@@ -14,7 +14,7 @@ from pathlib import PurePath
 
 from openpyxl import load_workbook
 
-MAX_BYTES = 20 * 1024 * 1024
+MAX_BYTES = 32 * 1024 * 1024  # 5,000 SECOM units as CSV are about 24 MB
 MAX_XLSX_UNPACKED_BYTES = 400 * 1024 * 1024
 MAX_ROWS = 2_000_000
 MAX_COLUMNS = 1024

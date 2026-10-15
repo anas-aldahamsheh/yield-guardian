@@ -79,7 +79,7 @@ top-left; the grid is (max y + 1) rows by (max x + 1) columns, which round-trips
 wafer exactly. The server builds each wafer's grid; several wafers of one lot enable the lot
 test.
 
-Validation answers in plain words (which column, which row, what is wrong). Size guards: 20 MB
+Validation answers in plain words (which column, which row, what is wrong). Size guards: 32 MB
 per file, 5,000 units and 500 wafers per run. Templates (header only) and real example files
 (real SECOM units and a real WM-811K lot in the upload format) can be downloaded.
 
