@@ -50,6 +50,7 @@ from yield_guardian.contracts.wafer import (
 N_SENSORS = 590
 MAX_UNITS = 5000
 MAX_WAFERS = 500
+MAX_DIES = 2_000_000  # dies over all wafers of a run; bounds the join-count test (about 20 s)
 MIN_UNITS_FOR_DRIFT = 20
 
 RunId = Annotated[

@@ -80,7 +80,7 @@ wafer exactly. The server builds each wafer's grid; several wafers of one lot en
 test.
 
 Validation answers in plain words (which column, which row, what is wrong). Size guards: 32 MB
-per file, 5,000 units and 500 wafers per run. Templates (header only) and real example files
+per file, 5,000 units, 500 wafers and 2 million dies per run. Templates (header only) and real example files
 (real SECOM units and a real WM-811K lot in the upload format) can be downloaded.
 
 ### 3.2 Stages and stations

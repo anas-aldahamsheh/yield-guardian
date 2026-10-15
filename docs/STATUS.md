@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 07:52 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 08:10 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 84 of 96 done (88%), 9 in progress, 3 not started
+## Progress: 85 of 96 done (89%), 8 in progress, 3 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 2 of 14 | 9 | 3 |
+| V: Version 2, the live story | 3 of 14 | 8 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -211,7 +211,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 |---|---|---|---|---|
 | V1 | Run contracts, engine seams, plan v2 | Cloud | ✅ | [contracts/runs.py](../services/api/src/yield_guardian/contracts/runs.py), [live/protocols.py](../services/api/src/yield_guardian/live/protocols.py), [PLAN_V2.md](PLAN_V2.md) |
 | V2 | Sensor engine (live risk, SHAP, T²/SPE, EWMA/CUSUM, health), SECOM sampler, sensor file parser, parity tests | Cloud | ✅ | Merged f46d40c: [live/sensors.py](../services/api/src/yield_guardian/live/sensors.py), [live/sensor_file.py](../services/api/src/yield_guardian/live/sensor_file.py), 79 tests. Parity on all 1,567 units: T², SPE, contributions, 313 held-out risks and SHAP equal the bundle at float32 (0 mismatches); EWMA/CUSUM flags and health equal the stored ones exactly. 5,000 units: risk and charts 1.1 to 1.7 s |
-| V3 | Wafer engine (ONNX on any map, unknown, similar, causes, lot tests), demo sampler, draw layouts, wafer file parser, parity tests | Cloud | 🟡 | Wafers worker, branch v2/wafers |
+| V3 | Wafer engine (ONNX on any map, unknown, similar, causes, lot tests), demo sampler, draw layouts, wafer file parser, parity tests | Cloud | ✅ | Merged 391edeb: [live/wafers.py](../services/api/src/yield_guardian/live/wafers.py), [live/wafer_file.py](../services/api/src/yield_guardian/live/wafer_file.py), [live/causes.py](../services/api/src/yield_guardian/live/causes.py), 95 tests. Parity on all 10,253 demo wafers: probabilities, unknown and energy scores equal the bundle exactly; similar wafers equal v1; join-count statistic exact, p-values within 6 Monte Carlo SE. Lot p-values equal lots.json on 446 of 475 lots (the other 29 have a wafer whose fp32 label or energy differs from the stored bf16); stacked maps 475 of 475 |
 | V4 | Runs: store, orchestrator, SSE with resume, cases, uploads, templates, example files; replay loop retired | Cloud | 🟡 | Runs worker, branch v2/runs |
 | V5 | Investigator over runs, hypothesis table, confirmed cause on work orders | Cloud | 🟡 | AI worker, branch v2/ai |
 | V6 | Chat run tools and page context | Cloud | 🟡 | AI worker, branch v2/ai, alongside V5 |
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 08:10 | V3 done and merged (391edeb): the live wafer engine equals the stored model on all 10,253 demo wafers; wafer file parser round-trips demo wafers. Size guard of 2 million dies per run added (join-count cost). Full API suite on main: 1,126 passed. 85 of 96 |
 | 2026-10-15 07:52 | V2 done and merged (f46d40c): the live sensor engine equals the stored models on every SECOM unit (float32, 0 mismatches) and the upload parser round-trips SECOM units as CSV and XLSX. Upload size guard raised to 32 MB so 5,000 units fit in a CSV. Contract additions agreed with the workers: named risk skill, elevated band edge, processed wafer map, per-item final test, alarm cap count, runs kept while an investigation uses them, per-unit chart read. 84 of 96 |
 | 2026-10-15 07:15 | All six v2 workers started: sensors (V2), wafers (V3), runs (V4), AI (V5, V6), story (V7, V8: the Line page and its animation), pages (V9 to V11: three pages, calculator, Arabic guide). Worker 3 keeps V14 (deploy and live checks) only. 83 of 96 |
 | 2026-10-15 07:05 | v2 approved by the owner (06:54). Plan v2 written from the owner's agreed plan and worker 3's draft (1a3d8f4): three pages and a floating chat, live runs on four kinds of input, the animated line, hypotheses, calculator. V1 done (run contracts and engine seams); V2 to V5, V7 and V9 started in parallel. 83 of 96 |
