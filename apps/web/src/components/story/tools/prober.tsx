@@ -1,10 +1,11 @@
 "use client";
 
-import type { WaferPatternItem } from "@yield-guardian/contracts";
+import type { WaferPatternItem, WaferPatternResult } from "@yield-guardian/contracts";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { stageResult, type RunState } from "@/lib/live/run-state";
+import { countsAsUnknown, testedLots } from "@/lib/live/stations";
 import { FILM } from "@/lib/wafer/geometry";
 import { formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -46,9 +47,10 @@ export function ProberTool({
 }) {
   const shown = useScene(store, (s) => s.revealed.has("wafer_pattern"));
   const pattern = state && shown ? stageResult(state, "wafer_pattern") : null;
-  const lotFlagged =
-    useScene(store, (s) => s.revealed.has("lot")) &&
-    Boolean(state && stageResult(state, "lot")?.lots.some((l) => l.flagged));
+  const lotShown = useScene(store, (s) => s.revealed.has("lot"));
+  const lots = state && lotShown ? stageResult(state, "lot") : null;
+  const lotFlagged = Boolean(lots?.lots.some((l) => l.flagged));
+  const tested = useMemo(() => testedLots(lots), [lots]);
   const onChuck = useScene(store, (s) => s.wafer != null);
   const [ready3d, setReady3d] = useState(false);
   const markReady = useCallback(() => setReady3d(true), []);
@@ -64,7 +66,7 @@ export function ProberTool({
           aria-hidden="true"
         >
           <ProberSilhouette active={active} />
-          <Carrier2D store={store} wafers={wafers} flagged={lotFlagged} />
+          <Carrier2D store={store} pattern={pattern} tested={tested} flagged={lotFlagged} />
         </svg>
         <div className="absolute aspect-square" style={CHUCK}>
           {flat ? <Probed2D store={store} wafers={wafers} /> : null}
@@ -214,13 +216,17 @@ const SLOTS = 25;
 /** The carrier from the front: 25 slots, slot 1 at the bottom; each probed wafer seen edge-on. */
 function Carrier2D({
   store,
-  wafers,
+  pattern,
+  tested,
   flagged,
 }: {
   store: SceneStore;
-  wafers: WaferPatternItem[];
+  pattern: WaferPatternResult | null;
+  /** Lots the lot test covered, once its result is shown. */
+  tested: ReadonlySet<string>;
   flagged: boolean;
 }) {
+  const wafers = pattern?.wafers ?? [];
   const filled = useScene(store, (s) => s.carrier);
   const current = useScene(store, (s) => s.wafer);
   const lot = wafers[0]?.lot;
@@ -243,10 +249,16 @@ function Carrier2D({
         const y = bottom - (i + 0.5) * pitch;
         const wafer = inLot[i];
         const loaded = wafer != null && i < filled;
-        // A defect pattern in the fail colour, no pattern in grey, by the model's prediction as
-        // the lot test counts it; a map that scores unknown keeps its colour and gets a dot
-        // beside its slot: a caution to check it by eye, not a different verdict.
+        // A defect pattern in the fail colour, no pattern in grey, by the model's prediction.
+        // Once the lot test has answered, a wafer it counts as unknown (energy score above its
+        // threshold) is drawn hollow, so the filled bars are the lot test's count; a map unlike
+        // the ones the model learned from gets a dot beside its slot: check it by eye.
         const tone = !wafer ? null : wafer.top_label !== "none" ? "var(--fail)" : "var(--ink-3)";
+        const hollow =
+          wafer != null &&
+          pattern != null &&
+          tested.has(wafer.lot) &&
+          countsAsUnknown(wafer, pattern);
         return (
           <g key={i}>
             <path
@@ -256,7 +268,16 @@ function Carrier2D({
             />
             {loaded && tone ? (
               <g className={styles.slot} opacity={wafer.index === current ? 1 : 0.8}>
-                <rect x={x0} y={y - 1.1} width={x1 - x0} height={2.2} rx={1.1} fill={tone} />
+                <rect
+                  x={x0}
+                  y={y - 1.1}
+                  width={x1 - x0}
+                  height={2.2}
+                  rx={1.1}
+                  fill={hollow ? "none" : tone}
+                  stroke={hollow ? tone : "none"}
+                  strokeWidth={0.8}
+                />
                 {wafer.is_unknown ? (
                   <circle cx={x0 - 11} cy={y} r={1.5} fill="var(--ink-2)" />
                 ) : null}

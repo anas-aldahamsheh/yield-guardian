@@ -1,6 +1,12 @@
-import type { LotItem, LotResult, RunAlarm, WaferPatternItem } from "@yield-guardian/contracts";
+import type {
+  LotItem,
+  LotResult,
+  RunAlarm,
+  WaferPatternItem,
+  WaferPatternResult,
+} from "@yield-guardian/contracts";
 
-import { formatInt, formatPercent, formatPValue, plural } from "@/lib/format";
+import { formatInt, formatNumber, formatPercent, formatPValue, plural } from "@/lib/format";
 import { patternName } from "@/lib/labels";
 
 import { STAGES, stageResult, type RunState, type StageId } from "./run-state";
@@ -303,13 +309,35 @@ export function patternCounts(
 }
 
 /**
- * Wafers of a lot the lot test counts as unknown although the model predicted a defect pattern:
- * their energy score is above the bundle's threshold.
+ * Whether the lot test counts this wafer as unknown, not as the defect pattern the model
+ * predicted: its energy score is above the result's energy threshold (the lot test's rule, as
+ * the training-period reference rates had it). Only a wafer of a lot the test covered is
+ * counted at all.
  */
-export function energyUnknown(wafers: readonly WaferPatternItem[], item: LotItem): number {
-  const predicted = wafers.filter((w) => w.lot === item.lot && w.top_label !== "none").length;
-  const counted = Object.values(item.pattern_counts).reduce((n, c) => n + c, 0);
-  return Math.max(0, predicted - counted);
+export function countsAsUnknown(w: WaferPatternItem, pattern: WaferPatternResult): boolean {
+  return w.top_label !== "none" && w.energy_score > pattern.energy_threshold;
+}
+
+/** Wafers of a lot the lot test counts as unknown although the model predicted a defect pattern. */
+export function energyUnknown(pattern: WaferPatternResult, item: LotItem): number {
+  return pattern.wafers.filter((w) => w.lot === item.lot && countsAsUnknown(w, pattern)).length;
+}
+
+/** The lots the lot test covered, once its result is in. */
+export function testedLots(lot: LotResult | null | undefined): ReadonlySet<string> {
+  return new Set(lot?.lots.map((l) => l.lot) ?? []);
+}
+
+/**
+ * Two numbers with as few decimals (2 to 6) as keep them apart, so "a is above b" never reads
+ * as two equal numbers.
+ */
+export function formatApart(a: number, b: number): [string, string] {
+  for (let digits = 2; digits < 6; digits += 1) {
+    const pair: [string, string] = [formatNumber(a, digits), formatNumber(b, digits)];
+    if (pair[0] !== pair[1]) return pair;
+  }
+  return [formatNumber(a, 6), formatNumber(b, 6)];
 }
 
 function patternClause(defect: number, total: number, counts: [WaferLabel, number][]): string {

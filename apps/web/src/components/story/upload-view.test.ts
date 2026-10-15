@@ -7,6 +7,7 @@ import {
   ISSUES_SHOWN,
   MAX_UPLOAD_BYTES,
   checkFile,
+  issueLine,
   issuePlace,
   sortIssues,
   uploadView,
@@ -76,6 +77,36 @@ describe("the upload view", () => {
       "Row 13, column result",
       "Row 22",
     ]);
+    // The API's messages name the row themselves: the line does not say it twice.
+    expect(view.shown.map(issueLine)).toEqual([
+      {
+        place: "Row 7",
+        rest: ': "-1" is not a column (x); it must be a whole number of 0 or more.',
+      },
+      { place: "Row 13", rest: ': the result "maybe" is not pass or fail.' },
+      {
+        place: "Row 22",
+        rest: " repeats the die at x 19, y 1 of lot lot5421, wafer 1 (first on row 21). List each die once.",
+      },
+    ]);
+  });
+
+  it("puts the place first when the message does not begin with it", () => {
+    const warning = fixture.uploadOk.issues[0]!;
+    expect(issueLine(warning)).toEqual({
+      place: "Row 4, column timestamp",
+      rest: `: ${warning.message}`,
+    });
+    expect(
+      issueLine(issue({ row: 9, column: "S001", message: "Row 9, S001: not a number." })),
+    ).toEqual({
+      place: "Row 9, S001",
+      rest: ": not a number.",
+    });
+    // A message about another row keeps its own place in front.
+    expect(issueLine(issue({ row: 9, message: "Row 8 and row 9 repeat a unit." })).place).toBe(
+      "Row 9",
+    );
   });
 
   it("lists the first issues and counts the rest", () => {

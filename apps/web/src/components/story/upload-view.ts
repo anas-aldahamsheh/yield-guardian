@@ -38,6 +38,19 @@ export function issuePlace(issue: UploadIssue): string {
   return "The file";
 }
 
+/**
+ * An issue as one line: its place in medium weight, then what is wrong. The API's messages
+ * often begin with the place themselves ("Row 13: the result ..."); then that beginning is the
+ * place, so it is not said twice.
+ */
+export function issueLine(issue: UploadIssue): { place: string; rest: string } {
+  const own = /^(Row (\d(?:[\d,]*\d)?)(?:, (?:column )?[\w.]+)?)(?=[: ])(.*)$/s.exec(issue.message);
+  if (own && issue.row != null && Number(own[2]!.replace(/,/g, "")) === issue.row) {
+    return { place: own[1]!, rest: own[3]! };
+  }
+  return { place: issuePlace(issue), rest: `: ${issue.message}` };
+}
+
 /** Errors first, then warnings, each in file order (issues without a row first). */
 export function sortIssues(issues: readonly UploadIssue[]): UploadIssue[] {
   const rank = (i: UploadIssue) => (i.severity === "error" ? 0 : 1);

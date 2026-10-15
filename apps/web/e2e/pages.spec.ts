@@ -123,6 +123,13 @@ test.describe("How it works", () => {
     await expect(page.locator("details#guide-investigate")).toHaveAttribute("open", "");
     await page.getByRole("searchbox", { name: "ابحث في الدليل" }).fill("Upload a file");
     await expect(page.locator("details#guide-upload")).toHaveAttribute("open", "");
+    // Its screenshot is served from public/guide/ by the production build, at its own size.
+    const shot = page.locator("figure[data-shot='guide-upload-check'] img");
+    await expect(shot).toBeVisible();
+    await expect(shot).toHaveAttribute("alt", /^لوحة Upload a file/);
+    await expect
+      .poll(() => shot.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
+      .toBe(1392);
   });
 });
 

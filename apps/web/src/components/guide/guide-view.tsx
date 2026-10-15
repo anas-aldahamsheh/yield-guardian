@@ -340,16 +340,18 @@ function BlockView({ block, label }: { block: Block; label: string }) {
       );
     }
     case "shot":
-      // A slot for a screenshot of the real product: nothing shows until its file is added.
-      if (!block.src) return null;
+      // A screenshot of the real product, at most its own width (a narrow crop is not blown up).
+      // The files are already compressed (public/guide/), so they are served as they are and the
+      // interface text in them stays sharp.
       return (
         <figure className="grid gap-2" data-shot={block.id}>
           <Image
             src={block.src}
-            alt={block.caption}
-            width={1440}
-            height={900}
-            sizes="(min-width: 960px) 880px, 100vw"
+            alt={block.alt}
+            width={block.width}
+            height={block.height}
+            unoptimized
+            style={{ maxWidth: block.width }}
             className="h-auto w-full border border-hairline"
           />
           <figcaption className="text-[13px] leading-6 text-ink-3">{block.caption}</figcaption>

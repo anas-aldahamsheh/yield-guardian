@@ -126,9 +126,12 @@ export function AlarmsRail({
   onShow,
   onLinked,
   selected = null,
+  over = false,
   className,
 }: {
   state: RunState | null;
+  /** The run has ended and the line has shown every result. */
+  over?: boolean;
   shown: ReadonlySet<string>;
   onShow: (alarm: RunAlarm) => void;
   onLinked: (alarmId: string, investigationId: string) => void;
@@ -142,7 +145,9 @@ export function AlarmsRail({
   const alarms = state ? state.alarms.filter((a) => shown.has(a.alarm_id)) : [];
   const red = alarms.filter(turnsRed).length;
   const warnings = alarms.length - red;
-  const finished = state ? state.status === "done" || state.status === "failed" : false;
+  // "None raised" and the count the server left out wait until the line has played every
+  // result: until then more alarms may still be on their way to the screen.
+  const finished = Boolean(state) && over;
   const notListed = finished ? state!.alarmsNotListed : 0;
 
   return (

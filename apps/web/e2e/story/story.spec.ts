@@ -201,7 +201,9 @@ test("an upload says what is wrong, by row and column, and a good one runs", asy
   await expect(
     page.getByText("This file cannot run yet: fix the 3 errors below and upload it again."),
   ).toBeVisible();
-  await expect(page.getByText("Row 7, column x", { exact: false })).toBeVisible();
+  await expect(
+    page.locator("li").filter({ hasText: /^ErrorRow 7: "-1" is not a column \(x\)/ }),
+  ).toBeVisible();
   expect(proxy.uploads.at(-1)).toContain('name="file"; filename="wafer-lot.csv"');
 
   await input.setInputFiles({

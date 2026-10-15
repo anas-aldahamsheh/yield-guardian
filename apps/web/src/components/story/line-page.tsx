@@ -319,6 +319,7 @@ export function LinePage({ initialQuery }: { initialQuery: string }) {
                   onShow={showAlarm}
                   onLinked={linked}
                   selected={url.alarm}
+                  over={over}
                   // Under the line the rail scrolls within a screen's height less the bar above and the
                   // Ask button's band below, so in view it clears both; beside the line it takes the
                   // line's height, down to the Ask button's band wherever the page is scrolled.

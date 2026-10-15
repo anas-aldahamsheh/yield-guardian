@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import type { StartRun } from "./input-bar";
-import { UPLOAD_ACCEPT, checkFile, issuePlace, uploadView } from "./upload-view";
+import { UPLOAD_ACCEPT, checkFile, issueLine, uploadView } from "./upload-view";
 
 const FORMATS: UploadFormat[] = ["csv", "xlsx"];
 
@@ -163,8 +163,8 @@ function UploadResult({
                 {issue.severity === "error" ? "Error" : "Warning"}
               </span>
               <span className="min-w-0 text-ink">
-                <span className="tnum font-medium">{issuePlace(issue)}: </span>
-                {issue.message}
+                <span className="tnum font-medium">{issueLine(issue).place}</span>
+                {issueLine(issue).rest}
               </span>
             </li>
           ))}

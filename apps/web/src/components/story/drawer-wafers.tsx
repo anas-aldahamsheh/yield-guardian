@@ -27,7 +27,7 @@ import {
 } from "@/lib/format";
 import { patternName } from "@/lib/labels";
 import { stageResult, type RunState } from "@/lib/live/run-state";
-import { energyUnknown } from "@/lib/live/stations";
+import { countsAsUnknown, energyUnknown, formatApart, testedLots } from "@/lib/live/stations";
 import { cn } from "@/lib/utils";
 
 import { DrawerSection, Method, NotYet } from "./drawer-parts";
@@ -44,20 +44,37 @@ function results(map: WaferMap) {
 }
 
 /**
- * The verdict on one wafer in plain words: the model's prediction, and, when the map scores
- * unknown, a caution next to it (the map is unlike the ones the model learned from, so check it
- * by eye), never in its place.
+ * The verdict on one wafer in plain words: the model's prediction, and next to it, never in its
+ * place, the cautions that apply: the map is unlike the ones the model learned from (check it by
+ * eye), and, once the lot test has covered its lot, the test counts it as unknown because its
+ * energy score is above the test's threshold.
  */
-export function waferVerdict(w: WaferPatternItem, accept: number): string {
+export function waferVerdict(
+  w: WaferPatternItem,
+  pattern: WaferPatternResult,
+  tested: boolean,
+): string {
+  const accept = pattern.accept_threshold;
   const name = w.top_label === "none" ? "No defect pattern" : patternName(w.top_label);
   const verdict = w.auto_accepted
     ? `${name} at ${formatProbability(w.top_probability)}, classified automatically (the 99%-precision threshold is ${formatProbability(accept)}).`
     : `${name} at ${formatProbability(w.top_probability)}, for review: below the ${formatProbability(accept)} needed to classify it automatically.`;
-  return w.is_unknown ? `${verdict} ${unknownCaution(w)}` : verdict;
+  const cautions = [
+    w.is_unknown ? unknownCaution(w) : null,
+    tested ? lotTestCaution(w, pattern) : null,
+  ];
+  return [verdict, ...cautions.filter(Boolean)].join(" ");
 }
 
 export function unknownCaution(w: WaferPatternItem): string {
   return `The map looks unlike the maps the model learned from (unknown score ${formatReading(w.unknown_score)}, unknown from ${formatReading(w.unknown_threshold)}), so check it by eye.`;
+}
+
+/** Null unless the lot test counts the wafer as unknown rather than its predicted pattern. */
+export function lotTestCaution(w: WaferPatternItem, pattern: WaferPatternResult): string | null {
+  if (!countsAsUnknown(w, pattern)) return null;
+  const [score, limit] = formatApart(w.energy_score, pattern.energy_threshold);
+  return `The lot test counts it as unknown, not as ${patternName(w.top_label)}: its energy score ${score} is above the test's threshold ${limit}.`;
 }
 
 /**
@@ -90,6 +107,7 @@ export function WafersDrawer({
   // Without a wafer chosen, the drawer opens on the first wafer with a pattern (known or not).
   const index = wafer != null && wafer < pattern.wafers.length ? wafer : defaultWafer(pattern);
   const chosen = index != null ? pattern.wafers[index]! : null;
+  const tested = testedLots(lots);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
@@ -97,12 +115,13 @@ export function WafersDrawer({
         title="Every wafer of the run"
         description="Choose a wafer to see what the model read in its map."
       >
-        <WaferChooser pattern={pattern} selected={index} onSelect={onWafer} />
+        <WaferChooser pattern={pattern} tested={tested} selected={index} onSelect={onWafer} />
       </DrawerSection>
       {chosen ? (
         <WaferDetail
           wafer={chosen}
           pattern={pattern}
+          tested={tested.has(chosen.lot)}
           similar={similar}
           final={final}
           stageSimilar={state.stages.wafer_similar}
@@ -113,12 +132,7 @@ export function WafersDrawer({
       {similar ? <Causes causes={similar.causes} focus={chosen?.top_label ?? null} /> : null}
       {lots ? (
         lots.lots.map((l) => (
-          <LotPanel
-            key={l.lot}
-            lot={l}
-            method={lots.method}
-            energy={energyUnknown(pattern.wafers, l)}
-          />
+          <LotPanel key={l.lot} lot={l} method={lots.method} energy={energyUnknown(pattern, l)} />
         ))
       ) : (
         <NotYet stage={state.stages.lot} what="The lot test" />
@@ -129,10 +143,13 @@ export function WafersDrawer({
 
 function WaferChooser({
   pattern,
+  tested,
   selected,
   onSelect,
 }: {
   pattern: WaferPatternResult;
+  /** Lots the lot test covered: their wafers show how the test counted them. */
+  tested: ReadonlySet<string>;
   selected: number | null;
   onSelect: (i: number) => void;
 }) {
@@ -141,6 +158,7 @@ function WaferChooser({
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(72px,1fr))] gap-2" aria-label="Wafers">
       {pattern.wafers.map((w, i) => {
         const label = w.top_label === "none" ? "no pattern" : patternName(w.top_label);
+        const uncounted = tested.has(w.lot) && countsAsUnknown(w, pattern);
         return (
           <li key={w.index}>
             <button
@@ -168,11 +186,14 @@ function WaferChooser({
               <span
                 className={cn(
                   "text-[11px] leading-4",
-                  w.top_label !== "none" ? "text-fail" : "text-ink-3",
+                  w.top_label === "none" ? "text-ink-3" : uncounted ? "text-ink-2" : "text-fail",
                 )}
               >
                 {label}
               </span>
+              {uncounted ? (
+                <span className="text-[11px] leading-4 text-ink-3">lot test: unknown</span>
+              ) : null}
               {w.is_unknown ? (
                 <span className="text-[11px] leading-4 text-ink-3">check by eye</span>
               ) : null}
@@ -187,12 +208,15 @@ function WaferChooser({
 function WaferDetail({
   wafer,
   pattern,
+  tested,
   similar,
   final,
   stageSimilar,
 }: {
   wafer: WaferPatternItem;
   pattern: WaferPatternResult;
+  /** Whether the lot test covered the wafer's lot (and its result is shown). */
+  tested: boolean;
   similar: WaferSimilarResult | null;
   final: FinalTestResult | null;
   stageSimilar: RunState["stages"]["wafer_similar"];
@@ -205,6 +229,7 @@ function WaferDetail({
   const neighbours = similar?.wafers.find((w) => w.index === wafer.index)?.similar ?? [];
   const drawn = wafer.source_wafer == null;
   const unknownPos = Math.min(1, wafer.unknown_score / (wafer.unknown_threshold * 2));
+  const energy = formatApart(wafer.energy_score, pattern.energy_threshold);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
@@ -220,7 +245,7 @@ function WaferDetail({
       </div>
       <DrawerSection
         title={wafer.top_label === "none" ? "No defect pattern" : patternName(wafer.top_label)}
-        description={waferVerdict(wafer, pattern.accept_threshold)}
+        description={waferVerdict(wafer, pattern, tested)}
       >
         {recorded ? (
           <p className="mb-3 text-[14px] leading-5 text-ink">
@@ -260,7 +285,7 @@ function WaferDetail({
           />
         </div>
         <p className="tnum text-[12px] leading-4 text-ink-3">
-          {`${formatReading(wafer.unknown_score)} against ${formatReading(wafer.unknown_threshold)}, the score above which a map counts as unknown (the scale ends at twice it). Energy score ${formatNumber(wafer.energy_score)}, a cross-check.`}
+          {`${formatReading(wafer.unknown_score)} against ${formatReading(wafer.unknown_threshold)}, the score above which a map counts as unknown (the scale ends at twice it). Energy score ${energy[0]}, a cross-check; the lot test counts a map as unknown above ${energy[1]}.`}
         </p>
 
         <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">

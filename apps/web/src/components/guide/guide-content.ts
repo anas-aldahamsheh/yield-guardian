@@ -3,8 +3,10 @@
  * docs/PLAN_V2.md §3 and §4. Interface labels stay in English, as they appear on screen.
  *
  * It holds no measured number: those are read from the API in the sections above it (the plain
- * limits at /how#limits and the expert section). A `shot` block is a slot for a screenshot of
- * the real product; it renders nothing until the lead adds the file under public/guide/.
+ * limits at /how#limits and the expert section). A `shot` block is a screenshot of the real
+ * product under public/guide/, taken from the real API behind the production gateway by
+ * e2e/guide-screenshots.shot.ts (never from the development fixtures), at 1440 px in the light
+ * theme and cropped to what its entry describes.
  */
 
 export type Block =
@@ -13,7 +15,18 @@ export type Block =
   | { type: "steps"; items: readonly string[] }
   | { type: "table"; head: readonly string[]; rows: readonly (readonly string[])[] }
   | { type: "note"; text: string }
-  | { type: "shot"; id: string; caption: string; src: string | null };
+  | {
+      type: "shot";
+      id: string;
+      /** Under the picture, for everyone. */
+      caption: string;
+      /** What the picture shows, for a reader who cannot see it. */
+      alt: string;
+      src: string;
+      /** The file's own size in pixels. */
+      width: number;
+      height: number;
+    };
 
 export interface Category {
   id: string;
@@ -107,7 +120,10 @@ export const ENTRIES: readonly Entry[] = [
         type: "shot",
         id: "guide-nav",
         caption: "الشريط العلوي بصفحاته الثلاث، وزر Ask في أسفل الصفحة",
-        src: null,
+        alt: "صفحة Line قبل أي مدخل: في الشريط العلوي روابط Line وInvestigations وHow it works وزر المظهر وزر Try as engineer، وتحته العنوان وأزرار الإدخال الأربعة، والمحطات ساكنة، وعمود Alarms فارغ، وزر Ask العائم في أسفل الشاشة.",
+        src: "/guide/guide-nav.webp",
+        width: 1440,
+        height: 900,
       },
     ],
   },
@@ -195,7 +211,10 @@ export const ENTRIES: readonly Entry[] = [
         type: "shot",
         id: "guide-input-bar",
         caption: "شريط الإدخال بأزراره الأربعة على صفحة Line الساكنة",
-        src: null,
+        alt: "عنوان الصفحة Run real fab data down the line، وتحته الأزرار الأربعة: Try a real sample وPick a case وDraw a defect وUpload a file، وسطر يشرح أن العينة الحقيقية تُختار عشوائياً وتظهر قاعدتها وبذرتها.",
+        src: "/guide/guide-input-bar.webp",
+        width: 1050,
+        height: 238,
       },
     ],
   },
@@ -230,9 +249,17 @@ export const ENTRIES: readonly Entry[] = [
       },
       {
         type: "note",
-        text: "إذا رسمت شيئاً لا يشبه أي نمط معروف، يقول البرنامج «unknown pattern» ولا يفرض عليه اسم أقرب نمط.",
+        text: "إذا رسمت شيئاً لا يشبه الخرائط التي تعلم منها الموديل، يبقى اسم أقرب نمط ظاهراً، ومعه تنبيه بأن تفحص الرسمة بعينك.",
       },
-      { type: "shot", id: "guide-draw", caption: "رسم عيب على مخطط رقاقة حقيقية", src: null },
+      {
+        type: "shot",
+        id: "guide-draw",
+        caption: "خط من الشرائح المعطلة رُسم باليد على مخطط رقاقة حقيقية من WM-811K",
+        alt: "لوحة Draw a defect: أزرار أحجام المخططات الستة، ومخطط رقاقة عليه خط مائل من الشرائح المعطلة باللون الأحمر، وبجانبه عدد الشرائح المعطلة وزر Run your drawing، وتحته شرح بأن الشكل غير المألوف يأخذ أقرب نمط مع تنبيه بفحصه بالعين.",
+        src: "/guide/guide-draw.webp",
+        width: 1392,
+        height: 738,
+      },
     ],
   },
   {
@@ -266,8 +293,12 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "shot",
         id: "guide-upload-check",
-        caption: "نتيجة التحقق من ملف مرفوع، مع اسم العمود والصف",
-        src: null,
+        caption:
+          "التحقق من ملف رقاقات مرفوع. الملف هو ملف المثال الحقيقي الذي تنزّله من البرنامج، غيّرنا فيه بأيدينا خلية واحدة إلى «faild» ليظهر الخطأ: يقول البرنامج أي صف وما المشكلة، ولا يبدأ التشغيل.",
+        alt: 'لوحة Upload a file بعد رفع wafers-example.csv: سطر يقول إن الملف خرائط رقاقات، ثم جملة حمراء بأن الملف لا يعمل حتى يُصلح الخطأ، وتحتها الخطأ: Row 14: the result "faild" is not pass or fail. وعلى اليمين شرح أعمدة الملفين وروابط القوالب الفارغة والأمثلة الحقيقية.',
+        src: "/guide/guide-upload-check.webp",
+        width: 1392,
+        height: 332,
       },
     ],
   },
@@ -280,7 +311,7 @@ export const ENTRIES: readonly Entry[] = [
     blocks: [
       {
         type: "p",
-        text: "يرسم الخط خمس محطات. كل نتيجة تُحسب لحظة وصول مدخلك، وتظهر في محطتها فور حسابها. الرسم لا يسبق البيانات أبداً، ولا يتظاهر بتقدم لم يحدث.",
+        text: "يمر مدخلك على خمس محطات. الخط يرسم الثلاث الأولى ومعها «Final test»، والمحطتان الرابعة والخامسة تبدآن عند الطلب من عمود الإنذارات. كل نتيجة تُحسب لحظة وصول مدخلك، وتظهر في محطتها فور حسابها. الرسم لا يسبق البيانات أبداً، ولا يتظاهر بتقدم لم يحدث.",
       },
       {
         type: "table",
@@ -296,17 +327,26 @@ export const ENTRIES: readonly Entry[] = [
           ],
           [
             "③ «Wafer test»",
-            "للرقاقات: نمط العيب ودرجة الثقة أو «unknown pattern»، والقبول التلقائي أو «for review»، واختبار تجمع الأعطال، وأشبه الرقاقات الحقيقية، والأسباب المذكورة في الأبحاث. ولرقاقتين أو أكثر من دفعة واحدة: هل يتكرر نمط أكثر من الصدفة، مع خريطة الأعطال المكدسة.",
+            "للرقاقات: نمط العيب ودرجة الثقة، مع تنبيه بالفحص بالعين إذا كانت الخريطة لا تشبه ما تعلم منه الموديل، والقبول التلقائي أو «for review»، واختبار تجمع الأعطال، وأشبه الرقاقات الحقيقية، والأسباب المذكورة في الأبحاث. ولرقاقتين أو أكثر من دفعة واحدة: هل يتكرر نمط أكثر من الصدفة، مع خريطة الأعطال المكدسة.",
+          ],
+          [
+            "«Final test»",
+            "إذا أعطيت نتائج الفحص النهائي (عمود result في ملف الحساسات، أو نتائج الرقاقات) يقول لك هل كانت تحذيرات البرنامج صحيحة، لكل وحدة ولكل رقاقة.",
           ],
           ["④ «Investigation»", "عند الطلب فقط: المحقق يجمع الأدلة من التشغيل ويكتب تقريراً."],
           ["⑤ «Decision»", "المهندس يوافق فيُفتح أمر عمل، أو يرفض."],
         ],
       },
       {
-        type: "p",
-        text: "إذا أعطيت نتائج الفحص النهائي (عمود result في ملف الحساسات، أو نتائج الرقاقات) يقول لك البرنامج هل كانت تحذيراته صحيحة، لكل وحدة ولكل رقاقة.",
+        type: "shot",
+        id: "guide-line-run",
+        caption:
+          "الخط أثناء تشغيل عينة حقيقية، وأول إنذار في عمود Alarms. التُقطت الصورة على خادم لم تُفعَّل فيه التحقيقات الحية، فيظهر سطر يقول ذلك مكان زر Investigate.",
+        alt: "الخط أثناء تشغيل عينة حقيقية: وصف العينة وبذرتها، وشريط ينبه إلى أن المصدرين منفصلان، ثم المحطات: Manufacturing انتهت، وMonitoring حمراء بإنذار، وWafer test وFinal test حُسبتا، وفي عمود Alarms إنذار عن وحدة قراءاتها بعيدة عن الوضع الطبيعي (T²) مع زر Show unit، وتحت الخط سطر يقول إن التشغيل ما زال جارياً.",
+        src: "/guide/guide-line-run.webp",
+        width: 1408,
+        height: 752,
       },
-      { type: "shot", id: "guide-line-run", caption: "الخط أثناء تشغيل عينة حقيقية", src: null },
     ],
   },
   {
@@ -340,15 +380,18 @@ export const ENTRIES: readonly Entry[] = [
         type: "list",
         items: [
           "الوحدات: درجة الخطر مع مهارتها، وأعمدة SHAP، ومجموعات الحساسات، ومخطط T² وSPE مع حدوده والحساسات المساهمة، وEWMA وCUSUM، وجدول صحة الحساسات.",
-          "الرقاقة: الخريطة، والاحتمالات، ودرجة «غير معروف»، واختبار التجمع، والرقاقات المشابهة، والأسباب من الأبحاث مع مصادرها.",
+          "الرقاقة: الخريطة، والاحتمالات، ودرجة «غير معروف»، ودرجة الطاقة (energy) التي إذا تجاوزت حدها عدّ اختبار الدفعة الرقاقة غير معروفة لا من نمطها، واختبار التجمع، والرقاقات المشابهة، والأسباب من الأبحاث مع مصادرها.",
           "الدفعة: الخريطة المكدسة والاختبارات.",
         ],
       },
       {
         type: "shot",
         id: "guide-drawer-wafer",
-        caption: "درج رقاقة: الخريطة والنمط والرقاقات المشابهة",
-        src: null,
+        caption: "درج رقاقة حقيقية: الخريطة والنمط والرقاقات المشابهة",
+        alt: "تفاصيل رقاقة حقيقية من WM-811K: خريطتها والشرائح المعطلة باللون الأحمر، والنمط المتوقع Edge-Ring مصنفاً تلقائياً ويوافق تسجيلها الأصلي، وأعمدة احتمالات الأنماط، ودرجة «غير معروف» تحت حدها ودرجة الطاقة، واختبار تجمع الأعطال، ثم عشر رقاقات حقيقية هي الأشبه بها مع أنماطها المسجلة.",
+        src: "/guide/guide-drawer-wafer.webp",
+        width: 1360,
+        height: 794,
       },
     ],
   },
@@ -384,7 +427,10 @@ export const ENTRIES: readonly Entry[] = [
           ["ewma", "انحراف صغير مستمر عبر وحدات متتالية."],
           ["cusum", "انحراف بطيء يتراكم عبر وحدات متتالية."],
           ["wafer_pattern", "الموديل صنّف الرقاقة بنمط عيب."],
-          ["unknown_pattern", "الرقاقة لا تشبه أي نمط يعرفه الموديل."],
+          [
+            "unknown_pattern",
+            "الرقاقة لا تشبه الخرائط التي تعلم منها الموديل: تحذير بأن تفحصها بعينك، ويبقى نمطها المتوقع ظاهراً.",
+          ],
           ["lot_excursion", "نمط يتكرر في الدفعة أكثر مما تفسره الصدفة."],
         ],
       },
@@ -416,8 +462,12 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "shot",
         id: "guide-investigation-live",
-        caption: "تحقيق يعمل، وخطواته تظهر واحدة بعد الأخرى",
-        src: null,
+        caption:
+          "خطوات تحقيق حقيقي مسجَّل، بالترتيب الذي جرت به: كل أداة استدعاها المحقق وكم أخذت، والدليل الذي أخرجته. هذه هي الخطوات نفسها التي تظهر واحدة بعد الأخرى أثناء التحقيق.",
+        alt: "لوحة Run في صفحة تحقيق مسجَّل عن إنذار خطر الفشل على الوحدة 1303: النماذج التي عملت فيه وعدد استدعاءاتها، ثم خطوات مكتملة بالترتيب: قراءة سجل الوحدة، واختيار الدليل التالي، وتفسير SHAP، ومساهمات SPE وT²، ومجموعات الحساسات، وصحة الحساسات، ونافذة مخطط التحكم، ولكل خطوة مدتها ورقم دليلها من E1 إلى E7.",
+        src: "/guide/guide-investigation-live.webp",
+        width: 440,
+        height: 958,
       },
     ],
   },
@@ -444,7 +494,7 @@ export const ENTRIES: readonly Entry[] = [
     blocks: [
       {
         type: "p",
-        text: "عندما يختبر المحقق أسباباً محتملة يظهر جدول الفرضيات في التقرير. كل صف سبب محتمل واحد:",
+        text: "عندما يختبر المحقق أسباباً محتملة يظهر في التقرير جدول بعنوان «Hypotheses». كل صف فيه سبب محتمل واحد، وأعمدته خمسة:",
       },
       {
         type: "table",
@@ -470,12 +520,6 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "note",
         text: "الفرضية تبقى فرضية حتى يؤكدها مهندس. «supported» تعني أن الأدلة في هذا التشغيل تتفق معها، لا أنها السبب المؤكد.",
-      },
-      {
-        type: "shot",
-        id: "guide-hypotheses",
-        caption: "جدول الفرضيات في تقرير، مع أدلة كل صف",
-        src: null,
       },
     ],
   },
@@ -533,8 +577,12 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "shot",
         id: "guide-work-orders",
-        caption: "تبويب Work orders مع سجل التدقيق",
-        src: null,
+        caption:
+          "تبويب Work orders وسجل التدقيق كما هما على الخادم الذي التُقطت منه الصورة: فارغان، لأن أحداً لم يوافق على تقرير بعد.",
+        alt: "تبويب Work orders في صفحة Investigations: لوحة Work orders تقول No work orders yet وتشرح أن أمر العمل يُفتح عندما يوافق مهندس على إجراءات تقرير، ولوحة Audit log فيها قائمة لتصفية الإجراءات وتقول Nothing recorded.",
+        src: "/guide/guide-work-orders.webp",
+        width: 1408,
+        height: 316,
       },
     ],
   },
@@ -592,7 +640,16 @@ export const ENTRIES: readonly Entry[] = [
           "كل افتراض مكتوب تحت الحاسبة، والمعادلة ظاهرة تحت كل سطر.",
         ],
       },
-      { type: "shot", id: "guide-calculator", caption: "الحاسبة بعد كتابة أرقام مصنع", src: null },
+      {
+        type: "shot",
+        id: "guide-calculator",
+        caption:
+          "الحاسبة بعد أن كتبنا في خاناتها أرقام مثال مدوَّرة، كما تكتب أنت أرقام مصنعك: 1000 رقاقة في اليوم، ودقيقتان لكل خريطة، و50 لساعة المهندس، و1000 لساعة التوقف، و500 للرقاقة. هذه مدخلات مثال من القارئ، وليست أرقام مصنع حقيقي ولا أرقاماً يقترحها البرنامج؛ المعدلان المقاسان وحدهما من الـ API.",
+        alt: "حاسبة التوفير: في لوحة Your numbers الخانات الخمس مملوءة بأرقام المثال، وفي لوحة Per month الخرائط المصنفة تلقائياً وساعات المهندس المحررة وتكلفتها، ثم الإنذارات الكاذبة وتكلفة التوقف والرقاقات، ولكل سطر قيمة ومدى ومعادلة، وفي لوحة Measured rates المعدلان المقاسان مع فترتي الثقة.",
+        src: "/guide/guide-calculator.webp",
+        width: 1408,
+        height: 822,
+      },
     ],
   },
 
@@ -653,7 +710,10 @@ export const ENTRIES: readonly Entry[] = [
             "Macro-F1",
             "متوسط درجة F1 لكل الأنماط، كل نمط بوزن متساوٍ. F1 تجمع الدقة والاستدعاء في رقم واحد.",
           ],
-          ["Unknown pattern", "خريطة لا تشبه أي نمط تدرب عليه الموديل، فلا يفرض عليها اسماً."],
+          [
+            "Unknown pattern",
+            "خريطة لا تشبه الخرائط التي تدرب عليها الموديل. يبقى اسم أقرب نمط ظاهراً، ومعه تنبيه بأن تفحصها بعينك.",
+          ],
           ["Work order (أمر عمل)", "مهمة للمصنع تُفتح عندما يوافق مهندس على إجراءات تقرير."],
         ],
       },
@@ -661,10 +721,8 @@ export const ENTRIES: readonly Entry[] = [
   },
 ];
 
-/** Every screenshot slot, for whoever adds the images. */
-export const SHOT_SLOTS: readonly { id: string; caption: string; entry: string }[] =
+/** Every screenshot of the guide, with the entry it belongs to. */
+export const SHOT_SLOTS: readonly (Extract<Block, { type: "shot" }> & { entry: string })[] =
   ENTRIES.flatMap((e) =>
-    e.blocks.flatMap((b) =>
-      b.type === "shot" ? [{ id: b.id, caption: b.caption, entry: e.id }] : [],
-    ),
+    e.blocks.flatMap((b) => (b.type === "shot" ? [{ ...b, entry: e.id }] : [])),
   );
