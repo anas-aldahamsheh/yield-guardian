@@ -39,7 +39,7 @@ test("the API is ready with both bundles verified", async ({ request }) => {
   expect(meta.features).toMatchObject({ chat: false, live_investigations: false });
 });
 
-test("home: the results table is filled from /results", async ({ page, request }) => {
+test("how it works: the results table is filled from /results", async ({ page, request }) => {
   const problems = watch(page);
   const { results } = await getJson<{ results: { label: string; estimate: unknown }[] }>(
     request,
@@ -50,8 +50,8 @@ test("home: the results table is filled from /results", async ({ page, request }
     0,
   );
 
-  await page.goto("/");
-  const table = page.getByRole("table", { name: "Measured results with confidence intervals" });
+  await page.goto("/how#results");
+  const table = page.locator("#results").getByRole("table", { name: "Measured results" });
   await expect(table.locator("tbody tr")).toHaveCount(results.length);
   for (const r of measured) {
     const row = table
