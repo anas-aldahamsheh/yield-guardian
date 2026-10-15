@@ -18,8 +18,7 @@ import { WafersDrawer } from "./drawer-wafers";
  */
 function openedAnew(): boolean {
   const entry = performance.getEntriesByType("navigation")[0] as
-    | PerformanceNavigationTiming
-    | undefined;
+    PerformanceNavigationTiming | undefined;
   return entry?.type === "navigate" && window.scrollY === 0;
 }
 

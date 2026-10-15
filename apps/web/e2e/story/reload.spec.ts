@@ -2,9 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import {
   WAFER_CELL,
   decodeWaferCells,
+  type Investigation,
   type RunAlarm,
   type WaferInput,
 } from "@yield-guardian/contracts";
+
+import { INVESTIGATION_STATUS } from "../../src/lib/labels";
 
 import { RUN_ID, eventsOf, fixture, sampleEvents } from "./fixture";
 import { GATEWAY, startStoryProxy, type StoryProxy } from "./stub";
@@ -152,6 +155,23 @@ async function settled(page: Page) {
   await page.waitForTimeout(600);
 }
 
+/**
+ * Waits until a station just opened has brought its drawer's heading under the site bar. The
+ * page scrolls there smoothly once the drawer is drawn; anything focused before then would stop
+ * that scroll where it is.
+ */
+async function drawerInPlace(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const heading = document.getElementById("station-drawer-title");
+        const bar = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        return heading ? Math.round(heading.getBoundingClientRect().top - bar) : null;
+      }),
+    )
+    .toBe(0);
+}
+
 function alarmRow(page: Page, alarm: RunAlarm) {
   return page
     .locator("article")
@@ -171,6 +191,7 @@ test("a finished run comes back after a reload as it was, with nothing replayed 
   await page.getByRole("button", { name: "Try a real sample" }).click();
   await finish(page);
   await page.getByRole("button", { name: "Open monitoring details" }).click();
+  await drawerInPlace(page);
   await page.locator("#station-drawer").getByRole("slider", { name: "Unit" }).focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
@@ -302,16 +323,20 @@ test("an alarm keeps its investigation after a reload, and on another device", a
   const href = (await link.getAttribute("href"))!;
   await expect(page).toHaveURL(new RegExp(`alarm=${t2.alarm_id}$`));
 
-  // The server has the link: the page it sends shows it, with the investigation's status.
+  // The server has the link: the page it sends shows it, with the investigation's status as the
+  // API has it now (the gateway's investigator double keeps what earlier tests decided).
   const html = await (await page.request.get(page.url())).text();
   expect(html).toContain(`href="${href}"`);
+  const investigation = (await (
+    await page.request.get(`${proxy.origin}/api/v1${href}`)
+  ).json()) as Investigation;
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(row.getByRole("link", { name: "Open the investigation" })).toHaveAttribute(
     "href",
     href,
     { timeout: 1 },
   );
-  await expect(row).toContainText("Awaiting decision", { timeout: 1 });
+  await expect(row).toContainText(INVESTIGATION_STATUS[investigation.status]!, { timeout: 1 });
   await expect(row).toHaveAttribute("aria-current", "true", { timeout: 1 });
   await expect(page.locator("#station-4")).toContainText(`${t2.title} ${t2.alarm_id}`);
 
@@ -386,6 +411,7 @@ test("back and forward come back to the run as it was", async ({ page }) => {
   await page.getByRole("button", { name: "Try a real sample" }).click();
   await finish(page);
   await page.getByRole("button", { name: "Open wafer test details" }).click();
+  await drawerInPlace(page);
   await settled(page);
   const before = await visibleLine(page);
   const resumes = proxy.resumes.length;

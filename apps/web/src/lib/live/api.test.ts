@@ -22,14 +22,16 @@ function answer(status: number, body: unknown, headers: Record<string, string> =
 }
 
 describe("the runs API client", () => {
-  it("waits as told while the case catalog is still being found", async () => {
+  it("waits at least as long as told while the case catalog is still being found", async () => {
     const error = await getRunCases({}, answer(503, problem, { "Retry-After": "5" })).catch(
       (e: unknown) => e,
     );
     expect(error).toBeInstanceOf(NotReadyYet);
     expect((error as NotReadyYet).retryAfterMs).toBe(5_000);
     expect(shouldRetry(3, error)).toBe(true);
-    expect(retryDelay(3, error)).toBe(5_000);
+    expect(retryDelay(0, error)).toBe(5_000);
+    // Later tries wait longer still: the pause doubles past what was asked.
+    expect(retryDelay(3, error)).toBe(8_000);
   });
 
   it("waits with a growing pause on a 503 without Retry-After", async () => {

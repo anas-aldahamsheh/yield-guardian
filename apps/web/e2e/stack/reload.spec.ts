@@ -132,6 +132,19 @@ async function settled(page: Page) {
   await page.waitForTimeout(600);
 }
 
+/** Waits until a station just opened has scrolled its drawer's heading under the site bar. */
+async function drawerInPlace(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const heading = document.getElementById("station-drawer-title");
+        const bar = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        return heading ? Math.round(heading.getBoundingClientRect().top - bar) : null;
+      }),
+    )
+    .toBe(0);
+}
+
 function runIdOf(page: Page): string {
   return new URL(page.url()).searchParams.get("run")!;
 }
@@ -164,6 +177,7 @@ test("a real sample reloads as it stood, with the drawer and the unit in view", 
   const run = await getJson<RunRead>(request, `/runs/${runIdOf(page)}`);
   expect(run.status).toBe("done");
   await page.getByRole("button", { name: "Open monitoring details" }).click();
+  await drawerInPlace(page);
   await page.locator("#station-drawer").getByRole("slider", { name: "Unit" }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page).toHaveURL(/&station=2&unit=\d+$/);
@@ -206,6 +220,7 @@ test("a drawn wafer run reloads with the wafer drawer open on the wafer chosen",
   await finish(page);
   const run = await getJson<RunRead>(request, `/runs/${runIdOf(page)}`);
   await page.getByRole("button", { name: "Open wafer test details" }).click();
+  await drawerInPlace(page);
   await page.locator("#station-drawer ul[aria-label=Wafers] button").nth(1).click();
   await expect(page).toHaveURL(/&station=3&wafer=1$/);
   await settled(page);
