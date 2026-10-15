@@ -37,7 +37,10 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
  * first render starts there (the home page's counters start at 0). Jumps straight to the value
  * under reduced motion, and when the change is not a finite number.
  */
-export function useTicker(value: number, { duration = 600, from }: { duration?: number; from?: number } = {}) {
+export function useTicker(
+  value: number,
+  { duration = 600, from }: { duration?: number; from?: number } = {},
+) {
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState(from ?? value);
   const shownRef = useRef(shown);
@@ -89,7 +92,10 @@ export function Ticker({
  * Returns null until the first change, so nothing animates on page load.
  */
 export function useChangeKey(signal: unknown): number | null {
-  const [state, setState] = useState<{ signal: unknown; count: number | null }>({ signal, count: null });
+  const [state, setState] = useState<{ signal: unknown; count: number | null }>({
+    signal,
+    count: null,
+  });
   if (!Object.is(state.signal, signal)) {
     setState({ signal, count: (state.count ?? 0) + 1 });
   }

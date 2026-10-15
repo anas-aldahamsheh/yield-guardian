@@ -53,13 +53,19 @@ export function InvestigationSequence() {
           {STEPS.map((step, i) => {
             const model = step.role ? modelFor(step.role) : undefined;
             return (
-              <li key={step.title} className="relative min-w-0 border-t border-hairline-strong pt-4">
+              <li
+                key={step.title}
+                className="relative min-w-0 border-t border-hairline-strong pt-4"
+              >
                 <span className="tnum text-[13px] leading-5 text-ink-3">Step {i + 1}</span>
                 <h3 className="mt-1 text-h4 font-semibold">{step.title}</h3>
                 <p className="mt-2 text-[15px] leading-6 text-ink-2">{step.text}</p>
                 {step.role ? (
                   <p className="mt-3 text-[13px] leading-5 text-ink-3">
-                    Model: <span className="text-ink-2">{model ?? (roles.isError ? "unavailable" : "…")}</span>
+                    Model:{" "}
+                    <span className="text-ink-2">
+                      {model ?? (roles.isError ? "unavailable" : "…")}
+                    </span>
                   </p>
                 ) : null}
               </li>

@@ -167,14 +167,20 @@ function Wafer({
       invalidate();
       if (!inspected.current || !group.current || event.pointerType === "touch") return;
       const box = canvas.getBoundingClientRect();
-      ndc.set(((event.clientX - box.left) / box.width) * 2 - 1, -((event.clientY - box.top) / box.height) * 2 + 1);
+      ndc.set(
+        ((event.clientX - box.left) / box.width) * 2 - 1,
+        -((event.clientY - box.top) / box.height) * 2 + 1,
+      );
       raycaster.setFromCamera(ndc, camera);
       inverse.copy(group.current.matrixWorld).invert();
       raycaster.ray.applyMatrix4(inverse);
       if (!raycaster.ray.intersectPlane(plane, hit)) return clear();
       const col = Math.floor(hit.x / layout.pitch + grid.width / 2);
       const row = Math.floor(hit.z / layout.pitch + grid.height / 2);
-      const at = row >= 0 && row < grid.height && col >= 0 && col < grid.width ? byCell.get(row * grid.width + col) : undefined;
+      const at =
+        row >= 0 && row < grid.height && col >= 0 && col < grid.width
+          ? byCell.get(row * grid.width + col)
+          : undefined;
       if (at === undefined) return clear();
       const die = layout.dies[at]!;
       current = at;

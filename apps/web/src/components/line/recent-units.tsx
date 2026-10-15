@@ -32,17 +32,35 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
     >
       <ScrollRegion label="Recent units">
         <table className="w-full min-w-[720px] border-collapse text-left text-[14px] leading-5">
-          <caption className="sr-only">Recent units with failure risk, control-chart statistics and final test</caption>
+          <caption className="sr-only">
+            Recent units with failure risk, control-chart statistics and final test
+          </caption>
           <thead>
             <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Unit</th>
-              <th scope="col" className="px-3 py-2 font-normal">Plant time</th>
-              <th scope="col" className="px-3 py-2 text-right font-normal">Risk, experimental</th>
-              <th scope="col" className="px-3 py-2 font-normal">Band</th>
-              <th scope="col" className="px-3 py-2 text-right font-normal">T²</th>
-              <th scope="col" className="px-3 py-2 text-right font-normal">SPE</th>
-              <th scope="col" className="px-3 py-2 font-normal">Control charts</th>
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Final test</th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Unit
+              </th>
+              <th scope="col" className="px-3 py-2 font-normal">
+                Plant time
+              </th>
+              <th scope="col" className="px-3 py-2 text-right font-normal">
+                Risk, experimental
+              </th>
+              <th scope="col" className="px-3 py-2 font-normal">
+                Band
+              </th>
+              <th scope="col" className="px-3 py-2 text-right font-normal">
+                T²
+              </th>
+              <th scope="col" className="px-3 py-2 text-right font-normal">
+                SPE
+              </th>
+              <th scope="col" className="px-3 py-2 font-normal">
+                Control charts
+              </th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Final test
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -51,16 +69,30 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
                 key={u.sequence}
                 className={cn(
                   "border-b border-hairline last:border-b-0 hover:bg-die-2",
-                  fresh.has(String(u.sequence)) && (u.fdc_alarm === "alarm" || u.risk_band === "high" ? "flash-alarm" : "flash-new"),
+                  fresh.has(String(u.sequence)) &&
+                    (u.fdc_alarm === "alarm" || u.risk_band === "high"
+                      ? "flash-alarm"
+                      : "flash-new"),
                 )}
               >
                 <th scope="row" className="tnum px-4 py-2 font-normal sm:px-5">
-                  <Link href={unitHref(u.unit_id)} className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink">
+                  <Link
+                    href={unitHref(u.unit_id)}
+                    className="text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+                  >
                     {formatInt(u.unit_id)}
                   </Link>
                 </th>
-                <td className="tnum px-3 py-2 whitespace-nowrap text-ink-2">{formatPlantTime(u.timestamp)}</td>
-                <td className="tnum px-3 py-2 text-right text-ink">{u.risk == null ? <span className="text-ink-3">Warm-up</span> : formatProbability(u.risk)}</td>
+                <td className="tnum px-3 py-2 whitespace-nowrap text-ink-2">
+                  {formatPlantTime(u.timestamp)}
+                </td>
+                <td className="tnum px-3 py-2 text-right text-ink">
+                  {u.risk == null ? (
+                    <span className="text-ink-3">Warm-up</span>
+                  ) : (
+                    formatProbability(u.risk)
+                  )}
+                </td>
                 <td className="px-3 py-2">
                   {u.risk_band ? (
                     <span className="inline-flex items-center gap-1.5 text-ink-2">
@@ -68,7 +100,11 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
                         aria-hidden="true"
                         className={cn(
                           "size-2 rounded-full",
-                          u.risk_band === "high" ? "bg-fail" : u.risk_band === "elevated" ? "bg-concern" : "bg-mark-muted",
+                          u.risk_band === "high"
+                            ? "bg-fail"
+                            : u.risk_band === "elevated"
+                              ? "bg-concern"
+                              : "bg-mark-muted",
                         )}
                       />
                       {BAND_NAME[u.risk_band]}
@@ -79,11 +115,23 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
                 </td>
                 <td className="tnum px-3 py-2 text-right text-ink-2">{formatReading(u.t2)}</td>
                 <td className="tnum px-3 py-2 text-right text-ink-2">{formatReading(u.spe)}</td>
-                <td className={cn("px-3 py-2", u.fdc_alarm === "alarm" ? "text-fail" : u.fdc_alarm === "warning" ? "text-ink" : "text-ink-3")}>
+                <td
+                  className={cn(
+                    "px-3 py-2",
+                    u.fdc_alarm === "alarm"
+                      ? "text-fail"
+                      : u.fdc_alarm === "warning"
+                        ? "text-ink"
+                        : "text-ink-3",
+                  )}
+                >
                   {FDC_LABEL[u.fdc_alarm]}
                   {u.ewma_alarm || u.cusum_alarm ? (
                     <span className="ml-1.5 text-[12px] text-ink-3">
-                      {[u.ewma_alarm && "EWMA", u.cusum_alarm && "CUSUM"].filter(Boolean).join(", ")} drift
+                      {[u.ewma_alarm && "EWMA", u.cusum_alarm && "CUSUM"]
+                        .filter(Boolean)
+                        .join(", ")}{" "}
+                      drift
                     </span>
                   ) : null}
                 </td>

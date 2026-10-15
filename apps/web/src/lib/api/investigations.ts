@@ -1,7 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { DecisionCreate, Investigation, InvestigationTrigger } from "@yield-guardian/contracts";
+import type {
+  DecisionCreate,
+  Investigation,
+  InvestigationTrigger,
+} from "@yield-guardian/contracts";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 
@@ -35,7 +39,8 @@ export function useStartInvestigation() {
       router.push(`/investigations/${investigation.investigation_id}`);
     },
     onError: (error) => {
-      const copy = error instanceof NotConfigured ? NOT_CONFIGURED.investigations : describeError(error);
+      const copy =
+        error instanceof NotConfigured ? NOT_CONFIGURED.investigations : describeError(error);
       toast.error(copy.title, { description: copy.detail });
     },
   });

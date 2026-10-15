@@ -2,7 +2,10 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
-import type { MeasuredResults as MeasuredResultsData, MethodsOverview } from "@yield-guardian/contracts";
+import type {
+  MeasuredResults as MeasuredResultsData,
+  MethodsOverview,
+} from "@yield-guardian/contracts";
 import { useState } from "react";
 
 import { EstimateText } from "@/components/charts/interval";
@@ -29,7 +32,10 @@ export function MeasuredResults() {
   const results = useQuery(q.results(api));
   return (
     <Panel bodyClassName="px-0 sm:px-0 pt-0">
-      <QueryView query={results} loading={<Placeholder className="mx-4 h-48 sm:mx-5" label="Loading results" />}>
+      <QueryView
+        query={results}
+        loading={<Placeholder className="mx-4 h-48 sm:mx-5" label="Loading results" />}
+      >
         {(r) => <ResultsTable data={r} />}
       </QueryView>
     </Panel>
@@ -41,7 +47,10 @@ export function DataProvenance() {
   const api = useApi();
   const overview = useQuery(q.methods(api));
   return (
-    <QueryView query={overview} loading={<Placeholder className="h-64" label="Loading provenance" />}>
+    <QueryView
+      query={overview}
+      loading={<Placeholder className="h-64" label="Loading provenance" />}
+    >
       {(o) => <Provenance data={o} />}
     </QueryView>
   );
@@ -52,7 +61,10 @@ export function ModelCardsPanel() {
   const api = useApi();
   const overview = useQuery(q.methods(api));
   return (
-    <QueryView query={overview} loading={<Placeholder className="h-64" label="Loading the model cards" />}>
+    <QueryView
+      query={overview}
+      loading={<Placeholder className="h-64" label="Loading the model cards" />}
+    >
       {(o) =>
         o.model_cards.length ? (
           <ModelCards cards={o.model_cards} />
@@ -65,7 +77,12 @@ export function ModelCardsPanel() {
 }
 
 function ResultsTable({ data }: { data: MeasuredResultsData }) {
-  if (data.results.length === 0) return <EmptyState className="mx-4 mt-4 sm:mx-5" title="Not measured yet">No result has been recorded.</EmptyState>;
+  if (data.results.length === 0)
+    return (
+      <EmptyState className="mx-4 mt-4 sm:mx-5" title="Not measured yet">
+        No result has been recorded.
+      </EmptyState>
+    );
   return (
     <>
       <ScrollRegion label="Measured results table">
@@ -73,17 +90,29 @@ function ResultsTable({ data }: { data: MeasuredResultsData }) {
           <caption className="sr-only">Measured results</caption>
           <thead>
             <tr className="border-b border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Quantity</th>
-              <th scope="col" className="px-3 py-2 font-normal">Value</th>
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">Measured on</th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Quantity
+              </th>
+              <th scope="col" className="px-3 py-2 font-normal">
+                Value
+              </th>
+              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                Measured on
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.results.map((r) => (
-              <tr key={r.id} className="border-b border-hairline last:border-b-0 align-top">
-                <th scope="row" className="px-4 py-2.5 font-normal text-ink sm:px-5">{r.label}</th>
+              <tr key={r.id} className="border-b border-hairline align-top last:border-b-0">
+                <th scope="row" className="px-4 py-2.5 font-normal text-ink sm:px-5">
+                  {r.label}
+                </th>
                 <td className="px-3 py-2.5 text-[13px]">
-                  {r.estimate ? <EstimateText estimate={r.estimate} format={r.format} showN /> : <span className="text-ink-3">Not measured yet</span>}
+                  {r.estimate ? (
+                    <EstimateText estimate={r.estimate} format={r.format} showN />
+                  ) : (
+                    <span className="text-ink-3">Not measured yet</span>
+                  )}
                 </td>
                 <td className="px-4 py-2.5 text-[13px] text-ink-2 sm:px-5">
                   {r.data}
@@ -117,7 +146,12 @@ function Provenance({ data }: { data: MethodsOverview }) {
               <div>
                 <dt className="text-ink-3">Source</dt>
                 <dd>
-                  <a href={d.source_url} target="_blank" rel="noopener noreferrer" className="break-all text-ink underline decoration-hairline-strong underline-offset-4">
+                  <a
+                    href={d.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="break-all text-ink underline decoration-hairline-strong underline-offset-4"
+                  >
                     {d.source_url}
                   </a>
                 </dd>
@@ -137,7 +171,10 @@ function Provenance({ data }: { data: MethodsOverview }) {
             <ul className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-1.5">
               {d.files.map((f) => (
                 <li key={f.path} className="tnum text-[12px] leading-4">
-                  <span className="text-ink">{f.path}</span> <span className="text-ink-3">{f.bytes ? `${formatCompact(f.bytes)} bytes` : ""}</span>
+                  <span className="text-ink">{f.path}</span>{" "}
+                  <span className="text-ink-3">
+                    {f.bytes ? `${formatCompact(f.bytes)} bytes` : ""}
+                  </span>
                   <code className="block break-all text-ink-3">{f.sha256}</code>
                 </li>
               ))}
@@ -145,17 +182,31 @@ function Provenance({ data }: { data: MethodsOverview }) {
           </Panel>
         ))}
       </div>
-      <Panel title="Artifact bundles" description="Every file is checked against the SHA-256 in its MANIFEST.json when the API loads it." bodyClassName="px-0 sm:px-0">
+      <Panel
+        title="Artifact bundles"
+        description="Every file is checked against the SHA-256 in its MANIFEST.json when the API loads it."
+        bodyClassName="px-0 sm:px-0"
+      >
         <ScrollRegion label="Artifact bundles">
           <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Artifact bundles</caption>
             <thead>
               <tr className="border-y border-hairline text-[12px] text-ink-3">
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">Bundle</th>
-                <th scope="col" className="px-3 py-2 font-normal">Built</th>
-                <th scope="col" className="px-3 py-2 font-normal">Commit</th>
-                <th scope="col" className="px-3 py-2 text-right font-normal">Files</th>
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">Checksums</th>
+                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                  Bundle
+                </th>
+                <th scope="col" className="px-3 py-2 font-normal">
+                  Built
+                </th>
+                <th scope="col" className="px-3 py-2 font-normal">
+                  Commit
+                </th>
+                <th scope="col" className="px-3 py-2 text-right font-normal">
+                  Files
+                </th>
+                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                  Checksums
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -169,7 +220,13 @@ function Provenance({ data }: { data: MethodsOverview }) {
                   </td>
                   <td className="tnum px-3 py-2 text-ink-2">{b.bundle.git_commit.slice(0, 10)}</td>
                   <td className="tnum px-3 py-2 text-right text-ink-2">{formatInt(b.files)}</td>
-                  <td className={b.verified ? "px-4 py-2 text-ink sm:px-5" : "px-4 py-2 text-fail sm:px-5"}>{b.verified ? "Verified" : "Mismatch"}</td>
+                  <td
+                    className={
+                      b.verified ? "px-4 py-2 text-ink sm:px-5" : "px-4 py-2 text-fail sm:px-5"
+                    }
+                  >
+                    {b.verified ? "Verified" : "Mismatch"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -191,9 +248,20 @@ function ModelCards({ cards }: { cards: MethodsOverview["model_cards"] }) {
       description="Written by the training pipeline with the bundle."
       actions={
         cards.length > 1 ? (
-          <ToggleGroup type="single" variant="outline" size="sm" value={name} onValueChange={(v) => v && setName(v as typeof name)} aria-label="Model card">
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            value={name}
+            onValueChange={(v) => v && setName(v as typeof name)}
+            aria-label="Model card"
+          >
             {cards.map((c) => (
-              <ToggleGroupItem key={c.name} value={c.name} className="h-auto min-h-8 shrink px-2.5 py-1 text-left whitespace-normal">
+              <ToggleGroupItem
+                key={c.name}
+                value={c.name}
+                className="h-auto min-h-8 shrink px-2.5 py-1 text-left whitespace-normal"
+              >
                 {c.title}
               </ToggleGroupItem>
             ))}
@@ -201,7 +269,10 @@ function ModelCards({ cards }: { cards: MethodsOverview["model_cards"] }) {
         ) : null
       }
     >
-      <QueryView query={card} loading={<Placeholder className="h-64" label="Loading the model card" />}>
+      <QueryView
+        query={card}
+        loading={<Placeholder className="h-64" label="Loading the model card" />}
+      >
         {(c) => <Markdown className="max-w-[80ch]">{c.markdown}</Markdown>}
       </QueryView>
     </Panel>

@@ -4,9 +4,22 @@ import type { CatalogModel, RoleAssignment } from "@yield-guardian/contracts";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAssignRole } from "@/lib/api/llm";
 import { ROLE_JOBS, ROLE_NAMES } from "@/lib/labels";
 
@@ -39,7 +52,8 @@ export function RoleDialog({
   const choices = catalog.filter((m) => kinds.includes(m.kind));
   const model = catalog.find((m) => m.model_id === modelId);
   const efforts = model?.reasoning_efforts ?? [];
-  const effortValue = effort !== DEFAULT_EFFORT && !efforts.includes(effort as never) ? DEFAULT_EFFORT : effort;
+  const effortValue =
+    effort !== DEFAULT_EFFORT && !efforts.includes(effort as never) ? DEFAULT_EFFORT : effort;
   const addable = choices.filter((m) => m.model_id !== modelId && !fallbacks.includes(m.model_id));
 
   const save = () => {
@@ -48,7 +62,10 @@ export function RoleDialog({
         role: assignment.role,
         body: {
           model_id: modelId,
-          reasoning_effort: effortValue === DEFAULT_EFFORT ? null : (effortValue as RoleAssignment["reasoning_effort"]),
+          reasoning_effort:
+            effortValue === DEFAULT_EFFORT
+              ? null
+              : (effortValue as RoleAssignment["reasoning_effort"]),
           fallbacks: fallbacks.filter((f) => f !== modelId),
         },
       },
@@ -61,7 +78,10 @@ export function RoleDialog({
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>{ROLE_NAMES[assignment.role] ?? assignment.role}</DialogTitle>
-          <DialogDescription>{ROLE_JOBS[assignment.role]}. The change applies from the next call and is recorded in the audit log.</DialogDescription>
+          <DialogDescription>
+            {ROLE_JOBS[assignment.role]}. The change applies from the next call and is recorded in
+            the audit log.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
           <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
@@ -81,8 +101,11 @@ export function RoleDialog({
             </Select>
             {model ? (
               <p className="text-[12px] leading-4 text-ink-3">
-                {model.json_schema ? "Strict JSON output" : "No strict JSON output"}, {model.tools ? "tool calls" : "no tool calls"}
-                {model.profile === "catalog_only" ? ". Capabilities not documented: the profile comes from the catalog only." : "."}
+                {model.json_schema ? "Strict JSON output" : "No strict JSON output"},{" "}
+                {model.tools ? "tool calls" : "no tool calls"}
+                {model.profile === "catalog_only"
+                  ? ". Capabilities not documented: the profile comes from the catalog only."
+                  : "."}
               </p>
             ) : null}
           </div>
@@ -101,14 +124,21 @@ export function RoleDialog({
                 ))}
               </SelectContent>
             </Select>
-            {efforts.length === 0 ? <p className="text-[12px] leading-4 text-ink-3">This model takes no reasoning effort.</p> : null}
+            {efforts.length === 0 ? (
+              <p className="text-[12px] leading-4 text-ink-3">
+                This model takes no reasoning effort.
+              </p>
+            ) : null}
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <p className="text-sm leading-none font-medium">Fallbacks, tried in order</p>
             {fallbacks.length ? (
               <ol className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 {fallbacks.map((f, i) => (
-                  <li key={f} className="flex items-center justify-between gap-2 rounded-sm border border-hairline px-2.5 py-1 text-[13px]">
+                  <li
+                    key={f}
+                    className="flex items-center justify-between gap-2 rounded-sm border border-hairline px-2.5 py-1 text-[13px]"
+                  >
                     <span className="tnum">
                       <span className="text-ink-3">{i + 1}.</span> {f}
                     </span>
@@ -119,11 +149,21 @@ export function RoleDialog({
                         size="sm"
                         disabled={i === 0}
                         aria-label={`Move ${f} up`}
-                        onClick={() => setFallbacks((list) => list.map((x, j) => (j === i - 1 ? f : j === i ? list[i - 1]! : x)))}
+                        onClick={() =>
+                          setFallbacks((list) =>
+                            list.map((x, j) => (j === i - 1 ? f : j === i ? list[i - 1]! : x)),
+                          )
+                        }
                       >
                         Up
                       </Button>
-                      <Button type="button" variant="ghost" size="sm" aria-label={`Remove ${f}`} onClick={() => setFallbacks((list) => list.filter((x) => x !== f))}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Remove ${f}`}
+                        onClick={() => setFallbacks((list) => list.filter((x) => x !== f))}
+                      >
                         Remove
                       </Button>
                     </span>
@@ -131,7 +171,9 @@ export function RoleDialog({
                 ))}
               </ol>
             ) : (
-              <p className="text-[13px] text-ink-3">No fallback: if the model is unavailable, the call fails.</p>
+              <p className="text-[13px] text-ink-3">
+                No fallback: if the model is unavailable, the call fails.
+              </p>
             )}
             {addable.length ? (
               <Select value="" onValueChange={(v) => v && setFallbacks((list) => [...list, v])}>

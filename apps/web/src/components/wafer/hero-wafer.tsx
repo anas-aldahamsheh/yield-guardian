@@ -40,7 +40,9 @@ const noop = () => () => {};
  * the first load on a slow CPU and costs battery.
  */
 function autoplayAllowed(): boolean {
-  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  const saveData =
+    (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ===
+    true;
   return window.matchMedia("(pointer: fine)").matches && !saveData;
 }
 
@@ -92,7 +94,8 @@ export function HeroWafer({
   // is wanted. Until then the button is offered wherever the browser has WebGL 2 at all.
   const canRender3d = useMemo(() => wanted && webglAvailable(), [wanted]);
   const mount3d = canRender3d;
-  const mayRender3d = idle && typeof window.WebGL2RenderingContext === "function" && !(wanted && !canRender3d);
+  const mayRender3d =
+    idle && typeof window.WebGL2RenderingContext === "function" && !(wanted && !canRender3d);
   const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(true);
   const [playKey, setPlayKey] = useState(0);
@@ -118,7 +121,7 @@ export function HeroWafer({
       <figure className="relative m-0 aspect-square w-full" aria-label={label} role="img">
         <div
           className={cn(
-            "absolute inset-[11%] transition-opacity duration-[var(--dur-panel)] [transform:perspective(1600px)_rotateX(44deg)_rotateZ(24deg)]",
+            "absolute inset-[11%] [transform:perspective(1600px)_rotateX(44deg)_rotateZ(24deg)] transition-opacity duration-[var(--dur-panel)]",
             ready && mount3d ? "opacity-0" : "opacity-100",
           )}
         >
@@ -147,7 +150,10 @@ export function HeroWafer({
       </figure>
 
       <div className="relative z-[1] -mt-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 sm:-mt-14 lg:-mt-20">
-        <dl className="tnum flex flex-wrap gap-x-6 gap-y-1 text-[13px] leading-5" aria-hidden="true">
+        <dl
+          className="tnum flex flex-wrap gap-x-6 gap-y-1 text-[13px] leading-5"
+          aria-hidden="true"
+        >
           <div className="flex items-baseline gap-1.5">
             <dt className="text-ink-3">Field</dt>
             <dd className="text-ink">
@@ -193,7 +199,9 @@ export function HeroWafer({
         ) : null}
       </div>
       {animated && !running ? (
-        <p className="mt-1 text-[12px] leading-4 text-ink-3">Point at a die to read its wafer-test result.</p>
+        <p className="mt-1 text-[12px] leading-4 text-ink-3">
+          Point at a die to read its wafer-test result.
+        </p>
       ) : null}
     </div>
   );

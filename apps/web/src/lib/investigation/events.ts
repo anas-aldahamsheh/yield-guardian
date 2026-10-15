@@ -33,7 +33,10 @@ function upsertStep(steps: InvestigationStep[], step: InvestigationStep): Invest
   return [...rest, step].sort((a, b) => a.index - b.index);
 }
 
-export function applyInvestigationEvent(inv: Investigation, event: InvestigationEvent): Investigation {
+export function applyInvestigationEvent(
+  inv: Investigation,
+  event: InvestigationEvent,
+): Investigation {
   switch (event.type) {
     case "status":
       return { ...inv, status: event.status, updated_at: event.at };
@@ -163,7 +166,12 @@ export function readPointer(data: unknown, pointer: string): unknown {
  * (AL-<unit>-<kind>). A recorded run reads the line as of this unit. Wafer and lot triggers have none.
  */
 export function triggerUnit(trigger: { kind: string; ref: string }): number | null {
-  const raw = trigger.kind === "alarm" ? trigger.ref.match(/^AL-(\d+)-/)?.[1] : trigger.kind === "unit" ? trigger.ref : undefined;
+  const raw =
+    trigger.kind === "alarm"
+      ? trigger.ref.match(/^AL-(\d+)-/)?.[1]
+      : trigger.kind === "unit"
+        ? trigger.ref
+        : undefined;
   if (raw === undefined || !/^\d+$/.test(raw)) return null;
   return Number(raw);
 }

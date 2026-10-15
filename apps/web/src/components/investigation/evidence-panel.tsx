@@ -30,9 +30,16 @@ export function EvidencePanel({
 }) {
   const current = evidence.find((e) => e.evidence_id === selection?.evidenceId) ?? evidence[0];
   if (!current) {
-    return <p className="text-[14px] leading-5 text-ink-3">No evidence yet. Each tool result is stored here as it arrives.</p>;
+    return (
+      <p className="text-[14px] leading-5 text-ink-3">
+        No evidence yet. Each tool result is stored here as it arrives.
+      </p>
+    );
   }
-  const number = selection?.number != null && selection.evidenceId === current.evidence_id ? numbers[selection.number] : undefined;
+  const number =
+    selection?.number != null && selection.evidenceId === current.evidence_id
+      ? numbers[selection.number]
+      : undefined;
   const path = selection?.evidenceId === current.evidence_id ? selection.path : undefined;
   const value = path ? readPointer(current.data, path) : undefined;
 
@@ -58,14 +65,21 @@ export function EvidencePanel({
         ))}
       </div>
 
-      <div key={current.evidence_id} role="tabpanel" aria-label={`Evidence ${current.evidence_id}`} className="swap-in mt-4">
+      <div
+        key={current.evidence_id}
+        role="tabpanel"
+        aria-label={`Evidence ${current.evidence_id}`}
+        className="swap-in mt-4"
+      >
         <p className="text-[15px] leading-6 text-ink">{current.summary}</p>
         <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-[13px] leading-5">
           <dt className="text-ink-3">Tool</dt>
           <dd className="text-ink-2">{TOOL_NAME[current.tool] ?? current.tool}</dd>
           <dt className="text-ink-3">Arguments</dt>
           <dd className="tnum break-words text-ink-2">
-            {Object.entries(current.arguments).map(([k, v]) => `${k} = ${JSON.stringify(v)}`).join(", ") || "none"}
+            {Object.entries(current.arguments)
+              .map(([k, v]) => `${k} = ${JSON.stringify(v)}`)
+              .join(", ") || "none"}
           </dd>
           <dt className="text-ink-3">Source</dt>
           <dd className="tnum text-ink-2">
@@ -74,15 +88,20 @@ export function EvidencePanel({
               : "Literature index"}
           </dd>
           <dt className="text-ink-3">Stored</dt>
-          <dd className="tnum text-ink-2"><LocalDateTime iso={current.created_at} /></dd>
+          <dd className="tnum text-ink-2">
+            <LocalDateTime iso={current.created_at} />
+          </dd>
         </dl>
 
         {number && path ? (
           <div className="lit mt-4 rounded-sm px-3 py-2.5 text-[13px] leading-5">
             <p className="text-ink">
-              The report writes <span className="tnum font-medium">{number.as_written}</span>. The evidence holds{" "}
-              <span className="tnum font-medium">{value === undefined ? "nothing" : formatValue(value)}</span> at{" "}
-              <span className="tnum">{path}</span>.
+              The report writes <span className="tnum font-medium">{number.as_written}</span>. The
+              evidence holds{" "}
+              <span className="tnum font-medium">
+                {value === undefined ? "nothing" : formatValue(value)}
+              </span>{" "}
+              at <span className="tnum">{path}</span>.
             </p>
             {selection?.number != null
               ? issues?.get(`numbers[${selection.number}]`)?.map((issue, i) => (
@@ -106,7 +125,11 @@ export function EvidencePanel({
 function JsonScroll({ label, children }: { label: string; children: ReactNode }) {
   const ref = useScrollFocus<HTMLDivElement>(label);
   return (
-    <div ref={ref} data-json-scroll className="mt-4 max-h-[420px] overflow-auto rounded-sm border border-hairline bg-die-2 p-3">
+    <div
+      ref={ref}
+      data-json-scroll
+      className="mt-4 max-h-[420px] overflow-auto rounded-sm border border-hairline bg-die-2 p-3"
+    >
       {children}
     </div>
   );
@@ -119,7 +142,17 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function JsonNode({ value, path, highlight, name }: { value: unknown; path: string; highlight?: string; name?: string }) {
+function JsonNode({
+  value,
+  path,
+  highlight,
+  name,
+}: {
+  value: unknown;
+  path: string;
+  highlight?: string;
+  name?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const hit = highlight != null && highlight === path && path !== "";
   useEffect(() => {
@@ -135,9 +168,16 @@ function JsonNode({ value, path, highlight, name }: { value: unknown; path: stri
   const isBranch = value != null && typeof value === "object";
   if (!isBranch) {
     return (
-      <div ref={ref} className={cn("tnum text-[12px] leading-5 break-words", hit && "lit -mx-1 rounded-sm px-1")}>
+      <div
+        ref={ref}
+        className={cn("tnum text-[12px] leading-5 break-words", hit && "lit -mx-1 rounded-sm px-1")}
+      >
         {label}
-        <span className={cn(typeof value === "number" ? "text-ink" : value === null ? "text-ink-3" : "text-ink-2")}>
+        <span
+          className={cn(
+            typeof value === "number" ? "text-ink" : value === null ? "text-ink-3" : "text-ink-2",
+          )}
+        >
           {formatValue(value)}
         </span>
       </div>
@@ -149,10 +189,18 @@ function JsonNode({ value, path, highlight, name }: { value: unknown; path: stri
   return (
     <div ref={ref} className={cn("text-[12px] leading-5", hit && "lit -mx-1 rounded-sm px-1")}>
       {label}
-      {name != null ? <span className="text-ink-3">{Array.isArray(value) ? `[${entries.length}]` : ""}</span> : null}
+      {name != null ? (
+        <span className="text-ink-3">{Array.isArray(value) ? `[${entries.length}]` : ""}</span>
+      ) : null}
       <div className={cn(name != null && "ml-3 border-l border-hairline pl-2")}>
         {entries.map(([k, v]) => (
-          <JsonNode key={k} name={k} value={v} path={`${path}/${k.replace(/~/g, "~0").replace(/\//g, "~1")}`} highlight={highlight} />
+          <JsonNode
+            key={k}
+            name={k}
+            value={v}
+            path={`${path}/${k.replace(/~/g, "~0").replace(/\//g, "~1")}`}
+            highlight={highlight}
+          />
         ))}
       </div>
     </div>

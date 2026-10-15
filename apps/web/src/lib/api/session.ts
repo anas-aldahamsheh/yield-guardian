@@ -9,7 +9,12 @@ import { useApi } from "./context";
 import { describeError } from "./errors";
 import { q } from "./queries";
 
-const VISITOR: SessionInfo = { role: "visitor", display_name: null, expires_at: null, csrf_token: null };
+const VISITOR: SessionInfo = {
+  role: "visitor",
+  display_name: null,
+  expires_at: null,
+  csrf_token: null,
+};
 
 /** The current session; a visitor until the API says otherwise. */
 export function useSession() {
@@ -43,10 +48,12 @@ export function useStartGuestSession() {
     onSuccess: (session) => {
       setSession(session);
       toast.success("Signed in as engineer", {
-        description: "You can now start investigations, approve or reject reports and ask questions.",
+        description:
+          "You can now start investigations, approve or reject reports and ask questions.",
       });
     },
-    onError: (error) => toast.error(describeError(error).title, { description: describeError(error).detail }),
+    onError: (error) =>
+      toast.error(describeError(error).title, { description: describeError(error).detail }),
   });
 }
 
@@ -74,6 +81,7 @@ export function useLogout() {
       void client.invalidateQueries({ queryKey: ["session"] });
       toast("Signed out");
     },
-    onError: (error) => toast.error(describeError(error).title, { description: describeError(error).detail }),
+    onError: (error) =>
+      toast.error(describeError(error).title, { description: describeError(error).detail }),
   });
 }

@@ -17,14 +17,23 @@ import { Wordmark } from "./wordmark";
 /** The narrow-screen menu button. */
 export function MenuButton(props: ComponentProps<typeof Button>) {
   return (
-    <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label="Open the menu" {...props}>
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      className="md:hidden"
+      aria-label="Open the menu"
+      {...props}
+    >
       <Menu className="size-4" aria-hidden="true" />
     </Button>
   );
 }
 
 const loadNav = () => import("./mobile-nav");
-const MobileNavSheet = dynamic(loadNav, { ssr: false, loading: () => <MenuButton aria-haspopup="dialog" disabled /> });
+const MobileNavSheet = dynamic(loadNav, {
+  ssr: false,
+  loading: () => <MenuButton aria-haspopup="dialog" disabled />,
+});
 
 /**
  * The menu on narrow screens. Its sheet (Radix Dialog, focus trap and scroll lock) is fetched

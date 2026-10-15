@@ -57,12 +57,27 @@ export function IntervalBar({
       <line x1="0" x2="100%" y1="8" y2="8" stroke="var(--hairline)" strokeWidth="1" />
       {lo != null && hi != null ? (
         <>
-          <line x1={x(lo)} x2={x(hi)} y1="8" y2="8" stroke="var(--ink-2)" strokeWidth="2" strokeLinecap="round" />
+          <line
+            x1={x(lo)}
+            x2={x(hi)}
+            y1="8"
+            y2="8"
+            stroke="var(--ink-2)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
           <line x1={x(lo)} x2={x(lo)} y1="4.5" y2="11.5" stroke="var(--ink-2)" strokeWidth="1.5" />
           <line x1={x(hi)} x2={x(hi)} y1="4.5" y2="11.5" stroke="var(--ink-2)" strokeWidth="1.5" />
         </>
       ) : null}
-      <circle cx={x(estimate.value)} cy="8" r="4" fill="var(--ink)" stroke="var(--die)" strokeWidth="2" />
+      <circle
+        cx={x(estimate.value)}
+        cy="8"
+        r="4"
+        fill="var(--ink)"
+        stroke="var(--die)"
+        strokeWidth="2"
+      />
     </svg>
   );
 }
@@ -81,13 +96,20 @@ export function IntervalAxis({
 }) {
   const [d0, d1] = domain;
   return (
-    <div className={cn("relative h-4 text-[12px] leading-4 text-ink-3", className)} aria-hidden="true">
+    <div
+      className={cn("relative h-4 text-[12px] leading-4 text-ink-3", className)}
+      aria-hidden="true"
+    >
       {ticks.map((t, i) => (
         <span
           key={t}
           className={cn(
             "tnum absolute top-0",
-            i === 0 ? "translate-x-0" : i === ticks.length - 1 ? "-translate-x-full" : "-translate-x-1/2",
+            i === 0
+              ? "translate-x-0"
+              : i === ticks.length - 1
+                ? "-translate-x-full"
+                : "-translate-x-1/2",
           )}
           style={{ left: `${((t - d0) / (d1 - d0)) * 100}%` }}
         >

@@ -31,8 +31,12 @@ export function Hero() {
   const guest = useStartGuestSession();
 
   return (
-    <section data-theme="dark" className="relative overflow-hidden bg-room text-ink" aria-labelledby="hero-title">
-      <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-[1600px] gap-x-10 gap-y-6 px-gutter pt-10 pb-10 lg:min-h-[min(860px,calc(100svh-var(--bar-height)-120px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:pt-12 lg:pb-12">
+    <section
+      data-theme="dark"
+      className="relative overflow-hidden bg-room text-ink"
+      aria-labelledby="hero-title"
+    >
+      <div className="mx-auto grid max-w-[1600px] grid-cols-[minmax(0,1fr)] gap-x-10 gap-y-6 px-gutter pt-10 pb-10 lg:min-h-[min(860px,calc(100svh-var(--bar-height)-120px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:pt-12 lg:pb-12">
         <div className="flex flex-col justify-center lg:pb-10">
           <h1
             id="hero-title"
@@ -44,19 +48,26 @@ export function Hero() {
               </span>
             ))}
           </h1>
-          <p className="stage-in mt-7 max-w-[50ch] text-[17px] leading-7 text-ink-2" style={stagger(1)}>
-            Yield Guardian replays a real semiconductor line. It scores every unit for failure
-            risk, charts the sensors against their control limits and reads wafer maps for
-            failure patterns. When something is off, an investigator gathers the evidence and
-            writes a report in which every number is checked. An engineer decides what happens
-            next.
+          <p
+            className="stage-in mt-7 max-w-[50ch] text-[17px] leading-7 text-ink-2"
+            style={stagger(1)}
+          >
+            Yield Guardian replays a real semiconductor line. It scores every unit for failure risk,
+            charts the sensors against their control limits and reads wafer maps for failure
+            patterns. When something is off, an investigator gathers the evidence and writes a
+            report in which every number is checked. An engineer decides what happens next.
           </p>
           <div className="stage-in mt-9 flex flex-wrap gap-3" style={stagger(2)}>
             <Button asChild size="lg" className="bg-ink text-room hover:bg-ink/90">
               <Link href="/line">Open the live line</Link>
             </Button>
             {canAct ? (
-              <Button asChild size="lg" variant="outline" className="border-hairline-strong bg-transparent">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-hairline-strong bg-transparent"
+              >
                 <Link href="/investigations">See the investigations</Link>
               </Button>
             ) : (
@@ -75,10 +86,17 @@ export function Hero() {
 
         <div className="min-w-0">
           {hero.isPending ? (
-            <Placeholder className="mx-auto aspect-square w-full max-w-[780px] rounded-full bg-die" label="Loading the wafer" />
+            <Placeholder
+              className="mx-auto aspect-square w-full max-w-[780px] rounded-full bg-die"
+              label="Loading the wafer"
+            />
           ) : hero.isError || !hero.data ? (
             <div className="flex aspect-[4/3] items-center">
-              <ErrorState error={hero.error} onRetry={() => void hero.refetch()} className="w-full" />
+              <ErrorState
+                error={hero.error}
+                onRetry={() => void hero.refetch()}
+                className="w-full"
+              />
             </div>
           ) : (
             <HeroFigure hero={hero.data} />
@@ -116,7 +134,11 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
       <div className="stage-in mx-auto max-w-[1600px] px-gutter py-6" style={stagger(4)}>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
           <Fact label="Wafer" value={`${wafer.lot}, wafer ${wafer.wafer_index}`} />
-          <Fact label="Dies" value={formatInt(counts.pass + counts.fail)} detail={`${formatInt(counts.fail)} failed`} />
+          <Fact
+            label="Dies"
+            value={formatInt(counts.pass + counts.fail)}
+            detail={`${formatInt(counts.fail)} failed`}
+          />
           <Fact label="Recorded pattern" value={patternName(wafer.label)} />
           <Fact
             label="Model reading"
@@ -127,7 +149,11 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
                   : patternName(prediction.top_label)
                 : "Not predicted"
             }
-            detail={prediction && !prediction.unknown.is_unknown ? formatProbability(prediction.top_probability) : undefined}
+            detail={
+              prediction && !prediction.unknown.is_unknown
+                ? formatProbability(prediction.top_probability)
+                : undefined
+            }
           />
           {spatial ? (
             <Fact
@@ -139,10 +165,13 @@ function HeroFacts({ hero }: { hero: WaferHero }) {
         </dl>
         <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-x-10 gap-y-3 text-[13px] leading-5 text-ink-3 lg:grid-cols-2">
           <p className="max-w-[72ch]">
-            <span className="mr-1.5 inline-block size-2 translate-y-[-1px] rounded-full bg-fail align-middle" aria-hidden="true" />
-            A red dot marks a die that failed at wafer test. Die colours are the interference colours
-            of a silicon-oxide film, computed from its optics for an assumed {FILM.centreNm} nm film
-            (the dataset records only pass and fail).
+            <span
+              className="mr-1.5 inline-block size-2 translate-y-[-1px] rounded-full bg-fail align-middle"
+              aria-hidden="true"
+            />
+            A red dot marks a die that failed at wafer test. Die colours are the interference
+            colours of a silicon-oxide film, computed from its optics for an assumed {FILM.centreNm}{" "}
+            nm film (the dataset records only pass and fail).
           </p>
           <WaferAttribution attribution={hero.attribution} className="max-w-[72ch]">
             <p>{hero.selection}</p>

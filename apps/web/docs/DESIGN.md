@@ -16,14 +16,14 @@ This page records the plan, the review against the brief, and what the review ch
 
 ## Colour: six named roles
 
-| Token | Role | Yellow room (dark) | Inspection (light) |
-|---|---|---|---|
-| `room` | The bay in shadow: page background and the streets between panels | `#13120c` | `#eef0f2` |
-| `die` | Panels (a panel is a die; the gap between panels is a street) | `#1b1913` | `#fcfdfe` |
-| `ink` | Readings and text | `#eceade` | `#1a1e24` |
-| `safelight` | Light: focus, selection, the active step, the exposure field. Never an error, never a button fill | `#f5d326` | `#a27900` (strokes), wash from the dark value |
-| `pass` | A die or unit that passed | `#3fa0c9` | `#0f76a2` |
-| `fail` | A die or unit that failed | `#eb556e` | `#c62b44` |
+| Token       | Role                                                                                              | Yellow room (dark) | Inspection (light)                            |
+| ----------- | ------------------------------------------------------------------------------------------------- | ------------------ | --------------------------------------------- |
+| `room`      | The bay in shadow: page background and the streets between panels                                 | `#13120c`          | `#eef0f2`                                     |
+| `die`       | Panels (a panel is a die; the gap between panels is a street)                                     | `#1b1913`          | `#fcfdfe`                                     |
+| `ink`       | Readings and text                                                                                 | `#eceade`          | `#1a1e24`                                     |
+| `safelight` | Light: focus, selection, the active step, the exposure field. Never an error, never a button fill | `#f5d326`          | `#a27900` (strokes), wash from the dark value |
+| `pass`      | A die or unit that passed                                                                         | `#3fa0c9`          | `#0f76a2`                                     |
+| `fail`      | A die or unit that failed                                                                         | `#eb556e`          | `#c62b44`                                     |
 
 - The safelight hue is computed, not picked: CIE illuminant FL11 (tri-phosphor
   fluorescent) behind an ideal 500 nm long-pass filter has chromaticity
@@ -54,10 +54,10 @@ This page records the plan, the review against the brief, and what the review ch
 
 ## Type: two faces, two jobs
 
-| Face | Job | Why this face |
-|---|---|---|
-| Atkinson Hyperlegible Next (variable 200 to 800) | Readings, data, interface | Drawn by the Braille Institute so that confusable glyphs differ: slashed zero, distinct I, l and 1, distinct 5 and S. That matters in IDs such as `S060`, `lot47542`, `AL-1187-t2`. Has `tnum` for columns. |
-| Source Serif 4 (variable, optical sizes) | Text a language model wrote: the investigator's report, model answers in the chat | A transitional serif of scientific publishing; optical sizes keep it crisp at 17 to 18 px. |
+| Face                                             | Job                                                                               | Why this face                                                                                                                                                                                               |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Atkinson Hyperlegible Next (variable 200 to 800) | Readings, data, interface                                                         | Drawn by the Braille Institute so that confusable glyphs differ: slashed zero, distinct I, l and 1, distinct 5 and S. That matters in IDs such as `S060`, `lot47542`, `AL-1187-t2`. Has `tnum` for columns. |
+| Source Serif 4 (variable, optical sizes)         | Text a language model wrote: the investigator's report, model answers in the chat | A transitional serif of scientific publishing; optical sizes keep it crisp at 17 to 18 px.                                                                                                                  |
 
 **Rule:** serif means "a model wrote this; check its evidence links". Text answered
 straight from data by deterministic rules stays in the reading face. Nothing a model
@@ -66,16 +66,16 @@ evidence it came from.
 
 Scale (Bringhurst's classic sizes, px / line height):
 
-| Token / class | Size | Use |
-|---|---|---|
-| `text-micro` | 12/16 | Chart ticks, footnotes, table headers |
-| `text-ui` | 14/20 | Interface and tables (tabular figures) |
-| `text-body` | 16/24 | Body |
-| `.written` | 18/29 | Serif text a model wrote; 21/33 for a report's summary |
-| `text-h4` / `text-h3` / `text-h2` | 18/24, 21/28, 24/30 | Panel and section headings |
-| `text-title` | 30/36, −0.02 em | Page titles (`PageHeader`); 26/32 below 640 px |
-| `.readout` | 28 to 36, weight 300, −0.02 em | Instrument readings: KPI counts, check results |
-| `text-display` | 60/64 | Home hero only (40/44 on phones) |
+| Token / class                     | Size                           | Use                                                    |
+| --------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| `text-micro`                      | 12/16                          | Chart ticks, footnotes, table headers                  |
+| `text-ui`                         | 14/20                          | Interface and tables (tabular figures)                 |
+| `text-body`                       | 16/24                          | Body                                                   |
+| `.written`                        | 18/29                          | Serif text a model wrote; 21/33 for a report's summary |
+| `text-h4` / `text-h3` / `text-h2` | 18/24, 21/28, 24/30            | Panel and section headings                             |
+| `text-title`                      | 30/36, −0.02 em                | Page titles (`PageHeader`); 26/32 below 640 px         |
+| `.readout`                        | 28 to 36, weight 300, −0.02 em | Instrument readings: KPI counts, check results         |
+| `text-display`                    | 60/64                          | Home hero only (40/44 on phones)                       |
 
 Weights 300 (readouts only), 400, 500 and 600. Panel titles are 15/24 semibold.
 

@@ -41,8 +41,14 @@ const readingItalic = localFont({
 /** Text a language model wrote. Optical sizes keep it crisp at report sizes. */
 const written = localFont({
   src: [
-    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2", style: "normal" },
-    { path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2", style: "italic" },
+    {
+      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2",
+      style: "normal",
+    },
+    {
+      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2",
+      style: "italic",
+    },
   ],
   weight: "200 900",
   variable: "--font-written",
@@ -76,7 +82,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}
+    >
       <body className="flex min-h-dvh flex-col">
         <Providers nonce={nonce}>
           <a href="#main" className="skip-link">

@@ -8,7 +8,12 @@ import { type ComponentProps, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 
 const subscribe = () => () => {};
-export const useThemeMounted = () => useSyncExternalStore(subscribe, () => true, () => false);
+export const useThemeMounted = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 
 /** The theme button; its icon shows the theme in use. */
 export function ThemeButton(props: ComponentProps<typeof Button>) {
@@ -23,7 +28,10 @@ export function ThemeButton(props: ComponentProps<typeof Button>) {
 }
 
 const load = () => import("./theme-menu-full");
-const ThemeMenuFull = dynamic(load, { ssr: false, loading: () => <ThemeButton aria-haspopup="menu" disabled /> });
+const ThemeMenuFull = dynamic(load, {
+  ssr: false,
+  loading: () => <ThemeButton aria-haspopup="menu" disabled />,
+});
 
 /**
  * Dark is the yellow room; light is the same bay under white inspection light. The menu (Radix

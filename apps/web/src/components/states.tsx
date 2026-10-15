@@ -30,7 +30,12 @@ export function ErrorState({
         compact={compact}
         action={
           onRetry ? (
-            <Button size="sm" variant="outline" onClick={onRetry} className="border-hairline-strong bg-transparent">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRetry}
+              className="border-hairline-strong bg-transparent"
+            >
               Check again
             </Button>
           ) : undefined
@@ -75,7 +80,9 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-sm border border-dashed border-hairline-strong px-5 py-6", className)}>
+    <div
+      className={cn("rounded-sm border border-dashed border-hairline-strong px-5 py-6", className)}
+    >
       <p className="text-[15px] font-medium text-ink">{title}</p>
       {children ? <div className="mt-1 max-w-[64ch] text-sm text-ink-2">{children}</div> : null}
       {action ? <div className="mt-3">{action}</div> : null}
@@ -126,13 +133,28 @@ export function PendingMark({ className }: { className?: string }) {
       <rect x="1.5" y="1.5" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
       <rect x="11" y="1.5" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
       <rect x="1.5" y="11" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
-      <rect x="11.5" y="11.5" width="6.5" height="6.5" rx="0.75" fill="none" stroke="var(--ink-3)" strokeDasharray="2 1.6" />
+      <rect
+        x="11.5"
+        y="11.5"
+        width="6.5"
+        height="6.5"
+        rx="0.75"
+        fill="none"
+        stroke="var(--ink-3)"
+        strokeDasharray="2 1.6"
+      />
     </svg>
   );
 }
 
 /** A loading placeholder shaped like what will arrive. */
-export function Placeholder({ className, label = "Loading" }: { className?: string; label?: string }) {
+export function Placeholder({
+  className,
+  label = "Loading",
+}: {
+  className?: string;
+  label?: string;
+}) {
   return (
     <div
       role="status"
@@ -156,7 +178,9 @@ export function QueryView<T>({
 }) {
   if (query.isPending) return <>{loading ?? <Placeholder className="h-40" />}</>;
   if (query.isError || query.data === undefined) {
-    return <ErrorState error={query.error} onRetry={() => void query.refetch()} compact={compactError} />;
+    return (
+      <ErrorState error={query.error} onRetry={() => void query.refetch()} compact={compactError} />
+    );
   }
   return <>{children(query.data)}</>;
 }

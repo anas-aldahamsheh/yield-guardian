@@ -118,5 +118,11 @@ export function filmColorLinear(thicknessNm: number, angleDeg: number): [number,
 /** Gamma-encoded sRGB hex of the film colour (channels clipped to [0, 1]). */
 export function filmColorHex(thicknessNm: number, angleDeg: number): string {
   const rgb = filmColorLinear(thicknessNm, angleDeg).map(encodeSrgb);
-  return `#${rgb.map((c) => Math.round(c * 255).toString(16).padStart(2, "0")).join("")}`;
+  return `#${rgb
+    .map((c) =>
+      Math.round(c * 255)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 }

@@ -30,29 +30,48 @@ export function ResultsLedger() {
             Results, with their uncertainty
           </h2>
           <p className="mt-3 max-w-[46ch] text-[15px] leading-6 text-ink-2">
-            Each value comes with its confidence interval, the number of observations behind it
-            and the data it was measured on. Model metrics come from data the models did not
-            train on. A row without a value has not been measured yet.
+            Each value comes with its confidence interval, the number of observations behind it and
+            the data it was measured on. Model metrics come from data the models did not train on. A
+            row without a value has not been measured yet.
           </p>
           {results.data?.updated_at ? (
-            <p className="mt-3 text-[13px] text-ink-3">Updated <LocalDateTime iso={results.data.updated_at} /></p>
+            <p className="mt-3 text-[13px] text-ink-3">
+              Updated <LocalDateTime iso={results.data.updated_at} />
+            </p>
           ) : null}
         </div>
 
-        <QueryView query={results} loading={<Placeholder className="h-96" label="Loading results" />}>
+        <QueryView
+          query={results}
+          loading={<Placeholder className="h-96" label="Loading results" />}
+        >
           {(data) => (
             <ScrollRegion label="Measured results table" className="panel">
               <table className="w-full border-collapse text-left">
                 <caption className="sr-only">Measured results with confidence intervals</caption>
                 <thead>
                   <tr className="border-b border-hairline text-[13px] text-ink-3">
-                    <th scope="col" className="px-4 py-2.5 font-normal sm:px-5">Result</th>
-                    <th scope="col" className="px-3 py-2.5 text-right font-normal">Value</th>
-                    <th scope="col" className="hidden w-[30%] px-3 py-2.5 font-normal md:table-cell">
-                      <span className="sr-only">Interval on a 0 to 1 scale</span>
-                      <IntervalAxis format={(v) => (v === 0 || v === 1 ? String(v) : v.toFixed(2))} />
+                    <th scope="col" className="px-4 py-2.5 font-normal sm:px-5">
+                      Result
                     </th>
-                    <th scope="col" className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5">n</th>
+                    <th scope="col" className="px-3 py-2.5 text-right font-normal">
+                      Value
+                    </th>
+                    <th
+                      scope="col"
+                      className="hidden w-[30%] px-3 py-2.5 font-normal md:table-cell"
+                    >
+                      <span className="sr-only">Interval on a 0 to 1 scale</span>
+                      <IntervalAxis
+                        format={(v) => (v === 0 || v === 1 ? String(v) : v.toFixed(2))}
+                      />
+                    </th>
+                    <th
+                      scope="col"
+                      className="hidden px-4 py-2.5 text-right font-normal sm:table-cell sm:px-5"
+                    >
+                      n
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -75,15 +94,19 @@ function LedgerRow({ row }: { row: MeasuredResult }) {
   return (
     <tr className="border-b border-hairline align-top last:border-b-0">
       <th scope="row" className="px-4 py-3 text-left font-normal sm:px-5">
-        <span className={cn("block text-[15px] leading-6", e ? "text-ink" : "text-ink-2")}>{row.label}</span>
+        <span className={cn("block text-[15px] leading-6", e ? "text-ink" : "text-ink-2")}>
+          {row.label}
+        </span>
         <span className="block text-[13px] leading-5 text-ink-3">{row.data}</span>
       </th>
       <td className="tnum px-3 py-3 text-right sm:whitespace-nowrap">
         {e ? (
           <>
-            <span className="block text-[17px] leading-6 font-medium text-ink">{formatMetric(e.value, row.format)}</span>
+            <span className="block text-[17px] leading-6 font-medium text-ink">
+              {formatMetric(e.value, row.format)}
+            </span>
             <span className="block text-[13px] leading-5 text-ink-3">
-              {interval ? `${ciLabel(e)} ${interval}` : e.note ?? "no interval"}
+              {interval ? `${ciLabel(e)} ${interval}` : (e.note ?? "no interval")}
             </span>
           </>
         ) : (

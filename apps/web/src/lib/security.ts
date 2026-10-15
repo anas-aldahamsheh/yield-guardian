@@ -24,7 +24,12 @@ export interface CspOptions {
 /** Host names as they appear in a Host header: letters, digits, dots, dashes and a port. */
 const HOST = /^[A-Za-z0-9.-]+(:\d{1,5})?$/;
 
-export function contentSecurityPolicy({ nonce, host, dev = false, https = false }: CspOptions): string {
+export function contentSecurityPolicy({
+  nonce,
+  host,
+  dev = false,
+  https = false,
+}: CspOptions): string {
   const sockets = host && HOST.test(host) ? ` ws://${host} wss://${host}` : "";
   const directives = [
     "default-src 'self'",

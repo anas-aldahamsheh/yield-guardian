@@ -35,7 +35,13 @@ export function SessionButton({
   );
 }
 
-export function SessionControl({ className, stacked = false }: { className?: string; stacked?: boolean }) {
+export function SessionControl({
+  className,
+  stacked = false,
+}: {
+  className?: string;
+  stacked?: boolean;
+}) {
   const api = useApi();
   const { session, loading } = useSession();
   const meta = useQuery(q.meta(api));
@@ -54,7 +60,13 @@ export function SessionControl({ className, stacked = false }: { className?: str
 
   if (session.role === "visitor") {
     return (
-      <div className={cn("flex items-center gap-1", stacked && "flex-col items-stretch gap-2", className)}>
+      <div
+        className={cn(
+          "flex items-center gap-1",
+          stacked && "flex-col items-stretch gap-2",
+          className,
+        )}
+      >
         <Button
           size="sm"
           variant="outline"
@@ -86,7 +98,14 @@ export function SessionControl({ className, stacked = false }: { className?: str
   }
 
   if (menuLoaded) {
-    return <SessionMenu session={session} className={className} open={menuOpen} onOpenChange={setMenuOpen} />;
+    return (
+      <SessionMenu
+        session={session}
+        className={className}
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+      />
+    );
   }
   return (
     <SessionButton

@@ -50,7 +50,11 @@ export function SessionMenu({
           Signed in as {ROLE_LABEL[session.role].toLowerCase()}
           {session.expires_at ? (
             <span className="mt-0.5 block text-xs text-ink-3">
-              Session ends {new Date(session.expires_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+              Session ends{" "}
+              {new Date(session.expires_at).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           ) : null}
         </DropdownMenuLabel>
@@ -61,7 +65,13 @@ export function SessionMenu({
   );
 }
 
-export function AdminLoginDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function AdminLoginDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const login = useLogin();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -88,7 +98,8 @@ export function AdminLoginDialog({ open, onOpenChange }: { open: boolean; onOpen
           <DialogHeader>
             <DialogTitle>Admin sign-in</DialogTitle>
             <DialogDescription>
-              Admins assign models to roles. Engineers do not need an account: use “Try as engineer”.
+              Admins assign models to roles. Engineers do not need an account: use “Try as
+              engineer”.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-2">

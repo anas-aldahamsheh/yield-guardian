@@ -6,7 +6,10 @@ import { useEffect, useSyncExternalStore } from "react";
 import { afterLoadIdle } from "@/lib/idle";
 import { toasterSlot } from "@/lib/toast";
 
-const MountedToaster = dynamic(() => import("./toaster-mounted"), { ssr: false, loading: () => null });
+const MountedToaster = dynamic(() => import("./toaster-mounted"), {
+  ssr: false,
+  loading: () => null,
+});
 
 /** Mounts the Toaster when the page is idle or at the first toast, whichever comes first. */
 export function LazyToaster() {
