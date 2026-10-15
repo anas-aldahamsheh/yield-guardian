@@ -23,7 +23,7 @@ from tests.agent.helpers import (
 from tests.llm.helpers import make_stack
 from yield_guardian.agent.chat import ChatAnswerer, SentenceGate, question_facts
 from yield_guardian.agent.grounding import REDACTED, EvidenceFacts
-from yield_guardian.agent.tools import TOOLS
+from yield_guardian.agent.tools import SCIENCE_TOOL_NAMES, TOOLS
 from yield_guardian.contracts.chat import ChatContext, ChatEventPayload, ChatRequest
 from yield_guardian.contracts.session import SessionInfo
 from yield_guardian.llm.admin import InMemoryRouteLog
@@ -109,7 +109,8 @@ async def test_the_model_knows_every_tool_and_the_product(respx_mock: respx.Rout
     chat, _ = answerer()
     await collect(chat, ask("hello"))
     first, final = model.bodies("chat")
-    assert len(first["tools"]) == len(TOOLS)
+    offered = [t["function"]["name"] for t in first["tools"]]
+    assert offered == [*SCIENCE_TOOL_NAMES, "suggest_investigation"]  # no run on the page
     system = first["messages"][0]["content"]
     for name, tool in TOOLS.items():
         assert f"- {name}: {tool.description}" in system
