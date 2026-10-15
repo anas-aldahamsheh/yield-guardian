@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-14 17:25 UTC (updated as each item changes)
-**Plan:** [PLAN.md](PLAN.md)
+**Last updated:** 2026-10-15 07:05 UTC (updated as each item changes)
+**Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 82 of 82 done (100%), 0 in progress, 0 not started
+## Progress: 83 of 96 done (86%), 6 in progress, 7 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,6 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
+| V: Version 2, the live story | 1 of 14 | 6 | 7 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -35,8 +36,8 @@
 
 | | |
 |---|---|
-| Done | 82 of 82 |
-| Current focus | SECOM bundle (worker 2), chat and knowledge (worker 4), Line screen (worker 5), wafer service in the API (lead), Docker (helper) |
+| Done | 83 of 96 (v1: 82 of 82; v2: 1 of 14) |
+| Current focus | v2: engines, runs, AI layer, story page and page merge, built in parallel (PLAN_V2 §10) |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
 
@@ -202,6 +203,27 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 | X5 | Submission form texts (title, short and long description, tags) | Cloud | ✅ | [Form texts](submission/form.md): title 56 chars, short 243 chars, long 483 words, 7 tags; only measured numbers, SECOM weakness stated; checked by check_form.py |
 | X6 | Submit on lablab | You | ✂️ | Cut by the owner at 12:50: no submission material (form, video, slides, cover) is wanted |
 
+### V: Version 2, the live story
+
+Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC.
+
+| ID | Item | Where | Status | Evidence / notes |
+|---|---|---|---|---|
+| V1 | Run contracts, engine seams, plan v2 | Cloud | ✅ | [contracts/runs.py](../services/api/src/yield_guardian/contracts/runs.py), [live/protocols.py](../services/api/src/yield_guardian/live/protocols.py), [PLAN_V2.md](PLAN_V2.md) |
+| V2 | Sensor engine (live risk, SHAP, T²/SPE, EWMA/CUSUM, health), SECOM sampler, sensor file parser, parity tests | Cloud | 🟡 | Sensors worker, branch v2/sensors |
+| V3 | Wafer engine (ONNX on any map, unknown, similar, causes, lot tests), demo sampler, draw layouts, wafer file parser, parity tests | Cloud | 🟡 | Wafers worker, branch v2/wafers |
+| V4 | Runs: store, orchestrator, SSE with resume, cases, uploads, templates, example files; replay loop retired | Cloud | 🟡 | Runs worker, branch v2/runs |
+| V5 | Investigator over runs, hypothesis table, confirmed cause on work orders | Cloud | 🟡 | AI worker, branch v2/ai |
+| V6 | Chat run tools and page context | Cloud | ⏳ | AI worker, after V5 |
+| V7 | Line page: input bar, cases and browsers, drawing, upload, station cards, drawers, alarms rail, banner | Cloud | 🟡 | Story worker, branch v2/story |
+| V8 | The line animation, driven by run events | Cloud | ⏳ | Story worker, after V7 |
+| V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | 🟡 | Pages worker, branch v2/pages |
+| V10 | Savings calculator | Cloud | ⏳ | Pages worker |
+| V11 | Guide rewritten for v2 (Arabic) | Cloud | ⏳ | Pages worker |
+| V12 | Tests: parsers, parity, SSE order and resume, Playwright story, axe, Lighthouse | Cloud | ⏳ | Every worker for its part; lead end to end |
+| V13 | Merge, gates, STATUS, PR | Cloud | ⏳ | Lead |
+| V14 | Deploy, live checks, owner demo | PC | ⏳ | Worker 3, from lines the owner pastes |
+
 ## Waiting on you
 
 | Since | What | Why |
@@ -212,6 +234,7 @@ Nothing below is filled in until it is measured on held-out data. No estimates a
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 07:05 | v2 approved by the owner (06:54). Plan v2 written from the owner's agreed plan and worker 3's draft (1a3d8f4): three pages and a floating chat, live runs on four kinds of input, the animated line, hypotheses, calculator. V1 done (run contracts and engine seams); V2 to V5, V7 and V9 started in parallel. 83 of 96 |
 | 2026-10-14 17:25 | Polish: the full investigations list keeps failed recording attempts behind a "Show N failed recording attempts" button (Failed filter unchanged). Fresh-database seed checked locally: recorded_runs_seeded imported 1; the recorded run's page has no console errors in Asia/Amman or UTC |
 | 2026-10-14 17:12 | L11 and A3 done: recorded run committed (ab23908), seeded idempotently on the live site and opens as a recorded run. Live home: Lighthouse 95 / 100 / 100 / 100, no console errors. 82 of 82 |
 | 2026-10-14 17:00 | Merged 189406d (W5): event times render in UTC on the server and switch to local time after hydration, fixing React #418 on home and /investigations; verified on a production build in Asia/Amman, America/Los_Angeles and UTC. One L11 recording started on the owner's "يلا بسرعة" (writer Qwen3.8-Flash-Next first) |
