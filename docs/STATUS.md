@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 10:41 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 10:56 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 93 of 96 done (97%), 2 in progress, 1 not started
+## Progress: 94 of 96 done (98%), 1 in progress, 1 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 11 of 14 | 2 | 1 |
+| V: Version 2, the live story | 12 of 14 | 1 | 1 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -219,7 +219,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V8 | The line animation, driven by run events | Cloud | ✅ | Merged 39b0b14: one timeline per run advanced only by arrived results; sensor bank, T²/SPE and risk gauges at the computed values against the model's limits, prober in real die order, 25-slot carrier, final-test stamp; reduced motion gives a static stepper. Lighthouse mobile on / (median of 5): performance 94, accessibility 100, best practices 100; axe 0 at 360, 768 and 1440 px |
 | V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | ✅ | Merged 6bf8d10: Line, Investigations (live progress, hypothesis table, work orders tab, confirmed cause), How it works (plain Arabic, then experts), hidden /admin, permanent redirects for every v1 address, floating Ask with run context and investigation suggestions. 224 web unit tests; mock e2e 59 of 59; axe strict on /how and /investigations |
 | V10 | Savings calculator | Cloud | ✅ | On /how#calculator: empty until the user types costs; rates and their 95% CIs read from the API (96.0% auto-classified, 1.9% control-chart false alarms); every line shows its formula and range |
-| V11 | Guide rewritten for v2 (Arabic) | Cloud | 🟡 | Text done as /how#guide; ten screenshot slots wait for the Line page (V7) |
+| V11 | Guide rewritten for v2 (Arabic) | Cloud | ✅ | /how#guide (ef29c23): Arabic text plus nine screenshots taken from the real API behind the production gateway, each 150 KB or less with Arabic alt text; the hypotheses slot is text only (no real investigation with hypotheses exists yet). Web: 303 unit tests pass |
 | V12 | Tests: parsers, parity, SSE order and resume, Playwright story, axe, Lighthouse | Cloud | ✅ | Local main 727014a: API pytest 1,218 passed; web 297 unit tests, lint, typecheck, format, production build; Playwright desktop, mobile and axe 115 passed (2 conditional skips); stack e2e on the real API and bundles 40 passed (5 skipped: no investigation or work order in that database); Lighthouse mobile on / 94, 100, 100; a real 40-unit sample run reaches run_done in 1.1 s |
 | V13 | Merge, gates, STATUS, PR | Cloud | 🟡 | Lead: every worker merged except the guide screenshots (V11); gates pass on local main |
 | V14 | Deploy, live checks, owner demo | PC | ⏳ | Worker 3, from lines the owner pastes |
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 10:56 | V11 done and merged (ef29c23): guide screenshots from real runs; wafer views mark the wafers the lot test counts as unknown. The owner chose the fast deploy: worker 3 builds from the integration branch while the lead merges to main. 94 of 96 |
 | 2026-10-15 10:41 | V12 done: every suite passes on local main (727014a), including the stack browser tests against the real API and bundles. One stale v1 stack test now reads the results table on How it works; unused v1 home components removed. 93 of 96 |
 | 2026-10-15 10:18 | V7 and V8 done and merged on local main (39b0b14): the Line page and its animation on the real runs API. Station 3 counts match the lot test; unknown maps are a caution beside the prediction. Wafer pattern result now carries the lot test's energy threshold (cb76555). 92 of 96 |
 | 2026-10-15 09:14 | V9 and V10 done and merged on local main (6bf8d10): three pages, How it works with the savings calculator, redirects, floating chat; Arabic guide text in place (screenshots after V7). Web: typecheck, lint, 224 unit tests pass. 90 of 96 |
