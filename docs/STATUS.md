@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 07:05 UTC (updated as each item changes)
+**Last updated:** 2026-10-15 07:15 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, in progress)
 
 <!-- progress:start -->
-## Progress: 83 of 96 done (86%), 6 in progress, 7 not started
+## Progress: 83 of 96 done (86%), 10 in progress, 3 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -19,7 +19,7 @@
 | P: Packaging and deployment | 6 of 6 | 0 | 0 |
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
-| V: Version 2, the live story | 1 of 14 | 6 | 7 |
+| V: Version 2, the live story | 1 of 14 | 10 | 3 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -214,12 +214,12 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 | V3 | Wafer engine (ONNX on any map, unknown, similar, causes, lot tests), demo sampler, draw layouts, wafer file parser, parity tests | Cloud | 🟡 | Wafers worker, branch v2/wafers |
 | V4 | Runs: store, orchestrator, SSE with resume, cases, uploads, templates, example files; replay loop retired | Cloud | 🟡 | Runs worker, branch v2/runs |
 | V5 | Investigator over runs, hypothesis table, confirmed cause on work orders | Cloud | 🟡 | AI worker, branch v2/ai |
-| V6 | Chat run tools and page context | Cloud | ⏳ | AI worker, after V5 |
+| V6 | Chat run tools and page context | Cloud | 🟡 | AI worker, branch v2/ai, alongside V5 |
 | V7 | Line page: input bar, cases and browsers, drawing, upload, station cards, drawers, alarms rail, banner | Cloud | 🟡 | Story worker, branch v2/story |
-| V8 | The line animation, driven by run events | Cloud | ⏳ | Story worker, after V7 |
+| V8 | The line animation, driven by run events | Cloud | 🟡 | Story worker, branch v2/story, alongside V7 |
 | V9 | Three pages, Investigations merge, How it works, hidden admin, redirects, floating chat | Cloud | 🟡 | Pages worker, branch v2/pages |
-| V10 | Savings calculator | Cloud | ⏳ | Pages worker |
-| V11 | Guide rewritten for v2 (Arabic) | Cloud | ⏳ | Pages worker |
+| V10 | Savings calculator | Cloud | 🟡 | Pages worker, branch v2/pages |
+| V11 | Guide rewritten for v2 (Arabic) | Cloud | 🟡 | Pages worker, branch v2/pages; screenshots after V7 merges |
 | V12 | Tests: parsers, parity, SSE order and resume, Playwright story, axe, Lighthouse | Cloud | ⏳ | Every worker for its part; lead end to end |
 | V13 | Merge, gates, STATUS, PR | Cloud | ⏳ | Lead |
 | V14 | Deploy, live checks, owner demo | PC | ⏳ | Worker 3, from lines the owner pastes |
@@ -234,6 +234,7 @@ Plan: [PLAN_V2.md](PLAN_V2.md). Approved by the owner on 2026-10-15 at 06:54 UTC
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-15 07:15 | All six v2 workers started: sensors (V2), wafers (V3), runs (V4), AI (V5, V6), story (V7, V8: the Line page and its animation), pages (V9 to V11: three pages, calculator, Arabic guide). Worker 3 keeps V14 (deploy and live checks) only. 83 of 96 |
 | 2026-10-15 07:05 | v2 approved by the owner (06:54). Plan v2 written from the owner's agreed plan and worker 3's draft (1a3d8f4): three pages and a floating chat, live runs on four kinds of input, the animated line, hypotheses, calculator. V1 done (run contracts and engine seams); V2 to V5, V7 and V9 started in parallel. 83 of 96 |
 | 2026-10-14 17:25 | Polish: the full investigations list keeps failed recording attempts behind a "Show N failed recording attempts" button (Failed filter unchanged). Fresh-database seed checked locally: recorded_runs_seeded imported 1; the recorded run's page has no console errors in Asia/Amman or UTC |
 | 2026-10-14 17:12 | L11 and A3 done: recorded run committed (ab23908), seeded idempotently on the live site and opens as a recorded run. Live home: Lighthouse 95 / 100 / 100 / 100, no console errors. 82 of 82 |
