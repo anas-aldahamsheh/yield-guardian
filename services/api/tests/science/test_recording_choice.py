@@ -1,10 +1,10 @@
-"""The alarms chosen for the recorded demo runs follow the documented rule on the real replay."""
+"""The alarms chosen for the recorded demo runs follow the documented rule on the SECOM alarms."""
 
 import pytest
 
 from yield_guardian.agent.recording import KINDS, choose_alarms
 from yield_guardian.bundles.secom import SecomBundle
-from yield_guardian.replay.line import alarm_rules
+from yield_guardian.science.secom.alarms import alarm_rules
 
 
 def test_the_choice_follows_the_rule_and_is_the_same_every_time(

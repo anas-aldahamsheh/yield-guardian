@@ -27,7 +27,7 @@ SensorPath = Annotated[str, Path(pattern=r"^S\d{3}$")]
 FromSeq = Annotated[int | None, Query(ge=0, description="First sequence number (inclusive).")]
 ToSeq = Annotated[
     int | None,
-    Query(ge=0, description="Last sequence number (inclusive); default: the plant clock."),
+    Query(ge=0, description="Last sequence number (inclusive); default: the last unit."),
 ]
 
 
@@ -40,7 +40,7 @@ async def list_units(
     cursor: Annotated[str | None, Query(max_length=200)] = None,
     limit: Annotated[int, Query(ge=1, le=2000)] = 200,
 ) -> UnitPage:
-    """Units in time order, up to the plant clock."""
+    """Units in time order."""
     return await secom.list_units(
         from_seq=from_seq, to_seq=to_seq, band=band, cursor=cursor, limit=limit
     )
@@ -87,7 +87,7 @@ async def get_unit_contributions(
 
 @router.get("/fdc/series", operation_id="get_fdc_series", responses=problem_responses(503))
 async def get_fdc_series(secom: Secom, from_seq: FromSeq = None, to_seq: ToSeq = None) -> FdcSeries:
-    """T² and SPE with control limits, up to the plant clock."""
+    """T² and SPE with control limits, in time order."""
     return await secom.get_fdc_series(from_seq=from_seq, to_seq=to_seq)
 
 

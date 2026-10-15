@@ -22,7 +22,7 @@ def _settings(artifacts: Path) -> Settings:
 
 def test_the_newest_secom_bundle_is_loaded(bundle_dir: Path) -> None:
     registry = build_registry(_settings(bundle_dir.parents[1]))
-    assert registry.line is not None
+    assert registry.alarms is not None
     assert registry.secom is not None
     assert [b.bundle.version for b in registry.bundles] == ["v1"]
     assert "secom_bundle" not in registry.problems
@@ -31,7 +31,7 @@ def test_the_newest_secom_bundle_is_loaded(bundle_dir: Path) -> None:
 async def test_a_missing_bundle_is_reported_by_ready(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     registry = build_registry(settings)
-    assert registry.line is None
+    assert registry.alarms is None
     assert registry.secom is None
     assert "secom" in registry.problems["secom_bundle"]
     transport = httpx.ASGITransport(app=create_app(settings, registry))

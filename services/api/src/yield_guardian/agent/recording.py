@@ -28,7 +28,7 @@ from yield_guardian.bundles.secom import SecomBundle
 from yield_guardian.contracts.investigation import InvestigationTrigger
 from yield_guardian.llm.profiles import ProfileCatalog
 from yield_guardian.llm.registry import ModelRegistry, Role
-from yield_guardian.replay.line import AlarmRule, alarm_rules
+from yield_guardian.science.secom.alarms import AlarmRule, alarm_rules
 
 KINDS = ("risk", "t2", "spe")
 SELECTION_RULE = (

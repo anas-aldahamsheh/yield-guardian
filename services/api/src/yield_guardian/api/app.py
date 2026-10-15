@@ -12,10 +12,10 @@ from yield_guardian import APP_NAME, __version__
 from yield_guardian.api.openapi import build_openapi
 from yield_guardian.api.problems import install_problem_handlers
 from yield_guardian.api.routes import (
+    alarms,
     chat,
     investigations,
     knowledge,
-    line,
     llm,
     meta,
     methods,
@@ -35,7 +35,7 @@ Yield Guardian API: semiconductor yield investigation on real fab data (SECOM, W
 
 * Errors are RFC 9457 `application/problem+json` (schema `Problem`).
 * Investigator events stream as server-sent events (schema `InvestigationEvent`).
-* The live line streams on the WebSocket `/ws/line` as JSON text frames (schema `LineEvent`).
+* Run events stream as server-sent events (schema `RunEvent`).
 * Actions need a session cookie and the `X-CSRF-Token` header (see `/session`).
 """
 
@@ -89,7 +89,7 @@ def create_app(
         )
     for module in (
         meta,
-        line,
+        alarms,
         secom,
         investigations,
         work,
@@ -101,7 +101,6 @@ def create_app(
         session,
     ):
         app.include_router(module.router, prefix=API_PREFIX)
-    app.include_router(line.ws_router)
 
     def openapi() -> dict[str, Any]:
         if app.openapi_schema is None:

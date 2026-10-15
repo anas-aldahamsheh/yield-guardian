@@ -1,4 +1,4 @@
-"""Builds the running registry from settings: verified bundles, the line replay, the SECOM and
+"""Builds the running registry from settings: verified bundles, the SECOM alarms, the SECOM and
 wafer-map services, the language-model admin, investigator and chat when TOKEN_FACTORY_API_KEY
 is set and, when DATABASE_URL is set, the database-backed stores. A part that cannot load is
 left out, so its routes answer 503 not_ready and /ready names the reason."""
@@ -13,8 +13,7 @@ from yield_guardian.bundles.secom import load_secom_bundle
 from yield_guardian.bundles.wafermap import load_wafermap_bundle
 from yield_guardian.contracts.line import AlarmStatus
 from yield_guardian.core.settings import Settings
-from yield_guardian.replay.clock import ReplayClock
-from yield_guardian.replay.line import LineReplay
+from yield_guardian.science.secom.alarms import SecomAlarms
 from yield_guardian.science.secom.service import SecomInference
 from yield_guardian.science.wafermap.service import WaferInference
 from yield_guardian.services.alarms import AlarmStateStore
@@ -26,8 +25,8 @@ log = structlog.get_logger(__name__)
 
 
 class StoredAlarmStates:
-    """Alarm states an investigation set. A stored "open" (a failed investigation) falls back to
-    the replay's own rule, so the alarm closes by itself like any other."""
+    """Alarm states an investigation set; an alarm without one (or a stored "open", left by a
+    failed investigation) is open."""
 
     def __init__(self, store: AlarmStateStore) -> None:
         self.store = store
@@ -61,16 +60,11 @@ def build_registry(settings: Settings) -> ServiceRegistry:
         registry.problems["secom_bundle"] = str(error)
         log.warning("secom_bundle_not_loaded", reason=str(error))
     else:
-        clock = ReplayClock(
-            epoch=settings.replay_epoch,
-            seconds_per_unit=settings.replay_seconds_per_unit,
-            plant_times=bundle.timeline.timestamp,
-            final_test_lag_units=settings.final_test_lag_units,
-        )
         states = StoredAlarmStates(persistence.alarms) if persistence else None
-        registry.line = LineReplay(bundle, clock, states)
+        alarms = SecomAlarms(bundle, states)
+        registry.alarms = alarms
         registry.secom = SecomInference(
-            bundle, registry.line, persistence.investigations if persistence else None
+            bundle, alarms, persistence.investigations if persistence else None
         )
         registry.bundles.append(verified.info)
         log.info("secom_bundle_loaded", version=verified.info.bundle.version)

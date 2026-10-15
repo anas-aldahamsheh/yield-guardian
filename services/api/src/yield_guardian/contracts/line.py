@@ -1,4 +1,9 @@
-"""The live line: plant clock, unit summaries, alarms and the WebSocket messages of /ws/line."""
+"""SECOM unit summaries and alarms (GET /units, /alarms).
+
+The wall-clock replay (`PlantClock`, `LineState` and the `LineEvent` messages of the former
+/ws/line) is retired from the product (PLAN_V2 §3.3); those schemas stay published only until
+the web no longer imports them.
+"""
 
 from datetime import datetime
 from typing import Annotated, Literal
@@ -72,7 +77,7 @@ class UnitSummary(Contract):
     ewma_alarm: bool
     cusum_alarm: bool
     final_test: FinalTest | None = Field(
-        description="Final-test result; null until the replay reveals it (see PlantClock.final_test_lag_units)."
+        description="Recorded final-test result (secom_labels.data)."
     )
 
 

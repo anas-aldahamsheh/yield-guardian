@@ -19,9 +19,9 @@ from yield_guardian.services.jobs import NO_RUNNER_DETAIL
 from yield_guardian.services.protocols import (
     VISITOR,
     ActiveSession,
+    AlarmService,
     AuditLog,
     InvestigationStore,
-    LineService,
     MethodsService,
     SessionManager,
     WorkOrderStore,
@@ -59,8 +59,8 @@ def knowledge_service(registry: Registry) -> KnowledgeService:
     return _need(registry.knowledge, "knowledge base")
 
 
-def line_service(registry: Registry) -> LineService:
-    return _need(registry.line, "line replay")
+def alarm_service(registry: Registry) -> AlarmService:
+    return _need(registry.alarms, "SECOM data and model bundle")
 
 
 def investigation_store(registry: Registry) -> InvestigationStore:
@@ -106,7 +106,7 @@ def llm_admin(registry: Registry) -> LlmAdmin:
 Secom = Annotated[SecomService, Depends(secom_service)]
 Wafers = Annotated[WaferService, Depends(wafer_service)]
 Knowledge = Annotated[KnowledgeService, Depends(knowledge_service)]
-Line = Annotated[LineService, Depends(line_service)]
+Alarms = Annotated[AlarmService, Depends(alarm_service)]
 Investigations = Annotated[InvestigationStore, Depends(investigation_store)]
 WorkOrders = Annotated[WorkOrderStore, Depends(work_order_store)]
 Audit = Annotated[AuditLog, Depends(audit_log)]
