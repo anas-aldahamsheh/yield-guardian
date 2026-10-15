@@ -4971,6 +4971,59 @@
         "title": "DecisionEvent",
         "type": "object"
       },
+      "DrawLayoutItem": {
+        "additionalProperties": false,
+        "description": "An empty wafer to draw on: the die layout (0 no die, 1 pass) of a real WM-811K wafer.",
+        "properties": {
+          "layout_id": {
+            "title": "Layout Id",
+            "type": "string"
+          },
+          "map": {
+            "$ref": "#/components/schemas/WaferMap"
+          },
+          "source_wafer": {
+            "description": "\"<lot>-<wafer index>\".",
+            "examples": [
+              "lot47542-12"
+            ],
+            "maxLength": 80,
+            "pattern": "^[A-Za-z0-9_.]+-\\d+$",
+            "title": "Source Wafer",
+            "type": "string"
+          },
+          "rule": {
+            "description": "How this layout was chosen from the data.",
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "layout_id",
+          "map",
+          "source_wafer",
+          "rule"
+        ],
+        "title": "DrawLayoutItem",
+        "type": "object"
+      },
+      "DrawLayoutList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DrawLayoutItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "DrawLayoutList",
+        "type": "object"
+      },
       "DrawnRunCreate": {
         "additionalProperties": false,
         "description": "Wafers the user painted; each map is labelled as the user's drawing on the page.",
@@ -8844,6 +8897,7 @@
               "forbidden",
               "csrf_failed",
               "not_found",
+              "gone",
               "conflict",
               "not_ready",
               "upstream_error",

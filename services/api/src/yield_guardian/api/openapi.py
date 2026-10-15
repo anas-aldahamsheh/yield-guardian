@@ -18,6 +18,7 @@ from yield_guardian.contracts.chat import ChatEvent
 from yield_guardian.contracts.investigation import InvestigationEvent
 from yield_guardian.contracts.line import LineEvent
 from yield_guardian.contracts.runs import (
+    DrawLayoutList,
     Run,
     RunCaseList,
     RunCreate,
@@ -36,6 +37,7 @@ STREAM_SCHEMAS: tuple[type[BaseModel], ...] = (
     RunCreated,
     Run,
     RunCaseList,
+    DrawLayoutList,
     UploadSummary,
 )
 REF_TEMPLATE = "#/components/schemas/{model}"

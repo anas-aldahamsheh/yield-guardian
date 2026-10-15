@@ -225,6 +225,19 @@ class RunCaseList(Contract):
     items: list[RunCase]
 
 
+class DrawLayoutItem(Contract):
+    """An empty wafer to draw on: the die layout (0 no die, 1 pass) of a real WM-811K wafer."""
+
+    layout_id: str
+    map: WaferMap
+    source_wafer: WaferId
+    rule: str = Field(description="How this layout was chosen from the data.")
+
+
+class DrawLayoutList(Contract):
+    items: list[DrawLayoutItem]
+
+
 class UploadIssue(Contract):
     severity: Literal["error", "warning"]
     row: int | None = Field(description="1-based row in the file (the header is row 1).")

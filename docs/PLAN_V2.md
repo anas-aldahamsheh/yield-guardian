@@ -70,10 +70,14 @@ the same code, so a sample is processed exactly like an upload.
 **Sensor file:** one row per unit: `unit_id, timestamp, S001 … S590, result` (`result`
 optional, `pass` or `fail`). The 590 SECOM sensors, in order; an empty cell is a missing
 reading. Several units in time order also enable drift (EWMA, CUSUM) and sensor health.
+Timestamps are ISO 8601 without a zone, `YYYY-MM-DDTHH:MM:SS` as SECOM records them (a space
+instead of `T`, and Excel date cells, are read too).
 
 **Wafer file:** one row per die: `lot, wafer, x, y, result` (`pass` or `fail`). Positions not
-listed are "no die". The server builds each wafer's grid; several wafers of one lot enable the
-lot test.
+listed are "no die". `x` is the column and `y` the row, both counted from 0 at the map's
+top-left; the grid is (max y + 1) rows by (max x + 1) columns, which round-trips every demo
+wafer exactly. The server builds each wafer's grid; several wafers of one lot enable the lot
+test.
 
 Validation answers in plain words (which column, which row, what is wrong). Size guards: 20 MB
 per file, 5,000 units and 500 wafers per run. Templates (header only) and real example files

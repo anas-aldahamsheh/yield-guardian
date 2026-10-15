@@ -1596,6 +1596,31 @@ export interface components {
       work_order_id: string | null;
     };
     /**
+     * DrawLayoutItem
+     * @description An empty wafer to draw on: the die layout (0 no die, 1 pass) of a real WM-811K wafer.
+     */
+    DrawLayoutItem: {
+      /** Layout Id */
+      layout_id: string;
+      map: components["schemas"]["WaferMap"];
+      /**
+       * Rule
+       * @description How this layout was chosen from the data.
+       */
+      rule: string;
+      /**
+       * Source Wafer
+       * @description "<lot>-<wafer index>".
+       * @example lot47542-12
+       */
+      source_wafer: string;
+    };
+    /** DrawLayoutList */
+    DrawLayoutList: {
+      /** Items */
+      items: components["schemas"]["DrawLayoutItem"][];
+    };
+    /**
      * DrawnRunCreate
      * @description Wafers the user painted; each map is labelled as the user's drawing on the page.
      */
@@ -3193,6 +3218,7 @@ export interface components {
         | "forbidden"
         | "csrf_failed"
         | "not_found"
+        | "gone"
         | "conflict"
         | "not_ready"
         | "upstream_error"
@@ -5357,6 +5383,8 @@ export type DatasetFile = components["schemas"]["DatasetFile"];
 export type Decision = components["schemas"]["Decision"];
 export type DecisionCreate = components["schemas"]["DecisionCreate"];
 export type DecisionEvent = components["schemas"]["DecisionEvent"];
+export type DrawLayoutItem = components["schemas"]["DrawLayoutItem"];
+export type DrawLayoutList = components["schemas"]["DrawLayoutList"];
 export type DrawnRunCreate = components["schemas"]["DrawnRunCreate"];
 export type DriftHealthResult = components["schemas"]["DriftHealthResult"];
 export type EndEvent = components["schemas"]["EndEvent"];

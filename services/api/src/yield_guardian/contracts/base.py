@@ -108,6 +108,7 @@ ProblemCode = Literal[
     "forbidden",
     "csrf_failed",
     "not_found",
+    "gone",
     "conflict",
     "not_ready",
     "upstream_error",
