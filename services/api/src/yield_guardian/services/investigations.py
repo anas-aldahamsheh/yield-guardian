@@ -40,6 +40,7 @@ from yield_guardian.contracts.investigation import (
     InvestigationStep,
     InvestigationSummary,
     InvestigationTrigger,
+    ModelCallTrace,
     Report,
     ReportEvent,
     RoleModel,
@@ -52,8 +53,14 @@ from yield_guardian.contracts.models import Usage
 from yield_guardian.contracts.runs import RunAlarm
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError, NotReadyError
 from yield_guardian.db.notify import EVENTS_CHANNEL, JOBS_CHANNEL, Notifier
-from yield_guardian.db.tables import InvestigationEventRow, InvestigationJobRow, InvestigationRow
+from yield_guardian.db.tables import (
+    InvestigationEventRow,
+    InvestigationJobRow,
+    InvestigationRow,
+    LlmCallRow,
+)
 from yield_guardian.live.protocols import RunReader
+from yield_guardian.llm.calllog import LlmCallRecord, to_call_trace
 from yield_guardian.services import alarms, audit, cursors
 from yield_guardian.services.access import Viewer, current_viewer, examples, is_example, owned
 from yield_guardian.services.errors import ConflictError, ReadOnlyError
@@ -519,6 +526,22 @@ class DbInvestigationStore:
         if row is None or (viewer is not None and not viewer.sees(row.workspace_id)):
             raise NotFoundError(f"Investigation {investigation_id} does not exist.")
         return to_investigation(row)
+
+    async def calls(
+        self, investigation_id: str, viewer: Viewer | None = None
+    ) -> builtins.list[ModelCallTrace]:
+        """The model calls recorded with this investigation's correlation id, oldest first;
+        NotFoundError as :meth:`get`."""
+        async with self._sessionmaker() as db:
+            row = await db.get(InvestigationRow, investigation_id)
+            if row is None or (viewer is not None and not viewer.sees(row.workspace_id)):
+                raise NotFoundError(f"Investigation {investigation_id} does not exist.")
+            records = await db.scalars(
+                select(LlmCallRow.record)
+                .where(LlmCallRow.correlation_id == investigation_id)
+                .order_by(LlmCallRow.started_at, LlmCallRow.call_id)
+            )
+            return [to_call_trace(LlmCallRecord.model_validate(r)) for r in records]
 
     async def workspace_of(self, investigation_id: str) -> str | None:
         """The workspace the investigation belongs to (None for none, or no such one)."""

@@ -188,6 +188,19 @@ export const q = {
         ),
     }),
 
+  /** Every model call of the investigation, oldest first, with what was sent and returned. */
+  investigationCalls: (api: Api, investigationId: string) =>
+    queryOptions({
+      queryKey: ["investigations", investigationId, "calls"],
+      queryFn: ({ signal }) =>
+        unwrap(
+          api.GET("/api/v1/investigations/{investigation_id}/calls", {
+            params: { path: { investigation_id: investigationId } },
+            signal,
+          }),
+        ),
+    }),
+
   evidence: (api: Api, investigationId: string, evidenceId: string) =>
     queryOptions({
       queryKey: ["investigations", investigationId, "evidence", evidenceId],

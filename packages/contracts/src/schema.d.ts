@@ -197,6 +197,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/investigations/{investigation_id}/calls": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Investigation Calls
+     * @description Every model call of the investigation, oldest first, with a masked, truncated copy of
+     *     what was sent and what came back. Another workspace's investigation answers 404.
+     */
+    get: operations["list_investigation_calls"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/investigations/{investigation_id}/decision": {
     parameters: {
       query?: never;
@@ -3597,6 +3618,69 @@ export interface components {
       /** Q Value */
       q_value: number | null;
     };
+    /**
+     * ModelCallTrace
+     * @description One model call attempt of an investigation, with what was sent and what came back.
+     */
+    ModelCallTrace: {
+      /**
+       * At
+       * Format: date-time
+       */
+      at: string;
+      /** Cache Hit */
+      cache_hit: boolean;
+      /** Error */
+      error: string | null;
+      /** Error Kind */
+      error_kind: string | null;
+      /** Http Status */
+      http_status: number | null;
+      /** Latency Ms */
+      latency_ms: number;
+      /** Model Id */
+      model_id: string;
+      /** Points */
+      points: number | null;
+      /**
+       * Provider
+       * @description token_factory or tokenharbor (inferred from the model id).
+       */
+      provider: string;
+      /**
+       * Returned
+       * @description The answer's content or tool calls, secrets masked, at most 4000 characters.
+       */
+      returned: string | null;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role:
+        | "investigator"
+        | "writer"
+        | "verifier"
+        | "chat"
+        | "router"
+        | "ocr"
+        | "vision";
+      /**
+       * Sent
+       * @description The request's last user or tool message, secrets masked, at most 4000 characters.
+       */
+      sent: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "error" | "empty" | "invalid_output" | "refused_profile";
+      /** Tokens In */
+      tokens_in: number | null;
+      /** Tokens Out */
+      tokens_out: number | null;
+      /** Tokens Reasoning */
+      tokens_reasoning: number | null;
+    };
     /** ModelCard */
     ModelCard: {
       /** Markdown */
@@ -6688,6 +6772,7 @@ export type Meta = components["schemas"]["Meta"];
 export type MethodsOverview = components["schemas"]["MethodsOverview"];
 export type MetricValue = components["schemas"]["MetricValue"];
 export type MissingnessTest = components["schemas"]["MissingnessTest"];
+export type ModelCallTrace = components["schemas"]["ModelCallTrace"];
 export type ModelCard = components["schemas"]["ModelCard"];
 export type ModelCardRef = components["schemas"]["ModelCardRef"];
 export type ModelResult = components["schemas"]["ModelResult"];
@@ -7321,6 +7406,55 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Investigation"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_investigation_calls: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        investigation_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ModelCallTrace"][];
         };
       };
       /** @description Not found */

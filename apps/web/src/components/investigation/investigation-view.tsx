@@ -29,6 +29,7 @@ import { EvidencePanel } from "./evidence-panel";
 import { type EvidenceSelection, Report } from "./report";
 import { StatusLabel } from "./status-label";
 import { Steps } from "./steps";
+import { Trace } from "./trace";
 import { StopInvestigationButton } from "./stop-investigation";
 
 export function InvestigationView({ id }: { id: string }) {
@@ -196,6 +197,8 @@ export function InvestigationView({ id }: { id: string }) {
           </div>
         </div>
       </div>
+
+      <Trace investigation={inv} running={running} />
 
       {inv.work_order_id && !replay ? (
         <section

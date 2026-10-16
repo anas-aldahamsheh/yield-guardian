@@ -2530,6 +2530,74 @@
         }
       }
     },
+    "/api/v1/investigations/{investigation_id}/calls": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "List Investigation Calls",
+        "description": "Every model call of the investigation, oldest first, with a masked, truncated copy of\nwhat was sent and what came back. Another workspace's investigation answers 404.",
+        "operationId": "list_investigation_calls",
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^inv_[0-9a-z]{8,40}$",
+              "title": "Investigation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModelCallTrace"
+                  },
+                  "title": "Response List Investigation Calls"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/investigations/{investigation_id}/evidence/{evidence_id}": {
       "get": {
         "tags": [
@@ -10583,6 +10651,183 @@
         ],
         "title": "MissingnessTest",
         "description": "Fisher exact test of missingness versus failure, with Benjamini-Hochberg correction."
+      },
+      "ModelCallTrace": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "investigator",
+              "writer",
+              "verifier",
+              "chat",
+              "router",
+              "ocr",
+              "vision"
+            ],
+            "title": "Role"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "description": "token_factory or tokenharbor (inferred from the model id)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error",
+              "empty",
+              "invalid_output",
+              "refused_profile"
+            ],
+            "title": "Status"
+          },
+          "cache_hit": {
+            "type": "boolean",
+            "title": "Cache Hit"
+          },
+          "http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Status"
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Kind"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Latency Ms"
+          },
+          "tokens_in": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens In"
+          },
+          "tokens_out": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens Out"
+          },
+          "tokens_reasoning": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens Reasoning"
+          },
+          "points": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points"
+          },
+          "sent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent",
+            "description": "The request's last user or tool message, secrets masked, at most 4000 characters."
+          },
+          "returned": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returned",
+            "description": "The answer's content or tool calls, secrets masked, at most 4000 characters."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "at",
+          "role",
+          "model_id",
+          "provider",
+          "status",
+          "cache_hit",
+          "http_status",
+          "error_kind",
+          "error",
+          "latency_ms",
+          "tokens_in",
+          "tokens_out",
+          "tokens_reasoning",
+          "points",
+          "sent",
+          "returned"
+        ],
+        "title": "ModelCallTrace",
+        "description": "One model call attempt of an investigation, with what was sent and what came back."
       },
       "ModelCard": {
         "properties": {

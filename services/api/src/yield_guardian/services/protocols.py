@@ -1,6 +1,7 @@
 """Interfaces of the API's own services (stores, sessions, alarms). Implementations live next to
 this module; the science and AI interfaces are in yield_guardian.contracts.services."""
 
+import builtins
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,6 +15,7 @@ from yield_guardian.contracts.investigation import (
     InvestigationPage,
     InvestigationStatus,
     InvestigationTrigger,
+    ModelCallTrace,
 )
 from yield_guardian.contracts.line import AlarmKind, AlarmPage, AlarmStatus
 from yield_guardian.contracts.methods import MeasuredResults, MethodsOverview, ModelCard
@@ -128,6 +130,12 @@ class InvestigationStore(Protocol):
     async def get_evidence(
         self, investigation_id: str, evidence_id: str, viewer: Viewer | None = None
     ) -> Evidence: ...
+
+    async def calls(
+        self, investigation_id: str, viewer: Viewer | None = None
+    ) -> builtins.list[ModelCallTrace]:
+        """The investigation's model calls, oldest first."""
+        ...
 
     def events(
         self, investigation_id: str, *, after_seq: int | None = None

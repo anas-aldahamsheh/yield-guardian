@@ -18,8 +18,14 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict
 
+from yield_guardian.contracts.investigation import ModelCallTrace
 from yield_guardian.contracts.models import CallStatus as ContractCallStatus
 from yield_guardian.contracts.models import CallUsage, LlmCall, RoleName, Usage
+from yield_guardian.llm.errors import mask_secrets
+from yield_guardian.llm.messages import ChatMessage, ChatRequest, TextPart, ToolCall
+
+MAX_TRACE_CHARS = 4000
+"""How much of the sent and returned text a call record keeps."""
 
 
 class CallStatus(StrEnum):
@@ -56,6 +62,10 @@ class LlmCallRecord(BaseModel):
     """The provider's error body on an HTTP error, secrets masked, at most 2000 characters."""
     request_key: str | None = None
     correlation_id: str | None = None
+    sent_text: str | None = None
+    """The request's last user or tool message, secrets masked, cut to MAX_TRACE_CHARS."""
+    returned_text: str | None = None
+    """The answer's content (or its tool calls), secrets masked, cut to MAX_TRACE_CHARS."""
 
     @property
     def sent(self) -> bool:
@@ -74,6 +84,36 @@ class LlmCallLog(Protocol):
     async def since(self, start: datetime) -> Sequence[LlmCallRecord]:
         """Records with ``started_at >= start``, oldest first."""
         ...
+
+
+def _excerpt(text: str) -> str | None:
+    text = mask_secrets(text.strip())
+    if not text:
+        return None
+    return text if len(text) <= MAX_TRACE_CHARS else text[:MAX_TRACE_CHARS] + "…"
+
+
+def _message_text(message: ChatMessage) -> str:
+    if isinstance(message.content, str):
+        return message.content
+    if message.content is None:
+        return ""
+    return "\n".join(p.text if isinstance(p, TextPart) else "[image]" for p in message.content)
+
+
+def sent_excerpt(request: ChatRequest) -> str | None:
+    """The last user or tool message of ``request`` (what this call newly asks)."""
+    for message in reversed(request.messages):
+        if message.role in ("user", "tool"):
+            prefix = "[tool result]\n" if message.role == "tool" else ""
+            return _excerpt(prefix + _message_text(message))
+    return _excerpt(_message_text(request.messages[-1]))
+
+
+def returned_excerpt(content: str | None, tool_calls: Sequence[ToolCall]) -> str | None:
+    parts = [content or ""]
+    parts += [f"-> {c.function.name}({c.function.arguments})" for c in tool_calls]
+    return _excerpt("\n".join(p for p in parts if p))
 
 
 class InMemoryCallLog:
@@ -128,6 +168,32 @@ def to_llm_call(record: LlmCallRecord) -> LlmCall:
         points=_points(record),
         latency_ms=max(round(record.latency_ms), 0),
         error=error,
+    )
+
+
+def provider_of(model: str) -> str:
+    """The provider that serves ``model``: TokenHarbor's ids end in ``:free``."""
+    return "tokenharbor" if model.endswith(":free") else "token_factory"
+
+
+def to_call_trace(record: LlmCallRecord) -> ModelCallTrace:
+    return ModelCallTrace(
+        at=record.started_at,
+        role=record.role,
+        model_id=record.model,
+        provider=provider_of(record.model),
+        status=record.status.value,
+        cache_hit=record.cache_hit,
+        http_status=record.http_status,
+        error_kind=record.error_kind,
+        error=record.error_message,
+        latency_ms=max(round(record.latency_ms), 0),
+        tokens_in=record.tokens_in,
+        tokens_out=record.tokens_out,
+        tokens_reasoning=record.tokens_reasoning,
+        points=_points(record),
+        sent=record.sent_text,
+        returned=record.returned_text,
     )
 
 

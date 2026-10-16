@@ -19,6 +19,7 @@ from yield_guardian.contracts.investigation import (
     InvestigationCreate,
     InvestigationPage,
     InvestigationStatus,
+    ModelCallTrace,
 )
 from yield_guardian.services.access import viewing
 from yield_guardian.services.investigations import check_run_alarm
@@ -140,6 +141,19 @@ async def stop_investigation(
     user". 409 once it has finished (or awaits a decision); the product's example is read-only
     (403); another workspace's investigation answers 404, as a missing one does."""
     return await store.stop(investigation_id, session=session)
+
+
+@router.get(
+    "/investigations/{investigation_id}/calls",
+    operation_id="list_investigation_calls",
+    responses=problem_responses(404, 503),
+)
+async def list_investigation_calls(
+    store: Investigations, session: CurrentSession, investigation_id: InvestigationPath
+) -> list[ModelCallTrace]:
+    """Every model call of the investigation, oldest first, with a masked, truncated copy of
+    what was sent and what came back. Another workspace's investigation answers 404."""
+    return await store.calls(investigation_id, session.viewer)
 
 
 @router.get(

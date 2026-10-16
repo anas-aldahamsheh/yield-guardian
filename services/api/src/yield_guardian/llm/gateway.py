@@ -41,7 +41,13 @@ import structlog
 from pydantic import BaseModel
 
 from yield_guardian.llm.cache import ResponseCache, cache_key
-from yield_guardian.llm.calllog import CallStatus, LlmCallLog, LlmCallRecord
+from yield_guardian.llm.calllog import (
+    CallStatus,
+    LlmCallLog,
+    LlmCallRecord,
+    returned_excerpt,
+    sent_excerpt,
+)
 from yield_guardian.llm.client import TokenFactoryClient
 from yield_guardian.llm.errors import (
     EmptyCompletionError,
@@ -364,7 +370,7 @@ class LlmGateway:
         parse: Callable[[ChatResult], T],
     ) -> tuple[ChatResult, T]:
         profile = resolved.profile
-        log = _Logger(self, role, profile.id, options, stream=False)
+        log = _Logger(self, role, profile.id, options, stream=False, request=request)
         try:
             built = build_chat_request(profile, request)
         except ProfileViolationError as exc:
@@ -476,7 +482,7 @@ class LlmGateway:
         self, role: Role, resolved: ResolvedChoice, request: ChatRequest, options: CallOptions
     ) -> AsyncGenerator[StreamDelta | ChatResult]:
         profile = resolved.profile
-        log = _Logger(self, role, profile.id, options, stream=True)
+        log = _Logger(self, role, profile.id, options, stream=True, request=request)
         try:
             built = build_chat_request(profile, request, stream=True)
         except ProfileViolationError as exc:
@@ -532,9 +538,17 @@ class _Logger:
     """Builds the one call record of an attempt."""
 
     def __init__(
-        self, gateway: LlmGateway, role: Role, model: str, options: CallOptions, *, stream: bool
+        self,
+        gateway: LlmGateway,
+        role: Role,
+        model: str,
+        options: CallOptions,
+        *,
+        stream: bool,
+        request: ChatRequest,
     ) -> None:
         self._gateway = gateway
+        self._sent_text = sent_excerpt(request)
         self._role = role
         self._model = model
         self._options = options
@@ -552,6 +566,7 @@ class _Logger:
             model=self._model,
             stream=self._stream,
             correlation_id=self._options.correlation_id,
+            sent_text=self._sent_text,
             **fields,
         )
         await self._gateway.call_log.record(record)
@@ -645,5 +660,6 @@ class _Logger:
             error_kind=None if error is None else str(status),
             error_message=None if error is None else error[:500],
             request_key=result.cache_key,
+            returned_text=returned_excerpt(result.content, result.tool_calls),
             **tokens,
         )

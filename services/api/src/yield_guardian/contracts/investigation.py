@@ -178,6 +178,34 @@ class InvestigationStep(Contract):
     llm: list[CallUsage]
 
 
+ModelCallStatus = Literal["ok", "error", "empty", "invalid_output", "refused_profile"]
+
+
+class ModelCallTrace(Contract):
+    """One model call attempt of an investigation, with what was sent and what came back."""
+
+    at: datetime
+    role: RoleName
+    model_id: str
+    provider: str = Field(description="token_factory or tokenharbor (inferred from the model id).")
+    status: ModelCallStatus
+    cache_hit: bool
+    http_status: int | None
+    error_kind: str | None
+    error: str | None
+    latency_ms: Count
+    tokens_in: Count | None
+    tokens_out: Count | None
+    tokens_reasoning: Count | None
+    points: float | None
+    sent: str | None = Field(
+        description="The request's last user or tool message, secrets masked, at most 4000 characters."
+    )
+    returned: str | None = Field(
+        description="The answer's content or tool calls, secrets masked, at most 4000 characters."
+    )
+
+
 class InvestigationTrigger(Contract):
     kind: TriggerKind
     ref: str = Field(
