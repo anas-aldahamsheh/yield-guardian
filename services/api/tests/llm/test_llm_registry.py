@@ -38,13 +38,10 @@ def registry(store: InMemoryRoleAssignmentStore | None = None) -> ModelRegistry:
 
 
 def test_defaults_follow_plan_section_7_1() -> None:
-    harbor = ModelChoice(
-        model=TOKENHARBOR_MODEL, response_mode=OBJECT, provider=Provider.TOKENHARBOR
-    )
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
         Role.INVESTIGATOR: TOKENHARBOR_MODEL,
-        Role.WRITER: TOKENHARBOR_MODEL,
+        Role.WRITER: "Qwen3.8-Flash-Next",
         Role.VERIFIER: "GLM-5.3-Flash",
         Role.CHAT: TOKENHARBOR_MODEL,
         Role.ROUTER: TOKENHARBOR_MODEL,
@@ -55,7 +52,6 @@ def test_defaults_follow_plan_section_7_1() -> None:
     # returned long outputs reliably live, 2026-10-14), then DeepSeek, then MiMo. MiMo refused
     # strict json_schema live; every structured default is json_object.
     assert DEFAULT_CHAINS[Role.WRITER] == (
-        harbor,
         ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
         ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
         ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT),
