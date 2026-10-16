@@ -116,6 +116,11 @@ function finalTestSummary(
   };
 }
 
+/** Runs `fn` once React has committed the next render and the browser has laid it out. */
+function afterLayout(fn: () => void) {
+  requestAnimationFrame(() => requestAnimationFrame(fn));
+}
+
 /**
  * The Line page: choose an input, and watch each station compute its result from it. The URL
  * holds the run, the open station, the unit, wafer or lot in view and the chosen alarm, so a
@@ -123,6 +128,7 @@ function finalTestSummary(
  * run of that item. `stored` is the run's state as the server read it to render the page, so a
  * reload shows every result at once, as it stands, with nothing replayed.
  */
+
 export function LinePage({
   initialQuery,
   stored = null,
@@ -190,10 +196,13 @@ export function LinePage({
         { runId: run.run_id, station: url.runId ? null : url.station, focus: null, alarm: null },
         mode,
       );
-      bayRef.current?.scrollIntoView({
-        block: "start",
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
+      // After the re-render: the line moves above Your work once it shows a run.
+      afterLayout(() =>
+        bayRef.current?.scrollIntoView({
+          block: "start",
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        }),
+      );
     },
     [go, setWay, url.runId, url.station],
   );
@@ -306,7 +315,7 @@ export function LinePage({
   };
   const newRun = () => {
     go({ runId: null, station: null, focus: null, alarm: null }, "push");
-    document.getElementById("line-title")?.scrollIntoView({ block: "start" });
+    afterLayout(() => document.getElementById("line-title")?.scrollIntoView({ block: "start" }));
   };
 
   const drawer =
@@ -358,7 +367,7 @@ export function LinePage({
         // A station saved with the run opens as if chosen here: its drawer comes into view.
         if (next.station != null) setStationBy("person");
         go(next, "push");
-        bayRef.current?.scrollIntoView({ block: "start" });
+        afterLayout(() => bayRef.current?.scrollIntoView({ block: "start" }));
       }}
     />
   );
