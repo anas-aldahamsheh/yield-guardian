@@ -646,8 +646,9 @@
       var(--glow, color-mix(in oklab, var(--signal) 10%, transparent)),
       transparent 70%
     );
+    /* Shown at once, with no fade: a fading light would need a layer of its own, and everything
+       in the panel drawn over it would have to leave the page's layer with it. */
     opacity: 0;
-    transition: opacity var(--dur-3) var(--ease-out);
   }
   @media (hover: hover) {
     .glow:hover::after {
@@ -800,7 +801,9 @@
     animation: page-enter var(--dur-4) var(--ease-out) backwards;
   }
 
-  /* Swapped content (an evidence record, a tab): a quick crossfade with a small rise. */
+  /* Swapped content (an evidence record, a tab, a station's sentence): a quick crossfade. It
+     fades and does not move: much of it sits above the instruments, and a transform under way
+     there would lift everything drawn after it onto layers of their own until it settled. */
   .swap-in {
     animation: swap-in var(--dur-3) var(--ease-out) backwards;
   }
@@ -829,6 +832,12 @@
   .rise-in {
     animation: rise-in 700ms var(--ease-out) backwards;
     animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 70ms);
+  }
+
+  /* A station's state changing live: the chip springs in (scale and opacity, no filter: a filter
+     would draw it through a pass of its own while it plays). */
+  .chip-in {
+    animation: chip-in 520ms var(--ease-spring) backwards;
   }
 
   /* Pressable: goes down under a press with a firm spring, comes back with it. */
@@ -993,11 +1002,9 @@
 @keyframes swap-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -1027,6 +1034,16 @@
   from {
     opacity: 0;
     transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
   }
   to {
     opacity: 1;

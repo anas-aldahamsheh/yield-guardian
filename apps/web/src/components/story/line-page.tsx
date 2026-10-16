@@ -679,7 +679,9 @@ function RunStrip({
           </p>
         ) : null}
       </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
+      {/* Clipped, with room for the focus ring: a button going down under a press would otherwise
+          lift the stations below onto layers of their own until it came back up. */}
+      <div className="flex shrink-0 flex-wrap gap-2 [overflow:clip] [overflow-clip-margin:8px]">
         {playing ? (
           <Button type="button" variant="outline" size="sm" onClick={onFinish}>
             Show every result now

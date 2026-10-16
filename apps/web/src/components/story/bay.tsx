@@ -173,25 +173,30 @@ function Track({
       {/* The bare track */}
       <span className="absolute top-0 bottom-0 left-[27px] w-[2px] rounded-full bg-hairline-strong md:hidden" />
       <span className="absolute inset-x-0 top-[25px] hidden h-[2px] bg-hairline-strong md:block" />
-      {/* The film where data has reached */}
+      {/* The film where data has reached: the stretch lights up, slowly while results arrive and
+          at once when the line is at rest. It fades rather than grows (a stretch scaled from
+          nothing would take the stations drawn after it onto layers of their own while it ran),
+          and it stops a hair short of the next station so that, lighting up, it never overlaps it. */}
       <span
         className={cn(
-          "absolute top-0 bottom-0 left-[27px] w-[2px] origin-top rounded-full bg-[linear-gradient(180deg,var(--seg-a),var(--seg-b))] md:hidden",
-          live && "transition-transform duration-[900ms] ease-in-out",
-          reached ? "scale-y-100" : "scale-y-0",
+          "absolute top-0.5 bottom-0.5 left-[27px] w-[2px] rounded-full bg-[linear-gradient(180deg,var(--seg-a),var(--seg-b))] md:hidden",
+          live && "transition-opacity duration-[900ms] ease-in-out",
+          reached ? "opacity-100" : "opacity-0",
         )}
       />
       <span
         className={cn(
-          "absolute inset-x-0 top-[25px] hidden h-[2px] origin-left bg-[linear-gradient(90deg,var(--seg-a),var(--seg-b))] md:block",
-          live && "transition-transform duration-[900ms] ease-in-out",
-          reached ? "scale-x-100" : "scale-x-0",
+          "absolute inset-x-0.5 top-[25px] hidden h-[2px] bg-[linear-gradient(90deg,var(--seg-a),var(--seg-b))] md:block",
+          live && "transition-opacity duration-[900ms] ease-in-out",
+          reached ? "opacity-100" : "opacity-0",
         )}
       />
-      {/* The node */}
+      {/* The node, on a layer of its own: it sits on the film, so while the film lights up it is
+          drawn above it, and on its own layer it goes there alone instead of taking the rest of
+          the station with it. */}
       <span
         className={cn(
-          "absolute top-[23px] left-[21px] size-[14px] rounded-full transition-[background-color,box-shadow] duration-(--dur-4) md:top-[19px]",
+          "absolute top-[23px] left-[21px] size-[14px] rounded-full transition-[background-color,box-shadow] duration-(--dur-4) will-change-transform md:top-[19px]",
           reached
             ? "bg-(--seg-a) shadow-[0_0_0_4px_color-mix(in_oklab,var(--seg-a)_22%,transparent)]"
             : "bg-surface shadow-[inset_0_0_0_2px_var(--hairline-strong)]",
@@ -248,19 +253,21 @@ function Tile({
       )}
     >
       <Track index={index} reached={reached} working={tone === "working"} live={live} />
-      {overlay}
       <div className="flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-1 self-start">
         {heading}
       </div>
       <div
         data-theme="dark"
-        className="screen glow relative mt-3 flex flex-col justify-center overflow-hidden p-2.5 transition-[translate,box-shadow] duration-(--dur-4) ease-spring [--glow-size:260px] [--glow:rgb(255_255_255/0.07)] group-hover/tile:-translate-y-0.5 group-hover/tile:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12),inset_0_1px_0_rgb(255_255_255/0.08),0_18px_32px_-22px_rgb(0_0_0/0.6)] sm:p-3"
+        className="screen glow relative mt-3 flex flex-col justify-center overflow-hidden p-2.5 transition-[box-shadow] duration-(--dur-4) ease-out [--glow-size:260px] [--glow:rgb(255_255_255/0.07)] group-hover/tile:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12),inset_0_1px_0_rgb(255_255_255/0.08),0_18px_32px_-22px_rgb(0_0_0/0.6)] sm:p-3"
       >
         <div>{tool}</div>
         {tone === "working" ? <WorkingSweep /> : null}
         {live && sweep != null && tone !== "working" ? <Sweep key={sweep} /> : null}
       </div>
       <div className="mt-4 flex min-w-0 flex-col gap-1.5">{children}</div>
+      {/* Drawn last: while it rings, nothing of the station is drawn over it, so nothing has to
+          leave the page's layer to stay above it. */}
+      {overlay}
     </div>
   );
 }
@@ -283,6 +290,18 @@ function Sweep() {
   const [played, setPlayed] = useState(false);
   if (played) return null;
   return <span aria-hidden className="sweep" data-once="" onAnimationEnd={() => setPlayed(true)} />;
+}
+
+/**
+ * A station ringing red once as its alarm arrives. Like the sweep, it leaves once played: an
+ * overlay kept over the station would hold the stations drawn after it on layers of their own.
+ */
+function Pulse() {
+  const [played, setPlayed] = useState(false);
+  if (played) return null;
+  return (
+    <span aria-hidden="true" className={styles.pulse} onAnimationEnd={() => setPlayed(true)} />
+  );
 }
 
 const TONE_TEXT: Record<StationTone, string> = {
@@ -308,36 +327,43 @@ export function ToneChip({
   if (tone === "idle") return null;
   const kind = tone === "working" ? (clock?.kind ?? "computing") : null;
   const springs = change != null && (live || tone === "working");
+  // It springs inside a clip of its own, with room for the overshoot: while a transform runs the
+  // compositor cannot tell where it ends up, and unclipped it would lift the rest of the station
+  // onto layers of their own until it settles.
   return (
-    <span
-      key={springs ? `${tone}-${change}` : tone}
-      className={cn(
-        "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560] whitespace-nowrap",
-        springs && "animate-in duration-[520ms] ease-spring fade-in-0 zoom-in-75",
-        tone === "needs" && "bg-surface-2 text-ink-2",
-        // Its clock ticks ten times a second: on a layer of its own, a tick redraws the chip and
-        // not the instruments around it.
-        tone === "working" && "bg-signal-wash text-ink will-change-transform",
-        tone === "ok" && "bg-pass-wash text-ink",
-        (tone === "alarm" || tone === "failed") && "bg-fail-wash text-ink",
-      )}
-    >
-      {tone === "working" ? (
-        <span className="size-1.5 rounded-full bg-signal" aria-hidden="true" />
-      ) : null}
-      {tone === "ok" ? <span className="size-1.5 rounded-full bg-pass" aria-hidden="true" /> : null}
-      {tone === "alarm" || tone === "failed" ? (
-        <span className="size-1.5 rounded-full bg-fail" aria-hidden="true" />
-      ) : null}
-      {tone === "needs" ? (
-        <span className="size-1.5 rounded-full border border-ink-3" aria-hidden="true" />
-      ) : null}
-      {kind === "computed" ? "Computed in" : kind === "waiting" ? "Waiting" : TONE_TEXT[tone]}
-      {kind && kind !== "waiting" && clock ? (
-        <span className="tnum text-ink-2">
-          {kind === "computed" && clock.ms < 1 ? "under 1 ms" : formatDuration(clock.ms)}
-        </span>
-      ) : null}
+    <span className="-m-1 inline-flex overflow-hidden p-1">
+      <span
+        key={springs ? `${tone}-${change}` : tone}
+        className={cn(
+          "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560] whitespace-nowrap",
+          springs && "chip-in",
+          tone === "needs" && "bg-surface-2 text-ink-2",
+          // Its clock ticks ten times a second: on a layer of its own, a tick redraws the chip and
+          // not the instruments around it.
+          tone === "working" && "bg-signal-wash text-ink will-change-transform",
+          tone === "ok" && "bg-pass-wash text-ink",
+          (tone === "alarm" || tone === "failed") && "bg-fail-wash text-ink",
+        )}
+      >
+        {tone === "working" ? (
+          <span className="size-1.5 rounded-full bg-signal" aria-hidden="true" />
+        ) : null}
+        {tone === "ok" ? (
+          <span className="size-1.5 rounded-full bg-pass" aria-hidden="true" />
+        ) : null}
+        {tone === "alarm" || tone === "failed" ? (
+          <span className="size-1.5 rounded-full bg-fail" aria-hidden="true" />
+        ) : null}
+        {tone === "needs" ? (
+          <span className="size-1.5 rounded-full border border-ink-3" aria-hidden="true" />
+        ) : null}
+        {kind === "computed" ? "Computed in" : kind === "waiting" ? "Waiting" : TONE_TEXT[tone]}
+        {kind && kind !== "waiting" && clock ? (
+          <span className="tnum text-ink-2">
+            {kind === "computed" && clock.ms < 1 ? "under 1 ms" : formatDuration(clock.ms)}
+          </span>
+        ) : null}
+      </span>
     </span>
   );
 }
@@ -418,7 +444,7 @@ function StationTile({
       stagesShown={shownCount}
       labelledBy={id}
       open={open}
-      overlay={pulse > 0 ? <span key={pulse} aria-hidden="true" className={styles.pulse} /> : null}
+      overlay={pulse > 0 ? <Pulse key={pulse} /> : null}
       heading={
         <>
           <h3 id={id} className="text-[16px] leading-6 font-[630] tracking-[-0.01em]">
