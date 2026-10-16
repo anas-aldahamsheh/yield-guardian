@@ -469,6 +469,20 @@ export function LinePage({
               </div>
             </div>
           </div>
+          {drawer && state ? (
+            <StationDrawer
+              station={drawer}
+              state={state}
+              revealed={revealed}
+              focus={focus}
+              onFocus={setFocus}
+              onClose={() => setStation(null)}
+              // A drawer open in the URL (a reload, a link, back and forward) is already where the
+              // person left it: it neither fades in nor moves the page.
+              restored={stationBy !== "person"}
+              landing={stationBy === "document"}
+            />
+          ) : null}
           {/* The result, under the line: it comes once final test is stamped (or the line is
               over without it), and each part fills as its stage is shown. */}
           {state && (over || revealed.has("final_test")) ? (
@@ -486,20 +500,6 @@ export function LinePage({
       </section>
 
       <div className="mx-auto w-full max-w-[1600px] px-gutter pb-20">
-        {drawer && state ? (
-          <StationDrawer
-            station={drawer}
-            state={state}
-            revealed={revealed}
-            focus={focus}
-            onFocus={setFocus}
-            onClose={() => setStation(null)}
-            // A drawer open in the URL (a reload, a link, back and forward) is already where the
-            // person left it: it neither fades in nor moves the page.
-            restored={stationBy !== "person"}
-            landing={stationBy === "document"}
-          />
-        ) : null}
         {state ? (
           <LaterStations
             state={state}
