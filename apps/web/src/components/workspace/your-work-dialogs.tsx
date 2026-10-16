@@ -39,7 +39,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useApi } from "@/lib/api/context";
 import { describeError } from "@/lib/api/errors";
-import { useCreateHandoff, useFreshWorkspace, useUpdateWorkRun, wq } from "@/lib/api/workspace";
+import {
+  useCreateHandoff,
+  useDeleteWorkRun,
+  useFreshWorkspace,
+  useUpdateWorkRun,
+  wq,
+} from "@/lib/api/workspace";
 import { formatDateTime, formatInt, formatRelative, plural } from "@/lib/format";
 import { ACTOR_ROLE, RUN_STAGE, RUN_STATUS, STAGE_STATUS, patternName } from "@/lib/labels";
 import { toast } from "@/lib/toast";
@@ -126,6 +132,60 @@ export function RenameDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// -- delete --------------------------------------------------------------------------------------
+
+/** Deletes a run for good, on every device of the workspace, once the person confirms. */
+export function DeleteRunDialog({
+  run,
+  open,
+  onOpenChange,
+  onDeleted,
+}: {
+  run: WorkRun;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDeleted: (run: WorkRun) => void;
+}) {
+  const remove = useDeleteWorkRun();
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this run?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Its results, alarms and the investigations started from it are removed on every device
+            in this workspace. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {remove.isError ? (
+          <p role="alert" className="text-[13.5px] leading-5 text-fail">
+            {`${describeError(remove.error).title}. ${describeError(remove.error).detail}`}
+          </p>
+        ) : null}
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={remove.isPending}
+            onClick={(event) => {
+              event.preventDefault();
+              remove.mutate(run.run_id, {
+                onSuccess: () => {
+                  onOpenChange(false);
+                  onDeleted(run);
+                  toast.success("Run deleted");
+                },
+              });
+            }}
+          >
+            {remove.isPending ? "Deleting" : "Delete run"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

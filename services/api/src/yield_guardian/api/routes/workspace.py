@@ -3,7 +3,7 @@ owner's "keep the full context" ask). Lists are per workspace; without a session
 
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, Path, Query, status
 
 from yield_guardian.api.deps import CurrentSession, Workspace, WorkspaceSession
 from yield_guardian.api.problems import problem_responses
@@ -51,6 +51,21 @@ async def update_workspace_run(
     """Name a run, note on it, archive or restore it, or save the view to reopen it on. Only
     runs of this workspace."""
     return await workspace.update_run(session.workspace_id, run_id, body)
+
+
+@router.delete(
+    "/workspace/runs/{run_id}",
+    operation_id="delete_workspace_run",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses=problem_responses(400, 401, 403, 404, 503),
+)
+async def delete_workspace_run(
+    session: WorkspaceSession, workspace: Workspace, run_id: RunPath
+) -> None:
+    """Delete a run of this workspace for good: its results, alarms and the investigations this
+    workspace started from it, with their work orders and audit entries. Only runs of this
+    workspace; the product's example is never deleted (403)."""
+    await workspace.delete_run(session.workspace_id, run_id)
 
 
 @router.get(

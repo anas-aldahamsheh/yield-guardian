@@ -132,7 +132,7 @@ CHECKPOINT_TABLES = ("checkpoint_writes", "checkpoint_blobs", "checkpoints")
 paused state, keyed by its ID as the thread ID."""
 
 
-async def _forget_checkpoints(db: AsyncSession, investigation_ids: list[str]) -> None:
+async def forget_checkpoints(db: AsyncSession, investigation_ids: list[str]) -> None:
     """Delete the investigator's saved state of these investigations, where the checkpointer
     created its tables in this database."""
     if not investigation_ids:
@@ -611,7 +611,7 @@ class DbSessionManager:
                     ).all()
                 )
                 await db.execute(delete(WorkspaceRow).where(WorkspaceRow.workspace_id.in_(doomed)))
-                await _forget_checkpoints(db, investigations)
+                await forget_checkpoints(db, investigations)
             report = SessionPruneReport(
                 sessions=len(sessions.all()),
                 handoffs=len(handoffs.all()),

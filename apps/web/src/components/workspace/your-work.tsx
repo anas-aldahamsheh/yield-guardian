@@ -63,6 +63,9 @@ const RenameDialog = dynamic(() => loadDialogs().then((m) => m.RenameDialog), { 
 const CompareDialog = dynamic(() => loadDialogs().then((m) => m.CompareDialog), { ssr: false });
 const HandoffDialog = dynamic(() => loadDialogs().then((m) => m.HandoffDialog), { ssr: false });
 const FreshDialog = dynamic(() => loadDialogs().then((m) => m.FreshDialog), { ssr: false });
+const DeleteRunDialog = dynamic(() => loadDialogs().then((m) => m.DeleteRunDialog), {
+  ssr: false,
+});
 
 /** Every card and the strip's placeholders take this height, so nothing moves when runs arrive. */
 const CARD_HEIGHT = "min-h-[11.5rem]";
@@ -72,6 +75,7 @@ const IDLE_EVERY_MS = 20_000;
 type Dialog =
   | { kind: "rename"; run: WorkRun }
   | { kind: "compare"; run: WorkRun }
+  | { kind: "delete"; run: WorkRun }
   | { kind: "handoff" }
   | { kind: "fresh" }
   | null;
@@ -181,6 +185,7 @@ export function YourWork({
           onOpen({ runId: created.run_id, station: null, focus: null, alarm: null }),
       }),
     archive: (run, value) => update.mutate({ runId: run.run_id, body: { archived: value } }),
+    remove: (run) => setDialog({ kind: "delete", run }),
     showArchived: setArchived,
     handoff: () => setDialog({ kind: "handoff" }),
     fresh: () => setDialog({ kind: "fresh" }),
@@ -348,6 +353,18 @@ export function YourWork({
           runs={items}
           open
           onOpenChange={(open) => !open && setDialog(null)}
+        />
+      ) : null}
+      {dialog?.kind === "delete" ? (
+        <DeleteRunDialog
+          run={dialog.run}
+          open
+          onOpenChange={(open) => !open && setDialog(null)}
+          onDeleted={(run) => {
+            // The run on the line is gone: the line goes back to idle.
+            if (run.run_id === onLine)
+              onOpen({ runId: null, station: null, focus: null, alarm: null });
+          }}
         />
       ) : null}
       {dialog?.kind === "handoff" ? (

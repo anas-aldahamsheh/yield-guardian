@@ -23,6 +23,7 @@ export interface RunActions {
   compare: (run: WorkRun) => void;
   again: (run: WorkRun) => void;
   archive: (run: WorkRun, archived: boolean) => void;
+  remove: (run: WorkRun) => void;
   showArchived: (archived: boolean) => void;
   handoff: () => void;
   fresh: () => void;
@@ -110,6 +111,9 @@ export function RunMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => actions.archive(run, !run.archived)}>
           {run.archived ? "Restore to your runs" : "Archive"}
+        </DropdownMenuItem>
+        <DropdownMenuItem variant="destructive" onSelect={() => actions.remove(run)}>
+          Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

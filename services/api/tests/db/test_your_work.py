@@ -350,3 +350,47 @@ async def test_the_admin_lists_and_revokes_sessions(stack: Stack) -> None:
     assert [e["target_id"] for e in entries["items"]] == [row["session_id"]]
     for client in (visitor.client, admin.client):
         await client.aclose()
+
+
+async def test_the_owner_deletes_a_run_with_the_investigations_started_from_it(
+    stack: Stack,
+) -> None:
+    b = await open_browser(stack, "Mia")
+    run_id = await start_run(b)
+    run = await finish(b, run_id)
+    alarm = run["alarms"][0]["alarm_id"]
+    created = await b.client.post(
+        "/api/v1/investigations",
+        json={"trigger": {"kind": "run_alarm", "ref": f"{run_id}:{alarm}"}},
+        headers=b.headers(),
+    )
+    investigation_id = created.json()["investigation_id"]
+    await follow(b.client, f"/api/v1/investigations/{investigation_id}/events")
+    path = f"/api/v1/workspace/runs/{run_id}"
+    assert (await b.client.delete(path)).status_code == 403  # the CSRF token is needed
+    deleted = await b.client.delete(path, headers=b.headers())
+    assert deleted.status_code == 204, deleted.text
+    assert (await b.client.get(f"/api/v1/runs/{run_id}")).status_code == 404
+    assert (await b.client.get(f"/api/v1/investigations/{investigation_id}")).status_code == 404
+    assert await work(b) == []
+    assert (await b.client.get("/api/v1/workspace/investigations")).json()["items"] == []
+
+
+async def test_another_workspace_cannot_delete_a_run(stack: Stack) -> None:
+    owner = await open_browser(stack)
+    other = await open_browser(stack)
+    run_id = await start_run(owner)
+    await finish(owner, run_id)
+    refused = await other.client.delete(f"/api/v1/workspace/runs/{run_id}", headers=other.headers())
+    assert refused.status_code == 404
+    assert refused.json()["code"] == "not_found"
+    assert [r["run_id"] for r in await work(owner)] == [run_id]
+
+
+async def test_a_run_deleted_twice_is_not_found_the_second_time(stack: Stack) -> None:
+    b = await open_browser(stack)
+    run_id = await start_run(b)
+    await finish(b, run_id)
+    path = f"/api/v1/workspace/runs/{run_id}"
+    assert (await b.client.delete(path, headers=b.headers())).status_code == 204
+    assert (await b.client.delete(path, headers=b.headers())).status_code == 404

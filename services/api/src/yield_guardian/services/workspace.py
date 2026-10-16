@@ -15,7 +15,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 from urllib.parse import parse_qsl
 
-from sqlalchemy import ColumnElement, Select, func, or_, select, tuple_
+from sqlalchemy import ColumnElement, Select, and_, delete, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import load_only
 
@@ -35,13 +35,18 @@ from yield_guardian.contracts.workspace import (
     WorkUploadPage,
 )
 from yield_guardian.db.tables import (
+    AlarmStateRow,
+    AuditEntryRow,
     InvestigationRow,
     RunRow,
     RunStageRow,
     UploadRow,
+    WorkOrderRow,
     WorkspaceRow,
 )
 from yield_guardian.services import cursors
+from yield_guardian.services.access import is_example
+from yield_guardian.services.errors import ReadOnlyError
 from yield_guardian.services.investigations import to_summary
 from yield_guardian.services.run_export import turns_red
 from yield_guardian.services.runs import (
@@ -50,6 +55,7 @@ from yield_guardian.services.runs import (
     missing,
     used_by_investigation,
 )
+from yield_guardian.services.sessions import forget_checkpoints
 
 RUN_CURSOR = "wrun"
 UPLOAD_CURSOR = "wupl"
@@ -262,6 +268,73 @@ class DbWorkspaceStore:
             await db.flush()
             [item] = await self._work_runs(db, owner, [row])
         return item
+
+    async def delete_run(self, workspace_id: str | None, run_id: str) -> None:
+        """Delete a run of this workspace for good, with everything keyed to it: its items,
+        charts, stages and events (cascaded), and the investigations this workspace started
+        from its alarms, with their events, jobs, work orders (cascaded), alarm states, audit
+        entries and the investigator's saved state. Another workspace's run, or a run of no
+        workspace, gets what a missing one gets; the product's example is never deleted."""
+        owner = _ws(workspace_id)
+        async with self._sessionmaker() as db, db.begin():
+            row = await db.scalar(select(RunRow).where(RunRow.run_id == run_id).with_for_update())
+            if row is not None and row.workspace_id is None:
+                raise NotFoundError(f"Run {run_id} is not in this workspace.")
+            if row is None or owner is None or row.workspace_id != owner:
+                raise missing("Run", run_id, now=datetime.now(UTC))
+            started = (
+                await db.execute(
+                    select(
+                        InvestigationRow.investigation_id,
+                        InvestigationRow.recorded,
+                        InvestigationRow.workspace_id,
+                    ).where(
+                        InvestigationRow.trigger_kind == "run_alarm",
+                        func.starts_with(InvestigationRow.trigger_ref, run_id + ":"),
+                    )
+                )
+            ).all()
+            if any(is_example(i.recorded, i.workspace_id) for i in started):
+                raise ReadOnlyError(
+                    "The product's example is shown to everyone; nobody deletes it."
+                )
+            ids = [i.investigation_id for i in started if i.workspace_id == owner]
+            if ids:
+                orders = list(
+                    (
+                        await db.scalars(
+                            select(WorkOrderRow.work_order_id).where(
+                                WorkOrderRow.investigation_id.in_(ids)
+                            )
+                        )
+                    ).all()
+                )
+                await db.execute(
+                    delete(AuditEntryRow).where(
+                        AuditEntryRow.workspace_id == owner,
+                        or_(
+                            and_(
+                                AuditEntryRow.target_kind == "investigation",
+                                AuditEntryRow.target_id.in_(ids),
+                            ),
+                            and_(
+                                AuditEntryRow.target_kind == "work_order",
+                                AuditEntryRow.target_id.in_(orders),
+                            ),
+                        ),
+                    )
+                )
+                await db.execute(
+                    delete(AlarmStateRow).where(AlarmStateRow.investigation_id.in_(ids))
+                )
+                # Work orders, events and jobs go with their investigation (ON DELETE CASCADE).
+                await db.execute(
+                    delete(InvestigationRow).where(InvestigationRow.investigation_id.in_(ids))
+                )
+                await forget_checkpoints(db, ids)
+            # Items, unit charts, stages and events go with the run (ON DELETE CASCADE); its
+            # alarms are part of the row.
+            await db.execute(delete(RunRow).where(RunRow.run_id == run_id))
 
     async def run_owner(self, run_id: str) -> str | None:
         async with self._sessionmaker() as db:

@@ -176,6 +176,26 @@ export function useUpdateWorkRun({ quiet = false }: { quiet?: boolean } = {}) {
   });
 }
 
+/**
+ * Deletes a run for good, with its results, alarms and the investigations started from it, on
+ * every device of the workspace.
+ */
+export function useDeleteWorkRun() {
+  const api = useApi();
+  const client = useQueryClient();
+  const { session } = useSession();
+  return useMutation({
+    mutationFn: async (runId: string) =>
+      unwrap(
+        api.DELETE("/api/v1/workspace/runs/{run_id}", {
+          params: { path: { run_id: runId } },
+          headers: await csrfOf(session),
+        }),
+      ),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ["workspace"] }),
+  });
+}
+
 /** Runs the same input again as a new run; the earlier run is kept. */
 export function useRunAgain() {
   const api = useApi();
