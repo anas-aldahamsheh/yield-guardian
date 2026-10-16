@@ -34,7 +34,12 @@ import { StopInvestigationButton } from "./stop-investigation";
 
 export function InvestigationView({ id }: { id: string }) {
   const api = useApi();
-  const query = useQuery(q.investigation(api, id));
+  const query = useQuery({
+    ...q.investigation(api, id),
+    // The event stream can stall behind a proxy; re-read the stored run while it is live.
+    refetchInterval: (state) =>
+      state.state.data && LIVE_STATUSES.has(state.state.data.status) ? 3000 : false,
+  });
   const { replay, state, startReplay } = useInvestigationStream(query.data);
   const [selection, setSelection] = useState<EvidenceSelection | null>(null);
   const evidenceRef = useRef<HTMLDivElement>(null);
