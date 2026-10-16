@@ -68,7 +68,7 @@ export function ResultSection({
   const tabs = [
     { id: "problems" as const, label: "Problems" },
     ...(hasUnits ? [{ id: "units" as const, label: "Failure predictions vs outcome" }] : []),
-    ...(hasWafers ? [{ id: "wafers" as const, label: "Wafers (WM-811K)" }] : []),
+    ...(hasWafers ? [{ id: "wafers" as const, label: "Pattern predictions vs outcome" }] : []),
   ];
 
   return (
