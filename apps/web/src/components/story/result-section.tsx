@@ -46,12 +46,15 @@ export function ResultSection({
   alarmsShown,
   over,
   onLinked,
+  onShowUnit,
 }: {
   state: RunState;
   revealed: ReadonlySet<StageId>;
   alarmsShown: ReadonlySet<string>;
   over: boolean;
   onLinked: OnLinked;
+  /** Opens the Failure risk station's details on the unit. */
+  onShowUnit: (index: number) => void;
 }) {
   const finalStage = state.stages.final_test;
   const final = revealed.has("final_test") ? stageResult(state, "final_test") : null;
@@ -93,6 +96,7 @@ export function ResultSection({
             final={final}
             finalKnown={finalKnown}
             stopped={finalStage.status === "failed"}
+            onShowUnit={onShowUnit}
           />
         ) : null}
         {hasWafers ? <Wafers wafers={pattern?.wafers ?? null} /> : null}
@@ -367,11 +371,13 @@ function Units({
   final,
   finalKnown,
   stopped,
+  onShowUnit,
 }: {
   risk: SensorRiskView | null;
   final: FinalTestResult | null;
   finalKnown: boolean;
   stopped: boolean;
+  onShowUnit: (index: number) => void;
 }) {
   const rows = useMemo<UnitRow[]>(() => {
     const byIndex = new Map(risk?.units.map((u) => [u.index, u]) ?? []);
@@ -388,9 +394,23 @@ function Units({
   const failed = unseen.filter((u) => u.result === "fail");
   const passed = unseen.filter((u) => u.result === "pass");
   const caught = failed.filter((u) => u.flagged).length;
-  const missed = failed.length - caught;
   const falseAlarm = passed.filter((u) => u.flagged).length;
   const clear = passed.length - falseAlarm;
+  // One row per unit that failed or was warned, failed first, then by risk; the rest are one row.
+  const listed = unseen
+    .filter((u) => u.result === "fail" || u.flagged)
+    .sort(
+      (a, b) =>
+        Number(b.result === "fail") - Number(a.result === "fail") ||
+        (b.risk ?? -1) - (a.risk ?? -1),
+    );
+  const alarms = falseAlarm ? plural(falseAlarm, "false alarm") : "no false alarm";
+  const onPassed = passed.length
+    ? ` on the ${passed.length === 1 ? "1 unit" : formatInt(passed.length)} that passed`
+    : "";
+  const headline = failed.length
+    ? `Caught ${formatInt(caught)} of ${plural(failed.length, "unit")} that failed final test, with ${alarms}${onPassed}.`
+    : `No unit failed final test, so only false alarms can be judged: ${alarms}${onPassed}.`;
 
   return (
     <Panel id="units-result-title" title="Units (SECOM): did we predict the failures?">
@@ -404,35 +424,99 @@ function Units({
         </p>
       ) : (
         <>
-          {risk ? (
-            <p className={cn(SMALL, "tnum mt-1.5")}>
-              {`Warned: the unit's failure risk was above the ${formatProbability(risk.threshold)} threshold (${risk.operating_point}), the rule final test uses.`}
-            </p>
-          ) : null}
           {!unseen.length ? (
-            <p className={cn(NOTE, "mt-3")}>
+            <p className={cn(NOTE, "mt-1.5")}>
               Every unit with a recorded result was seen in training, so none is counted: the
               model&apos;s own training units say nothing about how it predicts.
             </p>
           ) : (
             <>
-              <p className="tnum mt-3 text-[15px] leading-6 font-[560] text-ink">
-                {failed.length
-                  ? `${plural(failed.length, "unit")} failed final test; the system warned about ${formatInt(caught)} of them, and wrongly about ${plural(falseAlarm, "unit")} that passed.`
-                  : `No unit failed final test, so only false alarms can be judged: the system warned about ${formatInt(falseAlarm)} of the ${plural(passed.length, "unit")} that passed.`}
+              <p className="tnum mt-1.5 text-[15px] leading-6 font-[560] text-ink">{headline}</p>
+              <ScrollRegion label="Units, our prediction and final test" className="mt-3">
+                <div className="max-h-[440px] overflow-y-auto">
+                  <table className="w-full text-left text-[13px] leading-5">
+                    <caption className="sr-only">
+                      Our prediction and the final-test result per unit
+                    </caption>
+                    <thead>
+                      <tr className="border-b border-hairline">
+                        {["Unit", "Our prediction", "Final test", "Result"].map((h) => (
+                          <th
+                            key={h}
+                            scope="col"
+                            className="h-9 pr-3 text-[12px] leading-4 font-[560] whitespace-nowrap text-ink-3 last:pr-0"
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listed.map((u) => (
+                        <tr key={u.index} className="border-b border-hairline">
+                          <td className="py-2 pr-3 align-top">
+                            <button
+                              type="button"
+                              onClick={() => onShowUnit(u.index)}
+                              aria-label={`Unit ${u.unit_id}: show its failure risk`}
+                              className="tnum rounded-[4px] font-[560] whitespace-nowrap text-ink underline decoration-[var(--hairline-strong)] underline-offset-[3px] hover:decoration-current"
+                            >
+                              {`Unit ${u.unit_id}`}
+                            </button>
+                          </td>
+                          <td className="tnum py-2 pr-3 align-top text-ink">
+                            <span className="whitespace-nowrap">
+                              {u.flagged ? "Warned" : "Not warned"}
+                            </span>
+                            {u.risk != null ? (
+                              <>
+                                {" "}
+                                <span className="whitespace-nowrap text-ink-3">{`(risk ${formatProbability(u.risk)})`}</span>
+                              </>
+                            ) : null}
+                          </td>
+                          <td className="py-2 pr-3 align-top text-ink-2">
+                            {u.result === "fail" ? "Failed" : "Passed"}
+                          </td>
+                          <td className="py-2 align-top">
+                            <UnitOutcome
+                              kind={
+                                u.result === "fail"
+                                  ? u.flagged
+                                    ? "caught"
+                                    : "missed"
+                                  : "false_alarm"
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                      {clear ? (
+                        <tr className="border-b border-hairline">
+                          <td className="tnum py-2 pr-3 align-top font-[560] text-ink">
+                            {plural(clear, "other unit")}
+                          </td>
+                          <td className="py-2 pr-3 align-top text-ink">Not warned</td>
+                          <td className="py-2 pr-3 align-top text-ink-2">Passed</td>
+                          <td className="py-2 align-top">
+                            <UnitOutcome kind="clear" />
+                          </td>
+                        </tr>
+                      ) : null}
+                    </tbody>
+                  </table>
+                </div>
+              </ScrollRegion>
+              <p className={cn(SMALL, "tnum mt-2")}>
+                {[
+                  risk
+                    ? `Warned means the failure risk was above the ${formatProbability(risk.threshold)} threshold (${risk.operating_point}), the rule final test uses.`
+                    : null,
+                  `Counting the ${plural(unseen.length, "unit")} with a recorded result that the model never saw.`,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               </p>
-              <p className={cn(SMALL, "tnum mt-1")}>
-                {`Counting the ${plural(unseen.length, "unit")} with a recorded result that the model never saw.`}
-              </p>
-              <Matrix caught={caught} missed={missed} falseAlarm={falseAlarm} clear={clear} />
-              <h4 className="mt-5 text-[13.5px] leading-5 font-[600] text-ink">
-                Units that really failed
-              </h4>
-              {failed.length ? (
-                <UnitList units={failed} />
-              ) : (
-                <p className={cn(SMALL, "mt-1")}>None.</p>
-              )}
             </>
           )}
           {seen.length ? (
@@ -449,65 +533,29 @@ function Units({
   );
 }
 
-function Matrix({
-  caught,
-  missed,
-  falseAlarm,
-  clear,
-}: {
-  caught: number;
-  missed: number;
-  falseAlarm: number;
-  clear: number;
-}) {
-  const cell = (n: number, word: string, right: boolean) => (
-    <td
-      className={cn(
-        "rounded-[14px] px-3 py-2.5 align-top",
-        right ? "bg-surface-2" : n > 0 ? "bg-fail-wash" : "bg-surface-2",
-      )}
-    >
-      <span className="tnum block text-[22px] leading-7 font-[640] text-ink">{formatInt(n)}</span>
-      <span className="block text-[12.5px] leading-4 text-ink-2">{word}</span>
-    </td>
-  );
+type UnitOutcomeKind = "caught" | "missed" | "false_alarm" | "clear";
+
+const UNIT_OUTCOME: Record<UnitOutcomeKind, { word: string; right: boolean }> = {
+  caught: { word: "Caught", right: true },
+  missed: { word: "Missed", right: false },
+  false_alarm: { word: "False alarm", right: false },
+  clear: { word: "Correctly clear", right: true },
+};
+
+function UnitOutcome({ kind }: { kind: UnitOutcomeKind }) {
+  const { word, right } = UNIT_OUTCOME[kind];
+  const Icon = right ? CheckIcon : XIcon;
   return (
-    <table className="mt-4 w-full table-fixed border-separate border-spacing-1.5 text-left">
-      <caption className="sr-only">Warnings against final-test results</caption>
-      <thead>
-        <tr>
-          <td className="w-[34%]" />
-          <th scope="col" className="px-3 text-[12.5px] leading-4 font-[560] text-ink-3">
-            Warned
-          </th>
-          <th scope="col" className="px-3 text-[12.5px] leading-4 font-[560] text-ink-3">
-            Not warned
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th
-            scope="row"
-            className="pr-1 text-[12.5px] leading-4 font-[560] break-words text-ink-3"
-          >
-            Failed final test
-          </th>
-          {cell(caught, "caught", true)}
-          {cell(missed, "missed", false)}
-        </tr>
-        <tr>
-          <th
-            scope="row"
-            className="pr-1 text-[12.5px] leading-4 font-[560] break-words text-ink-3"
-          >
-            Passed final test
-          </th>
-          {cell(falseAlarm, "false alarm", false)}
-          {cell(clear, "correctly clear", true)}
-        </tr>
-      </tbody>
-    </table>
+    <span
+      className={cn("inline-flex items-start gap-1 font-[560]", right ? "text-ink" : "text-fail")}
+    >
+      <Icon
+        aria-hidden="true"
+        className={cn("mt-0.5 size-4 shrink-0", right ? "text-pass" : "text-fail")}
+        strokeWidth={2.5}
+      />
+      {word}
+    </span>
   );
 }
 

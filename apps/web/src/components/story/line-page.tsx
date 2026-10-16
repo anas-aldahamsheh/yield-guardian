@@ -308,6 +308,12 @@ export function LinePage({
     setStationBy("person");
     go({ ...url, station, focus: next, alarm: alarm.alarm_id }, "replace");
   };
+  // A unit in the result opens the Failure risk station on it.
+  const showUnit = (index: number) => {
+    if (!url.runId) return;
+    setStationBy("person");
+    go({ ...url, station: 2, focus: { kind: "unit", index }, alarm: null }, "replace");
+  };
   // The server keeps the link too (the investigation's trigger names the alarm), so a reload or
   // another device shows it; the URL keeps the alarm it was started from.
   const linked = (alarmId: string, investigation: Investigation) => {
@@ -472,6 +478,7 @@ export function LinePage({
               alarmsShown={alarmsShown}
               over={over}
               onLinked={linked}
+              onShowUnit={showUnit}
             />
           ) : null}
           {url.runId ? yourWork : null}
