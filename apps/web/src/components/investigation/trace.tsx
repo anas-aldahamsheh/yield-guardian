@@ -159,6 +159,7 @@ function CallRow({ call, fallback }: { call: ModelCallTrace; fallback: boolean }
             <Mark ok={problem == null} label={problem == null ? "Worked" : "Failed"} />
             <span className="tnum text-ink-3">
               {formatDuration(call.latency_ms)}
+              {call.tokens_in != null ? ` · ${formatInt(call.tokens_in)} tokens in` : ""}
               {call.tokens_out != null ? ` · ${formatInt(call.tokens_out)} tokens out` : ""}
             </span>
           </Line>
