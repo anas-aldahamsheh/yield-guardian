@@ -1,7 +1,9 @@
-"""Capability profiles of the models served by AMD Token Factory, and catalog sync.
+"""Capability profiles of the models served by AMD Token Factory (and TokenHarbor), and
+catalog sync.
 
 Every documented profile below is transcribed from ``docs/vendor/token-factory.md`` (the
-team's summary of the Token Factory documentation, 2026-10-14). Where that page is ambiguous
+team's summary of the Token Factory documentation, 2026-10-14), except the TokenHarbor model,
+whose conservative profile is ours (its ``provider`` says where it is served). Where that page is ambiguous
 the profile takes the conservative reading and says so in ``notes``; the request builder then
 refuses anything outside the profile instead of letting the gateway reject it.
 
@@ -33,6 +35,16 @@ from yield_guardian.llm.errors import ResponseShapeError
 from yield_guardian.llm.messages import ReasoningEffort
 
 Modality = Literal["text", "image", "audio", "document"]
+
+
+class Provider(StrEnum):
+    """The OpenAI-compatible endpoint that serves a model."""
+
+    TOKEN_FACTORY = "token_factory"  # noqa: S105 - a provider name, not a secret
+    """AMD Token Factory: the catalog, ``/v1/usage`` and points come from here."""
+    TOKENHARBOR = "tokenharbor"
+    """TokenHarbor (``TOKENHARBOR_BASE_URL``), tried first on the text roles when
+    ``TOKENHARBOR_API_KEY`` is set; usage and points are not reported (unknown)."""
 
 
 class ModelKind(StrEnum):
@@ -130,6 +142,7 @@ class ModelProfile(_Frozen):
     pricing: Pricing | None
     source: Literal["documented", "catalog_only"]
     notes: tuple[str, ...] = ()
+    provider: Provider = Provider.TOKEN_FACTORY
 
     @property
     def accepts_images(self) -> bool:
@@ -169,6 +182,7 @@ def _deepseek(model_id: str, modalities: frozenset[Modality]) -> ModelProfile:
 
 
 _TEXT: frozenset[Modality] = frozenset({"text"})
+TOKENHARBOR_MODEL = "deepseek-v4.1-flash:free"
 _TEXT_IMAGE: frozenset[Modality] = frozenset({"text", "image"})
 
 DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
@@ -318,6 +332,32 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
             notes=(
                 "Thinking is on or off only; the value that switches it on is not documented, "
                 "so only 'none' (off) is sent.",
+            ),
+        ),
+        ModelProfile(
+            id=TOKENHARBOR_MODEL,
+            family="deepseek",
+            kind=ModelKind.CHAT,
+            context_length=None,
+            input_modalities=_TEXT,
+            thinks_by_default=None,
+            reasoning_control=ReasoningControl.NOT_APPLICABLE,
+            reasoning_efforts=frozenset(),
+            system_rule=SystemRule.ANY,
+            developer_role=DeveloperRole.MAP_TO_SYSTEM,
+            supports_tools=True,
+            supports_json_object=True,
+            supports_json_schema=False,
+            supports_streaming=True,
+            reports_reasoning_tokens=False,
+            pricing=None,
+            source="documented",
+            provider=Provider.TOKENHARBOR,
+            notes=(
+                "Served by TokenHarbor, not Token Factory: not in the Token Factory catalog, "
+                "and its usage carries no points (pricing unknown).",
+                "No reasoning_effort or other extra parameter is sent; json_object only.",
+                "Any failure (rate limit, authentication, timeout) moves to the next model.",
             ),
         ),
         ModelProfile(
@@ -495,11 +535,18 @@ class ProfileCatalog:
             synced_at=at,
             listed=tuple(sorted(live)),
             undocumented=tuple(undocumented),
-            withdrawn=tuple(sorted(set(self._documented) - set(live))),
+            withdrawn=tuple(sorted(set(self._factory_documented()) - set(live))),
             context_restricted=tuple(sorted(restricted)),
         )
         self.last_sync = report
         return report
+
+    def _factory_documented(self) -> list[str]:
+        return [
+            model_id
+            for model_id, profile in self._documented.items()
+            if profile.provider is Provider.TOKEN_FACTORY
+        ]
 
     @property
     def synced(self) -> bool:
@@ -515,6 +562,10 @@ class ProfileCatalog:
         return profile
 
     def availability(self, model_id: str) -> Availability:
+        documented = self._documented.get(model_id)
+        if documented is not None and documented.provider is not Provider.TOKEN_FACTORY:
+            # Another provider's model: the Token Factory catalog says nothing about it.
+            return Availability.NOT_SYNCED
         if self._live is None:
             return Availability.NOT_SYNCED if model_id in self._documented else Availability.UNKNOWN
         if model_id in self._live:

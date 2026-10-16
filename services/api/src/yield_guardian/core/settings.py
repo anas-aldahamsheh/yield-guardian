@@ -27,6 +27,10 @@ class Settings(BaseSettings):
 
     token_factory_api_key: SecretStr | None = None
     token_factory_base_url: str = "https://developer.amd.com.cn/radeon/api/v1"  # noqa: S105
+    tokenharbor_api_key: SecretStr | None = Field(
+        None, description="TokenHarbor key; when set, its model is tried first on text roles."
+    )
+    tokenharbor_base_url: str = "https://tokenharbor.ai/v1"
 
     session_secret: SecretStr | None = Field(None, description="At least 32 random bytes, base64.")
     session_ttl_minutes: int = Field(

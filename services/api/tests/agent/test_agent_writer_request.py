@@ -30,7 +30,7 @@ from yield_guardian.agent.writer import (
 )
 from yield_guardian.contracts.investigation import InvestigationTrigger, Report
 from yield_guardian.llm.gateway import CallOptions
-from yield_guardian.llm.profiles import DOCUMENTED_PROFILES
+from yield_guardian.llm.profiles import DOCUMENTED_PROFILES, Provider
 from yield_guardian.llm.registry import DEFAULT_CHAINS, ModelChoice, ResponseMode, Role
 from yield_guardian.llm.structured import strict_json_schema
 
@@ -106,7 +106,12 @@ MAX_ENUM_VALUES = 20
 MAX_SCHEMA_BYTES = 8_000
 MAX_SCHEMA_DEPTH = 5
 THINKING_MIN_TOKENS = 8_192
-WRITER_CHAIN = DEFAULT_CHAINS[Role.WRITER]
+WRITER_CHAIN = tuple(
+    # Token Factory models; the TokenHarbor entry has no Token Factory constraints to check.
+    c
+    for c in DEFAULT_CHAINS[Role.WRITER]
+    if c.provider is Provider.TOKEN_FACTORY
+)
 
 
 def walk(node: Any, depth: int = 0) -> Iterator[tuple[dict[str, Any], int]]:

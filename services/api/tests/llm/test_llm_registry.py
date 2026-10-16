@@ -5,7 +5,13 @@ from __future__ import annotations
 import pytest
 
 from tests.llm.helpers import NOW
-from yield_guardian.llm.profiles import DOCUMENTED_PROFILES, CatalogEntry, ProfileCatalog
+from yield_guardian.llm.profiles import (
+    DOCUMENTED_PROFILES,
+    TOKENHARBOR_MODEL,
+    CatalogEntry,
+    ProfileCatalog,
+    Provider,
+)
 from yield_guardian.llm.registry import (
     DEFAULT_CHAINS,
     InMemoryRoleAssignmentStore,
@@ -32,24 +38,31 @@ def registry(store: InMemoryRoleAssignmentStore | None = None) -> ModelRegistry:
 
 
 def test_defaults_follow_plan_section_7_1() -> None:
+    harbor = ModelChoice(
+        model=TOKENHARBOR_MODEL, response_mode=OBJECT, provider=Provider.TOKENHARBOR
+    )
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
-        Role.INVESTIGATOR: "DeepSeek-V4.1-Flash",
-        Role.WRITER: "Qwen3.8-Flash-Next",
+        Role.INVESTIGATOR: TOKENHARBOR_MODEL,
+        Role.WRITER: TOKENHARBOR_MODEL,
         Role.VERIFIER: "GLM-5.3-Flash",
-        Role.CHAT: "Qwen3.8-Flash-Next",
-        Role.ROUTER: "MiniCPM5-2B",
+        Role.CHAT: TOKENHARBOR_MODEL,
+        Role.ROUTER: TOKENHARBOR_MODEL,
         Role.VISION: "DeepSeek-V4.1-Flash",
         Role.OCR: "MinerU2.5-Pro",
     }
-    # Qwen3.8-Flash-Next writes (the one model that returned long outputs reliably live,
-    # 2026-10-14), then DeepSeek, then MiMo. MiMo refused strict json_schema live; every
-    # structured default is json_object.
+    # TokenHarbor first (when its key is set), then Qwen3.8-Flash-Next (the one model that
+    # returned long outputs reliably live, 2026-10-14), then DeepSeek, then MiMo. MiMo refused
+    # strict json_schema live; every structured default is json_object.
     assert DEFAULT_CHAINS[Role.WRITER] == (
+        harbor,
         ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
         ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
         ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT),
     )
+    # The verifier, vision and OCR chains are Token Factory only.
+    for role in (Role.VERIFIER, Role.VISION, Role.OCR):
+        assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[role])
     writer, verifier = DEFAULT_CHAINS[Role.WRITER], DEFAULT_CHAINS[Role.VERIFIER]
     assert family_problems(writer, verifier, ProfileCatalog()) == []
     # The verifier's primary is outside the writer's families.

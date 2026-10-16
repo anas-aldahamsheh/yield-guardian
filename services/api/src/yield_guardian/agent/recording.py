@@ -26,7 +26,7 @@ from yield_guardian.agent.graph import InvestigationLimits
 from yield_guardian.agent.verifier import VERIFIER_MAX_TOKENS
 from yield_guardian.bundles.secom import SecomBundle
 from yield_guardian.contracts.investigation import InvestigationTrigger
-from yield_guardian.llm.profiles import ProfileCatalog
+from yield_guardian.llm.profiles import ProfileCatalog, Provider
 from yield_guardian.llm.registry import ModelRegistry, Role
 from yield_guardian.science.secom.alarms import AlarmRule, alarm_rules
 
@@ -130,7 +130,10 @@ def investigation_bound(
     )
     roles = []
     for role, calls, max_tokens in plan:
-        models = tuple(c.model for c in registry.assignment(role).chain)
+        # Only Token Factory spends points; a TokenHarbor entry costs none.
+        models = tuple(
+            c.model for c in registry.assignment(role).chain if c.provider is Provider.TOKEN_FACTORY
+        )
         per_call = sum(_call_bound(registry.catalog, m, max_tokens) for m in models)
         roles.append(RoleBound(role, calls, max_tokens, models, calls * per_call))
     return InvestigationBound(tuple(roles))

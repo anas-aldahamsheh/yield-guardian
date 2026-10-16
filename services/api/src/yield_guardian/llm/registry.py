@@ -20,7 +20,7 @@ table in production).
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -33,10 +33,12 @@ from yield_guardian.llm.errors import LlmError
 from yield_guardian.llm.messages import ReasoningEffort
 from yield_guardian.llm.profiles import (
     EFFORT_ORDER,
+    TOKENHARBOR_MODEL,
     Availability,
     ModelKind,
     ModelProfile,
     ProfileCatalog,
+    Provider,
     ReasoningControl,
     efforts_text,
 )
@@ -66,6 +68,8 @@ class ModelChoice(BaseModel):
     model: str
     reasoning_effort: ReasoningEffort | None = None
     response_mode: ResponseMode = ResponseMode.TEXT
+    provider: Provider = Provider.TOKEN_FACTORY
+    """The endpoint (base URL and key) that serves this entry."""
 
 
 class RoleAssignment(BaseModel):
@@ -85,10 +89,18 @@ def _c(model: str, effort: ReasoningEffort | None, mode: ResponseMode) -> ModelC
     return ModelChoice(model=model, reasoning_effort=effort, response_mode=mode)
 
 
+def _harbor(mode: ResponseMode) -> ModelChoice:
+    """The TokenHarbor model, first on every text role; skipped (silently) when
+    ``TOKENHARBOR_API_KEY`` is not set, and any failure moves to the next entry. It takes no
+    ``reasoning_effort``."""
+    return ModelChoice(model=TOKENHARBOR_MODEL, response_mode=mode, provider=Provider.TOKENHARBOR)
+
+
 _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
     Role.INVESTIGATOR: (
+        _harbor(_T),
         _c("DeepSeek-V4.1-Flash", "low", _T),
         _c("GLM-5.3-Flash", "low", _T),
         _c("Qwen3.8-Flash-Next", "low", _T),
@@ -100,7 +112,8 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         # writing, and MiMo-V2.6-Flash (about 5 tokens/s) and Qwen3.8-27B ran past the writer
         # deadline. All answer in json_object (MiMo refuses strict json_schema) and the report
         # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
-        # one MiMo effort the docs name.
+        # one MiMo effort the docs name. TokenHarbor goes first when its key is set.
+        _harbor(_O),
         _c("Qwen3.8-Flash-Next", "none", _O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),
@@ -110,10 +123,12 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         _c("DeepSeek-V4-Flash", "low", _O),
     ),
     Role.CHAT: (
+        _harbor(_T),
         _c("Qwen3.8-Flash-Next", "none", _T),
         _c("DeepSeek-V4-Flash", "none", _T),
     ),
     Role.ROUTER: (
+        _harbor(_O),
         _c("MiniCPM5-2B", None, _O),
         _c("DeepSeek-V4-Flash", "none", _O),
     ),
@@ -175,6 +190,7 @@ def choice_for(
         model=profile.id,
         reasoning_effort=policy_effort(role, profile),
         response_mode=default_mode(role, profile),
+        provider=profile.provider,
     )
 
 
@@ -245,6 +261,10 @@ def validate_chain(role: Role, chain: Sequence[ModelChoice], catalog: ProfileCat
             continue
         if catalog.availability(choice.model) is Availability.WITHDRAWN:
             problems.append(f"{choice.model}: documented but missing from the live catalog")
+        if choice.provider is not profile.provider:
+            problems.append(
+                f"{choice.model} is served by {profile.provider}, not {choice.provider}"
+            )
         problems.extend(_role_problems(role, profile))
         problems.extend(_effort_problems(choice, profile))
         problems.extend(_mode_problems(role, choice, profile))
@@ -319,8 +339,12 @@ class ModelRegistry:
         store: RoleAssignmentStore,
         *,
         wall_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        providers: Collection[Provider] = (Provider.TOKEN_FACTORY,),
     ) -> None:
         self.catalog = catalog
+        self.providers = frozenset(providers)
+        """Providers with a key configured; entries of any other provider are skipped silently
+        (TokenHarbor without ``TOKENHARBOR_API_KEY``)."""
         self._store = store
         self._wall_clock = wall_clock
         self._assignments: dict[Role, RoleAssignment] = {
@@ -412,6 +436,8 @@ class ModelRegistry:
         usable: list[ResolvedChoice] = []
         skipped: list[tuple[str, str]] = []
         for choice in self._assignments[role].chain:
+            if choice.provider not in self.providers:
+                continue
             profile = self.catalog.get(choice.model)
             availability = self.catalog.availability(choice.model)
             if profile is None or not self.catalog.is_usable(choice.model):

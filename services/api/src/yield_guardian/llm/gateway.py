@@ -13,7 +13,9 @@ For a role, the registry gives an ordered chain of models. For each usable entry
 The next entry is tried only for failures specific to a model (refused by its profile,
 unknown or unavailable model, invalid or empty answer). Account-wide failures
 (authentication, a rate limit that outlived the retries, missing credits) stop the chain at
-once, because another model on the same account would fail the same way.
+once, because another model on the same account would fail the same way. A provider other
+than Token Factory (TokenHarbor, first on the text roles when its key is set) has its own
+account, so any failure of its model moves to the next entry.
 
 Every non-streaming call has a wall-clock deadline per role (:data:`ROLE_TIMEOUT_S`), retries
 included: a call that has not answered by then is abandoned as a :class:`TransportError` and the
@@ -56,6 +58,7 @@ from yield_guardian.llm.errors import (
     mask_secrets,
 )
 from yield_guardian.llm.messages import ChatRequest, ResponseFormat
+from yield_guardian.llm.profiles import Provider
 from yield_guardian.llm.registry import (
     ModelRegistry,
     ResolvedChoice,
@@ -97,6 +100,20 @@ def _schema_refused(resolved: ResolvedChoice, spec: _OutputSpec | None, exc: Bas
         and isinstance(exc, TokenFactoryHttpError)
         and exc.kind in (ErrorKind.BAD_REQUEST, ErrorKind.UNPROCESSABLE)
     )
+
+
+def chain_fallback_reason(resolved: ResolvedChoice, exc: BaseException) -> str | None:
+    """:func:`fallback_reason`, except that every failure of a provider other than Token
+    Factory (TokenHarbor) moves to the next model: its rate limits, authentication and credits
+    are its own, so the Token Factory models after it may still answer."""
+    reason = fallback_reason(exc)
+    if reason is not None or resolved.choice.provider is Provider.TOKEN_FACTORY:
+        return reason
+    if isinstance(exc, TokenFactoryHttpError):
+        detail = f"HTTP {exc.status} {exc.kind}: {mask_secrets(exc.error.message)[:200]}"
+    else:
+        detail = f"{type(exc).__name__}: {mask_secrets(str(exc))[:200]}"
+    return f"{resolved.choice.provider}: {detail}"
 
 
 def fallback_reason(exc: BaseException) -> str | None:
@@ -175,6 +192,10 @@ ROLE_TIMEOUT_S: dict[Role, float] = {
 }
 """Seconds one call of the role may take, retries included, before the next model is tried."""
 
+PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {Provider.TOKENHARBOR: 90.0}
+"""A tighter deadline for a provider tried ahead of Token Factory: a slow or stuck TokenHarbor
+call gives way to the Token Factory chain after this long, whatever the role allows."""
+
 
 class LlmGateway:
     def __init__(
@@ -188,9 +209,15 @@ class LlmGateway:
         clock: Callable[[], float] = time.monotonic,
         wall_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         timeouts: Mapping[Role, float] | None = None,
+        providers: Mapping[Provider, TokenFactoryClient] | None = None,
     ) -> None:
         self.timeouts: dict[Role, float] = {**ROLE_TIMEOUT_S, **(timeouts or {})}
         self.client = client
+        self.clients: dict[Provider, TokenFactoryClient] = {
+            **(providers or {}),
+            Provider.TOKEN_FACTORY: client,
+        }
+        """One client (base URL and key) per provider; ``client`` is Token Factory's."""
         self.registry = registry
         self.cache = cache
         self.call_log = call_log
@@ -202,6 +229,12 @@ class LlmGateway:
     @property
     def namespace(self) -> str:
         return self.client.base_url
+
+    def _client_for(self, resolved: ResolvedChoice) -> TokenFactoryClient:
+        client = self.clients.get(resolved.choice.provider)
+        if client is None:
+            raise TransportError(f"no client configured for {resolved.choice.provider}")
+        return client
 
     # -- public API ---------------------------------------------------------------------------
 
@@ -254,7 +287,7 @@ class LlmGateway:
                         yield item
                 return
             except LlmError as exc:
-                reason = fallback_reason(exc)
+                reason = chain_fallback_reason(resolved, exc)
                 if yielded or reason is None:
                     raise
                 failures.append((resolved.choice.model, reason))
@@ -300,7 +333,7 @@ class LlmGateway:
                 prepared = self._prepare(resolved, request, spec)
                 return await self._attempt(role, resolved, prepared, options, parse)
             except LlmError as exc:
-                reason = fallback_reason(exc)
+                reason = chain_fallback_reason(resolved, exc)
                 if reason is None:
                     raise
                 if not _schema_refused(resolved, spec, exc):
@@ -314,7 +347,7 @@ class LlmGateway:
                 )
                 return await self._attempt(role, resolved, plain, options, parse)
             except LlmError as again:
-                second = fallback_reason(again)
+                second = chain_fallback_reason(resolved, again)
                 if second is None:
                     raise
                 failures.append((resolved.choice.model, f"{reason}; as json_object: {second}"))
@@ -337,15 +370,19 @@ class LlmGateway:
         except ProfileViolationError as exc:
             await log.refused(CallStatus.REFUSED_PROFILE, exc.rule, str(exc))
             raise
-        key = cache_key(built.body, namespace=self.namespace)
+        client = self._client_for(resolved)
+        key = cache_key(built.body, namespace=client.base_url)
         if options.use_cache:
             hit = await self._from_cache(key, log, parse)
             if hit is not None:
                 return hit
-        limit = self.timeouts[role]
+        limit = min(
+            self.timeouts[role],
+            PROVIDER_TIMEOUT_CAP_S.get(resolved.choice.provider, self.timeouts[role]),
+        )
         try:
             try:
-                reply = await within(self.client.chat_completion(built.body), limit)
+                reply = await within(client.chat_completion(built.body), limit)
             except TimeoutError as exc:
                 raise TransportError(f"no answer within {limit:g} s (role deadline)") from exc
             parsed = parse_chat_completion(reply.payload)
@@ -445,7 +482,8 @@ class LlmGateway:
         except ProfileViolationError as exc:
             await log.refused(CallStatus.REFUSED_PROFILE, exc.rule, str(exc))
             raise
-        key = cache_key(built.body, namespace=self.namespace)
+        client = self._client_for(resolved)
+        key = cache_key(built.body, namespace=client.base_url)
         if options.use_cache:
             hit = await self._from_cache(key, log, _identity)
             if hit is not None:
@@ -456,7 +494,7 @@ class LlmGateway:
                 return
         accumulator = StreamAccumulator()
         try:
-            async with aclosing(self.client.stream_chat_completion(built.body)) as chunks:
+            async with aclosing(client.stream_chat_completion(built.body)) as chunks:
                 async for chunk in chunks:
                     for delta in accumulator.feed(chunk):
                         if delta.type in ("content", "reasoning", "tool_call"):

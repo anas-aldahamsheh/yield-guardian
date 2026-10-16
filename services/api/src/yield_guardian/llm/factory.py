@@ -22,13 +22,19 @@ from yield_guardian.llm.cache import InMemoryLruCache, ResponseCache
 from yield_guardian.llm.calllog import InMemoryCallLog, LlmCallLog
 from yield_guardian.llm.client import TokenFactoryClient
 from yield_guardian.llm.gateway import LlmGateway
-from yield_guardian.llm.profiles import ProfileCatalog
+from yield_guardian.llm.profiles import ProfileCatalog, Provider
 from yield_guardian.llm.registry import (
     InMemoryRoleAssignmentStore,
     ModelRegistry,
     RoleAssignmentStore,
 )
+from yield_guardian.llm.retry import RetryPolicy
 from yield_guardian.llm.usage import QuotaMonitor
+
+TOKENHARBOR_TIMEOUT = httpx.Timeout(90.0, connect=10.0)
+"""TokenHarbor is tried ahead of Token Factory, so it gets short timeouts and no retries: a busy,
+slow or failing TokenHarbor gives way to the Token Factory chain at once."""
+TOKENHARBOR_RETRY = RetryPolicy(max_retries=0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,13 +49,22 @@ class LlmStack:
     evaluations: EvaluationStore
     gateway: LlmGateway
     admin: TokenFactoryAdmin
+    harbor_client: TokenFactoryClient | None = None
+    """The TokenHarbor client, when ``TOKENHARBOR_API_KEY`` is set."""
 
     async def aclose(self) -> None:
         await self.client.aclose()
+        if self.harbor_client is not None:
+            await self.harbor_client.aclose()
 
 
 def key_configured(settings: Settings) -> bool:
     key = settings.token_factory_api_key
+    return key is not None and bool(key.get_secret_value().strip())
+
+
+def harbor_key_configured(settings: Settings) -> bool:
+    key = settings.tokenharbor_api_key
     return key is not None and bool(key.get_secret_value().strip())
 
 
@@ -71,15 +86,36 @@ def assemble_llm_stack(
         base_url=settings.token_factory_base_url,
         http=http,
     )
+    harbor_client = (
+        TokenFactoryClient(
+            api_key=settings.tokenharbor_api_key,
+            base_url=settings.tokenharbor_base_url,
+            http=http,
+            retry=TOKENHARBOR_RETRY,
+            timeout=TOKENHARBOR_TIMEOUT,
+        )
+        if harbor_key_configured(settings)
+        else None
+    )
+    providers = [Provider.TOKEN_FACTORY]
+    if harbor_client is not None:
+        providers.append(Provider.TOKENHARBOR)
     catalog = ProfileCatalog()
-    registry = ModelRegistry(catalog, assignments or InMemoryRoleAssignmentStore())
+    registry = ModelRegistry(
+        catalog, assignments or InMemoryRoleAssignmentStore(), providers=providers
+    )
     quota = QuotaMonitor(client.get_usage if has_key else None)
     stack_cache = cache or InMemoryLruCache()
     stack_log = call_log or InMemoryCallLog()
     stack_routes = route_log or InMemoryRouteLog()
     stack_evaluations = evaluations or InMemoryEvaluationStore()
     gateway = LlmGateway(
-        client=client, registry=registry, cache=stack_cache, call_log=stack_log, quota=quota
+        client=client,
+        registry=registry,
+        cache=stack_cache,
+        call_log=stack_log,
+        quota=quota,
+        providers={Provider.TOKENHARBOR: harbor_client} if harbor_client is not None else None,
     )
     admin = TokenFactoryAdmin(
         registry=registry,
@@ -101,6 +137,7 @@ def assemble_llm_stack(
         evaluations=stack_evaluations,
         gateway=gateway,
         admin=admin,
+        harbor_client=harbor_client,
     )
 
 
