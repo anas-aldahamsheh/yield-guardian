@@ -8,7 +8,6 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -127,12 +126,9 @@ export function WorkspaceMenu({ archived, actions }: { archived: boolean; action
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuCheckboxItem
-          checked={archived}
-          onCheckedChange={(checked) => actions.showArchived(checked === true)}
-        >
-          Show archived runs
-        </DropdownMenuCheckboxItem>
+        <DropdownMenuItem onSelect={() => actions.showArchived(!archived)}>
+          {archived ? "Hide archived runs" : "Show archived runs"}
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={actions.handoff}>Continue on another device</DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/join">Join another workspace with a code</Link>

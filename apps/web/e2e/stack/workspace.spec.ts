@@ -427,7 +427,7 @@ test("a run's actions: rename, run again, compare, download, archive and restore
   await expect(card(page, first)).toHaveCount(0);
   await expect(work(page).getByText("1 run", { exact: true })).toBeVisible();
   await work(page).getByRole("button", { name: "Workspace options" }).click();
-  await page.getByRole("menuitemcheckbox", { name: "Show archived runs" }).click();
+  await page.getByRole("menuitem", { name: "Show archived runs" }).click();
   await expect(page.getByRole("heading", { level: 2, name: "Your archived runs" })).toBeVisible();
   await expect(card(page, first)).toBeVisible();
   await card(page, first).getByRole("button", { name: "Restore" }).click();
