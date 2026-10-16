@@ -169,7 +169,7 @@ function Track({
   const [from, to] = SEGMENT[index]!;
   const style = { "--seg-a": from, "--seg-b": to } as CSSProperties;
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={style}>
+    <div aria-hidden="true" className="pointer-events-none absolute -inset-[3px]" style={style}>
       {/* The bare track */}
       <span className="absolute top-0 bottom-0 left-[27px] w-[2px] rounded-full bg-hairline-strong md:hidden" />
       <span className="absolute inset-x-0 top-[25px] hidden h-[2px] bg-hairline-strong md:block" />
