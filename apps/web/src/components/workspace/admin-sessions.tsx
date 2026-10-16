@@ -2,6 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { AdminSession } from "@yield-guardian/contracts";
+import { LockKeyholeIcon } from "lucide-react";
 import { useState } from "react";
 
 import { LocalDateTime } from "@/components/local-date-time";
@@ -63,21 +64,29 @@ export function AdminSessions() {
         bodyClassName="px-0 sm:px-0"
       >
         {loading ? (
-          <Placeholder className="mx-4 h-40 sm:mx-5" label="Loading sessions" />
+          <Placeholder className="mx-4 h-40 sm:mx-6" label="Loading sessions" />
         ) : !isAdmin ? (
-          <p className="px-4 text-sm text-ink-2 sm:px-5">
+          <p className="mx-4 flex items-start gap-2.5 rounded-[14px] bg-surface-2 px-4 py-3 text-[14px] leading-5 text-ink-2 sm:mx-6">
+            <LockKeyholeIcon
+              aria-hidden="true"
+              className="mt-px size-4 shrink-0 text-ink-3"
+              strokeWidth={1.8}
+            />
             Only an admin sees device sessions. Sign in as an admin from the top bar.
           </p>
         ) : (
           <QueryView
             query={sessions}
-            loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading sessions" />}
+            loading={<Placeholder className="mx-4 h-56 sm:mx-6" label="Loading sessions" />}
           >
             {(data) => {
               const rows = data.pages.flatMap((page) => page.items);
               if (!rows.length)
                 return (
-                  <EmptyState className="mx-4 sm:mx-5" title="No active sessions">
+                  <EmptyState
+                    className="unexposed mx-4 border-solid bg-surface sm:mx-6"
+                    title="No active sessions"
+                  >
                     No device has used the site within its session&apos;s life.
                   </EmptyState>
                 );
@@ -87,26 +96,26 @@ export function AdminSessions() {
                     <table className="w-full min-w-[980px] border-collapse text-left text-[14px] leading-5">
                       <caption className="sr-only">Device sessions</caption>
                       <thead>
-                        <tr className="border-y border-hairline text-[12px] text-ink-3">
-                          <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                        <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                          <th scope="col" className="py-3 pr-3 pl-4 font-[520] sm:pl-6">
                             Session
                           </th>
-                          <th scope="col" className="px-2 py-2 font-normal">
+                          <th scope="col" className="px-3 py-3 font-[520]">
                             Workspace
                           </th>
-                          <th scope="col" className="px-2 py-2 font-normal">
+                          <th scope="col" className="px-3 py-3 font-[520]">
                             Began
                           </th>
-                          <th scope="col" className="px-2 py-2 font-normal">
+                          <th scope="col" className="px-3 py-3 font-[520]">
                             Last used
                           </th>
-                          <th scope="col" className="px-2 py-2 font-normal">
+                          <th scope="col" className="px-3 py-3 font-[520]">
                             Ends
                           </th>
-                          <th scope="col" className="px-2 py-2 font-normal">
+                          <th scope="col" className="px-3 py-3 font-[520]">
                             Holds
                           </th>
-                          <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                          <th scope="col" className="py-3 pr-4 pl-3 text-right font-[520] sm:pr-6">
                             <span className="sr-only">Actions</span>
                           </th>
                         </tr>
@@ -115,49 +124,52 @@ export function AdminSessions() {
                         {rows.map((s) => (
                           <tr
                             key={s.session_id}
-                            className="border-b border-hairline last:border-b-0"
+                            aria-current={s.current ? "true" : undefined}
+                            className="border-b border-hairline transition-colors duration-(--dur-1) last:border-b-0 hover:bg-surface-2 aria-[current]:bg-signal-wash aria-[current]:shadow-[inset_3px_0_0_var(--signal)]"
                           >
-                            <th scope="row" className="px-4 py-2.5 align-top font-normal sm:px-5">
-                              <span className="font-medium text-ink">
+                            <th
+                              scope="row"
+                              className="py-3.5 pr-3 pl-4 align-top font-[420] sm:pl-6"
+                            >
+                              <span className="font-[600] text-ink">
                                 {ACTOR_ROLE[s.role] ?? s.role}
                               </span>
                               {s.display_name ? (
                                 <span className="text-ink-2">{` ${s.display_name}`}</span>
                               ) : null}
-                              <span className="tnum block text-[12px] text-ink-3">
+                              <span className="tnum mt-0.5 block text-[12.5px] leading-4 text-ink-3">
                                 {s.session_id.slice(0, 8)}
                                 {s.current ? " · this session" : null}
                               </span>
                             </th>
-                            <td className="tnum px-2 py-2.5 align-top text-ink-2">
+                            <td className="tnum px-3 py-3.5 align-top text-ink-2">
                               {s.workspace_id ? s.workspace_id.slice(0, 8) : "None"}
-                              <span className="block text-[12px] text-ink-3">
+                              <span className="mt-0.5 block text-[12.5px] leading-4 text-ink-3">
                                 {plural(s.devices, "device")}
                               </span>
                             </td>
-                            <td className="tnum px-2 py-2.5 align-top text-ink-2">
+                            <td className="tnum px-3 py-3.5 align-top text-ink-2">
                               <LocalDateTime iso={s.created_at} />
                             </td>
-                            <td className="tnum px-2 py-2.5 align-top text-ink-2">
+                            <td className="tnum px-3 py-3.5 align-top text-ink-2">
                               <LocalDateTime iso={s.last_seen_at} />
                             </td>
-                            <td className="tnum px-2 py-2.5 align-top text-ink-2">
+                            <td className="tnum px-3 py-3.5 align-top text-ink-2">
                               <LocalDateTime iso={s.expires_at} />
                               {s.role_expires_at ? (
-                                <span className="block text-[12px] text-ink-3">
+                                <span className="mt-0.5 block text-[12.5px] leading-4 text-ink-3">
                                   {"Role until "}
                                   <LocalDateTime iso={s.role_expires_at} />
                                 </span>
                               ) : null}
                             </td>
-                            <td className="tnum px-2 py-2.5 align-top text-ink-2">
+                            <td className="tnum px-3 py-3.5 align-top text-ink-2">
                               {holds(s).join(", ") || "Nothing yet"}
                             </td>
-                            <td className="px-4 py-2.5 text-right align-top sm:px-5">
+                            <td className="py-3 pr-4 pl-3 text-right align-top sm:pr-6">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="border-hairline-strong"
                                 disabled={s.current}
                                 aria-label={`End session ${s.session_id.slice(0, 8)}`}
                                 onClick={() => setEnding(s)}
@@ -171,7 +183,7 @@ export function AdminSessions() {
                     </table>
                   </ScrollRegion>
                   {sessions.hasNextPage ? (
-                    <div className="px-4 pt-3 sm:px-5">
+                    <div className="px-4 pt-4 sm:px-6">
                       <Button
                         size="sm"
                         variant="outline"

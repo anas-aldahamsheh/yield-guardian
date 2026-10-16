@@ -5,6 +5,7 @@ import type { Evidence, NumberRef, VerificationIssue } from "@yield-guardian/con
 import { LayoutGroup } from "framer-motion";
 import { type ReactNode, useEffect, useRef } from "react";
 
+import { useChangeKey } from "@/components/motion";
 import { Indicator } from "@/components/motion/indicator";
 
 import { readPointer } from "@/lib/investigation/events";
@@ -32,6 +33,10 @@ export function EvidencePanel({
   onSelect: (selection: EvidenceSelection) => void;
 }) {
   const current = evidence.find((e) => e.evidence_id === selection?.evidenceId) ?? evidence[0];
+  // A record swaps in when the reader picks another, and a number's check when they pick a
+  // number; what the page opens on is simply there.
+  const picked = useChangeKey(current?.evidence_id);
+  const checked = useChangeKey(selection?.number ?? null);
   if (!current) {
     return (
       <p className="text-[14px] leading-5 text-ink-3">
@@ -85,7 +90,7 @@ export function EvidencePanel({
         key={current.evidence_id}
         role="tabpanel"
         aria-label={`Evidence ${current.evidence_id}`}
-        className="swap-in mt-5"
+        className={cn(picked != null && "swap-in", "mt-5")}
       >
         <p className="text-[15.5px] leading-6 font-[520] text-ink">{current.summary}</p>
         <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-1.5 text-[13px] leading-5">
@@ -110,7 +115,12 @@ export function EvidencePanel({
         </dl>
 
         {number && path ? (
-          <div className="lit swap-in mt-4 rounded-[12px] px-3.5 py-3 text-[13px] leading-5">
+          <div
+            className={cn(
+              checked != null && "swap-in",
+              "lit mt-4 rounded-[12px] px-3.5 py-3 text-[13px] leading-5",
+            )}
+          >
             <p className="text-ink">
               The report writes <span className="tnum font-[560]">{number.as_written}</span>. The
               evidence holds{" "}

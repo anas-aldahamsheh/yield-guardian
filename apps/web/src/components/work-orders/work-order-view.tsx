@@ -3,6 +3,7 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { WorkOrder, WorkOrderUpdate } from "@yield-guardian/contracts";
+import { HistoryIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -297,9 +298,17 @@ function UpdatePanel({
         <Readonly order={order} />
         <p
           role="note"
-          className="mt-4 rounded-sm bg-die-2 px-3 py-2 text-[13px] leading-5 text-ink-2"
+          className="mt-5 flex items-start gap-2.5 rounded-[14px] bg-surface-2 px-4 py-3 text-[13.5px] leading-5 text-ink-2"
         >
-          This work order belongs to the recorded example every visitor sees, so nobody changes it.
+          <HistoryIcon
+            aria-hidden="true"
+            className="mt-px size-4 shrink-0 text-ink-3"
+            strokeWidth={1.8}
+          />
+          <span>
+            This work order belongs to the recorded example every visitor sees, so nobody changes
+            it.
+          </span>
         </p>
       </Panel>
     );

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { StatusLabel } from "@/components/investigation/status-label";
+import { useEntrance } from "@/components/motion/entrance";
 import { csrfHeaders } from "@/lib/api/client";
 import { useApi } from "@/lib/api/context";
 import { describeError } from "@/lib/api/errors";
@@ -30,6 +31,16 @@ import { cn } from "@/lib/utils";
 
 import styles from "./story.module.css";
 import { useViewportRoom } from "./use-viewport-room";
+
+/** The rail when the run has no alarm: fades in when it comes to say so while the person is here. */
+function NoAlarm({ finished }: { finished: boolean }) {
+  const entrance = useEntrance();
+  return (
+    <p className={cn(entrance && "swap-in", "px-3.5 py-4 text-[14px] leading-5 text-ink-2")}>
+      {finished ? "No station raised an alarm on this input." : "No alarm so far."}
+    </p>
+  );
+}
 
 /** An investigation was started from an alarm (the line records it with the run). */
 export type OnLinked = (alarmId: string, investigation: Investigation) => void;
@@ -170,7 +181,7 @@ export function AlarmsRail({
         <h2
           id="alarms-title"
           tabIndex={-1}
-          className="text-[18px] leading-6 font-[640] tracking-[-0.015em] text-ink outline-none [font-stretch:106%]"
+          className="text-[18px] leading-6 font-[640] tracking-[-0.015em] text-ink [font-stretch:106%] outline-none"
         >
           Alarms
         </h2>
@@ -205,9 +216,7 @@ export function AlarmsRail({
             </p>
           </div>
         ) : !alarms.length ? (
-          <p className="swap-in px-3.5 py-4 text-[14px] leading-5 text-ink-2">
-            {finished ? "No station raised an alarm on this input." : "No alarm so far."}
-          </p>
+          <NoAlarm key={finished ? "finished" : "so-far"} finished={finished} />
         ) : (
           <ul className="flex flex-col gap-1">
             {rows(alarms).map((row) =>
@@ -377,7 +386,11 @@ function Fold({
       {open ? (
         <ul
           id={id}
-          className="grow-in relative ml-[19px] flex flex-col gap-0.5 pl-3 before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-hairline-strong"
+          className={cn(
+            // It grows open when the person opens it; open as the page arrived, it is there.
+            choice && "grow-in",
+            "relative ml-[19px] flex flex-col gap-0.5 pl-3 before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-hairline-strong",
+          )}
         >
           {alarms.map((a) => (
             <li key={a.alarm_id}>

@@ -58,9 +58,9 @@ export function RunMenu({
           size="icon-xs"
           variant="ghost"
           aria-label={`More actions for ${name}`}
-          className="-mt-0.5 -mr-1"
+          className="-mr-1.5 size-7"
         >
-          <MoreHorizontal aria-hidden="true" />
+          <MoreHorizontal aria-hidden="true" className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

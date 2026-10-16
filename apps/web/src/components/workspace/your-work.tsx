@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { WorkRun, WorkRunPage } from "@yield-guardian/contracts";
-import { MoreHorizontal } from "lucide-react";
+import { MonitorSmartphoneIcon, MoreHorizontal } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -45,9 +45,9 @@ const RunMenu = dynamic(() => loadMenus().then((m) => m.RunMenu), {
       variant="ghost"
       aria-label="More actions"
       disabled
-      className="-mt-0.5 -mr-1"
+      className="-mr-1.5 size-7"
     >
-      <MoreHorizontal aria-hidden="true" />
+      <MoreHorizontal aria-hidden="true" className="size-4" />
     </Button>
   ),
 });
@@ -193,14 +193,17 @@ export function YourWork({
     <section
       aria-labelledby="your-work-title"
       data-your-work=""
-      className="mt-6 border-t border-hairline pt-4"
+      className="mt-16 border-t border-hairline pt-8 sm:mt-20"
     >
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
-          <h2 id="your-work-title" className="text-[17px] leading-6 font-semibold text-ink">
+          <h2
+            id="your-work-title"
+            className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] sm:text-[30px] sm:leading-9"
+          >
             {archived ? "Your archived runs" : "Your work"}
           </h2>
-          <p className="min-h-10 text-[13px] leading-5 text-ink-3 sm:min-h-5">
+          <p className="mt-1.5 min-h-10 text-[14px] leading-5 text-ink-2 sm:min-h-5">
             {!workspace && unavailable ? (
               "Not kept on this server right now."
             ) : !workspace ? (
@@ -209,7 +212,7 @@ export function YourWork({
               "Reading your runs."
             ) : (
               <>
-                <span className="whitespace-nowrap">
+                <span className="tnum font-[560] whitespace-nowrap text-ink">
                   {archived ? plural(total, "archived run") : plural(total, "run")}
                 </span>
                 {keptUntil ? (
@@ -230,13 +233,8 @@ export function YourWork({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-hairline-strong"
-            disabled={!workspace}
-            onClick={actions.handoff}
-          >
+          <Button size="sm" variant="outline" disabled={!workspace} onClick={actions.handoff}>
+            <MonitorSmartphoneIcon aria-hidden="true" strokeWidth={1.8} />
             Continue on another device
           </Button>
           {menusLoaded === "workspace" ? (
@@ -259,9 +257,12 @@ export function YourWork({
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-6">
         {!workspace && unavailable ? (
-          <EmptyState className={CARD_HEIGHT} title="Your runs are not listed">
+          <EmptyState
+            className={cn(CARD_HEIGHT, "unexposed rounded-[20px] border-solid bg-surface")}
+            title="Your runs are not listed"
+          >
             This device&apos;s workspace could not be opened: the API keeps workspaces in its
             database, and it did not answer or has none. Runs still work; reload the page to try
             again.
@@ -270,7 +271,11 @@ export function YourWork({
           // Still, as the whole Line is when the page loads or reloads: nothing moves that is not
           // new (the line above says what is being read).
           <Placeholder
-            className={cn(CARD_HEIGHT, "w-full animate-none")}
+            still
+            className={cn(
+              CARD_HEIGHT,
+              "unexposed w-full rounded-[20px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline)]",
+            )}
             label="Loading your runs"
           />
         ) : runs.isError ? (
@@ -281,7 +286,10 @@ export function YourWork({
           />
         ) : items.length === 0 ? (
           <EmptyState
-            className={CARD_HEIGHT}
+            className={cn(
+              CARD_HEIGHT,
+              "unexposed rounded-[20px] border-solid bg-surface px-6 py-7 sm:px-8",
+            )}
             title={archived ? "No archived runs" : "No runs yet"}
             action={
               archived ? (
@@ -296,10 +304,10 @@ export function YourWork({
               : "Choose an input above and run it. Every run you start here is kept with its live status, so you can come back to it, compare it with another or run it again. Open this page on another device with “Continue on another device”."}
           </EmptyState>
         ) : (
-          <ScrollRegion label="Your runs" className="-mx-1 px-1 pb-2">
-            <ul className="flex w-max gap-3">
+          <ScrollRegion label="Your runs" className="-mx-2 snap-x scroll-px-2 px-2 pt-1 pb-3">
+            <ul className="flex w-max gap-4">
               {items.map((run) => (
-                <li key={run.run_id} className="w-[17.5rem] shrink-0">
+                <li key={run.run_id} className="w-[18.5rem] shrink-0 snap-start">
                   <RunCard
                     run={run}
                     onLine={run.run_id === onLine}
@@ -311,11 +319,10 @@ export function YourWork({
                 </li>
               ))}
               {runs.hasNextPage ? (
-                <li className={cn("flex w-[12rem] shrink-0 items-center", CARD_HEIGHT)}>
+                <li className={cn("flex w-[12rem] shrink-0 snap-start items-center", CARD_HEIGHT)}>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-hairline-strong"
                     disabled={runs.isFetchingNextPage}
                     onClick={() => void runs.fetchNextPage()}
                   >
@@ -357,6 +364,10 @@ export function YourWork({
   );
 }
 
+/**
+ * One run of the workspace: its name, its state with the dot that repeats it, what it needs
+ * next and the one action for that; the rest is in its menu. The run on the line is lit.
+ */
 function RunCard({
   run,
   onLine,
@@ -384,15 +395,17 @@ function RunCard({
       aria-current={onLine ? "true" : undefined}
       data-run={run.run_id}
       className={cn(
-        "flex h-full flex-col gap-1 rounded-[2px] border bg-die p-3",
+        "flex h-full flex-col rounded-[20px] bg-surface px-4 pt-3.5 pb-4 transition-shadow duration-(--dur-3)",
         CARD_HEIGHT,
-        onLine ? "border-safelight-lamp" : "border-hairline",
+        onLine
+          ? "shadow-[inset_0_0_0_1.5px_var(--signal),var(--highlight)]"
+          : "shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] hover:shadow-[inset_0_0_0_1px_var(--hairline-strong),var(--highlight),var(--elev-float)]",
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <h3
           id={titleId}
-          className="min-w-0 truncate text-[14px] leading-5 font-medium text-ink"
+          className="min-w-0 truncate text-[15px] leading-6 font-[620] tracking-[-0.005em] text-ink"
           title={name}
         >
           {name}
@@ -412,41 +425,43 @@ function RunCard({
             aria-label={`More actions for ${name}`}
             aria-haspopup="menu"
             aria-expanded={false}
-            className="-mt-0.5 -mr-1"
+            className="-mr-1.5 size-7"
             onClick={onMenu}
             onPointerEnter={() => void loadMenus()}
             onFocus={() => void loadMenus()}
           >
-            <MoreHorizontal aria-hidden="true" />
+            <MoreHorizontal aria-hidden="true" className="size-4" />
           </Button>
         )}
       </div>
       {/* The state is never cut short: the start time moves to the next line when it must. */}
-      <p className="flex min-w-0 items-start gap-1.5 text-[12px] leading-4 text-ink-3">
+      <p className="mt-0.5 flex min-w-0 items-start gap-2 text-[12.5px] leading-[18px] text-ink-2">
         <span
           aria-hidden="true"
-          className={cn("mt-[5px] inline-block size-1.5 shrink-0 rounded-full", statusDot(run))}
+          className={cn("mt-[6px] inline-block size-1.5 shrink-0 rounded-full", statusDot(run))}
         />
         <span className="min-w-0">
           {runStatus(run)}
-          <span aria-hidden="true">{" · "}</span>
-          <LocalDateTime iso={run.created_at} className="tnum whitespace-nowrap" />
+          <span aria-hidden="true" className="text-ink-3">
+            {" · "}
+          </span>
+          <LocalDateTime iso={run.created_at} className="tnum whitespace-nowrap text-ink-3" />
         </span>
       </p>
-      <p className="line-clamp-2 text-[13px] leading-5 text-ink-2">{run.next.text}</p>
+      <p className="mt-3 line-clamp-2 text-[14px] leading-5 text-ink">{run.next.text}</p>
       {run.note ? (
-        <p className="truncate text-[12px] leading-4 text-ink-3" title={run.note}>
+        <p className="mt-1.5 truncate text-[12.5px] leading-4 text-ink-3" title={run.note}>
           {run.note}
         </p>
       ) : null}
       {listed.length ? (
-        <p className="truncate text-[12px] leading-4 text-ink-3">
+        <p className="mt-1.5 truncate text-[12.5px] leading-4 text-ink-3">
           {listed.map((inv, i) => (
             <span key={inv.investigation_id}>
               {i ? ", " : null}
               <Link
                 href={investigationHref(inv.investigation_id)}
-                className="text-ink underline underline-offset-2 hover:text-safelight"
+                className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-2 transition-colors duration-(--dur-1) hover:text-ink hover:decoration-ink"
               >
                 {`${inv.alarm_id} ${(INVESTIGATION_STATUS[inv.status] ?? inv.status).toLowerCase()}`}
               </Link>
@@ -455,7 +470,7 @@ function RunCard({
           {more > 0 ? `, ${more} more` : null}
         </p>
       ) : null}
-      <div className="mt-auto flex items-center gap-2 pt-1.5">
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-4">
         {primary?.kind === "link" ? (
           <Button asChild size="sm">
             <Link href={primary.href}>{primary.label}</Link>
@@ -464,7 +479,6 @@ function RunCard({
           <Button
             size="sm"
             variant={primary.kind === "open" ? "outline" : "default"}
-            className={primary.kind === "open" ? "border-hairline-strong" : undefined}
             onClick={() =>
               primary.kind === "restore"
                 ? actions.archive(run, false)
@@ -476,7 +490,12 @@ function RunCard({
             {primary.label}
           </Button>
         ) : null}
-        {onLine ? <span className="text-[12px] leading-4 text-ink-3">On the line now</span> : null}
+        {onLine ? (
+          <span className="inline-flex items-center gap-1.5 text-[12.5px] leading-4 font-[560] text-signal">
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-signal" />
+            On the line now
+          </span>
+        ) : null}
       </div>
     </article>
   );

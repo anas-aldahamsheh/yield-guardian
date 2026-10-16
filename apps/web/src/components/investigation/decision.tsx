@@ -2,8 +2,11 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import type { Investigation, Report } from "@yield-guardian/contracts";
+import { HistoryIcon } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
+
+import { useEntrance } from "@/components/motion/entrance";
 
 import {
   AlertDialog,
@@ -50,6 +53,8 @@ export function DecisionActions({
   const example = investigation.recorded;
   const open = investigation.status === "awaiting_decision" && canAct && !example;
   const decision = investigation.decision;
+  // A decision made here comes in; one the page arrived with is simply there.
+  const entrance = useEntrance();
 
   const toggle = (i: number) =>
     setChosen((prev) => {
@@ -107,7 +112,8 @@ export function DecisionActions({
       {decision ? (
         <div
           className={cn(
-            "swap-in mt-8 rounded-[16px] px-4 py-4 sm:px-5",
+            entrance && "swap-in",
+            "mt-8 rounded-[16px] px-4 py-4 sm:px-5",
             decision.verdict === "approve"
               ? "bg-pass-wash shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--pass)_28%,transparent)]"
               : "bg-surface-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)]",
@@ -135,18 +141,22 @@ export function DecisionActions({
         <div
           role="note"
           data-example-note
-          className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-die-2 px-4 py-3"
+          className="mt-8 flex flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-[16px] bg-surface-2 py-3.5 pr-3.5 pl-4 sm:pl-5"
         >
-          <p className="max-w-[60ch] text-[14px] leading-5 text-ink-2">
-            This recorded example is the same for every visitor, so nobody decides it. To decide a
-            report of your own, run a sample on the line and investigate one of its alarms.
+          <p className="flex max-w-[64ch] items-start gap-3 text-[14px] leading-5 text-ink-2">
+            <HistoryIcon
+              aria-hidden="true"
+              className="mt-px size-[18px] shrink-0 text-ink-3"
+              strokeWidth={1.8}
+            />
+            <span>
+              This recorded example is the same for every visitor, so nobody decides it. To decide a
+              report of your own, run a sample on the line and investigate one of its alarms.
+            </span>
           </p>
-          <Link
-            href={lineHref()}
-            className="text-[14px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
-          >
-            Open the line
-          </Link>
+          <Button asChild size="sm" variant="outline">
+            <Link href={lineHref()}>Open the line</Link>
+          </Button>
         </div>
       ) : investigation.status === "awaiting_decision" && !canAct ? (
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-[16px] bg-surface-2 py-3 pr-3 pl-4 sm:pl-5">
