@@ -188,7 +188,7 @@ class _OutputSpec:
 
 
 ROLE_TIMEOUT_S: dict[Role, float] = {
-    Role.INVESTIGATOR: 180.0,
+    Role.INVESTIGATOR: 60.0,  # plans are short (19 s live); a 504 from AMD took 141 s to arrive
     Role.WRITER: 240.0,  # a report is about 2,000 tokens; Qwen3.8-Flash-Next wrote ~1,300 in 62 s
     Role.VERIFIER: 90.0,
     Role.ROUTER: 30.0,

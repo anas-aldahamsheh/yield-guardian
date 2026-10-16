@@ -573,7 +573,7 @@ async def test_a_call_past_the_role_deadline_moves_down_the_chain(
     from yield_guardian.llm.gateway import ROLE_TIMEOUT_S
 
     assert ROLE_TIMEOUT_S[Role.WRITER] == 240.0  # a ~2,000-token report at measured speeds
-    assert ROLE_TIMEOUT_S[Role.INVESTIGATOR] == 180.0
+    assert ROLE_TIMEOUT_S[Role.INVESTIGATOR] == 60.0
     assert ROLE_TIMEOUT_S[Role.VERIFIER] < 180.0
     assert ROLE_TIMEOUT_S[Role.ROUTER] < ROLE_TIMEOUT_S[Role.VERIFIER]
     stack.gateway.timeouts[Role.WRITER] = 0.05
