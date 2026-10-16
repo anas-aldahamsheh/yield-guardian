@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { CircleAlertIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 
@@ -91,14 +92,14 @@ export function JoinWorkspace() {
               required
               aria-describedby={message ? "join-help join-error" : "join-help"}
               aria-invalid={message ? true : undefined}
-              className="font-mono text-[18px] tracking-[0.08em]"
+              className="tnum h-14 rounded-[16px] px-4 text-[22px] font-[600] tracking-[0.12em] uppercase [font-stretch:104%] placeholder:tracking-[0.12em] placeholder:text-ink-3/70"
             />
             <p id="join-help" className="text-[13px] leading-5 text-ink-2">
               12 letters and digits; dashes, spaces and case do not matter. A code works once
               {here ? `, for ${plural(here.handoff_minutes, "minute")}` : null}.
             </p>
           </div>
-          <p className="text-[14px] leading-5 text-ink-2">
+          <p className="rounded-[14px] bg-surface-2 px-4 py-3 text-[14px] leading-[22px] text-ink-2">
             {!here
               ? "What this device made so far comes along with it."
               : shared
@@ -110,12 +111,17 @@ export function JoinWorkspace() {
             here.
           </p>
           {message ? (
-            <p id="join-error" role="alert" className="text-sm text-fail">
+            <p
+              id="join-error"
+              role="alert"
+              className="swap-in flex items-start gap-2.5 rounded-[14px] bg-fail-wash px-4 py-3 text-[14px] leading-5 text-ink shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_30%,transparent)]"
+            >
+              <CircleAlertIcon aria-hidden="true" className="mt-px size-4 shrink-0 text-fail" />
               {message}
             </p>
           ) : null}
           <div>
-            <Button type="submit" disabled={join.isPending || !code.trim()}>
+            <Button type="submit" size="lg" disabled={join.isPending || !code.trim()}>
               {join.isPending ? "Joining" : "Join the workspace"}
             </Button>
           </div>

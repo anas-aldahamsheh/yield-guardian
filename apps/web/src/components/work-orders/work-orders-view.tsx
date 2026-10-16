@@ -6,6 +6,7 @@ import type { WorkOrder } from "@yield-guardian/contracts";
 import { XIcon } from "lucide-react";
 import Link from "next/link";
 
+import { useEntrance } from "@/components/motion/entrance";
 import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { Tag } from "@/components/tag";
@@ -58,6 +59,36 @@ export function StatusMark({
 }
 
 /**
+ * One work order opened above the list. It grows in when opened from the list; a page that
+ * opens on it has it in place.
+ */
+function OpenOrder({ order }: { order: string }) {
+  const entrance = useEntrance();
+  return (
+    <section
+      aria-label={`Work order ${order}`}
+      className={cn(
+        entrance && "grow-in",
+        "scroll-mt-[calc(var(--bar-height)+24px)] border-b border-hairline pb-10",
+      )}
+      id="work-order"
+    >
+      <div className="mb-4">
+        <Link
+          href={workOrdersHref()}
+          scroll={false}
+          className="press inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-[560] text-ink-2 no-underline shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
+        >
+          <XIcon className="size-3.5" strokeWidth={2} aria-hidden />
+          Close this work order
+        </Link>
+      </div>
+      <WorkOrderSection id={order} showInvestigation />
+    </section>
+  );
+}
+
+/**
  * The Work orders tab of Investigations: every work order, newest first, and the audit log.
  * `order` opens one work order above the list (where /work-orders/<id> lands when the order's
  * investigation could not be looked up).
@@ -70,25 +101,7 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
-      {order ? (
-        <section
-          aria-label={`Work order ${order}`}
-          className="grow-in scroll-mt-[calc(var(--bar-height)+24px)] border-b border-hairline pb-10"
-          id="work-order"
-        >
-          <div className="mb-4">
-            <Link
-              href={workOrdersHref()}
-              scroll={false}
-              className="press inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-[560] text-ink-2 no-underline shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
-            >
-              <XIcon className="size-3.5" strokeWidth={2} aria-hidden />
-              Close this work order
-            </Link>
-          </div>
-          <WorkOrderSection id={order} showInvestigation />
-        </section>
-      ) : null}
+      {order ? <OpenOrder key={order} order={order} /> : null}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <Panel
           title="Work orders"

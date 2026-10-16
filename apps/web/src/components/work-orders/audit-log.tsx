@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
+import { Tag } from "@/components/tag";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -188,9 +189,7 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
                       ) : e.target_id ? (
                         <span className="tnum text-ink-2">{e.target_id}</span>
                       ) : null}
-                      {e.example ? (
-                        <span className="ml-2 text-[12px] text-ink-3">Example</span>
-                      ) : null}
+                      {e.example ? <Tag className="ml-2">Example</Tag> : null}
                     </p>
                     <p className="mt-0.5 text-[12.5px] leading-4 text-ink-3">
                       {e.actor_name ? `${e.actor_name}, ` : ""}

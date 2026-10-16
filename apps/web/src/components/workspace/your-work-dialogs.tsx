@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { RunComparison, RunSide, WorkRun } from "@yield-guardian/contracts";
+import { CopyIcon, LaptopMinimalIcon, LinkIcon, SmartphoneIcon } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { LocalDateTime } from "@/components/local-date-time";
@@ -42,6 +43,7 @@ import { useCreateHandoff, useFreshWorkspace, useUpdateWorkRun, wq } from "@/lib
 import { formatDateTime, formatInt, formatRelative, plural } from "@/lib/format";
 import { ACTOR_ROLE, RUN_STAGE, RUN_STATUS, STAGE_STATUS, patternName } from "@/lib/labels";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 import { alarmCount, runName } from "./work-model";
 
@@ -104,12 +106,12 @@ export function RenameDialog({
               rows={4}
               onChange={(e) => setNote(e.target.value)}
             />
-            <p className="text-[12px] leading-4 text-ink-3">
+            <p className="text-[12.5px] leading-4 text-ink-3">
               Leave a field empty to remove it. Up to 2,000 characters.
             </p>
           </div>
           {error ? (
-            <p role="alert" className="text-sm text-fail">
+            <p role="alert" className="text-[13.5px] leading-5 text-fail">
               {`${error.title}. ${error.detail}`}
             </p>
           ) : null}
@@ -180,7 +182,9 @@ export function CompareDialog({
             {(c) => <Comparison comparison={c} runs={runs} />}
           </QueryView>
         ) : (
-          <p className="text-sm text-ink-2">This workspace has no other run to compare with.</p>
+          <p className="text-[14px] leading-5 text-ink-2">
+            This workspace has no other run to compare with.
+          </p>
         )}
       </DialogContent>
     </Dialog>
@@ -223,15 +227,15 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
     return listed ? runName(listed) : side.title;
   };
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-      <div className="text-[14px] leading-5 text-ink-2">
-        <p className="font-medium text-ink">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
+      <div className="rounded-[16px] bg-surface-2 px-4 py-3.5 text-[14px] leading-5 text-ink-2">
+        <p className="font-[600] text-ink">
           {comparison.same_input
             ? "Both runs computed exactly the same input."
             : "The runs computed different inputs, so their numbers are not of the same items."}
         </p>
         {comparison.changes.length ? (
-          <ul className="mt-1 list-disc pl-5">
+          <ul className="mt-1.5 grid list-disc gap-0.5 pl-5 marker:text-ink-3">
             {comparison.changes.map((change) => (
               <li key={change}>{change}</li>
             ))}
@@ -240,17 +244,20 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
           <p className="mt-1">Nothing differs: every count and stage status is the same.</p>
         )}
       </div>
-      <ScrollRegion label="The two runs side by side">
-        <table className="w-full min-w-[520px] border-collapse text-left text-[13px] leading-5">
+      <ScrollRegion
+        label="The two runs side by side"
+        className="rounded-[16px] shadow-[inset_0_0_0_1px_var(--hairline)]"
+      >
+        <table className="w-full min-w-[520px] border-collapse text-left text-[13.5px] leading-5">
           <caption className="sr-only">The two runs side by side</caption>
           <thead>
-            <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="py-2 pr-2 font-normal">
+            <tr className="border-b border-hairline text-[12.5px] leading-4 text-ink-3">
+              <th scope="col" className="py-3 pr-3 pl-4 font-[520]">
                 <span className="sr-only">Result</span>
               </th>
               {[a, b].map((side, i) => (
-                <th key={side.run_id} scope="col" className="px-2 py-2 font-normal">
-                  <span className="block font-medium text-ink">{`${i ? "B" : "A"}: ${named(side)}`}</span>
+                <th key={side.run_id} scope="col" className="px-3 py-3 font-[520] last:pr-4">
+                  <span className="block text-[13.5px] leading-5 font-[600] text-ink">{`${i ? "B" : "A"}: ${named(side)}`}</span>
                   <LocalDateTime iso={side.created_at} className="tnum" />
                 </th>
               ))}
@@ -259,15 +266,21 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
           <tbody>
             {ROWS.map((row) => {
               const [va, vb] = [row.value(a), row.value(b)];
+              const differs = va !== vb;
               return (
                 <tr key={row.label} className="border-b border-hairline last:border-b-0">
-                  <th scope="row" className="py-1.5 pr-2 align-top font-normal text-ink-2">
+                  <th scope="row" className="py-2 pr-3 pl-4 align-top font-[420] text-ink-2">
                     {row.label}
                   </th>
-                  <td className="tnum px-2 py-1.5 align-top text-ink">{va}</td>
-                  <td className="tnum px-2 py-1.5 align-top text-ink">
+                  <td className="tnum px-3 py-2 align-top text-ink">{va}</td>
+                  <td
+                    className={cn(
+                      "tnum py-2 pr-4 pl-3 align-top text-ink",
+                      differs && "bg-signal-wash font-[600]",
+                    )}
+                  >
                     {vb}
-                    {va !== vb ? <span className="sr-only"> (differs)</span> : null}
+                    {differs ? <span className="sr-only"> (differs)</span> : null}
                   </td>
                 </tr>
               );
@@ -275,18 +288,21 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
           </tbody>
         </table>
       </ScrollRegion>
-      <ScrollRegion label="The stages of the two runs">
-        <table className="w-full min-w-[520px] border-collapse text-left text-[13px] leading-5">
+      <ScrollRegion
+        label="The stages of the two runs"
+        className="rounded-[16px] shadow-[inset_0_0_0_1px_var(--hairline)]"
+      >
+        <table className="w-full min-w-[520px] border-collapse text-left text-[13.5px] leading-5">
           <caption className="sr-only">The stages of the two runs</caption>
           <thead>
-            <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="py-2 pr-2 font-normal">
+            <tr className="border-b border-hairline text-[12.5px] leading-4 text-ink-3">
+              <th scope="col" className="py-3 pr-3 pl-4 font-[520]">
                 Stage
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 A
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="py-3 pr-4 pl-3 font-[520]">
                 B
               </th>
             </tr>
@@ -294,7 +310,7 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
           <tbody>
             {comparison.stages.map((stage) => (
               <tr key={stage.stage} className="border-b border-hairline last:border-b-0">
-                <th scope="row" className="py-1.5 pr-2 align-top font-normal text-ink-2">
+                <th scope="row" className="py-2 pr-3 pl-4 align-top font-[420] text-ink-2">
                   {RUN_STAGE[stage.stage] ?? stage.stage}
                 </th>
                 {(
@@ -303,7 +319,7 @@ function Comparison({ comparison, runs }: { comparison: RunComparison; runs: Wor
                     [stage.b_status, stage.b_alarms, stage.b_warnings],
                   ] as const
                 ).map(([status, alarms, warnings], i) => (
-                  <td key={i} className="tnum px-2 py-1.5 align-top text-ink">
+                  <td key={i} className="tnum px-3 py-2 align-top text-ink last:pr-4">
                     {STAGE_STATUS[status] ?? status}
                     {alarms || warnings ? `, ${alarmCount({ alarms, warnings })}` : null}
                   </td>
@@ -371,17 +387,17 @@ export function HandoffDialog({
           </DialogDescription>
         </DialogHeader>
         {create.isError ? (
-          <p role="alert" className="text-sm text-fail">
+          <p role="alert" className="text-[13.5px] leading-5 text-fail">
             {`${describeError(create.error).title}. ${describeError(create.error).detail}`}
           </p>
         ) : !handoff ? (
-          <Placeholder className="h-36" label="Making a code" />
+          <Placeholder className="h-[13.5rem] rounded-[16px]" label="Making a code" />
         ) : (
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-            <div>
-              <p className="text-[12px] leading-4 text-ink-3">Code</p>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
+            <div className="rounded-[16px] bg-surface-2 px-4 pt-3 pb-3.5 text-center shadow-[inset_0_0_0_1px_var(--hairline)]">
+              <p className="text-[12.5px] leading-4 font-[520] text-ink-3">Code</p>
               <p
-                className="tnum font-mono text-[28px] leading-9 tracking-[0.12em] text-ink"
+                className="tnum mt-1 text-[30px] leading-10 font-[640] tracking-[0.14em] text-ink [font-stretch:104%]"
                 data-handoff-code=""
               >
                 <span aria-hidden="true">{handoff.code}</span>
@@ -399,13 +415,15 @@ export function HandoffDialog({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => copy(link, "link")}>
+                <LinkIcon aria-hidden="true" strokeWidth={1.9} />
                 Copy the link
               </Button>
               <Button size="sm" variant="outline" onClick={() => copy(handoff.code, "code")}>
+                <CopyIcon aria-hidden="true" strokeWidth={1.9} />
                 Copy the code
               </Button>
             </div>
-            <p className="text-[13px] leading-5 text-ink-2" role="status">
+            <p className="text-[13.5px] leading-5 text-ink-2" role="status">
               {expired ? (
                 "This code has ended. Make a new one."
               ) : copied === "none" ? (
@@ -422,17 +440,37 @@ export function HandoffDialog({
             </p>
           </div>
         )}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
-          <h3 className="text-sm font-medium text-ink">Devices in this workspace</h3>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 border-t border-hairline pt-4">
+          <h3 className="text-[14px] leading-5 font-[600] text-ink">Devices in this workspace</h3>
           {joined ? (
-            <p role="status" className="text-[13px] leading-5 text-pass">
+            <p
+              role="status"
+              className="swap-in flex items-center gap-2 rounded-[12px] bg-pass-wash px-3 py-2 text-[13.5px] leading-5 text-ink"
+            >
+              <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-pass" />
               Another device joined: it sees this workspace now.
             </p>
           ) : null}
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5 text-ink-2">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-1 text-[13.5px] leading-5 text-ink-2">
             {devices.map((device, i) => (
-              <li key={`${device.created_at}-${i}`} className="flex flex-wrap gap-x-2">
-                <span className="text-ink">
+              <li
+                key={`${device.created_at}-${i}`}
+                className="flex flex-wrap items-center gap-x-2.5 rounded-[12px] bg-surface-2 px-3 py-2"
+              >
+                {device.current ? (
+                  <LaptopMinimalIcon
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-ink-3"
+                    strokeWidth={1.8}
+                  />
+                ) : (
+                  <SmartphoneIcon
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-ink-3"
+                    strokeWidth={1.8}
+                  />
+                )}
+                <span className="font-[560] text-ink">
                   {device.current ? "This device" : "Another device"}
                 </span>
                 <span>{ACTOR_ROLE[device.role] ?? device.role}</span>
@@ -504,7 +542,7 @@ export function FreshDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         {fresh.isError ? (
-          <p role="alert" className="text-sm text-fail">
+          <p role="alert" className="text-[13.5px] leading-5 text-fail">
             {describeError(fresh.error).detail}
           </p>
         ) : null}

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { type ComponentProps, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const subscribe = () => () => {};
 export const useThemeMounted = () =>
@@ -15,16 +16,28 @@ export const useThemeMounted = () =>
     () => false,
   );
 
-/** The theme button; its icon shows the theme in use. */
+/**
+ * The theme button; its icon shows the theme in use. The icon the page arrives with is simply
+ * there; once the reader picks another theme, each new icon turns in.
+ */
 export function ThemeButton(props: ComponentProps<typeof Button>) {
   const { resolvedTheme } = useTheme();
   const mounted = useThemeMounted();
+  const shown = mounted ? (resolvedTheme ?? "system") : null;
+  const [first, setFirst] = useState<string | null>(null);
+  const [changed, setChanged] = useState(false);
+  if (shown !== null && first === null) setFirst(shown);
+  if (first !== null && shown !== first && !changed) setChanged(true);
   const Icon = !mounted ? Monitor : resolvedTheme === "dark" ? Moon : Sun;
   return (
     <Button variant="ghost" size="icon" aria-label="Choose the colour theme" {...props}>
       <Icon
-        key={mounted ? (resolvedTheme ?? "system") : "system"}
-        className="size-[18px] animate-in duration-[480ms] ease-spring fade-in-0 zoom-in-75 spin-in-[-60deg]"
+        key={shown ?? "system"}
+        className={cn(
+          "size-[18px]",
+          changed &&
+            "animate-in duration-[480ms] ease-spring fade-in-0 zoom-in-75 spin-in-[-60deg]",
+        )}
         strokeWidth={1.75}
         aria-hidden="true"
       />

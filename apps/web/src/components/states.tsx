@@ -4,6 +4,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import { CircleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useEntrance } from "@/components/motion/entrance";
 import { Button } from "@/components/ui/button";
 import { ApiError, describeError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ export function ErrorState({
   compact?: boolean;
 }) {
   const copy = describeError(error);
+  // An error that comes up while the reader is here fades in; one the page arrived with is there.
+  const entrance = useEntrance();
   // The API answers 503 not_ready while a service is loading or not installed. That is a state
   // of the plant, not a fault: it is drawn as an unexposed field, without the fail colour.
   if (error instanceof ApiError && error.code === "not_ready") {
@@ -45,7 +48,8 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "swap-in flex flex-wrap items-start gap-x-3 gap-y-3 rounded-[14px] bg-fail-wash px-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_32%,transparent)]",
+        entrance && "swap-in",
+        "flex flex-wrap items-start gap-x-3 gap-y-3 rounded-[14px] bg-fail-wash px-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_32%,transparent)]",
         compact ? "py-3" : "py-4",
         className,
       )}
@@ -153,19 +157,24 @@ export function PendingMark({ className }: { className?: string }) {
   );
 }
 
-/** A loading placeholder shaped like what will arrive. */
+/**
+ * A loading placeholder shaped like what will arrive. A band of light crosses it while it waits;
+ * `still` where nothing may move while the page arrives (the Line, which is at rest on a load).
+ */
 export function Placeholder({
   className,
   label = "Loading",
+  still = false,
 }: {
   className?: string;
   label?: string;
+  still?: boolean;
 }) {
   return (
     <div
       role="status"
       aria-label={label}
-      className={cn("shimmer rounded-[14px] bg-surface-2", className)}
+      className={cn(!still && "shimmer", "rounded-[14px] bg-surface-2", className)}
     />
   );
 }

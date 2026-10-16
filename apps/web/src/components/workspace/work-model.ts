@@ -36,12 +36,16 @@ export function runStatus(run: WorkRun): string {
   }
 }
 
-/** The dot beside the state: live while computing, the alarm colour while alarms wait. */
+/**
+ * The dot beside the state: live while computing, filled with the alarm colour while alarms
+ * wait, pass when nothing does; a ring while it waits to start, or in the alarm colour once it
+ * stopped.
+ */
 export function statusDot(run: WorkRun): string {
   if (run.status === "running") return "live-dot";
-  if (run.status === "failed") return "bg-fail";
-  if (run.status === "queued") return "bg-mark-muted";
-  return run.alarms_open ? "bg-safelight" : "bg-pass";
+  if (run.status === "failed") return "shadow-[inset_0_0_0_1.5px_var(--fail)]";
+  if (run.status === "queued") return "shadow-[inset_0_0_0_1.5px_var(--mark-muted)]";
+  return run.alarms_open ? "bg-fail" : "bg-pass";
 }
 
 /** The Line page's view a run reopens on: where it was left, or the run itself. */

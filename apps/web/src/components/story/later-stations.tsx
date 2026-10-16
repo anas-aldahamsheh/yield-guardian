@@ -5,6 +5,7 @@ import type { RunAlarm } from "@yield-guardian/contracts";
 import Link from "next/link";
 
 import { StatusLabel } from "@/components/investigation/status-label";
+import { useEntrance } from "@/components/motion/entrance";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { useInvestigationStream } from "@/lib/investigation/use-investigation-stream";
@@ -97,12 +98,7 @@ function Spur({ reached }: { reached: boolean }) {
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
       <span className="absolute top-0 bottom-0 left-[27px] w-0 border-l-2 border-dashed border-hairline-strong md:hidden" />
       <span className="absolute inset-x-0 top-[25px] hidden h-0 border-t-2 border-dashed border-hairline-strong md:block" />
-      {reached ? (
-        <>
-          <span className="swap-in absolute top-0 bottom-0 left-[27px] w-[2px] bg-[linear-gradient(180deg,var(--film-6),var(--film-5))] md:hidden" />
-          <span className="swap-in absolute inset-x-0 top-[25px] hidden h-[2px] bg-[linear-gradient(90deg,var(--film-6),var(--film-5))] md:block" />
-        </>
-      ) : null}
+      {reached ? <SpurFilm /> : null}
       <span
         className={cn(
           "absolute top-[23px] left-[21px] size-[14px] rounded-full md:top-[19px]",
@@ -115,7 +111,29 @@ function Spur({ reached }: { reached: boolean }) {
   );
 }
 
+/** The film on the spur: it comes in when an investigation starts here; one the page arrived with is lit. */
+function SpurFilm() {
+  const entrance = useEntrance();
+  return (
+    <>
+      <span
+        className={cn(
+          entrance && "swap-in",
+          "absolute top-0 bottom-0 left-[27px] w-[2px] bg-[linear-gradient(180deg,var(--film-6),var(--film-5))] md:hidden",
+        )}
+      />
+      <span
+        className={cn(
+          entrance && "swap-in",
+          "absolute inset-x-0 top-[25px] hidden h-[2px] bg-[linear-gradient(90deg,var(--film-6),var(--film-5))] md:block",
+        )}
+      />
+    </>
+  );
+}
+
 function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
+  const entrance = useEntrance();
   const api = useApi();
   const query = useQuery(q.investigation(api, id));
   useInvestigationStream(query.data);
@@ -124,7 +142,7 @@ function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
   const status = inv?.status ?? alarm.investigation_status ?? null;
   const last = inv?.steps.at(-1);
   return (
-    <div className="grow-in rounded-[16px] bg-surface-2 px-4 py-3.5">
+    <div className={cn(entrance && "grow-in", "rounded-[16px] bg-surface-2 px-4 py-3.5")}>
       <p className="text-[14.5px] leading-5 font-[600] text-ink">
         {alarm.title} <span className="tnum font-[440] text-ink-3">{alarm.alarm_id}</span>
       </p>
