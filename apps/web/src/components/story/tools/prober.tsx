@@ -79,7 +79,7 @@ export function ProberTool({ state, store }: { state: RunState | null; store: Sc
         <span
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute rounded-full mix-blend-screen transition-opacity duration-(--dur-5)",
+            "pointer-events-none absolute rounded-full transition-opacity duration-(--dur-5)",
             onChuck ? "opacity-[0.13]" : "opacity-0",
           )}
           style={{

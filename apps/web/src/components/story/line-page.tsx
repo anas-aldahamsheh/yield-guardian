@@ -448,7 +448,7 @@ export function LinePage({
                   // Ask button's band below, so in view it clears both; beside the line it takes the
                   // line's height, down to the Ask button's band wherever the page is scrolled (while
                   // the line is still low on the screen the rail is short, and it grows as it rises).
-                  className="max-h-[min(640px,calc(100dvh-var(--bar-height)-112px))] min-h-[200px] rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] xl:absolute xl:inset-x-0 xl:top-0 xl:h-[min(100%,max(0px,var(--viewport-room,100%)))] xl:max-h-none xl:min-h-0 xl:overflow-hidden"
+                  className="max-h-[min(640px,calc(100dvh-var(--bar-height)-112px))] min-h-[200px] rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] xl:absolute xl:inset-x-0 xl:top-0 xl:h-[min(100%,max(0px,var(--viewport-room,100%)))] xl:max-h-none xl:min-h-0"
                 />
               </div>
             </div>
@@ -752,7 +752,7 @@ function LineStatus({ state, over }: { state: RunState; over: boolean }) {
         aria-hidden="true"
         className={cn(
           "mt-[7px] inline-block size-1.5 shrink-0 rounded-full",
-          over ? "bg-ink-3" : "live-dot",
+          over ? "bg-ink-3" : "bg-signal",
         )}
       />
       <span>{lineStatus(state, over)}</span>

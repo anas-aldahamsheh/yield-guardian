@@ -118,7 +118,10 @@ export function InputBar({
       >
         {waitingFor ? (
           <Note className="lit mb-4 flex items-start gap-2.5 rounded-[14px] px-4 py-3 text-[14px] leading-5 text-ink">
-            <span aria-hidden="true" className="live-dot mt-[7px] size-1.5 shrink-0" />
+            <span
+              aria-hidden="true"
+              className="mt-[7px] size-1.5 shrink-0 rounded-full bg-signal"
+            />
             {`Choose an input to start a run; the ${waitingFor.toLowerCase()} details open with its results.`}
           </Note>
         ) : null}

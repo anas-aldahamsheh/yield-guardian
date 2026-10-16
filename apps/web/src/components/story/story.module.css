@@ -1,34 +1,34 @@
 /*
  * Motion of the line that globals.css does not have. Each plays once, when its element mounts
  * (React remounts it with a new key for the next occurrence); reduced motion removes it, as the
- * global rule shortens every animation to nothing.
+ * global rule shortens every animation to nothing. Each ends on its element's own style and
+ * fills backwards only, so once played it lets go of the element and the compositor drops the
+ * layer it needed.
  */
 
-/* A station turning red: one ring of the fail colour runs out from the tile's edge and fades. */
+/* A station turning red: a ring of the fail colour with a glow inside the tile's edge lights
+   once and fades (opacity only; at rest it is not shown). */
 .pulse {
   pointer-events: none;
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 1.5px var(--fail);
-  animation: station-pulse 1.1s var(--ease-spring) both;
+  opacity: 0;
+  box-shadow:
+    inset 0 0 0 1.5px var(--fail),
+    inset 0 0 40px 4px color-mix(in oklab, var(--fail) 16%, transparent);
+  animation: station-pulse 1.1s var(--ease-out) backwards;
 }
 
 @keyframes station-pulse {
   0% {
     opacity: 0;
-    box-shadow:
-      inset 0 0 0 1.5px var(--fail),
-      inset 0 0 0 0 color-mix(in oklab, var(--fail) 22%, transparent);
   }
   18% {
     opacity: 1;
   }
   100% {
     opacity: 0;
-    box-shadow:
-      inset 0 0 0 1.5px var(--fail),
-      inset 0 0 48px 8px color-mix(in oklab, var(--fail) 0%, transparent);
   }
 }
 
@@ -37,7 +37,7 @@
    breakpoint does not replay it. */
 .slideIn {
   --arrive-from: translateY(-8px);
-  animation: arrive-from var(--dur-4) var(--ease-spring) both;
+  animation: arrive-from var(--dur-4) var(--ease-spring) backwards;
 }
 
 @media (min-width: 1280px) {
@@ -70,7 +70,7 @@
 /* A probed wafer going into its carrier slot: it slides in from the prober's side. */
 .slot {
   transform-box: fill-box;
-  animation: slot-in 320ms var(--ease-spring) both;
+  animation: slot-in 320ms var(--ease-spring) backwards;
 }
 
 @keyframes slot-in {

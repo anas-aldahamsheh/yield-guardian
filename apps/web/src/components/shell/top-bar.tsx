@@ -57,9 +57,10 @@ function MobileNav({ pathname }: { pathname: string }) {
 }
 
 /**
- * The bar floats once the page scrolls under it: the canvas turns to frosted glass (blurred and
- * nearly opaque, so nothing reads through) and a hairline appears. The scroll position is written
- * as an attribute, so scrolling renders nothing in React.
+ * The bar lifts once the page scrolls under it: a hairline and a soft shadow appear under the
+ * opaque canvas (no blurred backdrop: nearly opaque, it showed nothing, and it cost every frame
+ * the page drew). The scroll position is written as an attribute, so scrolling renders nothing
+ * in React.
  */
 function useScrolledAttribute() {
   const ref = useRef<HTMLElement>(null);
@@ -88,16 +89,15 @@ export function TopBar() {
   const pathname = usePathname();
   const ref = useScrolledAttribute();
 
-  // Fixed rather than sticky (Chromium does not blur the backdrop of this sticky bar), with a
-  // spacer of the bar's height in the page's flow.
+  // Fixed, with a spacer of the bar's height in the page's flow.
   return (
     <>
       <div aria-hidden="true" className="h-bar shrink-0" />
       <header
         ref={ref}
         className={cn(
-          "group/bar fixed inset-x-0 top-0 z-40 bg-canvas transition-[background-color,box-shadow] duration-(--dur-3) ease-out",
-          "data-[scrolled]:bg-canvas/95 data-[scrolled]:shadow-[0_1px_0_var(--hairline),0_12px_32px_-24px_rgb(0_0_0/0.35)] data-[scrolled]:backdrop-blur-2xl data-[scrolled]:backdrop-saturate-[1.8]",
+          "group/bar fixed inset-x-0 top-0 z-40 bg-canvas transition-shadow duration-(--dur-3) ease-out",
+          "data-[scrolled]:shadow-[0_1px_0_var(--hairline),0_12px_32px_-24px_rgb(0_0_0/0.35)]",
         )}
       >
         <div className="mx-auto flex h-bar max-w-[1600px] items-center gap-4 px-gutter md:gap-8">
