@@ -22,6 +22,8 @@ OWN_TABLES = {
     "investigation_jobs",
     "investigations",
     "sessions",
+    "workspaces",
+    "workspace_handoffs",
     "work_orders",
     "llm_calls",
     "llm_response_cache",

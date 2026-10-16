@@ -81,6 +81,7 @@ from yield_guardian.live.protocols import (
 from yield_guardian.live.run_alarms import Candidate, raise_alarms
 from yield_guardian.live.stages import final_test, has_results, intake
 from yield_guardian.live.wafers import MapError, decode_map
+from yield_guardian.services.access import Viewer
 from yield_guardian.services.runs import (
     STAGES,
     Z_IN_RESULT,
@@ -142,12 +143,25 @@ class RunStore(RunWriter, Protocol):
     """The run store as the service uses it."""
 
     async def create(
-        self, origin: RunOrigin, data: RunInput, stages: Sequence[StageState]
+        self,
+        origin: RunOrigin,
+        data: RunInput,
+        stages: Sequence[StageState],
+        *,
+        owner: str | None = None,
+        upload_id: str | None = None,
+        again_of: str | None = None,
     ) -> Run: ...
 
-    async def get(self, run_id: str) -> Run: ...
+    async def get(self, run_id: str, viewer: Viewer | None = None) -> Run: ...
 
-    async def unit_chart(self, run_id: str, index: int) -> UnitChartResult: ...
+    async def get_input(self, run_id: str, viewer: Viewer | None = None) -> RunInput: ...
+
+    async def input_digest(self, run_id: str, viewer: Viewer | None = None) -> str: ...
+
+    async def unit_chart(
+        self, run_id: str, index: int, viewer: Viewer | None = None
+    ) -> UnitChartResult: ...
 
     def events(
         self, run_id: str, *, after_seq: int | None = None
@@ -157,8 +171,11 @@ class RunStore(RunWriter, Protocol):
 
 
 class UploadSource(Protocol):
-    async def runnable_upload(self, upload_id: str) -> tuple[str, RunInput]:
-        """The file name and parsed items of a runnable upload; a ServiceError otherwise."""
+    async def runnable_upload(
+        self, upload_id: str, *, viewer: Viewer | None = None
+    ) -> tuple[str, RunInput]:
+        """The file name and parsed items of a runnable upload `viewer` may open; a
+        ServiceError otherwise (another workspace's upload answers as a missing one)."""
         ...
 
 
@@ -228,7 +245,10 @@ class Materialiser:
             raise NotReadyError(WAFERMAP_MISSING)
         return self.engines.wafers
 
-    async def __call__(self, payload: RunCreatePayload) -> tuple[RunOrigin, RunInput]:
+    async def __call__(
+        self, payload: RunCreatePayload, *, viewer: Viewer | None = None
+    ) -> tuple[RunOrigin, RunInput]:
+        """`viewer` is who may open an upload named by the payload (None: anyone)."""
         match payload:
             case SampleRunCreate():
                 origin, data = await self._sample(payload)
@@ -241,7 +261,7 @@ class Materialiser:
             case DrawnRunCreate():
                 origin, data = self._drawn(payload)
             case UploadRunCreate():
-                origin, data = await self._upload(payload)
+                origin, data = await self._upload(payload, viewer)
         check_size(data)
         return origin, data
 
@@ -345,10 +365,12 @@ class Materialiser:
         )
         return origin, RunInput(wafers=wafers)
 
-    async def _upload(self, payload: UploadRunCreate) -> tuple[RunOrigin, RunInput]:
+    async def _upload(
+        self, payload: UploadRunCreate, viewer: Viewer | None
+    ) -> tuple[RunOrigin, RunInput]:
         if self.uploads is None:
             raise NotReadyError("Uploads are not available on this server.")
-        filename, data = await self.uploads.runnable_upload(payload.upload_id)
+        filename, data = await self.uploads.runnable_upload(payload.upload_id, viewer=viewer)
         if data.units:
             self._sensors()
         if data.wafers:
@@ -614,10 +636,42 @@ class RunService:
         self._tasks: dict[str, asyncio.Task[None]] = {}
         self._layouts: DrawLayoutList | None = None
 
-    async def create(self, payload: RunCreatePayload) -> RunCreated:
-        origin, data = await self.materialise(payload)
+    async def create(self, payload: RunCreatePayload, *, owner: str | None = None) -> RunCreated:
+        """Materialise, store (owned by the workspace `owner`) and start computing. An upload
+        named by the payload must be one `owner` may open."""
+        origin, data = await self.materialise(payload, viewer=Viewer(owner))
+        upload_id = payload.upload_id if isinstance(payload, UploadRunCreate) else None
+        return await self._start(origin, data, owner=owner, upload_id=upload_id)
+
+    async def again(self, run_id: str, *, owner: str | None = None) -> RunCreated:
+        """A new run of exactly the input `run_id` computed (its stored items, so an upload or a
+        drawing repeats); the earlier run is kept as it is. Only a run `owner` may open."""
+        viewer = Viewer(owner)
+        earlier = await self.store.get(run_id, viewer)
+        data = await self.store.get_input(run_id, viewer)
+        check_size(data)
+        origin = earlier.origin.model_copy(
+            update={
+                "rule": fit(
+                    f"The same input as run {run_id}, computed again. {earlier.origin.rule}"
+                )
+            }
+        )
+        return await self._start(origin, data, owner=owner, again_of=run_id)
+
+    async def _start(
+        self,
+        origin: RunOrigin,
+        data: RunInput,
+        *,
+        owner: str | None,
+        upload_id: str | None = None,
+        again_of: str | None = None,
+    ) -> RunCreated:
         plan = self.orchestrator.plan(data)
-        run = await self.store.create(origin, data, plan)
+        run = await self.store.create(
+            origin, data, plan, owner=owner, upload_id=upload_id, again_of=again_of
+        )
         task = asyncio.create_task(self._execute(run.run_id, data, plan), name=run.run_id)
         self._tasks[run.run_id] = task
         task.add_done_callback(lambda _t: self._tasks.pop(run.run_id, None))
@@ -635,11 +689,24 @@ class RunService:
             with contextlib.suppress(Exception):
                 await self.store.interrupt(run_id, _internal_run())
 
-    async def get(self, run_id: str) -> Run:
-        return await self.store.get(run_id)
+    async def get(self, run_id: str, viewer: Viewer | None = None) -> Run:
+        return await self.store.get(run_id, viewer)
 
-    async def unit_chart(self, run_id: str, index: int) -> UnitChartResult:
-        return await self.store.unit_chart(run_id, index)
+    async def compare(
+        self, run_id: str, other_id: str, viewer: Viewer | None = None
+    ) -> tuple[Run, Run, bool]:
+        """Both runs and whether they computed the same input items."""
+        first = await self.store.get(run_id, viewer)
+        second = await self.store.get(other_id, viewer)
+        same = await self.store.input_digest(run_id, viewer) == await self.store.input_digest(
+            other_id, viewer
+        )
+        return first, second, same
+
+    async def unit_chart(
+        self, run_id: str, index: int, viewer: Viewer | None = None
+    ) -> UnitChartResult:
+        return await self.store.unit_chart(run_id, index, viewer)
 
     def events(
         self, run_id: str, *, after_seq: int | None = None

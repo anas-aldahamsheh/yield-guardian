@@ -15,6 +15,7 @@ const ROUTES: { path: string; heading: RegExp }[] = [
   { path: `/investigations/${TEST_DOUBLE.investigationId}`, heading: /./ },
   { path: "/how", heading: /^كيف يعمل Yield Guardian$/ },
   { path: "/admin", heading: /^Model roles$/ },
+  { path: "/join", heading: /^Continue on this device$/ },
 ];
 
 function watch(page: Page) {
@@ -54,6 +55,12 @@ test("an unknown page is a 404 with a way back", async ({ page }) => {
 test("the admin page stays out of search engines", async ({ page }) => {
   await page.goto("/admin");
   await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
+});
+
+test("the join page stays out of search engines and sends no referrer", async ({ page }) => {
+  await page.goto("/join");
+  await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
+  await expect(page.locator("meta[name='referrer']")).toHaveAttribute("content", "no-referrer");
 });
 
 test("health check answers ok", async ({ request }) => {

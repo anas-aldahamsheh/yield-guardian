@@ -132,6 +132,9 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                         >
                           {o.work_order_id}
                         </Link>
+                        {o.example ? (
+                          <span className="ml-2 text-[12px] text-ink-3">Example</span>
+                        ) : null}
                         <span className="mt-0.5 block text-[13px] text-ink-2">{o.title}</span>
                         <span className="block text-[12px] text-ink-3">
                           {o.actions.length} {o.actions.length === 1 ? "action" : "actions"}, opened

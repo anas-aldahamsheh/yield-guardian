@@ -15,6 +15,10 @@ AuditAction = Literal[
     "session.login",
     "session.login_failed",
     "session.logout",
+    "session.revoked",
+    "workspace.handoff_created",
+    "workspace.joined",
+    "workspace.fresh",
     "investigation.created",
     "investigation.approved",
     "investigation.rejected",
@@ -51,6 +55,11 @@ class WorkOrder(Contract):
     confirmed_cause: ConfirmedCause | None = Field(
         None, description="Recorded when the work order closed (status done)."
     )
+    example: bool = Field(
+        False,
+        description="The work order of the product's example (a recorded investigation): every "
+        "visitor sees it, and nobody changes it.",
+    )
 
 
 class WorkOrderUpdate(Contract):
@@ -80,6 +89,11 @@ class AuditEntry(Contract):
     target_kind: str
     target_id: str
     details: dict[str, JsonValue]
+    example: bool = Field(
+        False,
+        description="About the product's example (a recorded investigation or its work order): "
+        "every visitor sees it.",
+    )
 
 
 class AuditPage(Contract):

@@ -22,7 +22,19 @@ export const RUN_EVENT_TYPES = [
 
 const EVENT_TYPES: ReadonlySet<string> = new Set(RUN_EVENT_TYPES);
 
-export const RUN_GONE_MESSAGE = "This run has expired (runs are kept 24 hours). Start a new one.";
+/**
+ * What the page says when the API answers 410: true of a run of no workspace (kept 24 hours) and
+ * of a workspace's run (kept 30 days after the workspace was last used) alike.
+ */
+export const RUN_GONE_MESSAGE = "This run is no longer kept. Start a new one.";
+
+/**
+ * What the page says when the API answers 404: the same for an ID that never existed and for a
+ * run of another workspace, which the API answers exactly alike (the stream and the page say it
+ * the same way).
+ */
+export const RUN_NOT_FOUND_MESSAGE =
+  "There is no run with this link here. It may belong to another workspace, or the link is incomplete. Start a new one.";
 
 export function runEventsUrl(runId: string): string {
   return `${API_PREFIX}/runs/${encodeURIComponent(runId)}/events`;
@@ -230,12 +242,7 @@ async function refusal(response: Response): Promise<RunStreamError | null> {
   }
   if (response.status === 404) {
     const problem = await problemOf(response);
-    return new RunStreamError(
-      "not_found",
-      404,
-      problem,
-      "There is no run with this link. Start a new one.",
-    );
+    return new RunStreamError("not_found", 404, problem, RUN_NOT_FOUND_MESSAGE);
   }
   // 408 and 429 may pass; any other 4xx will not.
   if (

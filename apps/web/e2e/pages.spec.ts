@@ -9,6 +9,8 @@ import { TEST_DOUBLE } from "../src/mocks/test-doubles";
  */
 
 const INVESTIGATION = "inv_01jae5x9k3m2q7r8s0t1v2w3x4";
+/** The product's example: a recorded run every visitor sees, read-only. */
+const EXAMPLE = "inv_01jadz4r8c0q2m6t9v1x3b5d7f";
 
 /** Every v1 address and where it now lives. Relative, so it works behind any gateway. */
 const REDIRECTS: [string, string][] = [
@@ -221,6 +223,36 @@ test.describe("Investigations", () => {
         .getByRole("navigation", { name: "Investigations views" })
         .getByRole("link", { name: "Investigations" }),
     ).toHaveAttribute("aria-current", "page");
+  });
+
+  test("the recorded example is listed apart from the visitor's own, and is read-only", async ({
+    page,
+  }) => {
+    await page.goto("/investigations");
+    const example = page.locator("[data-group='example']");
+    await expect(example.getByRole("heading", { name: /^Example\b/ })).toBeVisible();
+    await expect(example.locator("tbody tr")).toHaveCount(1);
+    await expect(example.locator("tbody tr")).toContainText("Recorded");
+    await expect(example.getByRole("link", { name: /./ }).first()).toHaveAttribute(
+      "href",
+      `/investigations/${EXAMPLE}`,
+    );
+    // The visitor's own stay in their groups, without it.
+    await expect(page.locator("[data-group='awaiting'] tbody tr")).toHaveCount(1);
+    await expect(page.locator("[data-group='awaiting']")).not.toContainText("Recorded");
+
+    // An engineer opens it: nothing to approve or reject, and where to decide one's own.
+    await page.goto(`/investigations/${EXAMPLE}`);
+    await page.getByRole("button", { name: "Try as engineer" }).last().click();
+    await expect(page.getByText("Engineer", { exact: true }).first()).toBeVisible();
+    const note = page.locator("[data-example-note]");
+    await expect(note).toContainText(
+      "This recorded example is the same for every visitor, so nobody decides it.",
+    );
+    await expect(note.getByRole("link", { name: "Open the line" })).toHaveAttribute("href", "/");
+    await expect(page.getByRole("checkbox", { name: /^Approve action/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Approve \d/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Reject report" })).toHaveCount(0);
   });
 
   test("the Work orders tab lists every work order with the audit log", async ({ page }) => {

@@ -2,5 +2,6 @@
   "role": "visitor",
   "display_name": null,
   "expires_at": null,
-  "csrf_token": null
+  "csrf_token": null,
+  "workspace": null
 }

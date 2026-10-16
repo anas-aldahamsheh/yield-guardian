@@ -1,7 +1,8 @@
-"""Builds the database-backed services: sessions, investigations, work orders, audit, alarm
+"""Builds the database-backed services: sessions and workspaces, investigations, work orders, audit, alarm
 states and live runs."""
 
 from dataclasses import dataclass, field
+from datetime import timedelta
 
 from yield_guardian.core.settings import Settings
 from yield_guardian.db.engine import Database
@@ -14,6 +15,7 @@ from yield_guardian.services.registry import Resource, ServiceRegistry
 from yield_guardian.services.runs import DbRunStore
 from yield_guardian.services.sessions import DbSessionManager
 from yield_guardian.services.workorders import DbWorkOrderStore
+from yield_guardian.services.workspace import DbWorkspaceStore
 
 
 @dataclass(slots=True)
@@ -27,11 +29,13 @@ class Persistence:
     alarms: DbAlarmStateStore
     jobs: JobWorker
     runs: DbRunStore
+    workspace: DbWorkspaceStore
     resources: list[Resource] = field(default_factory=list)
 
     def install(self, registry: ServiceRegistry) -> None:
         """Put the stores on the registry and append the resources (database, listener, jobs)."""
         registry.sessions = self.sessions
+        registry.workspace = self.workspace
         registry.investigations = self.investigations
         registry.work_orders = self.work_orders
         registry.audit = self.audit
@@ -55,6 +59,7 @@ def build_persistence(
     notifier = Notifier(database.dsn)
     investigations = DbInvestigationStore(database.sessionmaker, notifier)
     jobs = JobWorker(database.sessionmaker, investigations, runner_provider, notifier)
+    workspace_life = timedelta(days=settings.workspace_session_days)
     return Persistence(
         database=database,
         notifier=notifier,
@@ -64,6 +69,7 @@ def build_persistence(
         audit=DbAuditLog(database.sessionmaker),
         alarms=DbAlarmStateStore(database.sessionmaker),
         jobs=jobs,
-        runs=DbRunStore(database.sessionmaker, notifier),
+        runs=DbRunStore(database.sessionmaker, notifier, workspace_life=workspace_life),
+        workspace=DbWorkspaceStore(database.sessionmaker, workspace_life=workspace_life),
         resources=[database, notifier, jobs],
     )

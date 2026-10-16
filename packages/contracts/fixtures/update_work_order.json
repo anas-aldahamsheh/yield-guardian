@@ -26,5 +26,6 @@
   "note": "Tool check booked for the next shift.",
   "outcome": null,
   "outcome_confirmed": false,
-  "confirmed_cause": null
+  "confirmed_cause": null,
+  "example": false
 }

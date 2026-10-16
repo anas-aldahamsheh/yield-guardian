@@ -11,6 +11,7 @@ import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 
 import { LazyToaster } from "@/components/ui/lazy-toaster";
+import { WorkspaceOpener } from "@/components/workspace/workspace-opener";
 import { ApiProvider } from "@/lib/api/context";
 import { retryDelay, shouldRetry } from "@/lib/api/retry";
 
@@ -67,6 +68,7 @@ export function Providers({
       <ApiProvider>
         <QueryClientProvider client={client}>
           <HydrationBoundary state={state}>
+            <WorkspaceOpener />
             {children}
             <LazyToaster />
           </HydrationBoundary>

@@ -29,7 +29,15 @@ class Settings(BaseSettings):
     token_factory_base_url: str = "https://developer.amd.com.cn/radeon/api/v1"  # noqa: S105
 
     session_secret: SecretStr | None = Field(None, description="At least 32 random bytes, base64.")
-    session_ttl_minutes: int = Field(120, ge=5, le=24 * 60)
+    session_ttl_minutes: int = Field(
+        120, ge=5, le=24 * 60, description="How long the engineer or admin role lasts."
+    )
+    workspace_session_days: int = Field(
+        30, ge=1, le=365, description="A device's session ends this long after its last use."
+    )
+    handoff_minutes: int = Field(
+        10, ge=1, le=60, description="A code to continue on another device ends this long after."
+    )
     admin_username: str | None = None
     admin_password_hash: SecretStr | None = Field(
         None, description="scrypt hash from scripts/hash_password.py"

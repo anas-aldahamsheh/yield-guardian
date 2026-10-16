@@ -119,17 +119,35 @@
           "runs"
         ],
         "summary": "Create Run",
-        "description": "Materialise the input and start computing every stage now. Follow it on `events_url`.",
+        "description": "Materialise the input and start computing every stage now. Follow it on `events_url`.\nWith a session, the run is recorded in its workspace (\"Your work\").",
         "operationId": "create_run",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RunCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -143,44 +161,54 @@
             }
           },
           "400": {
-            "description": "Bad request",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Bad request"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
           },
           "404": {
-            "description": "Not found",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Not found"
           },
           "410": {
-            "description": "Gone",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Gone"
           },
           "503": {
-            "description": "Not ready",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Not ready"
           },
           "422": {
             "description": "Invalid request",
@@ -191,6 +219,106 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/again": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Repeat Run",
+        "description": "A new run of exactly the same input items; the earlier run is kept as it is.",
+        "operationId": "repeat_run",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunCreated"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
           }
         }
       }
@@ -265,7 +393,7 @@
           "runs"
         ],
         "summary": "Get Run",
-        "description": "The run's full state: every stage with its result and every listed alarm.",
+        "description": "The run's full state: every stage with its result and every listed alarm. Another\nworkspace's run answers 404, as a missing one does.",
         "operationId": "get_run",
         "parameters": [
           {
@@ -286,6 +414,164 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/compare/{other_id}": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Compare Runs",
+        "description": "Two runs side by side: each stage's status and alarms, the units and wafers flagged, and\nwhat changed from the first to the second.",
+        "operationId": "compare_runs",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "other_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Other Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunComparison"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/results.csv": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Get Run Results",
+        "description": "The run's computed results as CSV: risk, T², SPE and chart level per unit, pattern and\nunknown flag per wafer, and every listed alarm.",
+        "operationId": "get_run_results",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One row per sensor unit, wafer and alarm (column `record`).",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -517,17 +803,35 @@
           "uploads"
         ],
         "summary": "Create Upload",
-        "description": "Parse and validate a sensor or wafer file and keep it for 24 h. What is wrong inside the\nfile comes back as issues (errors block the run); only an unreadable file is refused.",
+        "description": "Parse and validate a sensor or wafer file and keep it, in this workspace, as long as the\nworkspace (24 h without a session). What is wrong inside the file comes back as issues\n(errors block the run); only an unreadable file is refused.",
         "operationId": "create_upload",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_create_upload"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -540,15 +844,25 @@
               }
             }
           },
-          "413": {
-            "description": "Request too large",
+          "403": {
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Not allowed"
+          },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Request too large"
           },
           "422": {
             "description": "Invalid request",
@@ -561,14 +875,14 @@
             }
           },
           "503": {
-            "description": "Not ready",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            }
+            },
+            "description": "Not ready"
           }
         }
       }
@@ -721,7 +1035,7 @@
           "alarms"
         ],
         "summary": "List Alarms",
-        "description": "SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first.",
+        "description": "SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first. The status of each is\nthis workspace's own: investigating or closed only by its own investigations.",
         "operationId": "list_alarms",
         "parameters": [
           {
@@ -970,6 +1284,7 @@
           "secom"
         ],
         "summary": "Get Unit",
+        "description": "The unit with its alarms and the investigations of it, as this workspace sees them.",
         "operationId": "get_unit",
         "parameters": [
           {
@@ -1639,7 +1954,7 @@
           "investigations"
         ],
         "summary": "Create Investigation",
-        "description": "Start a live investigation. Follow it on GET /investigations/{id}/events.\n\nA `run_alarm` trigger (`<run_id>:<alarm_id>`) needs the run and its alarm (404 otherwise).",
+        "description": "Start a live investigation of this workspace. Follow it on GET /investigations/{id}/events.\n\nA `run_alarm` trigger (`<run_id>:<alarm_id>`) needs a run this workspace may open and its\nalarm (404 otherwise).",
         "operationId": "create_investigation",
         "parameters": [
           {
@@ -1747,7 +2062,7 @@
           "investigations"
         ],
         "summary": "List Investigations",
-        "description": "Investigations, newest first, recorded runs included.",
+        "description": "This workspace's investigations, newest first (none without a session), and apart from\nthem, on the first page, the product's examples: recorded runs every visitor sees.",
         "operationId": "list_investigations",
         "parameters": [
           {
@@ -1844,6 +2159,7 @@
           "investigations"
         ],
         "summary": "Get Investigation",
+        "description": "Another workspace's investigation answers 404, as a missing one does.",
         "operationId": "get_investigation",
         "parameters": [
           {
@@ -1990,7 +2306,7 @@
           "investigations"
         ],
         "summary": "Decide Investigation",
-        "description": "Approve (opens a work order) or reject the report. Only when status is awaiting_decision.",
+        "description": "Approve (opens a work order) or reject the report. Only when status is awaiting_decision;\nthe product's example (a recorded run) is read-only (403).",
         "operationId": "decide_investigation",
         "parameters": [
           {
@@ -2177,12 +2493,87 @@
         }
       }
     },
+    "/api/v1/investigations/{investigation_id}/report.md": {
+      "get": {
+        "tags": [
+          "investigations"
+        ],
+        "summary": "Get Investigation Report",
+        "description": "The report with the evidence each finding cites, the hypotheses, the checks and the\ndecision; 409 until the report is written.",
+        "operationId": "get_investigation_report",
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^inv_[0-9a-z]{8,40}$",
+              "title": "Investigation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The report as Markdown, as an attachment.",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/work-orders": {
       "get": {
         "tags": [
           "work orders"
         ],
         "summary": "List Work Orders",
+        "description": "The work orders of this workspace's investigations and of the product's example (marked\n`example`), newest first.",
         "operationId": "list_work_orders",
         "parameters": [
           {
@@ -2255,6 +2646,7 @@
           "work orders"
         ],
         "summary": "Get Work Order",
+        "description": "Another workspace's work order answers 404, as a missing one does.",
         "operationId": "get_work_order",
         "parameters": [
           {
@@ -2316,6 +2708,7 @@
           "work orders"
         ],
         "summary": "Update Work Order",
+        "description": "The example's work order is read-only (403).",
         "operationId": "update_work_order",
         "parameters": [
           {
@@ -2425,7 +2818,7 @@
           "work orders"
         ],
         "summary": "List Audit Entries",
-        "description": "Every action taken in the product, newest first.",
+        "description": "Every action taken in this workspace, and those about the product's example (marked\n`example`), newest first.",
         "operationId": "list_audit_entries",
         "parameters": [
           {
@@ -2440,6 +2833,10 @@
                     "session.login",
                     "session.login_failed",
                     "session.logout",
+                    "session.revoked",
+                    "workspace.handoff_created",
+                    "workspace.joined",
+                    "workspace.fresh",
                     "investigation.created",
                     "investigation.approved",
                     "investigation.rejected",
@@ -3180,7 +3577,7 @@
           "chat"
         ],
         "summary": "Chat",
-        "description": "Ask about the plant data. Answers cite evidence; numbers are checked against it.",
+        "description": "Ask about the plant data. Answers cite evidence; numbers are checked against it. The\ntools read for this workspace only: a run or investigation in the context must be its own\n(or of no workspace), else 404 as for a missing one.",
         "operationId": "chat",
         "parameters": [
           {
@@ -3243,6 +3640,26 @@
               }
             },
             "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
           },
           "503": {
             "content": {
@@ -3687,7 +4104,7 @@
           "session"
         ],
         "summary": "Get Session",
-        "description": "The current session; role \"visitor\" when signed out.",
+        "description": "The current session; role \"visitor\" and no workspace when there is none.",
         "operationId": "get_session",
         "responses": {
           "200": {
@@ -3703,13 +4120,55 @@
         }
       }
     },
+    "/api/v1/session/workspace": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Open Workspace",
+        "description": "This device's session and workspace, made on its first visit (no sign-up). Called on every\npage load: it also renews the cookie, which lasts as long as the device session.",
+        "operationId": "open_workspace",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/session/guest": {
       "post": {
         "tags": [
           "session"
         ],
         "summary": "Start Guest Session",
-        "description": "\"Try as engineer\": an engineer session that can approve, reject and ask.",
+        "description": "\"Try as engineer\": this device becomes an engineer (approve, reject, ask) and keeps its\nworkspace.",
         "operationId": "start_guest_session",
         "requestBody": {
           "content": {
@@ -3822,10 +4281,914 @@
           "session"
         ],
         "summary": "Logout",
+        "description": "Back to visitor: the engineer or admin role ends, this device keeps its workspace.",
         "operationId": "logout",
         "responses": {
           "204": {
             "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace": {
+      "get": {
+        "tags": [
+          "session",
+          "workspace"
+        ],
+        "summary": "Get Workspace",
+        "description": "This device's workspace: the devices attached to it and how much it holds.",
+        "operationId": "get_workspace",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/handoffs": {
+      "post": {
+        "tags": [
+          "session",
+          "workspace"
+        ],
+        "summary": "Create Handoff",
+        "description": "A single-use code that attaches another device to this workspace, for 10 minutes. A new\ncode replaces the last unused one.",
+        "operationId": "create_handoff",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffCreated"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/join": {
+      "post": {
+        "tags": [
+          "session",
+          "workspace"
+        ],
+        "summary": "Join Workspace",
+        "description": "Attach this device to the workspace that made the code. The code is then used up.",
+        "operationId": "join_workspace",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffRedeem"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/fresh": {
+      "post": {
+        "tags": [
+          "session",
+          "workspace"
+        ],
+        "summary": "Start Fresh Workspace",
+        "description": "Move this device to a new, empty workspace; other devices keep the old one.",
+        "operationId": "start_fresh_workspace",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sessions": {
+      "get": {
+        "tags": [
+          "session",
+          "admin"
+        ],
+        "summary": "List Sessions",
+        "description": "Active device sessions, most recently seen first (admins only). No cookie value or token\nis ever shown.",
+        "operationId": "list_sessions",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSessionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sessions/{session_id}": {
+      "delete": {
+        "tags": [
+          "session",
+          "admin"
+        ],
+        "summary": "Revoke Session",
+        "description": "End a device session now (admins only, with the CSRF token).",
+        "operationId": "revoke_session",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/runs": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "List Workspace Runs",
+        "description": "This workspace's runs that can still be opened, newest first, each with its live status,\nalarms, the investigations started from them and what it still needs. `archived=true` lists\nthe archived ones instead.",
+        "operationId": "list_workspace_runs",
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Archived"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkRunPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/runs/{run_id}": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Update Workspace Run",
+        "description": "Name a run, note on it, archive or restore it, or save the view to reopen it on. Only\nruns of this workspace.",
+        "operationId": "update_workspace_run",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkRunUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/uploads": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "List Workspace Uploads",
+        "description": "Files this workspace uploaded, newest first, with the runs started from each.",
+        "operationId": "list_workspace_uploads",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkUploadPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/investigations": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "List Workspace Investigations",
+        "description": "Investigations this workspace started, newest first, with their live status and the run\nand alarm each came from.",
+        "operationId": "list_workspace_investigations",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkInvestigationPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         }
       }
@@ -3869,6 +5232,168 @@
           "evidence_ids"
         ],
         "title": "Action"
+      },
+      "AdminSession": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Session Id",
+            "description": "A device session as the admin page names it; not a credential.",
+            "examples": [
+              "5d0c1b8e-3f7a-4e21-8c6d-9a0b1c2d3e4f"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "visitor",
+              "engineer",
+              "admin"
+            ],
+            "title": "Role"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "role_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Expires At"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "description": "A workspace: the runs, uploads and investigations of the devices attached to it. Knowing it grants nothing; only a session cookie or a handoff code does.",
+                "examples": [
+                  "0b8f3c1e-6a52-4c47-9d0e-2f8a1b7c4d55"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "devices": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Devices",
+            "description": "Sessions attached to the same workspace."
+          },
+          "runs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Runs"
+          },
+          "uploads": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Uploads"
+          },
+          "investigations": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Investigations"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current",
+            "description": "The admin's own session."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "role",
+          "display_name",
+          "created_at",
+          "last_seen_at",
+          "expires_at",
+          "role_expires_at",
+          "workspace_id",
+          "devices",
+          "runs",
+          "uploads",
+          "investigations",
+          "current"
+        ],
+        "title": "AdminSession",
+        "description": "An active device session; never its cookie value or any token."
+      },
+      "AdminSessionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminSession"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "workspaces": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Workspaces",
+            "description": "Workspaces with at least one active session."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "workspaces"
+        ],
+        "title": "AdminSessionPage"
       },
       "Alarm": {
         "properties": {
@@ -4095,6 +5620,10 @@
               "session.login",
               "session.login_failed",
               "session.logout",
+              "session.revoked",
+              "workspace.handoff_created",
+              "workspace.joined",
+              "workspace.fresh",
               "investigation.created",
               "investigation.approved",
               "investigation.rejected",
@@ -4118,6 +5647,12 @@
             },
             "type": "object",
             "title": "Details"
+          },
+          "example": {
+            "type": "boolean",
+            "title": "Example",
+            "description": "About the product's example (a recorded investigation or its work order): every visitor sees it.",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -7179,6 +8714,59 @@
         "type": "object",
         "title": "GuestSessionCreate"
       },
+      "HandoffCreated": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "examples": [
+              "7K2M-QX9D-4HRT"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "join_path": {
+            "type": "string",
+            "title": "Join Path",
+            "description": "Open this path on the other device (the code rides after #).",
+            "examples": [
+              "/join#code=7K2M-QX9D-4HRT"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "expires_at",
+          "join_path"
+        ],
+        "title": "HandoffCreated"
+      },
+      "HandoffRedeem": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 12,
+            "pattern": "^[0-9A-Za-z\\- ]+$",
+            "title": "Code",
+            "description": "12 characters of Crockford base 32 (60 random bits), shown in groups of four; dashes, spaces and case do not matter.",
+            "examples": [
+              "7K2M-QX9D-4HRT"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "HandoffRedeem"
+      },
       "Health": {
         "properties": {
           "status": {
@@ -7490,7 +9078,7 @@
           "recorded": {
             "type": "boolean",
             "title": "Recorded",
-            "description": "A recorded run, generated once and replayed, not a live call."
+            "description": "A recorded run, generated once and replayed, not a live call. A recorded run is the product's example: every visitor sees it, and nobody decides it."
           },
           "models": {
             "items": {
@@ -7664,7 +9252,16 @@
               "$ref": "#/components/schemas/InvestigationSummary"
             },
             "type": "array",
-            "title": "Items"
+            "title": "Items",
+            "description": "This workspace's own investigations; `total` counts them."
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationSummary"
+            },
+            "type": "array",
+            "title": "Examples",
+            "description": "The product's examples, apart from `items`: recorded runs that every visitor sees and nobody decides. On the first page only (empty with a cursor)."
           },
           "next_cursor": {
             "anyOf": [
@@ -7687,6 +9284,7 @@
         "type": "object",
         "required": [
           "items",
+          "examples",
           "total"
         ],
         "title": "InvestigationPage"
@@ -7848,7 +9446,7 @@
           "recorded": {
             "type": "boolean",
             "title": "Recorded",
-            "description": "A recorded run, generated once and replayed, not a live call."
+            "description": "A recorded run, generated once and replayed, not a live call. A recorded run is the product's example: every visitor sees it, and nobody decides it."
           },
           "models": {
             "items": {
@@ -10236,7 +11834,7 @@
               }
             ],
             "title": "Expires At",
-            "description": "When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable."
+            "description": "When the run is deleted: a workspace's run goes with its workspace, 30 days after the workspace was last used (each use moves it on); a run of no workspace 24 h after creation, or never (null) while an investigation uses it, so the evidence behind a decision stays openable."
           },
           "last_seq": {
             "type": "integer",
@@ -10570,6 +12168,46 @@
         ],
         "title": "RunCaseList"
       },
+      "RunComparison": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/RunSide"
+          },
+          "b": {
+            "$ref": "#/components/schemas/RunSide"
+          },
+          "same_input": {
+            "type": "boolean",
+            "title": "Same Input",
+            "description": "Both runs computed exactly the same input items."
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageCompare"
+            },
+            "type": "array",
+            "title": "Stages"
+          },
+          "changes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "What differs, in sentences written by code; empty when nothing does."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "a",
+          "b",
+          "same_input",
+          "stages",
+          "changes"
+        ],
+        "title": "RunComparison"
+      },
       "RunCreate": {
         "oneOf": [
           {
@@ -10804,6 +12442,172 @@
         ],
         "title": "RunOrigin",
         "description": "Where the input came from, in words the page can show as is."
+      },
+      "RunSide": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "units": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
+          },
+          "wafers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
+          },
+          "alarms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alarms",
+            "description": "Listed alarms that turn a station red."
+          },
+          "warnings": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Warnings",
+            "description": "The other listed alarms."
+          },
+          "alarms_not_listed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alarms Not Listed"
+          },
+          "units_scored": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units Scored",
+            "description": "Units with a risk result."
+          },
+          "units_flagged": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units Flagged",
+            "description": "Units whose risk is above the threshold."
+          },
+          "units_chart_alarm": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units Chart Alarm",
+            "description": "Units whose T² or SPE is at the alarm level."
+          },
+          "units_chart_warning": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units Chart Warning",
+            "description": "Units at the warning level."
+          },
+          "wafers_classified": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers Classified"
+          },
+          "wafers_auto_accepted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers Auto Accepted"
+          },
+          "wafers_unknown": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers Unknown"
+          },
+          "patterns": {
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0.0
+            },
+            "propertyNames": {
+              "enum": [
+                "Center",
+                "Donut",
+                "Edge-Loc",
+                "Edge-Ring",
+                "Loc",
+                "Near-full",
+                "Random",
+                "Scratch",
+                "none"
+              ]
+            },
+            "type": "object",
+            "title": "Patterns",
+            "description": "Wafers by predicted pattern."
+          },
+          "lots": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Lots"
+          },
+          "lots_flagged": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Lots Flagged"
+          },
+          "final_test": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Test",
+            "description": "The final-test summary, when it ran."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "title",
+          "created_at",
+          "status",
+          "units",
+          "wafers",
+          "alarms",
+          "warnings",
+          "alarms_not_listed",
+          "units_scored",
+          "units_flagged",
+          "units_chart_alarm",
+          "units_chart_warning",
+          "wafers_classified",
+          "wafers_auto_accepted",
+          "wafers_unknown",
+          "patterns",
+          "lots",
+          "lots_flagged",
+          "final_test"
+        ],
+        "title": "RunSide"
       },
       "RunStartedEvent": {
         "additionalProperties": false,
@@ -11532,7 +13336,8 @@
                 "type": "null"
               }
             ],
-            "title": "Expires At"
+            "title": "Expires At",
+            "description": "When the engineer or admin role ends (the session goes on as a visitor); null for a visitor."
           },
           "csrf_token": {
             "anyOf": [
@@ -11544,6 +13349,17 @@
               }
             ],
             "title": "Csrf Token"
+          },
+          "workspace": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkspaceInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "This device's workspace; null before the first visit is recorded."
           }
         },
         "additionalProperties": false,
@@ -11981,6 +13797,90 @@
         ],
         "title": "StackedMap",
         "description": "Share of wafers in the lot whose die at each position failed."
+      },
+      "StageCompare": {
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "intake",
+              "sensor_risk",
+              "control_charts",
+              "drift_health",
+              "wafer_pattern",
+              "wafer_similar",
+              "lot",
+              "final_test"
+            ],
+            "title": "Stage"
+          },
+          "station": {
+            "type": "string",
+            "enum": [
+              "manufacturing",
+              "monitoring",
+              "wafer_test",
+              "investigation",
+              "decision"
+            ],
+            "title": "Station"
+          },
+          "a_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "A Status"
+          },
+          "b_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "skipped",
+              "failed"
+            ],
+            "title": "B Status"
+          },
+          "a_alarms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "A Alarms"
+          },
+          "b_alarms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "B Alarms"
+          },
+          "a_warnings": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "A Warnings"
+          },
+          "b_warnings": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "B Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stage",
+          "station",
+          "a_status",
+          "b_status",
+          "a_alarms",
+          "b_alarms",
+          "a_warnings",
+          "b_warnings"
+        ],
+        "title": "StageCompare"
       },
       "StageFailedEvent": {
         "additionalProperties": false,
@@ -14483,6 +16383,129 @@
         ],
         "title": "WaferSummary"
       },
+      "WorkInvestigation": {
+        "properties": {
+          "investigation": {
+            "$ref": "#/components/schemas/InvestigationSummary"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^run_[0-9a-z]{8,40}$",
+                "examples": [
+                  "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "The run it was started from, for a run alarm."
+          },
+          "alarm_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^RA-\\d{1,6}$",
+                "description": "Alarm within one run, numbered in the order raised.",
+                "examples": [
+                  "RA-3"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alarm Id"
+          },
+          "run_kept": {
+            "type": "boolean",
+            "title": "Run Kept",
+            "description": "The run can still be opened."
+          },
+          "next": {
+            "$ref": "#/components/schemas/WorkNext"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "investigation",
+          "run_id",
+          "alarm_id",
+          "run_kept",
+          "next"
+        ],
+        "title": "WorkInvestigation"
+      },
+      "WorkInvestigationPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkInvestigation"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "WorkInvestigationPage"
+      },
+      "WorkNext": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "decide",
+              "watch",
+              "investigate",
+              "none"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Text",
+            "examples": [
+              "2 alarms not investigated."
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "WorkNext",
+        "description": "What this item still needs, in one sentence written by code."
+      },
       "WorkOrder": {
         "properties": {
           "work_order_id": {
@@ -14575,6 +16598,12 @@
               }
             ],
             "description": "Recorded when the work order closed (status done)."
+          },
+          "example": {
+            "type": "boolean",
+            "title": "Example",
+            "description": "The work order of the product's example (a recorded investigation): every visitor sees it, and nobody changes it.",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -14697,6 +16726,718 @@
         "additionalProperties": false,
         "type": "object",
         "title": "WorkOrderUpdate"
+      },
+      "WorkRun": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "pattern": "^run_[0-9a-z]{8,40}$",
+            "title": "Run Id",
+            "examples": [
+              "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At",
+            "description": "When the run is deleted, with its workspace: 30 days after the workspace was last used (each use moves it on)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "sample",
+              "case",
+              "pick",
+              "drawn",
+              "upload"
+            ],
+            "title": "Source"
+          },
+          "datasets": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "secom",
+                "wm811k",
+                "user"
+              ]
+            },
+            "type": "array",
+            "title": "Datasets"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "How the input was chosen (the run's origin)."
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "upload_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^upl_[0-9a-z]{8,40}$",
+                "examples": [
+                  "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Id"
+          },
+          "again_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^run_[0-9a-z]{8,40}$",
+                "examples": [
+                  "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Again Of",
+            "description": "The run this one repeats, if it is a repeat."
+          },
+          "units": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
+          },
+          "wafers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
+          },
+          "stages_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Stages Total"
+          },
+          "stages_finished": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Stages Finished",
+            "description": "Stages done, skipped or failed."
+          },
+          "current_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "intake",
+                  "sensor_risk",
+                  "control_charts",
+                  "drift_health",
+                  "wafer_pattern",
+                  "wafer_similar",
+                  "lot",
+                  "final_test"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Stage"
+          },
+          "failed_stages": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "intake",
+                "sensor_risk",
+                "control_charts",
+                "drift_health",
+                "wafer_pattern",
+                "wafer_similar",
+                "lot",
+                "final_test"
+              ]
+            },
+            "type": "array",
+            "title": "Failed Stages"
+          },
+          "alarms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alarms",
+            "description": "Listed alarms that turn a station red: what the alarms rail counts as alarms."
+          },
+          "warnings": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Warnings",
+            "description": "The other listed alarms (warnings, unknown wafer patterns): what the alarms rail counts as warnings."
+          },
+          "alarms_not_listed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alarms Not Listed"
+          },
+          "alarms_open": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Alarms Open",
+            "description": "Listed alarms and warnings no investigation was started from."
+          },
+          "investigations": {
+            "items": {
+              "$ref": "#/components/schemas/WorkRunInvestigation"
+            },
+            "type": "array",
+            "title": "Investigations",
+            "description": "Newest first."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "The name you gave the run."
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          },
+          "view": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "pattern": "^[A-Za-z0-9_=&%.:+\\-]*$",
+                "description": "The Line page's query string for this run (run, station, unit, wafer, lot, alarm), so reopening the run shows the same view.",
+                "examples": [
+                  "run=run_01jaf3k9x2m4q7r8s0t1v2w3x4&station=2&unit=14"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View"
+          },
+          "next": {
+            "$ref": "#/components/schemas/WorkNext"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "created_at",
+          "expires_at",
+          "status",
+          "source",
+          "datasets",
+          "title",
+          "rule",
+          "filename",
+          "seed",
+          "upload_id",
+          "again_of",
+          "units",
+          "wafers",
+          "stages_total",
+          "stages_finished",
+          "current_stage",
+          "failed_stages",
+          "alarms",
+          "warnings",
+          "alarms_not_listed",
+          "alarms_open",
+          "investigations",
+          "label",
+          "note",
+          "archived",
+          "view",
+          "next"
+        ],
+        "title": "WorkRun"
+      },
+      "WorkRunInvestigation": {
+        "properties": {
+          "investigation_id": {
+            "type": "string",
+            "pattern": "^inv_[0-9a-z]{8,40}$",
+            "title": "Investigation Id",
+            "examples": [
+              "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+            ]
+          },
+          "alarm_id": {
+            "type": "string",
+            "pattern": "^RA-\\d{1,6}$",
+            "title": "Alarm Id",
+            "description": "Alarm within one run, numbered in the order raised.",
+            "examples": [
+              "RA-3"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "awaiting_decision",
+              "approved",
+              "rejected",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "work_order_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^WO-\\d{6}$",
+                "examples": [
+                  "WO-000012"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Order Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "investigation_id",
+          "alarm_id",
+          "title",
+          "status",
+          "updated_at",
+          "work_order_id"
+        ],
+        "title": "WorkRunInvestigation"
+      },
+      "WorkRunPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkRun"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "WorkRunPage"
+      },
+      "WorkRunUpdate": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          },
+          "view": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "pattern": "^[A-Za-z0-9_=&%.:+\\-]*$",
+                "description": "The Line page's query string for this run (run, station, unit, wafer, lot, alarm), so reopening the run shows the same view.",
+                "examples": [
+                  "run=run_01jaf3k9x2m4q7r8s0t1v2w3x4&station=2&unit=14"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "WorkRunUpdate",
+        "description": "Fields left out stay as they are; null clears the name or the note."
+      },
+      "WorkUpload": {
+        "properties": {
+          "upload_id": {
+            "type": "string",
+            "pattern": "^upl_[0-9a-z]{8,40}$",
+            "title": "Upload Id",
+            "examples": [
+              "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At",
+            "description": "When the file is deleted, with its workspace."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sensors",
+              "wafers"
+            ],
+            "title": "Kind"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "units": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Units"
+          },
+          "wafers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wafers"
+          },
+          "lots": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Lots"
+          },
+          "runnable": {
+            "type": "boolean",
+            "title": "Runnable"
+          },
+          "errors": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Errors"
+          },
+          "warnings": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Warnings"
+          },
+          "runs": {
+            "items": {
+              "type": "string",
+              "pattern": "^run_[0-9a-z]{8,40}$",
+              "examples": [
+                "run_01jaf3k9x2m4q7r8s0t1v2w3x4"
+              ]
+            },
+            "type": "array",
+            "title": "Runs",
+            "description": "Runs started from this file, newest first."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload_id",
+          "created_at",
+          "expires_at",
+          "kind",
+          "filename",
+          "units",
+          "wafers",
+          "lots",
+          "runnable",
+          "errors",
+          "warnings",
+          "runs"
+        ],
+        "title": "WorkUpload"
+      },
+      "WorkUploadPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkUpload"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "WorkUploadPage"
+      },
+      "WorkspaceDevice": {
+        "properties": {
+          "current": {
+            "type": "boolean",
+            "title": "Current",
+            "description": "The device asking."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "visitor",
+              "engineer",
+              "admin"
+            ],
+            "title": "Role"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "current",
+          "role",
+          "created_at",
+          "last_seen_at",
+          "expires_at"
+        ],
+        "title": "WorkspaceDevice"
+      },
+      "WorkspaceInfo": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Workspace Id",
+            "description": "A workspace: the runs, uploads and investigations of the devices attached to it. Knowing it grants nothing; only a session cookie or a handoff code does.",
+            "examples": [
+              "0b8f3c1e-6a52-4c47-9d0e-2f8a1b7c4d55"
+            ]
+          },
+          "session_expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Session Expires At",
+            "description": "When this device's session ends if the device is not used again; each visit moves it forward (30 days by default)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workspace_id",
+          "session_expires_at"
+        ],
+        "title": "WorkspaceInfo"
+      },
+      "WorkspaceSummary": {
+        "properties": {
+          "workspace_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Workspace Id",
+            "description": "A workspace: the runs, uploads and investigations of the devices attached to it. Knowing it grants nothing; only a session cookie or a handoff code does.",
+            "examples": [
+              "0b8f3c1e-6a52-4c47-9d0e-2f8a1b7c4d55"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceDevice"
+            },
+            "type": "array",
+            "title": "Devices",
+            "description": "Most recently seen first."
+          },
+          "runs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Runs"
+          },
+          "uploads": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Uploads"
+          },
+          "investigations": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Investigations"
+          },
+          "session_days": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Session Days",
+            "description": "A device's session ends this long after its last use."
+          },
+          "handoff_minutes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Handoff Minutes",
+            "description": "A handoff code ends this long after it is made."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workspace_id",
+          "created_at",
+          "devices",
+          "runs",
+          "uploads",
+          "investigations",
+          "session_days",
+          "handoff_minutes"
+        ],
+        "title": "WorkspaceSummary"
       }
     }
   }

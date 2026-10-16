@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDecideInvestigation } from "@/lib/api/investigations";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
-import { workOrderHref } from "@/lib/routes";
+import { lineHref, workOrderHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { ActionBody, type Shared } from "./report";
@@ -46,7 +46,9 @@ export function DecisionActions({
   const [chosen, setChosen] = useState<Set<number>>(() => new Set(report.actions.map((_, i) => i)));
   const [note, setNote] = useState("");
   const noteId = useId();
-  const open = investigation.status === "awaiting_decision" && canAct;
+  // The recorded example is the same for every visitor, so nobody decides it (the API refuses).
+  const example = investigation.recorded;
+  const open = investigation.status === "awaiting_decision" && canAct && !example;
   const decision = investigation.decision;
 
   const toggle = (i: number) =>
@@ -112,6 +114,23 @@ export function DecisionActions({
               Work order {investigation.work_order_id}
             </Link>
           ) : null}
+        </div>
+      ) : investigation.status === "awaiting_decision" && example ? (
+        <div
+          role="note"
+          data-example-note
+          className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-die-2 px-4 py-3"
+        >
+          <p className="max-w-[60ch] text-[14px] leading-5 text-ink-2">
+            This recorded example is the same for every visitor, so nobody decides it. To decide a
+            report of your own, run a sample on the line and investigate one of its alarms.
+          </p>
+          <Link
+            href={lineHref()}
+            className="text-[14px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+          >
+            Open the line
+          </Link>
         </div>
       ) : investigation.status === "awaiting_decision" && !canAct ? (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-die-2 px-4 py-3">

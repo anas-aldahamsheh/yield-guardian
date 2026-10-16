@@ -7,9 +7,12 @@ import { retryAfterMs } from "./retry";
 /**
  * A client typed by the API contracts. Every path, parameter and response body is checked
  * against packages/contracts at compile time. `origin` is "" in the browser (same origin) or
- * the API origin on the server.
+ * the API origin on the server, which passes the browser's session cookie in `headers`.
  */
-export function createApi(origin: string, init: Omit<RequestInit, "headers"> = {}) {
+export function createApi(
+  origin: string,
+  init: Omit<RequestInit, "headers"> & { headers?: Record<string, string> } = {},
+) {
   return createClient<paths>({
     baseUrl: origin,
     credentials: "include",

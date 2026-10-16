@@ -22,15 +22,26 @@ import { Elapsed } from "./elapsed";
 import { StatusLabel } from "./status-label";
 
 type Status = InvestigationSummary["status"];
-type GroupId = "running" | "awaiting" | "decided" | "failed";
-
-const GROUPS: {
+type GroupId = "running" | "awaiting" | "decided" | "failed" | "example";
+type GroupSpec = {
   id: GroupId;
   title: string;
   description: string;
   statuses: Status[];
   empty: string;
-}[] = [
+};
+
+/** The product's examples: recorded runs every visitor sees, apart from their own. */
+const EXAMPLES: GroupSpec = {
+  id: "example",
+  title: "Example",
+  description:
+    "Recorded once on the server and replayed without calling a model. Every visitor sees the same example, and nobody decides it.",
+  statuses: [],
+  empty: "",
+};
+
+const GROUPS: GroupSpec[] = [
   {
     id: "running",
     title: "Running",
@@ -65,9 +76,10 @@ const GROUPS: {
 const RUNNING_REFRESH_MS = 4000;
 
 /**
- * The investigations, grouped by where they stand: running, awaiting a decision, decided.
- * Attempts to record a demo run that failed stay behind a button, so the runs people open come
- * first.
+ * The visitor's own investigations, grouped by where they stand: running, awaiting a decision,
+ * decided. The product's example (a recorded run every visitor sees, read-only) comes after them,
+ * in its own group; attempts to record one that failed stay behind a button, so the runs people
+ * open come first.
  */
 export function InvestigationsIndex() {
   const api = useApi();
@@ -76,17 +88,20 @@ export function InvestigationsIndex() {
   const query = useInfiniteQuery({
     ...q.investigationPages(api),
     refetchInterval: (state) =>
-      state.state.data?.pages.some((p) => p.items.some((inv) => LIVE_STATUSES.has(inv.status)))
+      state.state.data?.pages.some((p) =>
+        [...p.items, ...p.examples].some((inv) => LIVE_STATUSES.has(inv.status)),
+      )
         ? RUNNING_REFRESH_MS
         : false,
   });
 
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
+  const examples = query.data?.pages[0]?.examples ?? [];
   const total = query.data?.pages[0]?.total;
-  const failedRecordings = items.filter((inv) => inv.recorded && inv.status === "failed");
-  const shown = showFailedRecordings
-    ? items
-    : items.filter((inv) => !(inv.recorded && inv.status === "failed"));
+  const failedRecordings = examples.filter((inv) => inv.status === "failed");
+  const shownExamples = showFailedRecordings
+    ? examples
+    : examples.filter((inv) => inv.status !== "failed");
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
@@ -95,46 +110,58 @@ export function InvestigationsIndex() {
         <ErrorState error={query.error} onRetry={() => void query.refetch()} />
       ) : !query.data ? (
         <Placeholder className="h-64" label="Loading investigations" />
-      ) : items.length === 0 ? (
-        <Panel>
-          <EmptyState
-            title="No investigations yet"
-            action={
-              <Link
-                href={lineHref()}
-                className="text-[14px] text-ink underline decoration-hairline-strong underline-offset-4"
-              >
-                Open the line
-              </Link>
-            }
-          >
-            Run a sample or your own data on the line, then choose Investigate on an alarm.
-          </EmptyState>
-        </Panel>
       ) : (
         <>
-          {GROUPS.map((g) => {
-            const rows = shown.filter((inv) => g.statuses.includes(inv.status));
-            if (g.id === "failed" && rows.length === 0) return null;
-            return <Group key={g.id} group={g} rows={rows} />;
-          })}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 pt-1 text-[13px] leading-5 text-ink-2">
-            {total != null ? (
-              <span className="tnum">
-                {formatInt(items.length)} of {formatInt(total)} shown, newest first.
-              </span>
-            ) : null}
-            {query.hasNextPage ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => void query.fetchNextPage()}
-                disabled={query.isFetchingNextPage}
+          {items.length === 0 ? (
+            <Panel>
+              <EmptyState
+                title="No investigations yet"
+                action={
+                  <Link
+                    href={lineHref()}
+                    className="text-[14px] text-ink underline decoration-hairline-strong underline-offset-4"
+                  >
+                    Open the line
+                  </Link>
+                }
               >
-                {query.isFetchingNextPage ? "Loading…" : "Show older investigations"}
-              </Button>
-            ) : null}
-            {failedRecordings.length > 0 ? (
+                Run a sample or your own data on the line, then choose Investigate on an alarm.
+              </EmptyState>
+            </Panel>
+          ) : (
+            <>
+              {GROUPS.map((g) => {
+                const rows = items.filter((inv) => g.statuses.includes(inv.status));
+                if (g.id === "failed" && rows.length === 0) return null;
+                return <Group key={g.id} group={g} rows={rows} />;
+              })}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 pt-1 text-[13px] leading-5 text-ink-2">
+                {total != null ? (
+                  <span className="tnum">
+                    {formatInt(items.length)} of {formatInt(total)} shown, newest first.
+                  </span>
+                ) : null}
+                {query.hasNextPage ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void query.fetchNextPage()}
+                    disabled={query.isFetchingNextPage}
+                  >
+                    {query.isFetchingNextPage ? "Loading…" : "Show older investigations"}
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          )}
+          {shownExamples.length > 0 ? (
+            <Group
+              group={{ ...EXAMPLES, title: shownExamples.length === 1 ? "Example" : "Examples" }}
+              rows={shownExamples}
+            />
+          ) : null}
+          {failedRecordings.length > 0 ? (
+            <div className="px-1 text-[13px] leading-5 text-ink-2">
               <button
                 type="button"
                 aria-pressed={showFailedRecordings}
@@ -145,15 +172,15 @@ export function InvestigationsIndex() {
                   ? "Hide the failed recording attempts"
                   : `Show ${plural(failedRecordings.length, "failed recording attempt")}`}
               </button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </>
       )}
     </div>
   );
 }
 
-function Group({ group, rows }: { group: (typeof GROUPS)[number]; rows: InvestigationSummary[] }) {
+function Group({ group, rows }: { group: GroupSpec; rows: InvestigationSummary[] }) {
   const titleId = `group-${group.id}`;
   return (
     <Panel

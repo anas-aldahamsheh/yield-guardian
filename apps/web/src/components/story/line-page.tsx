@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { usePrefersReducedMotion } from "@/components/motion";
+import { YourWork } from "@/components/workspace/your-work";
 import { ApiError, describeError } from "@/lib/api/errors";
 import { withRetry } from "@/lib/api/retry";
 import { useSession } from "@/lib/api/session";
@@ -154,6 +155,8 @@ export function LinePage({
   const use3d = idle && gl && !reducedMotion;
   const bayRef = useRef<HTMLDivElement>(null);
   const picked = useRef(false);
+  /** A run opened from Your work, until it is on the line and has the focus. */
+  const arrival = useRef<{ runId: string; to: "run" | "alarms" } | null>(null);
 
   const go = useCallback((next: LineUrlState, mode: "push" | "replace") => {
     setUrl(next);
@@ -315,6 +318,45 @@ export function LinePage({
     ((revealed.has("intake") && stageResult(state, "intake")?.two_sources) ||
       (state.origin?.datasets.includes("secom") && state.origin.datasets.includes("wm811k"))),
   );
+  // A run opened from Your work takes the focus once it is on the line, so a keyboard user goes
+  // on from the run: its heading, the station drawer it was left on (which comes into view by
+  // itself, as one chosen here does), its alarms when those were asked for, or what stops it.
+  useEffect(() => {
+    const next = arrival.current;
+    if (!next) return;
+    if (next.runId !== url.runId) {
+      arrival.current = null;
+      return;
+    }
+    if (reading || (!state && !run.problem)) return;
+    arrival.current = null;
+    const target = document.getElementById(
+      run.problem
+        ? "run-problem"
+        : next.to === "alarms"
+          ? "alarms-title"
+          : drawer != null
+            ? "station-drawer-title"
+            : "run-title",
+    );
+    if (!target) return;
+    if (next.to === "alarms" && !run.problem) target.scrollIntoView({ block: "center" });
+    target.focus({ preventScroll: true });
+  }, [url.runId, reading, state, run.problem, drawer]);
+
+  // Your work comes first while the line is idle, and after the line while it shows a run.
+  const yourWork = (
+    <YourWork
+      current={url}
+      onOpen={(next, to = "run") => {
+        arrival.current = next.runId ? { runId: next.runId, to } : null;
+        // A station saved with the run opens as if chosen here: its drawer comes into view.
+        if (next.station != null) setStationBy("person");
+        go(next, "push");
+        bayRef.current?.scrollIntoView({ block: "start" });
+      }}
+    />
+  );
 
   return (
     <div>
@@ -343,6 +385,7 @@ export function LinePage({
               !url.runId && url.station != null ? STATION_NAME[stationAt(url.station)!] : null
             }
           />
+          {url.runId ? null : yourWork}
 
           <div ref={bayRef} className="scroll-mt-[calc(var(--bar-height)+12px)]">
             {run.problem ? (
@@ -392,6 +435,7 @@ export function LinePage({
               </div>
             </div>
           </div>
+          {url.runId ? yourWork : null}
         </div>
       </section>
 
@@ -514,7 +558,11 @@ function RunStrip({
   return (
     <div className="mt-6 flex flex-col gap-3 border-t border-hairline pt-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="max-w-[96ch] min-w-0">
-        <h2 className="text-[17px] leading-6 font-semibold text-ink">
+        <h2
+          id="run-title"
+          tabIndex={-1}
+          className="text-[17px] leading-6 font-semibold text-ink outline-none"
+        >
           {origin?.title ?? "Starting the run"}
         </h2>
         {rule ? (
@@ -565,8 +613,10 @@ function RunStrip({
 function RunProblemNotice({ problem, onNew }: { problem: RunProblem; onNew: () => void }) {
   return (
     <div
+      id="run-problem"
       role="alert"
-      className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-hairline-strong bg-die px-4 py-3"
+      tabIndex={-1}
+      className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-hairline-strong bg-die px-4 py-3 outline-none"
     >
       <p className="text-[15px] leading-6 text-ink">{problem.message}</p>
       {problem.kind === "other" ? (

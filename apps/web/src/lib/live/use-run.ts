@@ -19,7 +19,13 @@ import {
   type RunState,
   type StoredRunData,
 } from "./run-state";
-import { RUN_GONE_MESSAGE, RunStreamError, followRun, type RunStreamStatus } from "./sse";
+import {
+  RUN_GONE_MESSAGE,
+  RUN_NOT_FOUND_MESSAGE,
+  RunStreamError,
+  followRun,
+  type RunStreamStatus,
+} from "./sse";
 import { storedRunId, type StoredRun } from "./stored-run";
 
 /**
@@ -45,8 +51,7 @@ export interface RunHandle {
   ) => void;
 }
 
-export const RUN_NOT_FOUND_MESSAGE =
-  "There is no run with this link here. It may belong to another workspace, or the link is incomplete. Start a new one.";
+export { RUN_NOT_FOUND_MESSAGE };
 
 const NOT_FOUND: RunProblem = { kind: "not_found", message: RUN_NOT_FOUND_MESSAGE };
 const GONE: RunProblem = { kind: "gone", message: RUN_GONE_MESSAGE };

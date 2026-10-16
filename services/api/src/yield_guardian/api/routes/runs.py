@@ -1,4 +1,6 @@
-"""Live runs and uploads (PLAN_V2 §3.3). No sign-in is needed to run."""
+"""Live runs and uploads (PLAN_V2 §3.3). No sign-in is needed to run; with a session, a run or
+upload belongs to that session's workspace, and any other session gets exactly what a missing ID
+gets on every route below, the event stream included (services.access)."""
 
 from collections.abc import AsyncIterator
 from typing import Annotated, Any
@@ -6,7 +8,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, File, Form, Header, Path, Response, UploadFile, status
 from sse_starlette import EventSourceResponse
 
-from yield_guardian.api.deps import Runs, Uploads
+from yield_guardian.api.deps import CurrentSession, RunOwner, Runs, Uploads
 from yield_guardian.api.problems import problem_responses
 from yield_guardian.contracts.runs import (
     DrawLayoutList,
@@ -18,8 +20,10 @@ from yield_guardian.contracts.runs import (
     UploadKind,
     UploadSummary,
 )
+from yield_guardian.contracts.workspace import RunComparison
 from yield_guardian.live.tabular import MAX_BYTES
 from yield_guardian.live.uploads import MEDIA_TYPES, DownloadFile, FileFormat, template
+from yield_guardian.services.run_export import compare, results_csv
 
 router = APIRouter()
 
@@ -48,11 +52,24 @@ FILE_RESPONSE: dict[int | str, dict[str, Any]] = {
     operation_id="create_run",
     status_code=status.HTTP_201_CREATED,
     tags=["runs"],
-    responses=problem_responses(400, 404, 410, 503),
+    responses=problem_responses(400, 403, 404, 410, 503),
 )
-async def create_run(body: RunCreate, runs: Runs) -> RunCreated:
-    """Materialise the input and start computing every stage now. Follow it on `events_url`."""
-    return await runs.create(body.root)
+async def create_run(body: RunCreate, runs: Runs, owner: RunOwner) -> RunCreated:
+    """Materialise the input and start computing every stage now. Follow it on `events_url`.
+    With a session, the run is recorded in its workspace ("Your work")."""
+    return await runs.create(body.root, owner=owner.workspace_id if owner else None)
+
+
+@router.post(
+    "/runs/{run_id}/again",
+    operation_id="repeat_run",
+    status_code=status.HTTP_201_CREATED,
+    tags=["runs"],
+    responses=problem_responses(403, 404, 410, 422, 503),
+)
+async def repeat_run(runs: Runs, owner: RunOwner, run_id: RunPath) -> RunCreated:
+    """A new run of exactly the same input items; the earlier run is kept as it is."""
+    return await runs.again(run_id, owner=owner.workspace_id if owner else None)
 
 
 @router.get(
@@ -80,9 +97,49 @@ async def list_draw_layouts(runs: Runs) -> DrawLayoutList:
     tags=["runs"],
     responses=problem_responses(404, 410, 503),
 )
-async def get_run(runs: Runs, run_id: RunPath) -> Run:
-    """The run's full state: every stage with its result and every listed alarm."""
-    return await runs.get(run_id)
+async def get_run(runs: Runs, session: CurrentSession, run_id: RunPath) -> Run:
+    """The run's full state: every stage with its result and every listed alarm. Another
+    workspace's run answers 404, as a missing one does."""
+    return await runs.get(run_id, session.viewer)
+
+
+@router.get(
+    "/runs/{run_id}/compare/{other_id}",
+    operation_id="compare_runs",
+    tags=["runs"],
+    responses=problem_responses(404, 410, 503),
+)
+async def compare_runs(
+    runs: Runs, session: CurrentSession, run_id: RunPath, other_id: RunPath
+) -> RunComparison:
+    """Two runs side by side: each stage's status and alarms, the units and wafers flagged, and
+    what changed from the first to the second."""
+    first, second, same = await runs.compare(run_id, other_id, session.viewer)
+    return compare(first, second, same_input=same)
+
+
+@router.get(
+    "/runs/{run_id}/results.csv",
+    operation_id="get_run_results",
+    tags=["runs"],
+    response_class=Response,
+    responses={
+        200: {
+            "description": "One row per sensor unit, wafer and alarm (column `record`).",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        },
+        **problem_responses(404, 410, 503),
+    },
+)
+async def get_run_results(runs: Runs, session: CurrentSession, run_id: RunPath) -> Response:
+    """The run's computed results as CSV: risk, T², SPE and chart level per unit, pattern and
+    unknown flag per wafer, and every listed alarm."""
+    run = await runs.get(run_id, session.viewer)
+    return Response(
+        content=results_csv(run),
+        media_type=MEDIA_TYPES["csv"],
+        headers={"Content-Disposition": f'attachment; filename="{run_id}-results.csv"'},
+    )
 
 
 @router.get(
@@ -92,11 +149,14 @@ async def get_run(runs: Runs, run_id: RunPath) -> Run:
     responses=problem_responses(404, 410, 503),
 )
 async def get_run_unit_chart(
-    runs: Runs, run_id: RunPath, index: Annotated[int, Path(ge=0, le=100_000)]
+    runs: Runs,
+    session: CurrentSession,
+    run_id: RunPath,
+    index: Annotated[int, Path(ge=0, le=100_000)],
 ) -> UnitChartResult:
     """One unit's control-chart result with `z` (every monitored sensor's standardised
     reading); the run and its events carry `z` for the first 200 units only."""
-    return await runs.unit_chart(run_id, index)
+    return await runs.unit_chart(run_id, index, session.viewer)
 
 
 @router.get(
@@ -108,11 +168,12 @@ async def get_run_unit_chart(
 )
 async def stream_run_events(
     runs: Runs,
+    session: CurrentSession,
     run_id: RunPath,
     last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
 ) -> EventSourceResponse:
     """Stored events after Last-Event-ID, then live ones; the stream closes after `run_done`."""
-    await runs.get(run_id)
+    await runs.get(run_id, session.viewer)
     after = int(last_event_id) if last_event_id and last_event_id.isdigit() else None
 
     async def events() -> AsyncIterator[dict[str, str]]:
@@ -127,20 +188,24 @@ async def stream_run_events(
     operation_id="create_upload",
     status_code=status.HTTP_201_CREATED,
     tags=["uploads"],
-    responses=problem_responses(413, 422, 503),
+    responses=problem_responses(403, 413, 422, 503),
 )
 async def create_upload(
     uploads: Uploads,
+    owner: RunOwner,
     file: Annotated[UploadFile, File(description="The CSV or XLSX file.")],
     kind: Annotated[
         UploadKind | None,
         Form(description="sensors or wafers; read from the header row when omitted."),
     ] = None,
 ) -> UploadSummary:
-    """Parse and validate a sensor or wafer file and keep it for 24 h. What is wrong inside the
-    file comes back as issues (errors block the run); only an unreadable file is refused."""
+    """Parse and validate a sensor or wafer file and keep it, in this workspace, as long as the
+    workspace (24 h without a session). What is wrong inside the file comes back as issues
+    (errors block the run); only an unreadable file is refused."""
     data = await file.read(MAX_BYTES + 1)
-    return await uploads.upload(data, file.filename, kind)
+    return await uploads.upload(
+        data, file.filename, kind, owner=owner.workspace_id if owner else None
+    )
 
 
 def _download(found: DownloadFile) -> Response:

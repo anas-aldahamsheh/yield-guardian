@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { csrfHeaders, unwrap } from "./client";
 import { useApi } from "./context";
 import { describeError } from "./errors";
+import { readSession } from "./opening";
 import { q } from "./queries";
 
 const VISITOR: SessionInfo = {
@@ -16,10 +17,17 @@ const VISITOR: SessionInfo = {
   csrf_token: null,
 };
 
-/** The current session; a visitor until the API says otherwise. */
+/**
+ * The current session; a visitor until the API says otherwise. The page's first read of it is
+ * the answer of opening this device's workspace (lib/api/opening.ts): one request on a first
+ * visit, and `loading` until the workspace is open.
+ */
 export function useSession() {
   const api = useApi();
-  const query = useQuery(q.session(api));
+  const query = useQuery({
+    ...q.session(api),
+    queryFn: ({ signal }) => readSession(() => unwrap(api.GET("/api/v1/session", { signal }))),
+  });
   const session = query.data ?? VISITOR;
   return {
     session,

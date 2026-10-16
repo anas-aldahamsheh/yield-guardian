@@ -282,6 +282,20 @@ function UpdatePanel({
   if (cause !== undefined) body.confirmed_cause = cause;
   const dirty = Object.keys(body).length > 0;
 
+  if (order.example) {
+    return (
+      <Panel title="Outcome">
+        <Readonly order={order} />
+        <p
+          role="note"
+          className="mt-4 rounded-sm bg-die-2 px-3 py-2 text-[13px] leading-5 text-ink-2"
+        >
+          This work order belongs to the recorded example every visitor sees, so nobody changes it.
+        </p>
+      </Panel>
+    );
+  }
+
   if (!canAct) {
     return (
       <Panel title="Outcome">

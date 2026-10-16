@@ -21,15 +21,19 @@ export async function discover(request: APIRequestContext) {
     request,
     "/work-orders?limit=1",
   );
-  const investigations = await getJson<Page<{ investigation_id: string }>>(
-    request,
-    "/investigations?limit=1",
-  );
+  // Every visitor lists its own investigations (none for this new one) and, apart from them,
+  // the product's example: the recorded investigation the API seeds at startup.
+  const investigations = await getJson<
+    Page<{ investigation_id: string }> & { examples: { investigation_id: string }[] }
+  >(request, "/investigations?limit=1");
   return {
     unit: alarms.items[0]?.unit_id ?? units.items[0]!.unit_id,
     lot: lots.items[0]!.lot,
     wafer: wafers.items[0]!.wafer_id,
     workOrder: workOrders.items[0]?.work_order_id ?? null,
-    investigation: investigations.items[0]?.investigation_id ?? null,
+    investigation:
+      investigations.items[0]?.investigation_id ??
+      investigations.examples[0]?.investigation_id ??
+      null,
   };
 }

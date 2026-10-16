@@ -251,9 +251,7 @@ test("an upload says what is wrong, by row and column, and a good one runs", asy
 test("an expired run says so and offers a new one", async ({ page }) => {
   proxy.configure({ gone: true });
   await page.goto(`${proxy.origin}/?run=${RUN_ID}`);
-  await expect(
-    page.getByText("This run has expired (runs are kept 24 hours). Start a new one."),
-  ).toBeVisible();
+  await expect(page.getByText("This run is no longer kept. Start a new one.")).toBeVisible();
   await page.getByRole("button", { name: "Start a new one" }).click();
   await expect(page).toHaveURL(`${proxy.origin}/`);
 });

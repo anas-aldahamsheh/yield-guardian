@@ -24,6 +24,7 @@ from yield_guardian.services.protocols import (
     MethodsService,
     SessionManager,
     WorkOrderStore,
+    WorkspaceStore,
 )
 
 
@@ -50,6 +51,7 @@ class ServiceRegistry:
     work_orders: WorkOrderStore | None = None
     audit: AuditLog | None = None
     sessions: SessionManager | None = None
+    workspace: WorkspaceStore | None = None
     methods: MethodsService | None = None
     chat: ChatResponder | None = None
     llm: LlmAdmin | None = None

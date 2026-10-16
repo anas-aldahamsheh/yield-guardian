@@ -9,11 +9,15 @@ of ``run_unit_charts`` with ``z`` as float32 bytes, read one unit at a time. Eve
 the same transaction, then ``pg_notify('yg_run_events', run_id)`` wakes the streams of every API
 process.
 
-Runs and uploads expire 24 hours after creation. A run an investigation uses (trigger ref
-``<run_id>:<alarm_id>``) is kept: starting the investigation sets its ``expires_at`` to null
-(:func:`retain_in`), and the prune also skips any run an investigation references
-(:func:`used_by_investigation`). A run whose process stopped (no heartbeat) is failed by any
-process, so its stream ends.
+A run or upload of a workspace belongs to it: another workspace gets exactly what a missing ID
+gets (:mod:`yield_guardian.services.access`), and it is kept as long as the workspace, which ends
+``workspace_life`` (30 days) after it was last used and takes its runs and uploads with it; its
+``expires_at`` is null and reads as that moving date. A run or upload with no workspace (an API
+client without a session) expires 24 hours after creation. Such a run an investigation uses
+(trigger ref ``<run_id>:<alarm_id>``) is kept: starting the investigation sets its
+``expires_at`` to null (:func:`retain_in`), and the prune also skips any run an investigation
+references (:func:`used_by_investigation`). A run whose process stopped (no heartbeat) is failed
+by any process, so its stream ends.
 """
 
 import asyncio
@@ -24,16 +28,18 @@ import gzip
 import math
 import secrets
 import time
+import uuid
 import zlib
 from collections.abc import AsyncIterator, Callable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Literal, cast, get_args
+from typing import Literal, Protocol, cast, get_args
 
 import numpy as np
 import structlog
 from pydantic import Field
-from sqlalchemy import ColumnElement, delete, exists, func, insert, select, update
+from sqlalchemy import ColumnElement, delete, exists, func, insert, literal, select, update
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import InstrumentedAttribute
 
@@ -69,11 +75,16 @@ from yield_guardian.db.tables import (
     RunStageRow,
     RunUnitChartRow,
     UploadRow,
+    WorkspaceRow,
 )
+from yield_guardian.services.access import NOBODY, Viewer, current_viewer, visible
 
 log = structlog.get_logger(__name__)
 
 RUN_TTL = timedelta(hours=24)
+WORKSPACE_LIFE = timedelta(days=30)
+"""A workspace's runs and uploads go with it, this long after it was last used (the default of
+``workspace_session_days``)."""
 STREAM_POLL_S = 10.0
 STAGES: tuple[StageId, ...] = get_args(StageId)
 Z_IN_RESULT = 200
@@ -183,17 +194,21 @@ class AlarmInvestigation:
     status: InvestigationStatus
 
 
-async def alarm_investigations(db: AsyncSession, run_id: str) -> dict[str, AlarmInvestigation]:
-    """Alarm ID to the newest investigation opened from it, with its status."""
+async def alarm_investigations(
+    db: AsyncSession, run_id: str, viewer: Viewer | None = None
+) -> dict[str, AlarmInvestigation]:
+    """Alarm ID to the newest investigation opened from it, with its status (one that `viewer`
+    may open; None: any)."""
+    query = select(
+        InvestigationRow.trigger_ref,
+        InvestigationRow.investigation_id,
+        InvestigationRow.status,
+    ).where(func.starts_with(InvestigationRow.trigger_ref, run_id + ":"))
+    if viewer is not None:
+        query = query.where(visible(InvestigationRow.workspace_id, viewer))
     rows = (
         await db.execute(
-            select(
-                InvestigationRow.trigger_ref,
-                InvestigationRow.investigation_id,
-                InvestigationRow.status,
-            )
-            .where(func.starts_with(InvestigationRow.trigger_ref, run_id + ":"))
-            .order_by(InvestigationRow.created_at, InvestigationRow.investigation_id)
+            query.order_by(InvestigationRow.created_at, InvestigationRow.investigation_id)
         )
     ).all()
     return {
@@ -248,9 +263,19 @@ def run_done(status: Literal["done", "failed"], alarms: int, not_listed: int) ->
 def _expired(what: str, identifier: str, created: datetime | None) -> GoneError:
     when = f" (created {created:%Y-%m-%d %H:%M} UTC)" if created is not None else ""
     return GoneError(
-        f"{what} {identifier}{when} has expired: runs and uploads are kept for 24 hours. "
-        "Start a new one."
+        f"{what} {identifier}{when} is no longer kept: a workspace's runs and uploads go 30 days "
+        "after it was last used, others 24 hours after they were made. Start a new one."
     )
+
+
+def missing(what: str, identifier: str, *, now: datetime, ttl: timedelta = RUN_TTL) -> ServiceError:
+    """What an ID that cannot be opened gets, whether it never existed, was deleted or belongs to
+    another workspace: 410 when the time inside the ID is older than `ttl`, 404 otherwise. The
+    answer never says which, so an ID reveals nothing."""
+    created = id_time(identifier)
+    if created is not None and created + ttl <= now:
+        return _expired(what, identifier, created)
+    return NotFoundError(f"{what} {identifier} does not exist.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -266,17 +291,29 @@ class DbRunStore:
         notifier: Notifier | None = None,
         *,
         ttl: timedelta = RUN_TTL,
+        workspace_life: timedelta = WORKSPACE_LIFE,
         now: Callable[[], datetime] = utc_now,
     ) -> None:
         self._sessionmaker = sessionmaker
         self._notifier = notifier
         self.ttl = ttl
+        self.workspace_life = workspace_life
         self._now = now
 
     # Runs ---------------------------------------------------------------------------------------
 
-    async def create(self, origin: RunOrigin, data: RunInput, stages: Sequence[StageState]) -> Run:
-        """Store a queued run with its `run_started` event (seq 1)."""
+    async def create(
+        self,
+        origin: RunOrigin,
+        data: RunInput,
+        stages: Sequence[StageState],
+        *,
+        owner: str | None = None,
+        upload_id: str | None = None,
+        again_of: str | None = None,
+    ) -> Run:
+        """Store a queued run with its `run_started` event (seq 1), owned by the workspace
+        `owner` (kept as long as it is), or by none (kept 24 hours)."""
         if [s.stage for s in stages] != list(STAGES):
             raise ValueError("a run has every stage, in order")
         run_id = new_id("run_")
@@ -284,7 +321,7 @@ class DbRunStore:
         row = RunRow(
             run_id=run_id,
             created_at=now,
-            expires_at=now + self.ttl,
+            expires_at=None if owner else now + self.ttl,
             status="queued",
             origin=origin.model_dump(mode="json"),
             units=len(data.units),
@@ -294,6 +331,9 @@ class DbRunStore:
             last_seq=0,
             heartbeat_at=now,
             finished_at=None,
+            workspace_id=uuid.UUID(owner) if owner else None,
+            upload_id=upload_id,
+            again_of=again_of,
         )
         async with self._sessionmaker() as db, db.begin():
             db.add(row)
@@ -328,7 +368,9 @@ class DbRunStore:
                     )
                 ],
             )
-        return self._run(row, list(stages), {}, used=False, read_at=now)
+        return self._run(
+            row, list(stages), {}, used=False, read_at=now, kept_until=self._kept_from(now)
+        )
 
     async def update(
         self,
@@ -371,24 +413,29 @@ class DbRunStore:
                 .values(heartbeat_at=self._now())
             )
 
-    async def get(self, run_id: str) -> Run:
+    async def get(self, run_id: str, viewer: Viewer | None = None) -> Run:
         """The run with its stages and alarms (each alarm with the investigation opened from it,
         if any, and its status). One consistent snapshot: `last_seq` is the newest event it
         includes, so the stream after it carries exactly what came later. NotFoundError for an
-        unknown run, GoneError once it expired."""
+        unknown run or one `viewer` may not open (None: any run), GoneError once it expired."""
         async with self._sessionmaker() as db, db.begin():
             await db.connection(execution_options={"isolation_level": "REPEATABLE READ"})
-            row, used = await self._live(db, run_id)
-            investigations = await alarm_investigations(db, run_id)
+            row, used = await self._live(db, run_id, viewer)
+            investigations = await alarm_investigations(db, run_id, viewer)
             stages = await self._stages(db, run_id)
+            kept_until = await self._kept_until(db, row)
             read_at = self._now()
-        return self._run(row, stages, investigations, used=used, read_at=read_at)
+        return self._run(
+            row, stages, investigations, used=used, read_at=read_at, kept_until=kept_until
+        )
 
-    async def unit_chart(self, run_id: str, index: int) -> UnitChartResult:
+    async def unit_chart(
+        self, run_id: str, index: int, viewer: Viewer | None = None
+    ) -> UnitChartResult:
         """Unit `index`'s control-chart result with `z`. NotFoundError when the run has no such
         unit or its control charts are not computed, GoneError once the run expired."""
         async with self._sessionmaker() as db:
-            row, _ = await self._live(db, run_id)
+            row, _ = await self._live(db, run_id, viewer)
             if not 0 <= index < row.units:
                 raise NotFoundError(
                     f"Run {run_id} has {row.units:,} sensor units (0 to {row.units - 1}); there "
@@ -408,10 +455,10 @@ class DbRunStore:
         chart = UnitChartResult.model_validate_json(zlib.decompress(found.chart))
         return chart.model_copy(update={"z": decode_z(found.z)})
 
-    async def get_input(self, run_id: str) -> RunInput:
+    async def get_input(self, run_id: str, viewer: Viewer | None = None) -> RunInput:
         """Every item of the run's materialised input, in input order."""
         async with self._sessionmaker() as db:
-            await self._live(db, run_id)
+            await self._live(db, run_id, viewer)
             rows = (
                 await db.execute(
                     select(RunItemRow.kind, RunItemRow.data)
@@ -432,22 +479,40 @@ class DbRunStore:
             ],
         )
 
+    async def input_digest(self, run_id: str, viewer: Viewer | None = None) -> str:
+        """A digest of the run's stored input items, equal for two runs of the same input."""
+        async with self._sessionmaker() as db:
+            await self._live(db, run_id, viewer)
+            found = await db.scalar(
+                select(
+                    func.md5(
+                        func.string_agg(
+                            RunItemRow.kind + ":" + func.md5(RunItemRow.data),
+                            aggregate_order_by(literal(","), RunItemRow.kind, RunItemRow.position),
+                        )
+                    )
+                ).where(RunItemRow.run_id == run_id)
+            )
+        return found or ""
+
     async def retain(self, run_id: str) -> None:
         """See :func:`retain_in`."""
         async with self._sessionmaker() as db, db.begin():
             await retain_in(db, run_id)
 
     # RunReader (the investigator and the chat) --------------------------------------------------
+    # They read for the workspace the current request or investigation job acts for
+    # (:func:`~yield_guardian.services.access.viewing`); acting for none, only runs of none.
 
     async def get_run(self, run_id: str) -> Run | None:
         try:
-            return await self.get(run_id)
+            return await self.get(run_id, current_viewer() or NOBODY)
         except (NotFoundError, GoneError):
             return None
 
     async def get_unit_chart(self, run_id: str, index: int) -> UnitChartResult | None:
         try:
-            return await self.unit_chart(run_id, index)
+            return await self.unit_chart(run_id, index, current_viewer() or NOBODY)
         except (NotFoundError, GoneError):
             return None
 
@@ -538,39 +603,50 @@ class DbRunStore:
         filename: str,
         data: RunInput,
         summary: Callable[[str, datetime], UploadSummary],
+        owner: str | None = None,
     ) -> UploadSummary:
-        """Store parsed items; `summary(upload_id, expires_at)` builds what the client sees."""
+        """Store parsed items; `summary(upload_id, expires_at)` builds what the client sees.
+        An upload of the workspace `owner` is kept as long as it; one of none for 24 hours."""
         upload_id = new_id("upl_")
         now = self._now()
-        built = summary(upload_id, now + self.ttl)
+        built = summary(upload_id, now + (self.workspace_life if owner else self.ttl))
         async with self._sessionmaker() as db, db.begin():
             db.add(
                 UploadRow(
                     upload_id=upload_id,
                     created_at=now,
-                    expires_at=now + self.ttl,
+                    expires_at=built.expires_at,
                     kind=kind,
                     filename=filename,
                     runnable=built.runnable,
                     summary=built.model_dump(mode="json"),
                     items=pack(data),
+                    workspace_id=uuid.UUID(owner) if owner else None,
                 )
             )
         return built
 
-    async def get_upload(self, upload_id: str) -> tuple[UploadSummary, RunInput]:
+    async def get_upload(
+        self, upload_id: str, viewer: Viewer | None = None
+    ) -> tuple[UploadSummary, RunInput]:
+        """The upload and its items; for another workspace's upload, what a missing one gets."""
         async with self._sessionmaker() as db:
             row = await db.get(UploadRow, upload_id)
-        if row is None:
-            raise self._missing("Upload", upload_id)
-        if row.expires_at <= self._now():
-            raise _expired("Upload", upload_id, row.created_at)
-        return UploadSummary.model_validate(row.summary), unpack(row.items)
+            if row is None or (viewer is not None and not viewer.sees(row.workspace_id)):
+                raise self._missing("Upload", upload_id)
+            if row.workspace_id is None and row.expires_at <= self._now():
+                raise _expired("Upload", upload_id, row.created_at)
+            kept_until = await self._kept_until(db, row)
+        summary = UploadSummary.model_validate(row.summary)
+        if kept_until is not None:
+            summary = summary.model_copy(update={"expires_at": kept_until})
+        return summary, unpack(row.items)
 
     # Expiry -------------------------------------------------------------------------------------
 
     async def prune(self) -> PruneReport:
-        """Delete expired uploads, and expired runs no investigation uses."""
+        """Delete expired uploads and expired runs no investigation uses, of no workspace (a
+        workspace's go with it: ``DbSessionManager.prune``)."""
         now = self._now()
         async with self._sessionmaker() as db, db.begin():
             runs = await db.execute(
@@ -583,7 +659,9 @@ class DbRunStore:
                 .returning(RunRow.run_id)
             )
             uploads = await db.execute(
-                delete(UploadRow).where(UploadRow.expires_at <= now).returning(UploadRow.upload_id)
+                delete(UploadRow)
+                .where(UploadRow.workspace_id.is_(None), UploadRow.expires_at <= now)
+                .returning(UploadRow.upload_id)
             )
             report = PruneReport(runs=len(runs.all()), uploads=len(uploads.all()))
         if report.runs or report.uploads:
@@ -592,11 +670,14 @@ class DbRunStore:
 
     # Internals ----------------------------------------------------------------------------------
 
-    async def _live(self, db: AsyncSession, run_id: str) -> tuple[RunRow, bool]:
+    async def _live(
+        self, db: AsyncSession, run_id: str, viewer: Viewer | None = None
+    ) -> tuple[RunRow, bool]:
         """The run's row and whether an investigation uses it; NotFoundError for an unknown run,
-        GoneError once it expired."""
+        GoneError once it expired, and for another workspace's run what its ID would get if the
+        run did not exist."""
         row = await db.get(RunRow, run_id)
-        if row is None:
+        if row is None or (viewer is not None and not viewer.sees(row.workspace_id)):
             raise self._missing("Run", run_id)
         used = bool(await db.scalar(select(used_by_investigation(run_id))))
         if not used and row.expires_at is not None and row.expires_at <= self._now():
@@ -604,10 +685,7 @@ class DbRunStore:
         return row, used
 
     def _missing(self, what: str, identifier: str) -> ServiceError:
-        created = id_time(identifier)
-        if created is not None and created + self.ttl <= self._now():
-            return _expired(what, identifier, created)
-        return NotFoundError(f"{what} {identifier} does not exist.")
+        return missing(what, identifier, now=self._now(), ttl=self.ttl)
 
     @staticmethod
     async def _lock(db: AsyncSession, run_id: str) -> RunRow:
@@ -640,12 +718,25 @@ class DbRunStore:
         ).all()
         return [StageState.model_validate(s) for s in states]
 
+    def _kept_from(self, last_seen: datetime) -> datetime:
+        return last_seen + self.workspace_life
+
+    async def _kept_until(self, db: AsyncSession, row: RunRow | UploadRow) -> datetime | None:
+        """When a workspace's run or upload goes: when its workspace does (30 days after the
+        workspace was last used); None for a row of no workspace."""
+        if row.workspace_id is None:
+            return None
+        seen = await db.scalar(
+            select(WorkspaceRow.last_seen_at).where(WorkspaceRow.workspace_id == row.workspace_id)
+        )
+        return self._kept_from(seen) if seen is not None else None
+
     async def _item(self, run_id: str, kind: str, index: int) -> bytes | None:
         if index < 0:
             return None
         async with self._sessionmaker() as db:
             try:
-                await self._live(db, run_id)
+                await self._live(db, run_id, current_viewer() or NOBODY)
             except (NotFoundError, GoneError):
                 return None
             data = await db.scalar(
@@ -683,6 +774,7 @@ class DbRunStore:
         *,
         used: bool,
         read_at: datetime,
+        kept_until: datetime | None = None,
     ) -> Run:
         alarms: list[RunAlarm] = []
         for stored in row.alarms:
@@ -706,7 +798,9 @@ class DbRunStore:
             stages=stages,
             alarms=alarms,
             alarms_not_listed=row.alarms_not_listed,
-            expires_at=None if used else row.expires_at,
+            expires_at=(
+                kept_until if row.workspace_id is not None else None if used else row.expires_at
+            ),
             last_seq=row.last_seq,
             read_at=read_at,
         )
@@ -744,9 +838,14 @@ def initial_stage(stage: StageId, needs: str | None = None) -> StageState:
     )
 
 
+class Pruner(Protocol):
+    async def prune(self) -> object: ...
+
+
 class RunMaintenance:
-    """A registry Resource: fails stale runs and prunes expired runs and uploads, at start and
-    then every `interval_s`."""
+    """A registry Resource: fails stale runs and prunes expired runs and uploads, then runs the
+    other `pruners` (ended sessions, handoff codes and empty workspaces), at start and then every
+    `interval_s`."""
 
     def __init__(
         self,
@@ -754,15 +853,19 @@ class RunMaintenance:
         *,
         interval_s: float = 300.0,
         stale_after: timedelta = timedelta(minutes=2),
+        pruners: Sequence[Pruner] = (),
     ) -> None:
         self.store = store
         self.interval_s = interval_s
         self.stale_after = stale_after
+        self.pruners = list(pruners)
         self._task: asyncio.Task[None] | None = None
 
     async def run_once(self) -> None:
         await self.store.fail_stale(self.stale_after)
         await self.store.prune()
+        for pruner in self.pruners:
+            await pruner.prune()
 
     async def _loop(self) -> None:
         while True:

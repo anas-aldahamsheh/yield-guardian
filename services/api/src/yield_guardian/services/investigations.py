@@ -9,9 +9,11 @@ wakes the streams of every API process. The investigator itself runs in the job 
 import asyncio
 import builtins
 import contextlib
+import dataclasses
 import re
 import secrets
 import time
+import uuid
 from collections.abc import AsyncIterator, Callable, Iterator
 from datetime import UTC, datetime
 from typing import cast
@@ -53,7 +55,8 @@ from yield_guardian.db.notify import EVENTS_CHANNEL, JOBS_CHANNEL, Notifier
 from yield_guardian.db.tables import InvestigationEventRow, InvestigationJobRow, InvestigationRow
 from yield_guardian.live.protocols import RunReader
 from yield_guardian.services import alarms, audit, cursors
-from yield_guardian.services.errors import ConflictError
+from yield_guardian.services.access import Viewer, current_viewer, examples, is_example, owned
+from yield_guardian.services.errors import ConflictError, ReadOnlyError
 from yield_guardian.services.protocols import ActiveSession
 from yield_guardian.services.workorders import open_work_order
 
@@ -392,9 +395,16 @@ class DbInvestigationStore:
         """Store a queued investigation and enqueue its run; ``title`` replaces the one
         :func:`trigger_title` writes (a run alarm's title read from the run).
 
-        An alarm or run alarm already being investigated returns that investigation instead.
+        An alarm or run alarm this workspace is already investigating returns that
+        investigation instead; another workspace's investigation of it is never returned.
         """
-        return await self._create(trigger, audit.Actor.of(session), recorded=False, title=title)
+        return await self._create(
+            trigger,
+            audit.Actor.of(session),
+            recorded=False,
+            title=title,
+            workspace_id=session.workspace_id,
+        )
 
     async def create_recorded(
         self, trigger: InvestigationTrigger, *, actor: audit.Actor, as_of: int
@@ -412,26 +422,28 @@ class DbInvestigationStore:
         recorded: bool,
         as_of: int | None = None,
         title: str | None = None,
+        workspace_id: str | None = None,
     ) -> Investigation:
         default_title = trigger_title(trigger)  # also refuses a reference that does not fit
         title = title or default_title
         now = datetime.now(UTC)
+        owner = uuid.UUID(workspace_id) if workspace_id else None
         async with self._sessionmaker() as db, db.begin():
-            if trigger.kind == "alarm":
-                alarm = await alarms.lock(db, trigger.ref)
-                if alarm.status == "investigating" and alarm.investigation_id is not None:
-                    current = await db.get(InvestigationRow, alarm.investigation_id)
-                    if current is not None and current.status not in TERMINAL:
-                        return to_investigation(current)
-            if trigger.kind == "run_alarm":
-                # Run alarms live in the run store; one transaction at a time per alarm.
-                await db.execute(select(func.pg_advisory_xact_lock(func.hashtext(trigger.ref))))
+            if trigger.kind in ("alarm", "run_alarm"):
+                # One transaction at a time per alarm: the SECOM alarm's state row, or (run
+                # alarms live in the run store) an advisory lock on its reference.
+                if trigger.kind == "alarm":
+                    await alarms.lock(db, trigger.ref)
+                else:
+                    await db.execute(select(func.pg_advisory_xact_lock(func.hashtext(trigger.ref))))
+                # Only this workspace's own: another's is never given away.
                 current = await db.scalar(
                     select(InvestigationRow)
                     .where(
-                        InvestigationRow.trigger_kind == "run_alarm",
+                        InvestigationRow.trigger_kind == trigger.kind,
                         InvestigationRow.trigger_ref == trigger.ref,
                         InvestigationRow.status.not_in(TERMINAL),
+                        InvestigationRow.workspace_id.is_not_distinct_from(owner),
                     )
                     .order_by(InvestigationRow.created_at.desc())
                     .limit(1)
@@ -459,6 +471,7 @@ class DbInvestigationStore:
                 decision=None,
                 error=None,
                 work_order_id=None,
+                workspace_id=owner,
             )
             db.add(row)
             await db.flush()
@@ -479,12 +492,24 @@ class DbInvestigationStore:
             )
         return to_investigation(row)
 
-    async def get(self, investigation_id: str) -> Investigation:
+    async def get(self, investigation_id: str, viewer: Viewer | None = None) -> Investigation:
+        """The investigation; NotFoundError when it does not exist or belongs to a workspace
+        other than `viewer`'s (None: any)."""
         async with self._sessionmaker() as db:
             row = await db.get(InvestigationRow, investigation_id)
-        if row is None:
+        if row is None or (viewer is not None and not viewer.sees(row.workspace_id)):
             raise NotFoundError(f"Investigation {investigation_id} does not exist.")
         return to_investigation(row)
+
+    async def workspace_of(self, investigation_id: str) -> str | None:
+        """The workspace the investigation belongs to (None for none, or no such one)."""
+        async with self._sessionmaker() as db:
+            owner = await db.scalar(
+                select(InvestigationRow.workspace_id).where(
+                    InvestigationRow.investigation_id == investigation_id
+                )
+            )
+        return str(owner) if owner is not None else None
 
     async def list(
         self,
@@ -492,13 +517,24 @@ class DbInvestigationStore:
         status: InvestigationStatus | None = None,
         cursor: str | None = None,
         limit: int = 50,
+        viewer: Viewer | None = None,
     ) -> InvestigationPage:
-        """Newest first; cursors carry the creation time and ID of the last item."""
+        """Newest first; cursors carry the creation time and ID of the last item. With a
+        `viewer`, `items` are that workspace's own (none without a session), and the first page
+        carries the product's examples apart, in `examples`, for every viewer; any other
+        investigation of no workspace is listed nowhere."""
         query = select(InvestigationRow)
         count = select(func.count()).select_from(InvestigationRow)
+        apart = None  # the examples, on the first page
+        if viewer is not None:
+            query = query.where(owned(InvestigationRow.workspace_id, viewer))
+            count = count.where(owned(InvestigationRow.workspace_id, viewer))
+            if cursor is None:
+                apart = select(InvestigationRow).where(examples())
         if status is not None:
             query = query.where(InvestigationRow.status == status)
             count = count.where(InvestigationRow.status == status)
+            apart = apart.where(InvestigationRow.status == status) if apart is not None else None
         if cursor is not None:
             created, last_id = cursors.decode(CURSOR_KIND, cursor, str, str)
             try:
@@ -511,12 +547,16 @@ class DbInvestigationStore:
                 tuple_(InvestigationRow.created_at, InvestigationRow.investigation_id)
                 < tuple_(created_at, last_id)
             )
-        query = query.order_by(
-            InvestigationRow.created_at.desc(), InvestigationRow.investigation_id.desc()
-        ).limit(limit + 1)
+        newest = (InvestigationRow.created_at.desc(), InvestigationRow.investigation_id.desc())
+        query = query.order_by(*newest).limit(limit + 1)
         async with self._sessionmaker() as db:
             rows = list((await db.scalars(query)).all())
             total = (await db.scalar(count)) or 0
+            example_rows = (
+                list((await db.scalars(apart.order_by(*newest).limit(limit))).all())
+                if apart is not None
+                else []
+            )
         more = len(rows) > limit
         rows = rows[:limit]
         next_cursor = (
@@ -525,18 +565,26 @@ class DbInvestigationStore:
             else None
         )
         return InvestigationPage(
-            items=[to_summary(row) for row in rows], next_cursor=next_cursor, total=total
+            items=[to_summary(row) for row in rows],
+            examples=[to_summary(row) for row in example_rows],
+            next_cursor=next_cursor,
+            total=total,
         )
 
     async def for_unit(self, unit_id: int) -> builtins.list[str]:
-        """IDs of the investigations about one unit or one of its alarms, newest first."""
+        """IDs of the investigations about one unit or one of its alarms, newest first: those
+        of the workspace the current request or job acts for (none when it acts for none)."""
+        viewer = current_viewer()
+        if viewer is None:
+            return []
         unit = InvestigationRow.trigger_ref.regexp_match(f"^0*{unit_id}$")
         alarm = InvestigationRow.trigger_ref.regexp_match(f"^AL-0*{unit_id}-")
         query = (
             select(InvestigationRow.investigation_id)
             .where(
                 ((InvestigationRow.trigger_kind == "unit") & unit)
-                | ((InvestigationRow.trigger_kind == "alarm") & alarm)
+                | ((InvestigationRow.trigger_kind == "alarm") & alarm),
+                owned(InvestigationRow.workspace_id, viewer),
             )
             .order_by(InvestigationRow.created_at.desc(), InvestigationRow.investigation_id.desc())
         )
@@ -558,8 +606,10 @@ class DbInvestigationStore:
             rows = (await db.execute(query)).all()
         return {ref.split(":", 1)[1]: investigation_id for ref, investigation_id in rows}
 
-    async def get_evidence(self, investigation_id: str, evidence_id: str) -> Evidence:
-        investigation = await self.get(investigation_id)
+    async def get_evidence(
+        self, investigation_id: str, evidence_id: str, viewer: Viewer | None = None
+    ) -> Evidence:
+        investigation = await self.get(investigation_id, viewer)
         for evidence in investigation.evidence:
             if evidence.evidence_id == evidence_id:
                 return evidence
@@ -590,10 +640,18 @@ class DbInvestigationStore:
     async def decide(
         self, investigation_id: str, decision: DecisionCreate, *, session: ActiveSession
     ) -> Investigation:
-        """Record the decision and enqueue the resume; the job then opens the work order."""
+        """Record the decision and enqueue the resume; the job then opens the work order.
+        ReadOnlyError for the product's example, which nobody decides."""
         actor = audit.Actor.of(session)
         async with self._sessionmaker() as db, db.begin():
             row = await _lock(db, investigation_id)
+            if not session.viewer.sees(row.workspace_id):
+                raise NotFoundError(f"Investigation {investigation_id} does not exist.")
+            if is_example(row.recorded, row.workspace_id):
+                raise ReadOnlyError(
+                    f"Investigation {investigation_id} is the recorded example every visitor "
+                    "sees, so nobody decides it. Start an investigation of your own to decide one."
+                )
             if row.status != "awaiting_decision" or row.decision is not None:
                 raise ConflictError(
                     f"Investigation {investigation_id} is not waiting for a decision."
@@ -656,6 +714,10 @@ class DbInvestigationStore:
             row = await _lock(db, investigation_id)
             if row.status != "awaiting_decision" or row.decision is None:
                 return
+            # The work order and the audit entries belong to the investigation's workspace.
+            actor = dataclasses.replace(
+                actor, workspace_id=str(row.workspace_id) if row.workspace_id else None
+            )
             decision = Decision.model_validate(row.decision)
             work_order_id: str | None = None
             if decision.verdict == "approve" and decision.actions and row.report is not None:

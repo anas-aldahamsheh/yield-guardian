@@ -225,7 +225,8 @@ class InvestigationSummary(Contract):
     created_at: datetime
     updated_at: datetime
     recorded: bool = Field(
-        description="A recorded run, generated once and replayed, not a live call."
+        description="A recorded run, generated once and replayed, not a live call. A recorded "
+        "run is the product's example: every visitor sees it, and nobody decides it."
     )
     models: list[RoleModel]
     usage: Usage | None
@@ -242,7 +243,13 @@ class Investigation(InvestigationSummary):
 
 
 class InvestigationPage(Contract):
-    items: list[InvestigationSummary]
+    items: list[InvestigationSummary] = Field(
+        description="This workspace's own investigations; `total` counts them."
+    )
+    examples: list[InvestigationSummary] = Field(
+        description="The product's examples, apart from `items`: recorded runs that every visitor "
+        "sees and nobody decides. On the first page only (empty with a cursor)."
+    )
     next_cursor: str | None = None
     total: Count
 

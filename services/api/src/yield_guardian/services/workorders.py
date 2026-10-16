@@ -1,9 +1,10 @@
 """Work orders opened by approved investigations. Every change is written to the audit log."""
 
+import uuid
 from datetime import UTC, datetime
 
 from pydantic import JsonValue
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yield_guardian.contracts.investigation import Action, Report
@@ -16,14 +17,22 @@ from yield_guardian.contracts.workorders import (
 )
 from yield_guardian.db.tables import WORK_ORDER_NUMBER, InvestigationRow, WorkOrderRow
 from yield_guardian.services import audit, cursors
+from yield_guardian.services.access import Viewer, examples, is_example, owned
+from yield_guardian.services.errors import ReadOnlyError
 from yield_guardian.services.protocols import ActiveSession
 
 CURSOR_KIND = "wo"
 
 
-def to_work_order(row: WorkOrderRow) -> WorkOrder:
+def example_investigations() -> Select[str]:
+    """SQL: the IDs of the product's examples (``access.is_example``)."""
+    return select(InvestigationRow.investigation_id).where(examples())
+
+
+def to_work_order(row: WorkOrderRow, *, example: bool = False) -> WorkOrder:
     return WorkOrder.model_validate(
         {
+            "example": example,
             "work_order_id": row.work_order_id,
             "investigation_id": row.investigation_id,
             "title": row.title,
@@ -101,35 +110,68 @@ async def _check_hypothesis(db: AsyncSession, investigation_id: str, cause: Conf
         )
 
 
+async def _owner(db: AsyncSession, row: WorkOrderRow) -> tuple[uuid.UUID | None, bool]:
+    """The workspace of the work order's investigation, and whether it is the product's example."""
+    found = (
+        await db.execute(
+            select(InvestigationRow.workspace_id, InvestigationRow.recorded).where(
+                InvestigationRow.investigation_id == row.investigation_id
+            )
+        )
+    ).one()
+    return found.workspace_id, is_example(found.recorded, found.workspace_id)
+
+
 class DbWorkOrderStore:
     """Work orders, newest first; cursors carry the last work order ID."""
 
     def __init__(self, sessionmaker: async_sessionmaker[AsyncSession]) -> None:
         self._sessionmaker = sessionmaker
 
-    async def list(self, *, cursor: str | None = None, limit: int = 50) -> WorkOrderPage:
-        query = select(WorkOrderRow)
+    async def list(
+        self, *, cursor: str | None = None, limit: int = 50, viewer: Viewer | None = None
+    ) -> WorkOrderPage:
+        """Newest first; with a `viewer`, the work orders of its own investigations and those
+        of the product's examples (marked `example`), which every viewer sees."""
+        example = WorkOrderRow.investigation_id.in_(example_investigations())
+        query = select(WorkOrderRow, example.label("example"))
+        count = select(func.count()).select_from(WorkOrderRow)
+        if viewer is not None:
+            mine = WorkOrderRow.investigation_id.in_(
+                select(InvestigationRow.investigation_id).where(
+                    owned(InvestigationRow.workspace_id, viewer)
+                )
+            )
+            listed = or_(mine, example)
+            query, count = query.where(listed), count.where(listed)
         if cursor is not None:
             (last_id,) = cursors.decode(CURSOR_KIND, cursor, str)
             query = query.where(WorkOrderRow.work_order_id < last_id)
         query = query.order_by(WorkOrderRow.work_order_id.desc()).limit(limit + 1)
         async with self._sessionmaker() as db:
-            rows = list((await db.scalars(query)).all())
-            total = (await db.scalar(select(func.count()).select_from(WorkOrderRow))) or 0
+            rows = list((await db.execute(query)).all())
+            total = (await db.scalar(count)) or 0
         more = len(rows) > limit
         rows = rows[:limit]
         return WorkOrderPage(
-            items=[to_work_order(row) for row in rows],
-            next_cursor=cursors.encode(CURSOR_KIND, rows[-1].work_order_id) if more else None,
+            items=[to_work_order(order, example=flag) for order, flag in rows],
+            next_cursor=cursors.encode(CURSOR_KIND, rows[-1][0].work_order_id) if more else None,
             total=total,
         )
 
-    async def get(self, work_order_id: str) -> WorkOrder:
+    async def get(self, work_order_id: str, viewer: Viewer | None = None) -> WorkOrder:
+        """The work order; NotFoundError when it does not exist or its investigation belongs to
+        a workspace other than `viewer`'s (None: any)."""
+        example = False
         async with self._sessionmaker() as db:
             row = await db.get(WorkOrderRow, work_order_id)
+            if row is not None:
+                owner, example = await _owner(db, row)
+                if viewer is not None and not viewer.sees(owner):
+                    row = None
         if row is None:
             raise NotFoundError(f"Work order {work_order_id} does not exist.")
-        return to_work_order(row)
+        return to_work_order(row, example=example)
 
     async def update(
         self, work_order_id: str, update: WorkOrderUpdate, *, session: ActiveSession
@@ -139,6 +181,7 @@ class DbWorkOrderStore:
         Changing the outcome withdraws its confirmation unless the same update confirms it again.
         A confirmed cause is recorded only on a closed (done) work order, its hypothesis index
         must name a hypothesis of the investigation's report, and reopening withdraws it.
+        ReadOnlyError for the work order of the product's example, which nobody changes.
         """
         sent = update.model_fields_set
         async with self._sessionmaker() as db, db.begin():
@@ -147,8 +190,14 @@ class DbWorkOrderStore:
                 .where(WorkOrderRow.work_order_id == work_order_id)
                 .with_for_update()
             )
-            if row is None:
+            owner, example = await _owner(db, row) if row is not None else (None, False)
+            if row is None or not session.viewer.sees(owner):
                 raise NotFoundError(f"Work order {work_order_id} does not exist.")
+            if example:
+                raise ReadOnlyError(
+                    f"Work order {work_order_id} belongs to the recorded example every visitor "
+                    "sees, so nobody changes it."
+                )
             target: dict[str, JsonValue] = {
                 "status": row.status,
                 "note": row.note,

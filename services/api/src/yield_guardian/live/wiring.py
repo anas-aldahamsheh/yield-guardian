@@ -36,7 +36,7 @@ from yield_guardian.services.runs import DbRunStore, RunMaintenance
 
 log = structlog.get_logger(__name__)
 
-NO_DATABASE = "runs and uploads need DATABASE_URL (they are kept in PostgreSQL for 24 hours)"
+NO_DATABASE = "runs and uploads need DATABASE_URL (they are kept in PostgreSQL)"
 NO_CAUSES = "The literature causes are not available: the knowledge base is not loaded."
 NOT_TESTED = JoinCount(bb=0, fails=0, dies=0, expected=None, sd=None, z=None, p=None)
 
@@ -160,7 +160,9 @@ def install_runs(
     runs = RunService(store, found, cases=cases, uploads=uploads)
     registry.runs = runs
     registry.uploads = uploads
-    registry.resources.append(RunMaintenance(store))
+    # The one cleanup loop also ends sessions, handoff codes and workspaces nothing uses.
+    pruners = [registry.sessions] if registry.sessions is not None else []
+    registry.resources.append(RunMaintenance(store, pruners=pruners))
     if cases is not None:
         registry.resources.append(cases)
     registry.resources.append(runs)

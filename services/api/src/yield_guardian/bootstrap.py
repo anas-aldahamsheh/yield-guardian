@@ -17,7 +17,8 @@ from yield_guardian.live.wiring import install_runs
 from yield_guardian.science.secom.alarms import SecomAlarms
 from yield_guardian.science.secom.service import SecomInference
 from yield_guardian.science.wafermap.service import WaferInference
-from yield_guardian.services.alarms import AlarmStateStore
+from yield_guardian.services.access import current_viewer
+from yield_guardian.services.alarms import DbAlarmStateStore
 from yield_guardian.services.methods import BundleMethods
 from yield_guardian.services.persistence import build_persistence
 from yield_guardian.services.registry import ServiceRegistry
@@ -26,17 +27,20 @@ log = structlog.get_logger(__name__)
 
 
 class StoredAlarmStates:
-    """Alarm states an investigation set; an alarm without one (or a stored "open", left by a
-    failed investigation) is open."""
+    """The alarm states the workspace of the current request or investigation job set with its
+    own investigations; every other alarm is open, and every alarm is open to a request of no
+    workspace. One visitor never sees another's activity (services.access)."""
 
-    def __init__(self, store: AlarmStateStore) -> None:
+    def __init__(self, store: DbAlarmStateStore) -> None:
         self.store = store
 
     async def overrides(self) -> Mapping[str, tuple[AlarmStatus, str | None]]:
+        viewer = current_viewer()
+        if viewer is None or viewer.uuid is None:
+            return {}
         return {
             alarm_id: (state.status, state.investigation_id)
-            for alarm_id, state in (await self.store.states()).items()
-            if state.status != "open"
+            for alarm_id, state in (await self.store.of_workspace(viewer)).items()
         }
 
 

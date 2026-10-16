@@ -23,6 +23,7 @@ const ROUTES: { name: string; path: (ids: Ids) => string | null }[] = [
   },
   { name: "how it works", path: () => "/how" },
   { name: "admin", path: () => "/admin" },
+  { name: "join", path: () => "/join" },
 ];
 
 test.describe("375 px, no horizontal scroll", () => {

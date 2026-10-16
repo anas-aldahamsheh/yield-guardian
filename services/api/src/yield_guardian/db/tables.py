@@ -1,4 +1,4 @@
-"""Tables of the API's own state: sessions, investigations, the job queue, work orders, audit, alarms,
+"""Tables of the API's own state: workspaces, sessions and handoff codes, investigations, the job queue, work orders, audit, alarms,
 live runs (their input, stages and events) and uploads, the language-model layer (call log, response cache, role assignments, chat routes,
 evaluations) and the knowledge chunks searched with PostgreSQL full-text search.
 
@@ -35,11 +35,23 @@ JsonObject = dict[str, Any]
 WORK_ORDER_NUMBER = Sequence("work_order_number_seq", metadata=Base.metadata)
 
 
+class WorkspaceRow(Base):
+    """A workspace: what the devices attached to it have run, uploaded and investigated."""
+
+    __tablename__ = "workspaces"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime]
+    last_seen_at: Mapped[datetime] = mapped_column(index=True)
+
+
 class SessionRow(Base):
-    """A signed-in session. Only the SHA-256 of the cookie token is stored."""
+    """A device session. Only the SHA-256 of the cookie token is stored. `expires_at` moves
+    forward with use; `role_expires_at` ends the engineer or admin role (the session goes on as a
+    visitor)."""
 
     __tablename__ = "sessions"
-    __table_args__ = (CheckConstraint("role IN ('engineer', 'admin')", name="role"),)
+    __table_args__ = (CheckConstraint("role IN ('visitor', 'engineer', 'admin')", name="role"),)
 
     session_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     token_hash: Mapped[bytes] = mapped_column(LargeBinary(32), unique=True)
@@ -49,6 +61,29 @@ class SessionRow(Base):
     client: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime]
     expires_at: Mapped[datetime] = mapped_column(index=True)
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE"), index=True
+    )
+    last_seen_at: Mapped[datetime | None]
+    role_expires_at: Mapped[datetime | None]
+
+
+class HandoffRow(Base):
+    """A code that attaches one more device to a workspace: single use, short-lived, stored as
+    its SHA-256 only."""
+
+    __tablename__ = "workspace_handoffs"
+
+    code_hash: Mapped[bytes] = mapped_column(LargeBinary(32), primary_key=True)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE"), index=True
+    )
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("sessions.session_id", ondelete="CASCADE")
+    )
+    created_at: Mapped[datetime]
+    expires_at: Mapped[datetime] = mapped_column(index=True)
+    used_at: Mapped[datetime | None]
 
 
 class InvestigationRow(Base):
@@ -66,6 +101,7 @@ class InvestigationRow(Base):
         Index("ix_investigations_created", "created_at", "investigation_id"),
         Index("ix_investigations_status_created", "status", "created_at", "investigation_id"),
         Index("ix_investigations_trigger", "trigger_kind", "trigger_ref"),
+        Index("ix_investigations_workspace", "workspace_id", "created_at", "investigation_id"),
     )
 
     investigation_id: Mapped[str] = mapped_column(Text, primary_key=True)
@@ -88,6 +124,11 @@ class InvestigationRow(Base):
     decision: Mapped[JsonObject | None] = mapped_column(JSONB)
     error: Mapped[JsonObject | None] = mapped_column(JSONB)
     work_order_id: Mapped[str | None] = mapped_column(Text)
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE")
+    )
+    """The workspace of the session that started it (it goes with the workspace); null for
+    recorded and older ones."""
 
 
 class InvestigationEventRow(Base):
@@ -163,8 +204,15 @@ class WorkOrderRow(Base):
 
 
 class AuditEntryRow(Base):
+    """One action taken in the product. An action of a workspace is listed there only and goes
+    with it; one of none (a failed sign-in) is listed nowhere, except those about the product's
+    example (a recorded investigation and its work order), which every workspace lists."""
+
     __tablename__ = "audit_entries"
-    __table_args__ = (Index("ix_audit_entries_action", "action", "audit_id"),)
+    __table_args__ = (
+        Index("ix_audit_entries_action", "action", "audit_id"),
+        Index("ix_audit_entries_workspace", "workspace_id", "audit_id"),
+    )
 
     audit_id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     at: Mapped[datetime]
@@ -174,6 +222,9 @@ class AuditEntryRow(Base):
     target_kind: Mapped[str] = mapped_column(Text)
     target_id: Mapped[str] = mapped_column(Text)
     details: Mapped[JsonObject] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE")
+    )
 
 
 class AlarmStateRow(Base):
@@ -196,8 +247,9 @@ class AlarmStateRow(Base):
 
 
 class RunRow(Base):
-    """A live run (PLAN_V2 §3): its origin and the snapshot its events build. Expires 24 h after
-    creation; `expires_at` is null while an investigation uses the run."""
+    """A live run (PLAN_V2 §3): its origin and the snapshot its events build. A workspace's run
+    goes with the workspace (`expires_at` null); one of no workspace expires 24 h after creation,
+    and `expires_at` is null while an investigation uses it."""
 
     __tablename__ = "runs"
     __table_args__ = (
@@ -207,6 +259,8 @@ class RunRow(Base):
             "heartbeat_at",
             postgresql_where=text("status IN ('queued', 'running')"),
         ),
+        Index("ix_runs_workspace", "workspace_id", "created_at", "run_id"),
+        Index("ix_runs_upload", "upload_id", postgresql_where=text("upload_id IS NOT NULL")),
     )
 
     run_id: Mapped[str] = mapped_column(Text, primary_key=True)
@@ -221,6 +275,17 @@ class RunRow(Base):
     last_seq: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     heartbeat_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE")
+    )
+    """The workspace that started the run (it goes with the workspace); null for a run started
+    without a session."""
+    upload_id: Mapped[str | None] = mapped_column(Text)
+    again_of: Mapped[str | None] = mapped_column(Text)
+    label: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    archived_at: Mapped[datetime | None]
+    view: Mapped[str | None] = mapped_column(Text)
 
 
 class RunItemRow(Base):
@@ -281,10 +346,14 @@ class RunEventRow(Base):
 
 
 class UploadRow(Base):
-    """A parsed and validated file (``UploadSummary``) and its items, kept 24 h to be run."""
+    """A parsed and validated file (``UploadSummary``) and its items, kept to be run: as long as
+    its workspace, or 24 h when it has none."""
 
     __tablename__ = "uploads"
-    __table_args__ = (CheckConstraint("kind IN ('sensors', 'wafers')", name="kind"),)
+    __table_args__ = (
+        CheckConstraint("kind IN ('sensors', 'wafers')", name="kind"),
+        Index("ix_uploads_workspace", "workspace_id", "created_at", "upload_id"),
+    )
 
     upload_id: Mapped[str] = mapped_column(Text, primary_key=True)
     created_at: Mapped[datetime]
@@ -295,6 +364,10 @@ class UploadRow(Base):
     summary: Mapped[JsonObject] = mapped_column(JSONB)
     items: Mapped[bytes] = mapped_column(LargeBinary)
     """gzip of the parsed items as a JSON array (sensor units or wafers)."""
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="CASCADE")
+    )
+    """The workspace that uploaded it (it goes with the workspace); null without a session."""
 
 
 # -- language-model layer -----------------------------------------------------------------------

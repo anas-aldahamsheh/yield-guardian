@@ -1,15 +1,17 @@
 """The audit log: one entry per state change, written in the same transaction as the change."""
 
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from pydantic import JsonValue
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yield_guardian.contracts.workorders import ActorRole, AuditAction, AuditEntry, AuditPage
-from yield_guardian.db.tables import AuditEntryRow
+from yield_guardian.db.tables import AuditEntryRow, InvestigationRow, WorkOrderRow
 from yield_guardian.services import cursors
+from yield_guardian.services.access import Viewer, examples, owned
 from yield_guardian.services.protocols import ActiveSession
 
 CURSOR_KIND = "audit"
@@ -26,10 +28,12 @@ ROLE_LABELS: dict[ActorRole, str] = {
 class Actor:
     role: ActorRole
     name: str | None
+    workspace_id: str | None = None
+    """The workspace the action belongs to: its audit entry is listed there only."""
 
     @classmethod
     def of(cls, session: ActiveSession) -> "Actor":
-        return cls(role=session.role, name=session.display_name)
+        return cls(role=session.role, name=session.display_name, workspace_id=session.workspace_id)
 
     @property
     def label(self) -> str:
@@ -58,13 +62,26 @@ def record(
             target_kind=target_kind,
             target_id=target_id,
             details=details or {},
+            workspace_id=uuid.UUID(actor.workspace_id) if actor.workspace_id else None,
         )
     )
 
 
-def to_entry(row: AuditEntryRow) -> AuditEntry:
+def about_example() -> ColumnElement[bool]:
+    """SQL: an entry of no workspace about the product's example (``access.is_example``): its
+    investigation or its work order."""
+    ids = select(InvestigationRow.investigation_id).where(examples())
+    orders = select(WorkOrderRow.work_order_id).where(WorkOrderRow.investigation_id.in_(ids))
+    return AuditEntryRow.workspace_id.is_(None) & or_(
+        (AuditEntryRow.target_kind == "investigation") & AuditEntryRow.target_id.in_(ids),
+        (AuditEntryRow.target_kind == "work_order") & AuditEntryRow.target_id.in_(orders),
+    )
+
+
+def to_entry(row: AuditEntryRow, *, example: bool = False) -> AuditEntry:
     return AuditEntry.model_validate(
         {
+            "example": example,
             "audit_id": row.audit_id,
             "at": row.at,
             "actor_role": row.actor_role,
@@ -84,10 +101,21 @@ class DbAuditLog:
         self._sessionmaker = sessionmaker
 
     async def list(
-        self, *, action: AuditAction | None = None, cursor: str | None = None, limit: int = 50
+        self,
+        *,
+        action: AuditAction | None = None,
+        cursor: str | None = None,
+        limit: int = 50,
+        viewer: Viewer | None = None,
     ) -> AuditPage:
-        query = select(AuditEntryRow)
+        """Newest first; with a `viewer`, that workspace's entries and those about the
+        product's example (marked `example`), which every viewer sees."""
+        example = about_example()
+        query = select(AuditEntryRow, example.label("example"))
         count = select(func.count()).select_from(AuditEntryRow)
+        if viewer is not None:
+            listed = or_(owned(AuditEntryRow.workspace_id, viewer), example)
+            query, count = query.where(listed), count.where(listed)
         if action is not None:
             query = query.where(AuditEntryRow.action == action)
             count = count.where(AuditEntryRow.action == action)
@@ -96,12 +124,12 @@ class DbAuditLog:
             query = query.where(AuditEntryRow.audit_id < last_id)
         query = query.order_by(AuditEntryRow.audit_id.desc()).limit(limit + 1)
         async with self._sessionmaker() as db:
-            rows = list((await db.scalars(query)).all())
+            rows = list((await db.execute(query)).all())
             total = (await db.scalar(count)) or 0
         more = len(rows) > limit
         rows = rows[:limit]
         return AuditPage(
-            items=[to_entry(row) for row in rows],
-            next_cursor=cursors.encode(CURSOR_KIND, rows[-1].audit_id) if more else None,
+            items=[to_entry(entry, example=flag) for entry, flag in rows],
+            next_cursor=cursors.encode(CURSOR_KIND, rows[-1][0].audit_id) if more else None,
             total=total,
         )

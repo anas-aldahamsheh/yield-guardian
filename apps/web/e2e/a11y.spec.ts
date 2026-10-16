@@ -16,8 +16,10 @@ const ROUTES: { path: string; strict?: true }[] = [
   { path: "/investigations?tab=work-orders", strict: true },
   { path: "/investigations?tab=work-orders&order=WO-000012", strict: true },
   { path: "/investigations/inv_01jae5x9k3m2q7r8s0t1v2w3x4", strict: true },
+  { path: "/investigations/inv_01jadz4r8c0q2m6t9v1x3b5d7f", strict: true },
   { path: `/investigations/${TEST_DOUBLE.investigationId}`, strict: true },
   { path: "/admin" },
+  { path: "/join", strict: true },
 ];
 
 for (const viewport of VIEWPORTS) {
@@ -58,6 +60,14 @@ for (const viewport of VIEWPORTS) {
         await page.getByRole("dialog").waitFor();
         await page.waitForTimeout(500);
         await expectAccessible(page, `${viewport.name} ${scheme} chat sheet`);
+      });
+
+      test("axe the handoff to another device", async ({ page }) => {
+        await settle(page, "/");
+        await page.getByRole("button", { name: "Continue on another device" }).click();
+        await page.getByRole("dialog").locator("[data-handoff-code]").waitFor();
+        await page.waitForTimeout(500);
+        await expectAccessible(page, `${viewport.name} ${scheme} handoff dialog`);
       });
 
       test("axe the navigation menu", async ({ page }) => {

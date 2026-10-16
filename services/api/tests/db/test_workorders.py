@@ -1,4 +1,4 @@
-"""Work orders, the audit log and alarm states."""
+"""Work orders, the audit log and alarm states, each per workspace."""
 
 import asyncio
 
@@ -14,6 +14,7 @@ from yield_guardian.contracts.investigation import (
 from yield_guardian.contracts.services import InvalidArgumentError, NotFoundError
 from yield_guardian.contracts.session import GuestSessionCreate
 from yield_guardian.contracts.workorders import ConfirmedCause, WorkOrderUpdate
+from yield_guardian.services.access import viewing
 from yield_guardian.services.persistence import Persistence
 from yield_guardian.services.protocols import ActiveSession, AuditLog, WorkOrderStore
 
@@ -31,8 +32,10 @@ async def _drain(persistence: Persistence, investigation_id: str, after: int = 0
             pass
 
 
-async def _work_orders(persistence: Persistence, count: int) -> list[str]:
-    session = await _engineer(persistence)
+async def _work_orders(
+    persistence: Persistence, count: int, session: ActiveSession | None = None
+) -> list[str]:
+    session = session or await _engineer(persistence)
     ids = []
     for unit in range(count):
         created = await persistence.investigations.create(
@@ -55,25 +58,44 @@ async def _work_orders(persistence: Persistence, count: int) -> list[str]:
 
 async def test_list_and_get(persistence: Persistence) -> None:
     store: WorkOrderStore = persistence.work_orders
-    ids = await _work_orders(persistence, 3)
+    session = await _engineer(persistence)
+    ids = await _work_orders(persistence, 3, session)
     assert ids == ["WO-000001", "WO-000002", "WO-000003"]
-    page = await store.list(limit=2)
+    page = await store.list(limit=2, viewer=session.viewer)
     assert [w.work_order_id for w in page.items] == ["WO-000003", "WO-000002"]
     assert page.total == 3
     assert page.next_cursor is not None
-    rest = await store.list(cursor=page.next_cursor, limit=2)
+    rest = await store.list(cursor=page.next_cursor, limit=2, viewer=session.viewer)
     assert [w.work_order_id for w in rest.items] == ["WO-000001"]
     assert rest.next_cursor is None
-    work_order = await store.get("WO-000002")
+    work_order = await store.get("WO-000002", session.viewer)
     assert work_order.status == "open"
     assert not work_order.outcome_confirmed
     with pytest.raises(NotFoundError):
         await store.get("WO-999999")
 
 
-async def test_updates_are_audited(persistence: Persistence) -> None:
+async def test_another_workspace_sees_no_work_order(persistence: Persistence) -> None:
+    store = persistence.work_orders
     (work_order_id,) = await _work_orders(persistence, 1)
+    other = await _engineer(persistence)
+    assert (await store.list(viewer=other.viewer)).total == 0
+    with pytest.raises(NotFoundError) as hidden:
+        await store.get(work_order_id, other.viewer)
+    with pytest.raises(NotFoundError) as missing:
+        await store.get("WO-999999", other.viewer)
+    assert str(hidden.value).replace(work_order_id, "?") == str(missing.value).replace(
+        "WO-999999", "?"
+    )
+    with pytest.raises(NotFoundError):
+        await store.update(work_order_id, WorkOrderUpdate(status="done"), session=other)
+    assert (await store.get(work_order_id)).status == "open"
+    assert (await persistence.audit.list(viewer=other.viewer)).items[0].action == "session.guest"
+
+
+async def test_updates_are_audited(persistence: Persistence) -> None:
     session = await _engineer(persistence)
+    (work_order_id,) = await _work_orders(persistence, 1, session)
     store = persistence.work_orders
 
     updated = await store.update(
@@ -99,8 +121,14 @@ async def test_updates_are_audited(persistence: Persistence) -> None:
     )
     assert cleared.note is None
 
-    entries = (await persistence.audit.list(action="work_order.updated")).items
+    entries = (
+        await persistence.audit.list(action="work_order.updated", viewer=session.viewer)
+    ).items
     assert len(entries) == 4
+    other = await _engineer(persistence)
+    assert (
+        await persistence.audit.list(action="work_order.updated", viewer=other.viewer)
+    ).total == 0
     assert entries[-1].details == {
         "changes": {
             "status": {"from": "open", "to": "in_progress"},
@@ -118,16 +146,15 @@ async def test_updates_are_audited(persistence: Persistence) -> None:
 
 
 async def test_confirming_needs_an_outcome(persistence: Persistence) -> None:
-    (work_order_id,) = await _work_orders(persistence, 1)
+    session = await _engineer(persistence)
+    (work_order_id,) = await _work_orders(persistence, 1, session)
     with pytest.raises(InvalidArgumentError):
         await persistence.work_orders.update(
-            work_order_id,
-            WorkOrderUpdate(outcome_confirmed=True),
-            session=await _engineer(persistence),
+            work_order_id, WorkOrderUpdate(outcome_confirmed=True), session=session
         )
     with pytest.raises(NotFoundError):
         await persistence.work_orders.update(
-            "WO-123456", WorkOrderUpdate(status="done"), session=await _engineer(persistence)
+            "WO-123456", WorkOrderUpdate(status="done"), session=session
         )
 
 
@@ -156,14 +183,27 @@ async def test_alarm_states(persistence: Persistence) -> None:
         None,
         None,
     )
+    session = await _engineer(persistence)
     created = await persistence.investigations.create(
-        InvestigationTrigger(kind="alarm", ref="AL-1-risk"), session=await _engineer(persistence)
+        InvestigationTrigger(kind="alarm", ref="AL-1-risk"), session=session
     )
     states = await persistence.alarms.states(["AL-1-risk", "AL-2-t2"])
     assert list(states) == ["AL-1-risk"]
     assert states["AL-1-risk"].investigation_id == created.investigation_id
     assert list(await persistence.alarms.states()) == ["AL-1-risk"]
     await _drain(persistence, created.investigation_id)
+    # Each workspace is shown its own: the alarm is taken over in this one only.
+    mine = await persistence.alarms.of_workspace(session.viewer)
+    assert (mine["AL-1-risk"].status, mine["AL-1-risk"].investigation_id) == (
+        "investigating",
+        created.investigation_id,
+    )
+    other = await _engineer(persistence)
+    assert await persistence.alarms.of_workspace(other.viewer) == {}
+    with viewing(other.viewer):
+        assert await persistence.investigations.for_unit(1) == []
+    with viewing(session.viewer):
+        assert await persistence.investigations.for_unit(1) == [created.investigation_id]
 
 
 SENSOR_HYPOTHESIS = Hypothesis(
@@ -179,8 +219,8 @@ async def test_a_confirmed_cause_is_recorded_when_the_work_order_closes(
     persistence: Persistence, runner: FakeRunner
 ) -> None:
     runner.report = REPORT.model_copy(update={"hypotheses": [SENSOR_HYPOTHESIS]})
-    (work_order_id,) = await _work_orders(persistence, 1)
     session = await _engineer(persistence)
+    (work_order_id,) = await _work_orders(persistence, 1, session)
     store = persistence.work_orders
     cause = ConfirmedCause(text="Synthetic confirmed cause.", hypothesis_index=0)
 
@@ -202,7 +242,9 @@ async def test_a_confirmed_cause_is_recorded_when_the_work_order_closes(
         work_order_id, WorkOrderUpdate(confirmed_cause=free), session=session
     )
     assert changed.confirmed_cause == free
-    entries = (await persistence.audit.list(action="work_order.updated")).items
+    entries = (
+        await persistence.audit.list(action="work_order.updated", viewer=session.viewer)
+    ).items
     assert entries[0].details["changes"] == {
         "confirmed_cause": {
             "from": cause.model_dump(mode="json"),
@@ -226,13 +268,14 @@ async def test_a_confirmed_cause_is_recorded_when_the_work_order_closes(
 async def test_a_hypothesis_index_needs_a_report_with_hypotheses(
     persistence: Persistence,
 ) -> None:
-    (work_order_id,) = await _work_orders(persistence, 1)
+    session = await _engineer(persistence)
+    (work_order_id,) = await _work_orders(persistence, 1, session)
     with pytest.raises(InvalidArgumentError, match="no hypotheses"):
         await persistence.work_orders.update(
             work_order_id,
             WorkOrderUpdate(
                 status="done", confirmed_cause=ConfirmedCause(text="x", hypothesis_index=0)
             ),
-            session=await _engineer(persistence),
+            session=session,
         )
     assert (await persistence.work_orders.get(work_order_id)).status == "open"

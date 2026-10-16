@@ -155,15 +155,31 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
           (item) => item.work_order_id === id,
         ) ?? null));
 
+  const cookieOf = (request: Request) =>
+    request.headers.get("cookie")?.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`))?.[1] ?? null;
+
   const sessionOf = (request: Request): SessionInfo => {
-    const cookie = request.headers.get("cookie") ?? "";
-    const id = cookie.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`))?.[1];
+    const id = cookieOf(request);
     return (id && sessions.get(id)) || fixture<SessionInfo>("get_session");
   };
 
-  const startSession = (session: SessionInfo) => {
+  /** Device sessions by cookie value: when each began, and the ID the admin page names it by. */
+  const devices = new Map<string, { sessionId: string; createdAt: string }>();
+
+  /** A new cookie for `session`; with `replacing`, it is the same device session, rotated. */
+  const startSession = (session: SessionInfo, replacing?: Request) => {
     const id = crypto.randomUUID();
+    const old = replacing ? cookieOf(replacing) : null;
+    const device = (old && devices.get(old)) || {
+      sessionId: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    if (old) {
+      sessions.delete(old);
+      devices.delete(old);
+    }
     sessions.set(id, session);
+    devices.set(id, device);
     return HttpResponse.json(session, {
       headers: { "Set-Cookie": `${SESSION_COOKIE}=${id}; Path=/; HttpOnly; SameSite=Lax` },
     });
@@ -189,15 +205,194 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     return null;
   };
 
+  /*
+   * Workspaces: every browser gets a visitor session with a workspace of its own on its first
+   * page; handoff codes attach another browser. The mock has no runs (the story tests serve
+   * those), so every workspace list is empty: no record is made up.
+   */
+  const workspaceOf = (request: Request): Pick<SessionInfo, "workspace"> => {
+    const current = sessionOf(request);
+    return current.workspace ? { workspace: current.workspace } : {};
+  };
+  const withWorkspace = (session: SessionInfo, workspaceId: string): SessionInfo => ({
+    ...session,
+    workspace: {
+      workspace_id: workspaceId,
+      session_expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+    },
+  });
+  /** This device's session (any role) with its CSRF token, as changes to a workspace need. */
+  const deviceGuard = (request: Request) => {
+    const session = sessionOf(request);
+    if (!session.workspace)
+      return problem(401, "unauthorized", "No session", "This device has no session yet.");
+    if (request.headers.get(CSRF_HEADER) !== session.csrf_token)
+      return problem(403, "csrf_failed", "CSRF check failed");
+    return null;
+  };
+  const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const codes = new Map<string, { workspace: string; expires: number; used: boolean }>();
+  const empty = { items: [], next_cursor: null, total: 0 };
+  const membersOf = (workspaceId: string) =>
+    [...sessions.entries()].filter(([, s]) => s.workspace?.workspace_id === workspaceId);
+
+  const workspaceHandlers: HttpHandler[] = [
+    http.post(`${API}/session/workspace`, ({ request }) => {
+      const current = sessionOf(request);
+      if (current.workspace) return HttpResponse.json(current);
+      const visitor = { ...fixture<SessionInfo>("get_session"), csrf_token: crypto.randomUUID() };
+      return startSession(withWorkspace(visitor, crypto.randomUUID()));
+    }),
+    http.get(`${API}/workspace`, ({ request }) => {
+      const current = sessionOf(request).workspace;
+      if (!current) return problem(404, "not_found", "No workspace");
+      const mine = cookieOf(request);
+      const members = membersOf(current.workspace_id).map(([id, s]) => ({
+        current: id === mine,
+        role: s.role,
+        created_at: devices.get(id)?.createdAt ?? new Date().toISOString(),
+        last_seen_at: devices.get(id)?.createdAt ?? new Date().toISOString(),
+        expires_at: s.workspace!.session_expires_at,
+      }));
+      return HttpResponse.json({
+        workspace_id: current.workspace_id,
+        created_at: members.at(-1)?.created_at ?? new Date().toISOString(),
+        devices: members,
+        runs: 0,
+        uploads: 0,
+        investigations: 0,
+        session_days: 30,
+        handoff_minutes: 10,
+      });
+    }),
+    http.get(`${API}/workspace/runs`, () => HttpResponse.json(empty)),
+    http.get(`${API}/workspace/uploads`, () => HttpResponse.json(empty)),
+    http.get(`${API}/workspace/investigations`, () => HttpResponse.json(empty)),
+    http.post(`${API}/workspace/handoffs`, ({ request }) => {
+      const refused = deviceGuard(request);
+      if (refused) return refused;
+      const workspace = sessionOf(request).workspace!.workspace_id;
+      for (const [raw, code] of codes) if (code.workspace === workspace) codes.delete(raw);
+      const raw = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) =>
+        CROCKFORD.charAt(b % 32),
+      ).join("");
+      const shown = raw.match(/.{4}/g)!.join("-");
+      const expires = Date.now() + 10 * 60_000;
+      codes.set(raw, { workspace, expires, used: false });
+      return HttpResponse.json(
+        {
+          code: shown,
+          expires_at: new Date(expires).toISOString(),
+          join_path: `/join#code=${shown}`,
+        },
+        { status: 201 },
+      );
+    }),
+    http.post(`${API}/workspace/join`, async ({ request }) => {
+      const refused = deviceGuard(request);
+      if (refused) return refused;
+      const { code = "" } = (await request.json()) as { code?: string };
+      // The API's own answers (HandoffRedeem, services/sessions.py), so the page reads the same.
+      if (code.length < 12 || code.length > 24 || !/^[0-9A-Za-z\- ]+$/.test(code))
+        return problem(
+          422,
+          "validation_error",
+          "Invalid request",
+          "One or more fields are invalid.",
+        );
+      const raw = code.toUpperCase().replace(/[\s-]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1");
+      if (raw.length !== 12 || [...raw].some((c) => !CROCKFORD.includes(c)))
+        return problem(
+          400,
+          "bad_request",
+          "Invalid argument",
+          "That is not a handoff code: a code has 12 letters and digits, like 7K2M-QX9D-4HRT.",
+        );
+      const handoff = codes.get(raw);
+      if (!handoff)
+        return problem(
+          404,
+          "not_found",
+          "Not found",
+          "No device made this code. Check it, or make a new one on the other device.",
+        );
+      if (handoff.used)
+        return problem(
+          410,
+          "gone",
+          "Expired",
+          "This code has already been used. Make a new one on the other device.",
+        );
+      if (handoff.expires <= Date.now())
+        return problem(
+          410,
+          "gone",
+          "Expired",
+          "This code has ended: codes last 10 minutes. Make a new one on the other device.",
+        );
+      const current = sessionOf(request);
+      if (current.workspace?.workspace_id === handoff.workspace)
+        return problem(
+          400,
+          "bad_request",
+          "Invalid argument",
+          "This device is already in that workspace: open the code on the device you want to bring in.",
+        );
+      handoff.used = true;
+      return startSession(withWorkspace(current, handoff.workspace), request);
+    }),
+    http.post(`${API}/workspace/fresh`, ({ request }) => {
+      const refused = deviceGuard(request);
+      if (refused) return refused;
+      return startSession(withWorkspace(sessionOf(request), crypto.randomUUID()), request);
+    }),
+    http.get(`${API}/admin/sessions`, ({ request }) => {
+      if (sessionOf(request).role !== "admin") return problem(403, "forbidden", "Admins only");
+      const mine = cookieOf(request);
+      const items = [...sessions.entries()]
+        .filter(([, s]) => s.workspace)
+        .map(([id, s]) => {
+          const device = devices.get(id)!;
+          return {
+            session_id: device.sessionId,
+            role: s.role,
+            display_name: s.display_name,
+            created_at: device.createdAt,
+            last_seen_at: device.createdAt,
+            expires_at: s.workspace!.session_expires_at,
+            role_expires_at: s.expires_at,
+            workspace_id: s.workspace!.workspace_id,
+            devices: membersOf(s.workspace!.workspace_id).length,
+            runs: 0,
+            uploads: 0,
+            investigations: 0,
+            current: id === mine,
+          };
+        });
+      const workspaces = new Set(items.map((i) => i.workspace_id)).size;
+      return HttpResponse.json({ items, next_cursor: null, total: items.length, workspaces });
+    }),
+    http.delete(`${API}/admin/sessions/:id`, ({ request, params }) => {
+      const refused = guard(request, "admin");
+      if (refused) return refused;
+      const found = [...devices.entries()].find(([, d]) => d.sessionId === params.id);
+      if (!found) return problem(404, "not_found", "No such session");
+      sessions.delete(found[0]);
+      devices.delete(found[0]);
+      return new HttpResponse(null, { status: 204 });
+    }),
+  ];
+
   const investigationFor = (id: string): Investigation | null => {
     if (id === TEST_DOUBLE.investigationId)
       return hypothesisDouble(fixture<Investigation>("decide_investigation"));
     const name = decided.has(id) ? "decide_investigation" : "get_investigation";
     const inv = fixture<Investigation>(name);
     if (inv.investigation_id === id) return inv;
-    const listed = fixture<{ items: Investigation[] }>("list_investigations").items.find(
-      (item) => item.investigation_id === id,
+    const page = fixture<{ items: Investigation[]; examples: Investigation[] }>(
+      "list_investigations",
     );
+    const listed = [...page.items, ...page.examples].find((item) => item.investigation_id === id);
     return listed ? ({ ...inv, ...listed } as Investigation) : null;
   };
 
@@ -206,15 +401,21 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
     http.get(`${API}/meta`, json("get_meta")),
     http.get(`${API}/results`, json("get_measured_results")),
 
-    // Session
+    // Session ("Try as engineer" and the admin login keep the device's workspace, as the API does)
     http.get(`${API}/session`, ({ request }) => HttpResponse.json(sessionOf(request))),
-    http.post(`${API}/session/guest`, () => startSession(fixture("start_guest_session"))),
+    http.post(`${API}/session/guest`, ({ request }) =>
+      startSession(
+        { ...fixture<SessionInfo>("start_guest_session"), ...workspaceOf(request) },
+        request,
+      ),
+    ),
     http.post(`${API}/session/login`, async ({ request }) => {
       const body = (await request.json()) as { username?: string; password?: string };
       if (!body.username || !body.password) return problem(401, "unauthorized", "Sign-in failed");
-      return startSession(fixture("login"));
+      return startSession({ ...fixture<SessionInfo>("login"), ...workspaceOf(request) }, request);
     }),
     http.post(`${API}/session/logout`, () => new HttpResponse(null, { status: 204 })),
+    ...workspaceHandlers,
 
     // Units and alarms
     http.get(`${API}/alarms`, json("list_alarms")),
@@ -300,6 +501,14 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
       const id = String(params.id);
       const inv = investigationFor(id);
       if (!inv) return notInFixtures(`Investigation ${id}`);
+      if (inv.recorded) {
+        return problem(
+          403,
+          "forbidden",
+          "Read-only",
+          `Investigation ${id} is the recorded example every visitor sees, so nobody decides it. Start an investigation of your own to decide one.`,
+        );
+      }
       if (inv.status !== "awaiting_decision") {
         return problem(409, "conflict", "Already decided", "This report already has a decision.");
       }
@@ -325,6 +534,14 @@ export function createHandlers({ streamDelayMs = 420 }: MockOptions = {}): HttpH
       if (denied) return denied;
       const order = workOrderFor(String(params.id));
       if (!order) return notInFixtures(`Work order ${String(params.id)}`);
+      if (order.example) {
+        return problem(
+          403,
+          "forbidden",
+          "Read-only",
+          `Work order ${order.work_order_id} belongs to the recorded example every visitor sees, so nobody changes it.`,
+        );
+      }
       const patch = (await request.json()) as WorkOrderUpdate;
       const status = patch.status ?? order.status;
       if (patch.confirmed_cause && status !== "done") {

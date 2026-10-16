@@ -4,8 +4,10 @@ A recorded run is a normal investigation made once on the server by
 ``scripts/record_investigations.py`` (``recorded = true``), through the job queue and the
 investigator like any other run. It is exported with its event log and, when it waits for the
 engineer's decision, the investigator's paused state, so that on any host it can be imported,
-shown as recorded, replayed event by event, and still be approved or rejected (deciding resumes
-the graph from that state; no model is called).
+shown as recorded and replayed event by event. There it is the product's example
+(``access.is_example``): every visitor lists it, apart from their own investigations, and nobody
+decides it, since every visitor would see the decision. The paused state comes along all the
+same, so the run stays complete.
 
 Only runs waiting for a decision are exported or imported: a failed run has nothing to show
 or decide (it stays on its host, shown as failed), and a decided run carries a work order and

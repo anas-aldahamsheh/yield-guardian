@@ -8,7 +8,8 @@ process died) is recovered by any worker: a run is failed with an error event, a
 again because the engineer's decision must be applied. An investigation left queued or running
 with no live job (its job ended without closing it) is failed the same way, its alarm reopened.
 A run is also bounded in wall time (``run_timeout_s``): past it, it fails with
-:data:`TIMED_OUT` and its alarm reopens.
+:data:`TIMED_OUT` and its alarm reopens. A job acts for the investigation's workspace: its tools
+read only what that workspace may open (:mod:`yield_guardian.services.access`).
 """
 
 import asyncio
@@ -32,6 +33,7 @@ from yield_guardian.contracts.workorders import ActorRole
 from yield_guardian.db.notify import JOBS_CHANNEL, Notifier
 from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
 from yield_guardian.services import audit
+from yield_guardian.services.access import Viewer, viewing
 from yield_guardian.services.investigations import INTERRUPTED, DbInvestigationStore, close_run_in
 
 log = structlog.get_logger(__name__)
@@ -263,10 +265,12 @@ class JobWorker:
     async def _execute(self, job: Job) -> None:
         heartbeat = asyncio.create_task(self._heartbeat(job))
         try:
-            if job.kind == "run":
-                await self._run(job)
-            else:
-                await self._resume(job)
+            # The investigator reads what the investigation's own workspace may see, no more.
+            with viewing(Viewer(await self._store.workspace_of(job.investigation_id))):
+                if job.kind == "run":
+                    await self._run(job)
+                else:
+                    await self._resume(job)
             await self._finish(job, "done")
         except asyncio.CancelledError:
             await asyncio.shield(self._interrupted(job))

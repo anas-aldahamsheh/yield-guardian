@@ -3,7 +3,7 @@
 import secrets
 from typing import Annotated
 
-from fastapi import Depends, Header, Request
+from fastapi import Depends, Header, Request, Response
 
 from yield_guardian.api.problems import ProblemError
 from yield_guardian.contracts.services import (
@@ -27,11 +27,14 @@ from yield_guardian.services.protocols import (
     MethodsService,
     SessionManager,
     WorkOrderStore,
+    WorkspaceStore,
 )
 from yield_guardian.services.registry import ServiceRegistry
 
 SESSION_COOKIE = "yg_session"
 CSRF_HEADER = "X-CSRF-Token"
+UNTRUSTED_SITES = frozenset({"cross-site", "same-site"})
+"""Sec-Fetch-Site values of a request another site made the browser send."""
 
 
 def get_registry(request: Request) -> ServiceRegistry:
@@ -93,6 +96,10 @@ def session_manager(registry: Registry) -> SessionManager:
     return _need(registry.sessions, "session service")
 
 
+def workspace_store(registry: Registry) -> WorkspaceStore:
+    return _need(registry.workspace, "workspace history (it needs the database)")
+
+
 def methods_service(registry: Registry) -> MethodsService:
     return _need(registry.methods, "methods data")
 
@@ -122,6 +129,7 @@ WorkOrders = Annotated[WorkOrderStore, Depends(work_order_store)]
 Audit = Annotated[AuditLog, Depends(audit_log)]
 Sessions = Annotated[SessionManager, Depends(session_manager)]
 Methods = Annotated[MethodsService, Depends(methods_service)]
+Workspace = Annotated[WorkspaceStore, Depends(workspace_store)]
 Chat = Annotated[ChatResponder, Depends(chat_responder)]
 Llm = Annotated[LlmAdmin, Depends(llm_admin)]
 LiveInvestigator = Annotated[InvestigationRunner, Depends(live_investigator)]
@@ -174,5 +182,76 @@ async def admin_session(
     return session
 
 
+async def admin_reader(session: CurrentSession) -> ActiveSession:
+    """An admin session (for reads only admins may make; no CSRF token is needed to read)."""
+    if session.role != "admin":
+        raise ProblemError(403, "forbidden", "Admins only", "Sign in as an administrator.")
+    return session
+
+
 EngineerSession = Annotated[ActiveSession, Depends(engineer_session)]
+AdminReader = Annotated[ActiveSession, Depends(admin_reader)]
 AdminSession = Annotated[ActiveSession, Depends(admin_session)]
+
+
+def client_of(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+def from_other_site(request: Request) -> bool:
+    """The browser says another site made this request (Fetch Metadata)."""
+    return request.headers.get("sec-fetch-site", "").lower() in UNTRUSTED_SITES
+
+
+def set_session_cookie(response: Response, token: str, registry: ServiceRegistry) -> None:
+    """The session cookie: HttpOnly, SameSite=Lax, Secure in production, kept as long as the
+    device session (each visit sets it again)."""
+    settings = registry.settings
+    response.set_cookie(
+        SESSION_COOKIE,
+        token,
+        max_age=settings.workspace_session_days * 86_400,
+        httponly=True,
+        secure=settings.environment == "production",
+        samesite="lax",
+        path="/",
+    )
+
+
+async def workspace_session(
+    session: CurrentSession,
+    x_csrf_token: Annotated[str | None, Header(alias=CSRF_HEADER)] = None,
+) -> ActiveSession:
+    """This device's session, any role, with a valid CSRF token (for changes to its workspace)."""
+    if not session.exists:
+        raise ProblemError(
+            401, "unauthorized", "No session", "This device has no session yet. Reload the page."
+        )
+    _check_csrf(session, x_csrf_token)
+    return session
+
+
+async def run_owner(
+    request: Request,
+    session: CurrentSession,
+    x_csrf_token: Annotated[str | None, Header(alias=CSRF_HEADER)] = None,
+) -> ActiveSession | None:
+    """The session a new run or upload is recorded against: none without a session (anyone may
+    run); with one, the request must carry its CSRF token or come from this site's own page
+    (Sec-Fetch-Site: same-origin), so another site cannot add to someone's workspace."""
+    if not session.exists:
+        return None
+    if (
+        session.csrf_token
+        and x_csrf_token
+        and secrets.compare_digest(session.csrf_token, x_csrf_token)
+    ):
+        return session
+    if request.headers.get("sec-fetch-site", "").lower() == "same-origin":
+        return session
+    _check_csrf(session, x_csrf_token)
+    return session
+
+
+WorkspaceSession = Annotated[ActiveSession, Depends(workspace_session)]
+RunOwner = Annotated[ActiveSession | None, Depends(run_owner)]

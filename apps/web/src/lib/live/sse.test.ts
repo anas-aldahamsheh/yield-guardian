@@ -5,6 +5,7 @@ import { RUN_ID, sampleEvents, sseBody } from "../../../e2e/story/fixture";
 import { reduceRunEvents, applyRunEvent, emptyRunState } from "./run-state";
 import {
   RUN_GONE_MESSAGE,
+  RUN_NOT_FOUND_MESSAGE,
   RunStreamError,
   createSseParser,
   followRun,
@@ -219,15 +220,17 @@ describe("followRun", () => {
     expect(error).toBeInstanceOf(RunStreamError);
     expect((error as RunStreamError).kind).toBe("gone");
     expect((error as RunStreamError).message).toBe(RUN_GONE_MESSAGE);
-    expect(RUN_GONE_MESSAGE).toBe(
-      "This run has expired (runs are kept 24 hours). Start a new one.",
-    );
+    expect(RUN_GONE_MESSAGE).toBe("This run is no longer kept. Start a new one.");
     expect(harness.calls).toHaveLength(1);
   });
 
   it("stops on an unknown run (404) without retrying", async () => {
     const { harness, done } = follow([() => problemResponse(404, "not_found")]);
-    await expect(done).rejects.toMatchObject({ kind: "not_found", status: 404 });
+    await expect(done).rejects.toMatchObject({
+      kind: "not_found",
+      status: 404,
+      message: RUN_NOT_FOUND_MESSAGE,
+    });
     expect(harness.calls).toHaveLength(1);
   });
 

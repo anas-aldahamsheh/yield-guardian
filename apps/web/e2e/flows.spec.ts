@@ -48,7 +48,7 @@ test("chat answers with a citation and a number check", async ({ page }) => {
 });
 
 test("a recorded run says which data it read", async ({ page }) => {
-  await page.goto("/investigations/inv_01jae5x9k3m2q7r8s0t1v2w3x4");
+  await page.goto("/investigations/inv_01jadz4r8c0q2m6t9v1x3b5d7f");
   await expect(
     page.getByText("Recorded run: generated once, replayed without calling a model"),
   ).toBeVisible();

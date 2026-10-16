@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path, Query
 
-from yield_guardian.api.deps import Secom
+from yield_guardian.api.deps import CurrentSession, Secom
 from yield_guardian.api.problems import problem_responses
 from yield_guardian.contracts.line import RiskBand
 from yield_guardian.contracts.secom import (
@@ -19,6 +19,7 @@ from yield_guardian.contracts.secom import (
     UnitPage,
     UnitRisk,
 )
+from yield_guardian.services.access import viewing
 
 router = APIRouter(tags=["secom"])
 
@@ -47,8 +48,10 @@ async def list_units(
 
 
 @router.get("/units/{unit_id}", operation_id="get_unit", responses=problem_responses(404, 503))
-async def get_unit(secom: Secom, unit_id: UnitPath) -> UnitDetail:
-    return await secom.get_unit(unit_id)
+async def get_unit(secom: Secom, session: CurrentSession, unit_id: UnitPath) -> UnitDetail:
+    """The unit with its alarms and the investigations of it, as this workspace sees them."""
+    with viewing(session.viewer):
+        return await secom.get_unit(unit_id)
 
 
 @router.get(

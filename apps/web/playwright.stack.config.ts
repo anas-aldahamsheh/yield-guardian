@@ -34,7 +34,7 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      testMatch: /(flows|reload)\.spec\.ts/,
+      testMatch: /(flows|reload|workspace)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
     {

@@ -573,8 +573,10 @@ class Run(Contract):
         "the stage results hold every value.",
     )
     expires_at: datetime | None = Field(
-        description="When the run is deleted (24 h after creation); null while an "
-        "investigation uses it, so the evidence behind a decision stays openable."
+        description="When the run is deleted: a workspace's run goes with its workspace, 30 days "
+        "after the workspace was last used (each use moves it on); a run of no workspace 24 h "
+        "after creation, or never (null) while an investigation uses it, so the evidence behind "
+        "a decision stays openable."
     )
     last_seq: Count = Field(
         0,

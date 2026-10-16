@@ -202,10 +202,12 @@ test("guide: a recorded investigation's steps, and the work orders tab", async (
   request,
 }) => {
   test.setTimeout(120_000);
+  // A new visitor has no investigation of its own: the recorded one is the product's example.
   const list = (await (await request.get(`${BASE}/api/v1/investigations`)).json()) as {
     items: { investigation_id: string }[];
+    examples: { investigation_id: string }[];
   };
-  const id = list.items[0]!.investigation_id;
+  const id = (list.items[0] ?? list.examples[0])!.investigation_id;
   await page.goto(`${BASE}/investigations/${id}`);
   await page.waitForLoadState("networkidle").catch(() => undefined);
   await hideAsk(page);

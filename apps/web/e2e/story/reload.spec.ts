@@ -243,8 +243,10 @@ test("a finished run comes back after a reload as it was, with nothing replayed 
   expect(proxy.resumes.slice(resumes)).toEqual([]);
   expect(counts["/api/v1/runs/{run}"]).toBe(1);
   expect(counts["/api/v1/runs/{run}/events"] ?? 0).toBe(0);
-  // Who the visitor is, once; what the API serves came with the page.
-  expect(counts["/api/v1/session"]).toBe(1);
+  // Who the visitor is, once: the answer of opening its workspace, which is the session
+  // (lib/api/opening.ts); what the API serves came with the page.
+  expect(counts["/api/v1/session/workspace"]).toBe(1);
+  expect(counts["/api/v1/session"] ?? 0).toBe(0);
   expect(counts["/api/v1/meta"] ?? 0).toBeLessThanOrEqual(1);
 
   // Coming back to the window asks nothing again.
@@ -254,7 +256,8 @@ test("a finished run comes back after a reload as it was, with nothing replayed 
     window.dispatchEvent(new Event("online"));
   });
   await page.waitForTimeout(500);
-  expect(counts["/api/v1/session"]).toBe(1);
+  expect(counts["/api/v1/session/workspace"]).toBe(1);
+  expect(counts["/api/v1/session"] ?? 0).toBe(0);
   expect(counts["/api/v1/meta"] ?? 0).toBeLessThanOrEqual(1);
 });
 
@@ -483,7 +486,8 @@ test("while the API wakes the page says so, then shows the run as it stands", as
   expect(seen).not.toContain("arrive-from");
   // Each read waits longer than the last (and at least as long as asked): a few tries, not a storm.
   expect(counts["/api/v1/runs/{run}"]).toBeLessThanOrEqual(4);
-  expect(counts["/api/v1/session"]).toBeLessThanOrEqual(4);
+  expect(counts["/api/v1/session"] ?? 0).toBeLessThanOrEqual(4);
+  expect(counts["/api/v1/session/workspace"] ?? 0).toBeLessThanOrEqual(1);
   expect(counts["/api/v1/meta"] ?? 0).toBeLessThanOrEqual(1);
 });
 

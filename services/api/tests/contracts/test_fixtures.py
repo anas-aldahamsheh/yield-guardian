@@ -29,6 +29,26 @@ NO_FIXTURE |= {
     "create_upload",
     "get_upload_template",
     "get_upload_example",
+    "repeat_run",
+    "compare_runs",
+    "get_run_results",
+}
+# A workspace is one visitor's own (the owner's rule of 2026-10-15): its runs, uploads,
+# investigations, devices and handoff codes come from the real API only, and the development
+# handlers answer an empty workspace. The report is a Markdown file, not JSON.
+NO_FIXTURE |= {
+    "open_workspace",
+    "get_workspace",
+    "create_handoff",
+    "join_workspace",
+    "start_fresh_workspace",
+    "list_workspace_runs",
+    "update_workspace_run",
+    "list_workspace_uploads",
+    "list_workspace_investigations",
+    "list_sessions",
+    "revoke_session",
+    "get_investigation_report",
 }
 
 

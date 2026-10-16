@@ -151,12 +151,43 @@ export const AUDIT_ACTION: Record<string, string> = {
   "session.login": "Signed in",
   "session.login_failed": "Failed sign-in",
   "session.logout": "Signed out",
+  "session.revoked": "Ended a device session",
+  "workspace.handoff_created": "Made a code for another device",
+  "workspace.joined": "Joined a workspace from another device",
+  "workspace.fresh": "Started a fresh workspace",
   "investigation.created": "Started an investigation",
   "investigation.approved": "Approved a report",
   "investigation.rejected": "Rejected a report",
   "work_order.created": "Opened a work order",
   "work_order.updated": "Updated a work order",
   "role.updated": "Changed a model role",
+};
+
+/** The stages of a run, as the Line page names them. */
+export const RUN_STAGE: Record<string, string> = {
+  intake: "Intake",
+  sensor_risk: "Failure risk",
+  control_charts: "Control charts",
+  drift_health: "Drift and sensor health",
+  wafer_pattern: "Wafer patterns",
+  wafer_similar: "Similar wafers",
+  lot: "Lots",
+  final_test: "Final test",
+};
+
+export const STAGE_STATUS: Record<string, string> = {
+  pending: "Waiting",
+  running: "Computing",
+  done: "Done",
+  skipped: "No data for it",
+  failed: "Failed",
+};
+
+export const RUN_STATUS: Record<string, string> = {
+  queued: "Waiting to start",
+  running: "Computing",
+  done: "Done",
+  failed: "Stopped",
 };
 
 export const ACTOR_ROLE: Record<string, string> = {

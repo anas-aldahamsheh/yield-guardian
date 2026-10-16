@@ -4,6 +4,47 @@
  */
 
 export interface paths {
+  "/api/v1/admin/sessions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Sessions
+     * @description Active device sessions, most recently seen first (admins only). No cookie value or token
+     *     is ever shown.
+     */
+    get: operations["list_sessions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/sessions/{session_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Revoke Session
+     * @description End a device session now (admins only, with the CSRF token).
+     */
+    delete: operations["revoke_session"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/alarms": {
     parameters: {
       query?: never;
@@ -13,7 +54,8 @@ export interface paths {
     };
     /**
      * List Alarms
-     * @description SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first.
+     * @description SECOM unit alarms (AL-<unit>-<kind>) over every unit, newest first. The status of each is
+     *     this workspace's own: investigating or closed only by its own investigations.
      */
     get: operations["list_alarms"];
     put?: never;
@@ -33,7 +75,8 @@ export interface paths {
     };
     /**
      * List Audit Entries
-     * @description Every action taken in the product, newest first.
+     * @description Every action taken in this workspace, and those about the product's example (marked
+     *     `example`), newest first.
      */
     get: operations["list_audit_entries"];
     put?: never;
@@ -55,7 +98,9 @@ export interface paths {
     put?: never;
     /**
      * Chat
-     * @description Ask about the plant data. Answers cite evidence; numbers are checked against it.
+     * @description Ask about the plant data. Answers cite evidence; numbers are checked against it. The
+     *     tools read for this workspace only: a run or investigation in the context must be its own
+     *     (or of no workspace), else 404 as for a missing one.
      */
     post: operations["chat"];
     delete?: never;
@@ -113,15 +158,17 @@ export interface paths {
     };
     /**
      * List Investigations
-     * @description Investigations, newest first, recorded runs included.
+     * @description This workspace's investigations, newest first (none without a session), and apart from
+     *     them, on the first page, the product's examples: recorded runs every visitor sees.
      */
     get: operations["list_investigations"];
     put?: never;
     /**
      * Create Investigation
-     * @description Start a live investigation. Follow it on GET /investigations/{id}/events.
+     * @description Start a live investigation of this workspace. Follow it on GET /investigations/{id}/events.
      *
-     *     A `run_alarm` trigger (`<run_id>:<alarm_id>`) needs the run and its alarm (404 otherwise).
+     *     A `run_alarm` trigger (`<run_id>:<alarm_id>`) needs a run this workspace may open and its
+     *     alarm (404 otherwise).
      */
     post: operations["create_investigation"];
     delete?: never;
@@ -137,7 +184,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get Investigation */
+    /**
+     * Get Investigation
+     * @description Another workspace's investigation answers 404, as a missing one does.
+     */
     get: operations["get_investigation"];
     put?: never;
     post?: never;
@@ -158,7 +208,8 @@ export interface paths {
     put?: never;
     /**
      * Decide Investigation
-     * @description Approve (opens a work order) or reject the report. Only when status is awaiting_decision.
+     * @description Approve (opens a work order) or reject the report. Only when status is awaiting_decision;
+     *     the product's example (a recorded run) is read-only (403).
      */
     post: operations["decide_investigation"];
     delete?: never;
@@ -196,6 +247,27 @@ export interface paths {
     };
     /** Get Evidence */
     get: operations["get_evidence"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/investigations/{investigation_id}/report.md": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Investigation Report
+     * @description The report with the evidence each finding cites, the hypotheses, the checks and the
+     *     decision; 409 until the report is written.
+     */
+    get: operations["get_investigation_report"];
     put?: never;
     post?: never;
     delete?: never;
@@ -521,6 +593,7 @@ export interface paths {
     /**
      * Create Run
      * @description Materialise the input and start computing every stage now. Follow it on `events_url`.
+     *     With a session, the run is recorded in its workspace ("Your work").
      */
     post: operations["create_run"];
     delete?: never;
@@ -538,9 +611,51 @@ export interface paths {
     };
     /**
      * Get Run
-     * @description The run's full state: every stage with its result and every listed alarm.
+     * @description The run's full state: every stage with its result and every listed alarm. Another
+     *     workspace's run answers 404, as a missing one does.
      */
     get: operations["get_run"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}/again": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Repeat Run
+     * @description A new run of exactly the same input items; the earlier run is kept as it is.
+     */
+    post: operations["repeat_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}/compare/{other_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Compare Runs
+     * @description Two runs side by side: each stage's status and alarms, the units and wafers flagged, and
+     *     what changed from the first to the second.
+     */
+    get: operations["compare_runs"];
     put?: never;
     post?: never;
     delete?: never;
@@ -561,6 +676,27 @@ export interface paths {
      * @description Stored events after Last-Event-ID, then live ones; the stream closes after `run_done`.
      */
     get: operations["stream_run_events"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/runs/{run_id}/results.csv": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Run Results
+     * @description The run's computed results as CSV: risk, T², SPE and chart level per unit, pattern and
+     *     unknown flag per wafer, and every listed alarm.
+     */
+    get: operations["get_run_results"];
     put?: never;
     post?: never;
     delete?: never;
@@ -713,7 +849,7 @@ export interface paths {
     };
     /**
      * Get Session
-     * @description The current session; role "visitor" when signed out.
+     * @description The current session; role "visitor" and no workspace when there is none.
      */
     get: operations["get_session"];
     put?: never;
@@ -735,7 +871,8 @@ export interface paths {
     put?: never;
     /**
      * Start Guest Session
-     * @description "Try as engineer": an engineer session that can approve, reject and ask.
+     * @description "Try as engineer": this device becomes an engineer (approve, reject, ask) and keeps its
+     *     workspace.
      */
     post: operations["start_guest_session"];
     delete?: never;
@@ -770,8 +907,32 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Logout */
+    /**
+     * Logout
+     * @description Back to visitor: the engineer or admin role ends, this device keeps its workspace.
+     */
     post: operations["logout"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/session/workspace": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Open Workspace
+     * @description This device's session and workspace, made on its first visit (no sign-up). Called on every
+     *     page load: it also renews the cookie, which lasts as long as the device session.
+     */
+    post: operations["open_workspace"];
     delete?: never;
     options?: never;
     head?: never;
@@ -805,7 +966,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get Unit */
+    /**
+     * Get Unit
+     * @description The unit with its alarms and the investigations of it, as this workspace sees them.
+     */
     get: operations["get_unit"];
     put?: never;
     post?: never;
@@ -883,8 +1047,9 @@ export interface paths {
     put?: never;
     /**
      * Create Upload
-     * @description Parse and validate a sensor or wafer file and keep it for 24 h. What is wrong inside the
-     *     file comes back as issues (errors block the run); only an unreadable file is refused.
+     * @description Parse and validate a sensor or wafer file and keep it, in this workspace, as long as the
+     *     workspace (24 h without a session). What is wrong inside the file comes back as issues
+     *     (errors block the run); only an unreadable file is refused.
      */
     post: operations["create_upload"];
     delete?: never;
@@ -1033,7 +1198,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** List Work Orders */
+    /**
+     * List Work Orders
+     * @description The work orders of this workspace's investigations and of the product's example (marked
+     *     `example`), newest first.
+     */
     get: operations["list_work_orders"];
     put?: never;
     post?: never;
@@ -1050,15 +1219,186 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get Work Order */
+    /**
+     * Get Work Order
+     * @description Another workspace's work order answers 404, as a missing one does.
+     */
     get: operations["get_work_order"];
     put?: never;
     post?: never;
     delete?: never;
     options?: never;
     head?: never;
-    /** Update Work Order */
+    /**
+     * Update Work Order
+     * @description The example's work order is read-only (403).
+     */
     patch: operations["update_work_order"];
+    trace?: never;
+  };
+  "/api/v1/workspace": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Workspace
+     * @description This device's workspace: the devices attached to it and how much it holds.
+     */
+    get: operations["get_workspace"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/fresh": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Start Fresh Workspace
+     * @description Move this device to a new, empty workspace; other devices keep the old one.
+     */
+    post: operations["start_fresh_workspace"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/handoffs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create Handoff
+     * @description A single-use code that attaches another device to this workspace, for 10 minutes. A new
+     *     code replaces the last unused one.
+     */
+    post: operations["create_handoff"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/investigations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Workspace Investigations
+     * @description Investigations this workspace started, newest first, with their live status and the run
+     *     and alarm each came from.
+     */
+    get: operations["list_workspace_investigations"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/join": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Join Workspace
+     * @description Attach this device to the workspace that made the code. The code is then used up.
+     */
+    post: operations["join_workspace"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/runs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Workspace Runs
+     * @description This workspace's runs that can still be opened, newest first, each with its live status,
+     *     alarms, the investigations started from them and what it still needs. `archived=true` lists
+     *     the archived ones instead.
+     */
+    get: operations["list_workspace_runs"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/workspace/runs/{run_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update Workspace Run
+     * @description Name a run, note on it, archive or restore it, or save the view to reopen it on. Only
+     *     runs of this workspace.
+     */
+    patch: operations["update_workspace_run"];
+    trace?: never;
+  };
+  "/api/v1/workspace/uploads": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Workspace Uploads
+     * @description Files this workspace uploaded, newest first, with the runs started from each.
+     */
+    get: operations["list_workspace_uploads"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
 }
@@ -1073,6 +1413,74 @@ export interface components {
       evidence_ids: string[];
       /** Rationale */
       rationale: string;
+    };
+    /**
+     * AdminSession
+     * @description An active device session; never its cookie value or any token.
+     */
+    AdminSession: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Current
+       * @description The admin's own session.
+       */
+      current: boolean;
+      /**
+       * Devices
+       * @description Sessions attached to the same workspace.
+       */
+      devices: number;
+      /** Display Name */
+      display_name: string | null;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Investigations */
+      investigations: number;
+      /**
+       * Last Seen At
+       * Format: date-time
+       */
+      last_seen_at: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "visitor" | "engineer" | "admin";
+      /** Role Expires At */
+      role_expires_at: string | null;
+      /** Runs */
+      runs: number;
+      /**
+       * Session Id
+       * @description A device session as the admin page names it; not a credential.
+       * @example 5d0c1b8e-3f7a-4e21-8c6d-9a0b1c2d3e4f
+       */
+      session_id: string;
+      /** Uploads */
+      uploads: number;
+      /** Workspace Id */
+      workspace_id: string | null;
+    };
+    /** AdminSessionPage */
+    AdminSessionPage: {
+      /** Items */
+      items: components["schemas"]["AdminSession"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Total */
+      total: number;
+      /**
+       * Workspaces
+       * @description Workspaces with at least one active session.
+       */
+      workspaces: number;
     };
     /**
      * Alarm
@@ -1162,6 +1570,10 @@ export interface components {
         | "session.login"
         | "session.login_failed"
         | "session.logout"
+        | "session.revoked"
+        | "workspace.handoff_created"
+        | "workspace.joined"
+        | "workspace.fresh"
         | "investigation.created"
         | "investigation.approved"
         | "investigation.rejected"
@@ -1186,6 +1598,12 @@ export interface components {
       details: {
         [key: string]: components["schemas"]["JsonValue"];
       };
+      /**
+       * Example
+       * @description About the product's example (a recorded investigation or its work order): every visitor sees it.
+       * @default false
+       */
+      example: boolean;
       /** Target Id */
       target_id: string;
       /** Target Kind */
@@ -2523,6 +2941,34 @@ export interface components {
       /** Display Name */
       display_name?: string | null;
     };
+    /** HandoffCreated */
+    HandoffCreated: {
+      /**
+       * Code
+       * @example 7K2M-QX9D-4HRT
+       */
+      code: string;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /**
+       * Join Path
+       * @description Open this path on the other device (the code rides after #).
+       * @example /join#code=7K2M-QX9D-4HRT
+       */
+      join_path: string;
+    };
+    /** HandoffRedeem */
+    HandoffRedeem: {
+      /**
+       * Code
+       * @description 12 characters of Crockford base 32 (60 random bits), shown in groups of four; dashes, spaces and case do not matter.
+       * @example 7K2M-QX9D-4HRT
+       */
+      code: string;
+    };
     /** Health */
     Health: {
       /**
@@ -2660,7 +3106,7 @@ export interface components {
       models: components["schemas"]["RoleModel"][];
       /**
        * Recorded
-       * @description A recorded run, generated once and replayed, not a live call.
+       * @description A recorded run, generated once and replayed, not a live call. A recorded run is the product's example: every visitor sees it, and nobody decides it.
        */
       recorded: boolean;
       report: components["schemas"]["Report"] | null;
@@ -2709,7 +3155,15 @@ export interface components {
       | components["schemas"]["EndEvent"];
     /** InvestigationPage */
     InvestigationPage: {
-      /** Items */
+      /**
+       * Examples
+       * @description The product's examples, apart from `items`: recorded runs that every visitor sees and nobody decides. On the first page only (empty with a cursor).
+       */
+      examples: components["schemas"]["InvestigationSummary"][];
+      /**
+       * Items
+       * @description This workspace's own investigations; `total` counts them.
+       */
       items: components["schemas"]["InvestigationSummary"][];
       /** Next Cursor */
       next_cursor?: string | null;
@@ -2786,7 +3240,7 @@ export interface components {
       models: components["schemas"]["RoleModel"][];
       /**
        * Recorded
-       * @description A recorded run, generated once and replayed, not a live call.
+       * @description A recorded run, generated once and replayed, not a live call. A recorded run is the product's example: every visitor sees it, and nobody decides it.
        */
       recorded: boolean;
       /**
@@ -3690,7 +4144,7 @@ export interface components {
       created_at: string;
       /**
        * Expires At
-       * @description When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable.
+       * @description When the run is deleted: a workspace's run goes with its workspace, 30 days after the workspace was last used (each use moves it on); a run of no workspace 24 h after creation, or never (null) while an investigation uses it, so the evidence behind a decision stays openable.
        */
       expires_at: string | null;
       /**
@@ -3852,6 +4306,23 @@ export interface components {
       /** Items */
       items: components["schemas"]["RunCase"][];
     };
+    /** RunComparison */
+    RunComparison: {
+      a: components["schemas"]["RunSide"];
+      b: components["schemas"]["RunSide"];
+      /**
+       * Changes
+       * @description What differs, in sentences written by code; empty when nothing does.
+       */
+      changes: string[];
+      /**
+       * Same Input
+       * @description Both runs computed exactly the same input items.
+       */
+      same_input: boolean;
+      /** Stages */
+      stages: components["schemas"]["StageCompare"][];
+    };
     /**
      * RunCreate
      * @description Body of POST /runs, discriminated by `source`.
@@ -3944,6 +4415,84 @@ export interface components {
        * @example A random real sample
        */
       title: string;
+    };
+    /** RunSide */
+    RunSide: {
+      /**
+       * Alarms
+       * @description Listed alarms that turn a station red.
+       */
+      alarms: number;
+      /** Alarms Not Listed */
+      alarms_not_listed: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Final Test
+       * @description The final-test summary, when it ran.
+       */
+      final_test: string | null;
+      /** Lots */
+      lots: number;
+      /** Lots Flagged */
+      lots_flagged: number;
+      /**
+       * Patterns
+       * @description Wafers by predicted pattern.
+       */
+      patterns: {
+        [key: string]: number;
+      };
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "queued" | "running" | "done" | "failed";
+      /** Title */
+      title: string;
+      /** Units */
+      units: number;
+      /**
+       * Units Chart Alarm
+       * @description Units whose T² or SPE is at the alarm level.
+       */
+      units_chart_alarm: number;
+      /**
+       * Units Chart Warning
+       * @description Units at the warning level.
+       */
+      units_chart_warning: number;
+      /**
+       * Units Flagged
+       * @description Units whose risk is above the threshold.
+       */
+      units_flagged: number;
+      /**
+       * Units Scored
+       * @description Units with a risk result.
+       */
+      units_scored: number;
+      /** Wafers */
+      wafers: number;
+      /** Wafers Auto Accepted */
+      wafers_auto_accepted: number;
+      /** Wafers Classified */
+      wafers_classified: number;
+      /** Wafers Unknown */
+      wafers_unknown: number;
+      /**
+       * Warnings
+       * @description The other listed alarms.
+       */
+      warnings: number;
     };
     /** RunStartedEvent */
     RunStartedEvent: {
@@ -4226,13 +4775,18 @@ export interface components {
       csrf_token: string | null;
       /** Display Name */
       display_name: string | null;
-      /** Expires At */
+      /**
+       * Expires At
+       * @description When the engineer or admin role ends (the session goes on as a visitor); null for a visitor.
+       */
       expires_at: string | null;
       /**
        * Role
        * @enum {string}
        */
       role: "visitor" | "engineer" | "admin";
+      /** @description This device's workspace; null before the first visit is recorded. */
+      workspace?: components["schemas"]["WorkspaceInfo"] | null;
     };
     /** ShapContribution */
     ShapContribution: {
@@ -4419,6 +4973,50 @@ export interface components {
       wafers: number;
       /** Width */
       width: number;
+    };
+    /** StageCompare */
+    StageCompare: {
+      /** A Alarms */
+      a_alarms: number;
+      /**
+       * A Status
+       * @enum {string}
+       */
+      a_status: "pending" | "running" | "done" | "skipped" | "failed";
+      /** A Warnings */
+      a_warnings: number;
+      /** B Alarms */
+      b_alarms: number;
+      /**
+       * B Status
+       * @enum {string}
+       */
+      b_status: "pending" | "running" | "done" | "skipped" | "failed";
+      /** B Warnings */
+      b_warnings: number;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage:
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test";
+      /**
+       * Station
+       * @enum {string}
+       */
+      station:
+        | "manufacturing"
+        | "monitoring"
+        | "wafer_test"
+        | "investigation"
+        | "decision";
     };
     /** StageFailedEvent */
     StageFailedEvent: {
@@ -5516,6 +6114,48 @@ export interface components {
       /** Width */
       width: number;
     };
+    /** WorkInvestigation */
+    WorkInvestigation: {
+      /** Alarm Id */
+      alarm_id: string | null;
+      investigation: components["schemas"]["InvestigationSummary"];
+      next: components["schemas"]["WorkNext"];
+      /**
+       * Run Id
+       * @description The run it was started from, for a run alarm.
+       */
+      run_id: string | null;
+      /**
+       * Run Kept
+       * @description The run can still be opened.
+       */
+      run_kept: boolean;
+    };
+    /** WorkInvestigationPage */
+    WorkInvestigationPage: {
+      /** Items */
+      items: components["schemas"]["WorkInvestigation"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Total */
+      total: number;
+    };
+    /**
+     * WorkNext
+     * @description What this item still needs, in one sentence written by code.
+     */
+    WorkNext: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "running" | "failed" | "decide" | "watch" | "investigate" | "none";
+      /**
+       * Text
+       * @example 2 alarms not investigated.
+       */
+      text: string;
+    };
     /** WorkOrder */
     WorkOrder: {
       /**
@@ -5532,6 +6172,12 @@ export interface components {
       created_at: string;
       /** Created By */
       created_by: string;
+      /**
+       * Example
+       * @description The work order of the product's example (a recorded investigation): every visitor sees it, and nobody changes it.
+       * @default false
+       */
+      example: boolean;
       /**
        * Investigation Id
        * @example inv_01jae5x9k3m2q7r8s0t1v2w3x4
@@ -5589,6 +6235,311 @@ export interface components {
       /** Status */
       status?: ("open" | "in_progress" | "done" | "cancelled") | null;
     };
+    /** WorkRun */
+    WorkRun: {
+      /**
+       * Again Of
+       * @description The run this one repeats, if it is a repeat.
+       */
+      again_of: string | null;
+      /**
+       * Alarms
+       * @description Listed alarms that turn a station red: what the alarms rail counts as alarms.
+       */
+      alarms: number;
+      /** Alarms Not Listed */
+      alarms_not_listed: number;
+      /**
+       * Alarms Open
+       * @description Listed alarms and warnings no investigation was started from.
+       */
+      alarms_open: number;
+      /** Archived */
+      archived: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Current Stage */
+      current_stage:
+        | (
+            | "intake"
+            | "sensor_risk"
+            | "control_charts"
+            | "drift_health"
+            | "wafer_pattern"
+            | "wafer_similar"
+            | "lot"
+            | "final_test"
+          )
+        | null;
+      /** Datasets */
+      datasets: ("secom" | "wm811k" | "user")[];
+      /**
+       * Expires At
+       * Format: date-time
+       * @description When the run is deleted, with its workspace: 30 days after the workspace was last used (each use moves it on).
+       */
+      expires_at: string;
+      /** Failed Stages */
+      failed_stages: (
+        | "intake"
+        | "sensor_risk"
+        | "control_charts"
+        | "drift_health"
+        | "wafer_pattern"
+        | "wafer_similar"
+        | "lot"
+        | "final_test"
+      )[];
+      /** Filename */
+      filename: string | null;
+      /**
+       * Investigations
+       * @description Newest first.
+       */
+      investigations: components["schemas"]["WorkRunInvestigation"][];
+      /**
+       * Label
+       * @description The name you gave the run.
+       */
+      label: string | null;
+      next: components["schemas"]["WorkNext"];
+      /** Note */
+      note: string | null;
+      /** Rule */
+      rule: string;
+      /**
+       * Run Id
+       * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      run_id: string;
+      /** Seed */
+      seed: number | null;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "sample" | "case" | "pick" | "drawn" | "upload";
+      /**
+       * Stages Finished
+       * @description Stages done, skipped or failed.
+       */
+      stages_finished: number;
+      /** Stages Total */
+      stages_total: number;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "queued" | "running" | "done" | "failed";
+      /**
+       * Title
+       * @description How the input was chosen (the run's origin).
+       */
+      title: string;
+      /** Units */
+      units: number;
+      /** Upload Id */
+      upload_id: string | null;
+      /** View */
+      view: string | null;
+      /** Wafers */
+      wafers: number;
+      /**
+       * Warnings
+       * @description The other listed alarms (warnings, unknown wafer patterns): what the alarms rail counts as warnings.
+       */
+      warnings: number;
+    };
+    /** WorkRunInvestigation */
+    WorkRunInvestigation: {
+      /**
+       * Alarm Id
+       * @description Alarm within one run, numbered in the order raised.
+       * @example RA-3
+       */
+      alarm_id: string;
+      /**
+       * Investigation Id
+       * @example inv_01jae5x9k3m2q7r8s0t1v2w3x4
+       */
+      investigation_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        | "queued"
+        | "running"
+        | "awaiting_decision"
+        | "approved"
+        | "rejected"
+        | "failed";
+      /** Title */
+      title: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Work Order Id */
+      work_order_id: string | null;
+    };
+    /** WorkRunPage */
+    WorkRunPage: {
+      /** Items */
+      items: components["schemas"]["WorkRun"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Total */
+      total: number;
+    };
+    /**
+     * WorkRunUpdate
+     * @description Fields left out stay as they are; null clears the name or the note.
+     */
+    WorkRunUpdate: {
+      /** Archived */
+      archived?: boolean | null;
+      /** Label */
+      label?: string | null;
+      /** Note */
+      note?: string | null;
+      /** View */
+      view?: string | null;
+    };
+    /** WorkspaceDevice */
+    WorkspaceDevice: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Current
+       * @description The device asking.
+       */
+      current: boolean;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /**
+       * Last Seen At
+       * Format: date-time
+       */
+      last_seen_at: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "visitor" | "engineer" | "admin";
+    };
+    /** WorkspaceInfo */
+    WorkspaceInfo: {
+      /**
+       * Session Expires At
+       * Format: date-time
+       * @description When this device's session ends if the device is not used again; each visit moves it forward (30 days by default).
+       */
+      session_expires_at: string;
+      /**
+       * Workspace Id
+       * @description A workspace: the runs, uploads and investigations of the devices attached to it. Knowing it grants nothing; only a session cookie or a handoff code does.
+       * @example 0b8f3c1e-6a52-4c47-9d0e-2f8a1b7c4d55
+       */
+      workspace_id: string;
+    };
+    /** WorkspaceSummary */
+    WorkspaceSummary: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Devices
+       * @description Most recently seen first.
+       */
+      devices: components["schemas"]["WorkspaceDevice"][];
+      /**
+       * Handoff Minutes
+       * @description A handoff code ends this long after it is made.
+       */
+      handoff_minutes: number;
+      /** Investigations */
+      investigations: number;
+      /** Runs */
+      runs: number;
+      /**
+       * Session Days
+       * @description A device's session ends this long after its last use.
+       */
+      session_days: number;
+      /** Uploads */
+      uploads: number;
+      /**
+       * Workspace Id
+       * @description A workspace: the runs, uploads and investigations of the devices attached to it. Knowing it grants nothing; only a session cookie or a handoff code does.
+       * @example 0b8f3c1e-6a52-4c47-9d0e-2f8a1b7c4d55
+       */
+      workspace_id: string;
+    };
+    /** WorkUpload */
+    WorkUpload: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Errors */
+      errors: number;
+      /**
+       * Expires At
+       * Format: date-time
+       * @description When the file is deleted, with its workspace.
+       */
+      expires_at: string;
+      /** Filename */
+      filename: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "sensors" | "wafers";
+      /** Lots */
+      lots: number;
+      /** Runnable */
+      runnable: boolean;
+      /**
+       * Runs
+       * @description Runs started from this file, newest first.
+       */
+      runs: string[];
+      /** Units */
+      units: number;
+      /**
+       * Upload Id
+       * @example upl_01jaf3k9x2m4q7r8s0t1v2w3x4
+       */
+      upload_id: string;
+      /** Wafers */
+      wafers: number;
+      /** Warnings */
+      warnings: number;
+    };
+    /** WorkUploadPage */
+    WorkUploadPage: {
+      /** Items */
+      items: components["schemas"]["WorkUpload"][];
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Total */
+      total: number;
+    };
   };
   responses: never;
   parameters: never;
@@ -5597,6 +6548,8 @@ export interface components {
   pathItems: never;
 }
 export type Action = components["schemas"]["Action"];
+export type AdminSession = components["schemas"]["AdminSession"];
+export type AdminSessionPage = components["schemas"]["AdminSessionPage"];
 export type Alarm = components["schemas"]["Alarm"];
 export type AlarmEvent = components["schemas"]["AlarmEvent"];
 export type AlarmPage = components["schemas"]["AlarmPage"];
@@ -5667,6 +6620,8 @@ export type GroupContribution = components["schemas"]["GroupContribution"];
 export type GroupDrift = components["schemas"]["GroupDrift"];
 export type GroupingMethod = components["schemas"]["GroupingMethod"];
 export type GuestSessionCreate = components["schemas"]["GuestSessionCreate"];
+export type HandoffCreated = components["schemas"]["HandoffCreated"];
+export type HandoffRedeem = components["schemas"]["HandoffRedeem"];
 export type Health = components["schemas"]["Health"];
 export type HealthCounts = components["schemas"]["HealthCounts"];
 export type HealthWindow = components["schemas"]["HealthWindow"];
@@ -5735,11 +6690,13 @@ export type Run = components["schemas"]["Run"];
 export type RunAlarm = components["schemas"]["RunAlarm"];
 export type RunCase = components["schemas"]["RunCase"];
 export type RunCaseList = components["schemas"]["RunCaseList"];
+export type RunComparison = components["schemas"]["RunComparison"];
 export type RunCreate = components["schemas"]["RunCreate"];
 export type RunCreated = components["schemas"]["RunCreated"];
 export type RunDoneEvent = components["schemas"]["RunDoneEvent"];
 export type RunEvent = components["schemas"]["RunEvent"];
 export type RunOrigin = components["schemas"]["RunOrigin"];
+export type RunSide = components["schemas"]["RunSide"];
 export type RunStartedEvent = components["schemas"]["RunStartedEvent"];
 export type SampleRunCreate = components["schemas"]["SampleRunCreate"];
 export type SecomMetrics = components["schemas"]["SecomMetrics"];
@@ -5762,6 +6719,7 @@ export type SourceQuote = components["schemas"]["SourceQuote"];
 export type SpatialTest = components["schemas"]["SpatialTest"];
 export type SplitResult = components["schemas"]["SplitResult"];
 export type StackedMap = components["schemas"]["StackedMap"];
+export type StageCompare = components["schemas"]["StageCompare"];
 export type StageFailedEvent = components["schemas"]["StageFailedEvent"];
 export type StageResultEvent = components["schemas"]["StageResultEvent"];
 export type StageSkippedEvent = components["schemas"]["StageSkippedEvent"];
@@ -5799,11 +6757,142 @@ export type WaferPrediction = components["schemas"]["WaferPrediction"];
 export type WaferSimilarItem = components["schemas"]["WaferSimilarItem"];
 export type WaferSimilarResult = components["schemas"]["WaferSimilarResult"];
 export type WaferSummary = components["schemas"]["WaferSummary"];
+export type WorkInvestigation = components["schemas"]["WorkInvestigation"];
+export type WorkInvestigationPage =
+  components["schemas"]["WorkInvestigationPage"];
+export type WorkNext = components["schemas"]["WorkNext"];
 export type WorkOrder = components["schemas"]["WorkOrder"];
 export type WorkOrderPage = components["schemas"]["WorkOrderPage"];
 export type WorkOrderUpdate = components["schemas"]["WorkOrderUpdate"];
+export type WorkRun = components["schemas"]["WorkRun"];
+export type WorkRunInvestigation =
+  components["schemas"]["WorkRunInvestigation"];
+export type WorkRunPage = components["schemas"]["WorkRunPage"];
+export type WorkRunUpdate = components["schemas"]["WorkRunUpdate"];
+export type WorkspaceDevice = components["schemas"]["WorkspaceDevice"];
+export type WorkspaceInfo = components["schemas"]["WorkspaceInfo"];
+export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
+export type WorkUpload = components["schemas"]["WorkUpload"];
+export type WorkUploadPage = components["schemas"]["WorkUploadPage"];
 export type $defs = Record<string, never>;
 export interface operations {
+  list_sessions: {
+    parameters: {
+      query?: {
+        cursor?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminSessionPage"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  revoke_session: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
   list_alarms: {
     parameters: {
       query?: {
@@ -5856,6 +6945,10 @@ export interface operations {
               | "session.login"
               | "session.login_failed"
               | "session.logout"
+              | "session.revoked"
+              | "workspace.handoff_created"
+              | "workspace.joined"
+              | "workspace.fresh"
               | "investigation.created"
               | "investigation.approved"
               | "investigation.rejected"
@@ -5938,6 +7031,24 @@ export interface operations {
       };
       /** @description Not allowed */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
         headers: {
           [name: string]: unknown;
         };
@@ -6365,6 +7476,64 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_investigation_report: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        investigation_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The report as Markdown, as an attachment. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/markdown": string;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Conflict */
+      409: {
         headers: {
           [name: string]: unknown;
         };
@@ -6989,7 +8158,9 @@ export interface operations {
   create_run: {
     parameters: {
       query?: never;
-      header?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
       path?: never;
       cookie?: never;
     };
@@ -7010,6 +8181,15 @@ export interface operations {
       };
       /** @description Bad request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
         headers: {
           [name: string]: unknown;
         };
@@ -7113,6 +8293,134 @@ export interface operations {
       };
     };
   };
+  repeat_run: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunCreated"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  compare_runs: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        other_id: string;
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RunComparison"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
   stream_run_events: {
     parameters: {
       query?: never;
@@ -7134,6 +8442,64 @@ export interface operations {
         content: {
           "application/json": unknown;
           "text/event-stream": components["schemas"]["RunEvent"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_run_results: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description One row per sensor unit, wafer and alarm (column `record`). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/csv": string;
         };
       };
       /** @description Not found */
@@ -7587,6 +8953,44 @@ export interface operations {
       };
     };
   };
+  open_workspace: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionInfo"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
   list_units: {
     parameters: {
       query?: {
@@ -7841,7 +9245,9 @@ export interface operations {
   create_upload: {
     parameters: {
       query?: never;
-      header?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
       path?: never;
       cookie?: never;
     };
@@ -7858,6 +9264,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["UploadSummary"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
         };
       };
       /** @description Request too large */
@@ -8334,6 +9749,500 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_workspace: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkspaceSummary"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  start_fresh_workspace: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionInfo"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  create_handoff: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HandoffCreated"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_workspace_investigations: {
+    parameters: {
+      query?: {
+        cursor?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkInvestigationPage"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  join_workspace: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["HandoffRedeem"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionInfo"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Gone */
+      410: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_workspace_runs: {
+    parameters: {
+      query?: {
+        archived?: boolean;
+        cursor?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkRunPage"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  update_workspace_run: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path: {
+        run_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WorkRunUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkRun"];
+        };
+      };
+      /** @description Bad request */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  list_workspace_uploads: {
+    parameters: {
+      query?: {
+        cursor?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkUploadPage"];
+        };
+      };
+      /** @description Bad request */
+      400: {
         headers: {
           [name: string]: unknown;
         };

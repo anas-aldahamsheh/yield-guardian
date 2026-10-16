@@ -28,7 +28,8 @@
       "note": "Tool check booked for the next shift.",
       "outcome": null,
       "outcome_confirmed": false,
-      "confirmed_cause": null
+      "confirmed_cause": null,
+      "example": false
     },
     {
       "work_order_id": "WO-000011",
@@ -50,7 +51,8 @@
       "note": null,
       "outcome": "Synthetic fixture outcome.",
       "outcome_confirmed": true,
-      "confirmed_cause": null
+      "confirmed_cause": null,
+      "example": false
     }
   ],
   "next_cursor": null,

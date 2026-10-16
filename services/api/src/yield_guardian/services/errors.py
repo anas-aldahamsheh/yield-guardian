@@ -11,6 +11,14 @@ class ConflictError(ServiceError):
     title = "Conflict"
 
 
+class ReadOnlyError(ServiceError):
+    """The resource is shown to everyone and changed by nobody (the product's example)."""
+
+    code = "forbidden"
+    status = 403
+    title = "Read-only"
+
+
 class AuthenticationError(ServiceError):
     code = "unauthorized"
     status = 401

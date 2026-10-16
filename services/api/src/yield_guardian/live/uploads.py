@@ -51,6 +51,7 @@ from yield_guardian.live.tabular import (
     TableError,
     read_table,
 )
+from yield_guardian.services.access import Viewer
 from yield_guardian.services.runs import InputError, RunInput, count_dies
 
 FileFormat = Literal["csv", "xlsx"]
@@ -323,7 +324,8 @@ def too_large(size: int) -> FileTooLargeError:
 
 
 class UploadStore(Protocol):
-    """Where uploads are kept for 24 h (``services.runs.DbRunStore``)."""
+    """Where uploads are kept: as long as their workspace, or 24 h with none
+    (``services.runs.DbRunStore``)."""
 
     async def create_upload(
         self,
@@ -332,9 +334,12 @@ class UploadStore(Protocol):
         filename: str,
         data: RunInput,
         summary: Callable[[str, datetime], UploadSummary],
+        owner: str | None = None,
     ) -> UploadSummary: ...
 
-    async def get_upload(self, upload_id: str) -> tuple[UploadSummary, RunInput]: ...
+    async def get_upload(
+        self, upload_id: str, viewer: Viewer | None = None
+    ) -> tuple[UploadSummary, RunInput]: ...
 
 
 def clean_filename(name: str | None) -> str:
@@ -362,8 +367,8 @@ def example_headers(rule: str, source: Source | None) -> dict[str, str]:
 
 
 class UploadService:
-    """POST /uploads (parse, validate, keep for 24 h), the templates and the real example files;
-    also the UploadSource a run reads its upload from."""
+    """POST /uploads (parse, validate, keep), the templates and the real example files; also the
+    UploadSource a run reads its upload from."""
 
     def __init__(
         self,
@@ -385,10 +390,16 @@ class UploadService:
         self._lock = asyncio.Lock()
 
     async def upload(
-        self, data: bytes, filename: str | None, kind: UploadKind | None = None
+        self,
+        data: bytes,
+        filename: str | None,
+        kind: UploadKind | None = None,
+        *,
+        owner: str | None = None,
     ) -> UploadSummary:
-        """Parse and validate a file and keep it for 24 h. Only an unreadable file is refused
-        (422); what is wrong inside it comes back as issues, with runnable false."""
+        """Parse and validate a file and keep it in the workspace `owner` as long as the
+        workspace (24 h with none). Only an unreadable file is refused (422); what is wrong
+        inside it comes back as issues, with runnable false."""
         name = clean_filename(filename)
         if len(data) > MAX_BYTES:
             raise too_large(len(data))
@@ -436,11 +447,13 @@ class UploadService:
             )
 
         return await self.store.create_upload(
-            kind=found, filename=name, data=items, summary=summary
+            kind=found, filename=name, data=items, summary=summary, owner=owner
         )
 
-    async def runnable_upload(self, upload_id: str) -> tuple[str, RunInput]:
-        summary, data = await self.store.get_upload(upload_id)
+    async def runnable_upload(
+        self, upload_id: str, *, viewer: Viewer | None = None
+    ) -> tuple[str, RunInput]:
+        summary, data = await self.store.get_upload(upload_id, viewer)
         if not summary.runnable:
             errors = sum(i.severity == "error" for i in summary.issues)
             raise InputError(

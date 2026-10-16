@@ -163,7 +163,11 @@ export function AlarmsRail({
       className={cn("flex min-h-0 min-w-0 flex-col", className)}
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-hairline px-4 pt-4 pb-2.5">
-        <h2 id="alarms-title" className="text-[15px] leading-6 font-semibold text-ink">
+        <h2
+          id="alarms-title"
+          tabIndex={-1}
+          className="text-[15px] leading-6 font-semibold text-ink outline-none"
+        >
           Alarms
         </h2>
         <p className="tnum text-[13px] leading-5 text-ink-3" aria-live="polite">

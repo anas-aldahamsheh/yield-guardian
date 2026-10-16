@@ -1330,6 +1330,8 @@ write(
 # ---------------------------------------------------------------- investigation (synthetic run)
 
 INV = "inv_01jae5x9k3m2q7r8s0t1v2w3x4"
+EXAMPLE = "inv_01jadz4r8c0q2m6t9v1x3b5d7f"
+"""The product's example: a recorded run, listed for every visitor and decided by nobody."""
 t = NOW - timedelta(minutes=9)
 
 
@@ -1605,7 +1607,7 @@ investigation = Investigation(
     trigger=trigger,
     created_at=at(0),
     updated_at=at(22),
-    recorded=True,
+    recorded=False,
     models=models,
     usage=usage,
     work_order_id=None,
@@ -1648,14 +1650,24 @@ approved = investigation.model_copy(
     }
 )
 write("decide_investigation", approved)
+
+
+def summary_of(inv: Investigation) -> InvestigationSummary:
+    return InvestigationSummary(
+        **{k: v for k, v in inv.model_dump().items() if k in InvestigationSummary.model_fields}
+    )
+
+
+example = investigation.model_copy(
+    update={
+        "investigation_id": EXAMPLE,
+        "recorded": True,
+        "created_at": at(-7200),
+        "updated_at": at(-7178),
+    }
+)
 summaries = [
-    InvestigationSummary(
-        **{
-            k: v
-            for k, v in investigation.model_dump().items()
-            if k in InvestigationSummary.model_fields
-        }
-    ),
+    summary_of(investigation),
     InvestigationSummary(
         **{k: v for k, v in approved.model_dump().items() if k in InvestigationSummary.model_fields}
     ).model_copy(
@@ -1669,7 +1681,12 @@ summaries = [
         }
     ),
 ]
-write("list_investigations", InvestigationPage(items=summaries, next_cursor=None, total=2))
+write(
+    "list_investigations",
+    InvestigationPage(
+        items=summaries, examples=[summary_of(example)], next_cursor=None, total=len(summaries)
+    ),
+)
 
 events: list[InvestigationEvent] = []
 seq = 0

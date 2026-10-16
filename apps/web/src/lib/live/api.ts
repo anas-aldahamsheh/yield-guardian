@@ -13,6 +13,7 @@ import {
 
 import { ApiError, isProblem } from "@/lib/api/errors";
 import { retryAfterMs } from "@/lib/api/retry";
+import { workspaceReady } from "@/lib/api/workspace";
 
 import { RUN_GONE_MESSAGE } from "./sse";
 
@@ -85,7 +86,13 @@ function json(body: unknown, headers: Record<string, string> = {}): RequestInit 
   };
 }
 
-export function createRun(body: RunCreate, csrf: Record<string, string> = {}, doFetch?: Fetch) {
+/** Starts a run, recorded in this device's workspace (opened first on a first visit). */
+export async function createRun(
+  body: RunCreate,
+  csrf: Record<string, string> = {},
+  doFetch?: Fetch,
+) {
+  await workspaceReady();
   return call<RunCreated>("/runs", json(body, csrf), doFetch);
 }
 
@@ -118,8 +125,9 @@ export function getDrawLayouts(init: RequestInit = {}, doFetch?: Fetch) {
   return call<DrawLayoutList>("/runs/layouts", init, doFetch);
 }
 
-/** Sends a file to be parsed and validated (multipart field `file`). */
-export function uploadFile(file: File, csrf: Record<string, string> = {}, doFetch?: Fetch) {
+/** Sends a file to be parsed and validated (multipart field `file`), into this workspace. */
+export async function uploadFile(file: File, csrf: Record<string, string> = {}, doFetch?: Fetch) {
+  await workspaceReady();
   const form = new FormData();
   form.append("file", file, file.name);
   return call<UploadSummary>(
@@ -150,7 +158,7 @@ export function investigateRunAlarm(
   return call<Investigation>("/investigations", json({ trigger }, csrf), doFetch);
 }
 
-/** The run has expired (410): the page offers a new run instead of retrying. */
+/** The run is no longer kept (410): the page offers a new run instead of retrying. */
 export function isGone(error: unknown): boolean {
   return error instanceof ApiError && (error.status === 410 || error.problem?.code === "gone");
 }

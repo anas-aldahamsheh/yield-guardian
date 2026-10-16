@@ -1,10 +1,10 @@
 import "server-only";
 
 import { API_PREFIX, type Run } from "@yield-guardian/contracts";
-import { headers } from "next/headers";
 import { connection } from "next/server";
 
 import { serverApiOrigin } from "@/lib/api/config";
+import { sessionCookieHeader } from "@/lib/api/server";
 
 import { glanceOf, type GlanceView } from "./glance";
 import { pack } from "./packed";
@@ -17,10 +17,12 @@ import type { StoredRun } from "./stored-run";
  * real sample, whose full state is 4.6 MB, and under 0.4 MB for all 1,567 SECOM units (7.9 MB),
  * so any run is in the first paint and the page stays light.
  *
- * The request carries the visitor's own cookies (and nothing else of theirs), since a run is
- * visible only to its workspace; the API it goes to is API_INTERNAL_URL, never an address from
- * the request. No answer within `timeoutMs` (the API asleep or starting) leaves the reading to
- * the browser, which says so and waits; once the API has answered, its body has `bodyTimeoutMs`.
+ * The request carries the visitor's session cookie and no other cookie of theirs (as every
+ * server-side read does: lib/api/server.ts), since a run is visible only to its workspace: another
+ * workspace's run reads as not found, exactly as an ID that never existed. The API it goes to is
+ * API_INTERNAL_URL, never an address from the request. No answer within `timeoutMs` (the API
+ * asleep or starting) leaves the reading to the browser, which says so and waits; once the API
+ * has answered, its body has `bodyTimeoutMs`.
  */
 
 export const READ_TIMEOUT_MS = 2_500;
@@ -38,14 +40,14 @@ export async function readStoredRun(
   }: { timeoutMs?: number; bodyTimeoutMs?: number; maxChars?: number } = {},
 ): Promise<StoredRun | null> {
   await connection();
-  const cookie = (await headers()).get("cookie");
+  const cookie = await sessionCookieHeader();
   const controller = new AbortController();
   let timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(
       `${serverApiOrigin()}${API_PREFIX}/runs/${encodeURIComponent(runId)}`,
       {
-        headers: { Accept: "application/json", ...(cookie ? { Cookie: cookie } : {}) },
+        headers: { Accept: "application/json", ...cookie },
         cache: "no-store",
         signal: controller.signal,
       },

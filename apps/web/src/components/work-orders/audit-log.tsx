@@ -66,7 +66,8 @@ function DetailValue({ value }: { value: unknown }) {
 }
 
 /**
- * Every action taken in the product, newest first, from the API's audit log. With `targetId`,
+ * Every action taken in this workspace, newest first, from the API's audit log (with those about
+ * the recorded example, marked as such). With `targetId`,
  * only the entries about that target (filtered here; the API filters by action only).
  */
 export function AuditLog({ targetId, className }: { targetId?: string; className?: string }) {
@@ -102,8 +103,8 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
         targetId
           ? "Every recorded action on this work order, newest first."
           : total != null
-            ? `Every action taken in the product, newest first. ${formatInt(total)} ${total === 1 ? "entry" : "entries"}.`
-            : "Every action taken in the product, newest first."
+            ? `Every action taken in this workspace, newest first. ${formatInt(total)} ${total === 1 ? "entry" : "entries"}.`
+            : "Every action taken in this workspace, newest first."
       }
       actions={
         targetId ? null : (
@@ -165,6 +166,9 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
                         </Link>
                       ) : e.target_id ? (
                         <span className="tnum text-ink-2">{e.target_id}</span>
+                      ) : null}
+                      {e.example ? (
+                        <span className="ml-2 text-[12px] text-ink-3">Example</span>
                       ) : null}
                     </p>
                     <p className="text-[12px] leading-4 text-ink-3">

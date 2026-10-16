@@ -7,7 +7,8 @@ import { getJson } from "./api";
  * PostgreSQL. A reload shows the run as the person left it, from the page the server sends:
  * every station's result, the rail with every alarm, the open drawer and the item in view, the
  * line saying the run is finished, with nothing replayed and the API asked nothing twice. Every
- * expected value is read from the API.
+ * expected value is read from the API, with the page's own session: a run belongs to the
+ * workspace of the browser that made it, and any other visitor gets a 404 for it.
  */
 
 const FINISHED = "The run is finished: every station has its result, and nothing more will arrive.";
@@ -162,6 +163,15 @@ async function drawnWafers(page: Page): Promise<boolean[]> {
   );
 }
 
+/** The CSRF header of the page's session once its workspace is open, for a run made directly. */
+async function csrfOf(page: Page): Promise<Record<string, string>> {
+  type Session = { csrf_token: string | null; workspace: unknown };
+  const session = () => getJson<Session>(page.request, "/session");
+  await expect.poll(async () => (await session()).workspace).not.toBeNull();
+  const { csrf_token: token } = await session();
+  return token ? { "X-CSRF-Token": token } : {};
+}
+
 function runIdOf(page: Page): string {
   return new URL(page.url()).searchParams.get("run")!;
 }
@@ -184,14 +194,13 @@ test.beforeEach(async ({ page }) => {
 
 test("a real sample reloads as it stood, with the drawer and the unit in view", async ({
   page,
-  request,
 }) => {
   const api = watchApi(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Try a real sample" }).click();
   await expect(page).toHaveURL(/\?run=run_[0-9a-z]+$/);
   await finish(page);
-  const run = await getJson<RunRead>(request, `/runs/${runIdOf(page)}`);
+  const run = await getJson<RunRead>(page.request, `/runs/${runIdOf(page)}`);
   expect(run.status).toBe("done");
   await page.getByRole("button", { name: "Open monitoring details" }).click();
   await drawerInPlace(page);
@@ -231,6 +240,7 @@ test("the largest real sample opens and reloads at once from a compact page", as
   await page.goto("/");
   const created = await page.request.post("/api/v1/runs", {
     data: { source: "sample", seed: LARGE_SAMPLE_SEED },
+    headers: await csrfOf(page),
   });
   expect(created.status()).toBe(201);
   const runId = ((await created.json()) as { run_id: string }).run_id;
@@ -285,7 +295,6 @@ test("the largest real sample opens and reloads at once from a compact page", as
 
 test("a drawn wafer run reloads with the wafer drawer open on the wafer chosen", async ({
   page,
-  request,
 }) => {
   const api = watchApi(page);
   await page.goto("/");
@@ -299,7 +308,7 @@ test("a drawn wafer run reloads with the wafer drawer open on the wafer chosen",
   await page.getByRole("button", { name: "Run your 2 wafers" }).click();
   await expect(page).toHaveURL(/\?run=run_[0-9a-z]+$/);
   await finish(page);
-  const run = await getJson<RunRead>(request, `/runs/${runIdOf(page)}`);
+  const run = await getJson<RunRead>(page.request, `/runs/${runIdOf(page)}`);
   await page.getByRole("button", { name: "Open wafer test details" }).click();
   await drawerInPlace(page);
   await page.locator("#station-drawer ul[aria-label=Wafers] button").nth(1).click();
@@ -324,7 +333,6 @@ test("a drawn wafer run reloads with the wafer drawer open on the wafer chosen",
 
 test("a sample reloaded while it computes goes on after the last event it had", async ({
   page,
-  request,
 }) => {
   const api = watchApi(page);
   await page.goto("/");
@@ -333,7 +341,7 @@ test("a sample reloaded while it computes goes on after the last event it had", 
   api.reset();
   await page.reload({ waitUntil: "domcontentloaded" });
   await finish(page);
-  const run = await getJson<RunRead>(request, `/runs/${runIdOf(page)}`);
+  const run = await getJson<RunRead>(page.request, `/runs/${runIdOf(page)}`);
   expect(run.status).toBe("done");
   // Every alarm once, whether the run ended before the reload's read or after it.
   await expect(page.getByText(countOf(run), { exact: true })).toBeVisible();

@@ -19,6 +19,7 @@ from yield_guardian.contracts.services import InvalidArgumentError, NotFoundErro
 from yield_guardian.contracts.session import GuestSessionCreate
 from yield_guardian.core.settings import Settings
 from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
+from yield_guardian.services.access import NOBODY, viewing
 from yield_guardian.services.alarms import AlarmStateStore
 from yield_guardian.services.errors import ConflictError
 from yield_guardian.services.investigations import (
@@ -429,9 +430,42 @@ async def test_investigations_are_found_by_unit(persistence: Persistence) -> Non
     await persistence.investigations.create(
         InvestigationTrigger(kind="unit", ref="10430"), session=session
     )
-    found = await persistence.investigations.for_unit(1043)
-    assert set(found) == {alarm.investigation_id, unit.investigation_id}
-    assert await persistence.investigations.for_unit(104) == []
+    with viewing(session.viewer):
+        found = await persistence.investigations.for_unit(1043)
+        assert set(found) == {alarm.investigation_id, unit.investigation_id}
+        assert await persistence.investigations.for_unit(104) == []
+    # Another workspace, and a request of none, find none of them.
+    other = await _engineer(persistence)
+    with viewing(other.viewer):
+        assert await persistence.investigations.for_unit(1043) == []
+    assert await persistence.investigations.for_unit(1043) == []
+
+
+async def test_each_workspace_has_its_own_investigations(persistence: Persistence) -> None:
+    store = persistence.investigations
+    mine, theirs = await _engineer(persistence), await _engineer(persistence)
+    first = await store.create(ALARM, session=mine)
+    # The same alarm in another workspace is a new investigation, never the first one.
+    second = await store.create(ALARM, session=theirs)
+    assert second.investigation_id != first.investigation_id
+    assert (await store.create(ALARM, session=mine)).investigation_id == first.investigation_id
+    assert [i.investigation_id for i in (await store.list(viewer=mine.viewer)).items] == [
+        first.investigation_id
+    ]
+    assert (await store.list(viewer=theirs.viewer)).total == 1
+    assert (await store.list(viewer=NOBODY)).total == 0
+    with pytest.raises(NotFoundError) as hidden:
+        await store.get(first.investigation_id, theirs.viewer)
+    assert "does not exist" in str(hidden.value)
+    with pytest.raises(NotFoundError):
+        await store.get_evidence(first.investigation_id, "E1", theirs.viewer)
+    for investigation in (first, second):
+        async with asyncio.timeout(15):
+            async for _ in store.events(investigation.investigation_id):
+                pass
+    with pytest.raises(NotFoundError):
+        await store.decide(first.investigation_id, DecisionCreate(verdict="reject"), session=theirs)
+    assert (await store.get(first.investigation_id)).status == "awaiting_decision"
 
 
 async def test_a_run_past_its_wall_time_is_failed_and_its_alarm_reopened(

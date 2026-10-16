@@ -13,7 +13,7 @@ export type StoredRun =
   | { kind: "run"; runId: string; packed: Packed<StoredRunData>; partial: StageId[] }
   /** The API answered 404: no such run, or one of another workspace. */
   | { kind: "not_found"; runId: string }
-  /** The API answered 410: the run has expired. */
+  /** The API answered 410: the run is no longer kept. */
   | { kind: "gone"; runId: string };
 
 export function storedRunId(stored: StoredRun | null): string | null {

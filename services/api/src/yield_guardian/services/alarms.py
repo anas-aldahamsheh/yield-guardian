@@ -4,6 +4,10 @@ lives here, keyed by alarm ID.
 An alarm without a stored state is open. Creating an investigation from an alarm makes it
 investigating; deciding that investigation closes it; a failed investigation reopens it. Every
 change sends `pg_notify('yg_alarm_states', alarm_id)` so each API process can push the update.
+
+The stored state is the alarm's state across every workspace (it serialises investigations of one
+alarm). What a workspace is shown is :meth:`DbAlarmStateStore.of_workspace`: the same rules over
+its own investigations only, so one visitor never sees another's activity on an alarm.
 """
 
 from collections.abc import Collection
@@ -12,12 +16,15 @@ from datetime import UTC, datetime
 from typing import Protocol, cast
 
 from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import distinct_on, insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yield_guardian.contracts.line import AlarmStatus
 from yield_guardian.db.notify import ALARMS_CHANNEL
-from yield_guardian.db.tables import AlarmStateRow
+from yield_guardian.db.tables import AlarmStateRow, InvestigationRow
+from yield_guardian.services.access import Viewer, owned
+
+DECIDED = frozenset({"approved", "rejected"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,3 +102,38 @@ class DbAlarmStateStore:
         async with self._sessionmaker() as db:
             rows = (await db.scalars(query)).all()
         return {row.alarm_id: _state(row) for row in rows}
+
+    async def of_workspace(self, viewer: Viewer) -> dict[str, AlarmState]:
+        """The alarms `viewer`'s workspace took over, from its newest investigation of each:
+        investigating while it runs or waits for a decision, closed once decided; one whose
+        newest investigation failed is open again, so it is left out like every open one."""
+        newest = (
+            select(
+                InvestigationRow.trigger_ref,
+                InvestigationRow.investigation_id,
+                InvestigationRow.status,
+                InvestigationRow.updated_at,
+            )
+            .where(
+                InvestigationRow.trigger_kind == "alarm",
+                owned(InvestigationRow.workspace_id, viewer),
+            )
+            .ext(distinct_on(InvestigationRow.trigger_ref))
+            .order_by(
+                InvestigationRow.trigger_ref,
+                InvestigationRow.created_at.desc(),
+                InvestigationRow.investigation_id.desc(),
+            )
+        )
+        async with self._sessionmaker() as db:
+            rows = (await db.execute(newest)).all()
+        return {
+            ref: AlarmState(
+                alarm_id=ref,
+                status="closed" if status in DECIDED else "investigating",
+                investigation_id=investigation_id,
+                updated_at=updated_at,
+            )
+            for ref, investigation_id, status, updated_at in rows
+            if status != "failed"
+        }

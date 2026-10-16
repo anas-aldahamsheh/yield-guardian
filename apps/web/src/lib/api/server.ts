@@ -1,6 +1,8 @@
 import "server-only";
 
 import { QueryClient, dehydrate, type DehydratedState } from "@tanstack/react-query";
+import { SESSION_COOKIE } from "@yield-guardian/contracts";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 
 import { createApi } from "./client";
@@ -8,12 +10,30 @@ import { serverApiOrigin } from "./config";
 import { q } from "./queries";
 
 /**
+ * The `cookie` header of a request the Next.js server makes to the API for the browser being
+ * served: its session cookie and no other cookie of the browser's. Every visitor is a separate
+ * user, so the API answers with that device's workspace, exactly as it answers the browser.
+ */
+export async function sessionCookieHeader(): Promise<{ cookie: string } | undefined> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  return token ? { cookie: `${SESSION_COOKIE}=${token}` } : undefined;
+}
+
+/**
  * The API as the Next.js server sees it. Requests are never cached and only happen at request
  * time: `connection()` keeps them out of the build, so a build never contains API data.
+ *
+ * The browser's session cookie goes with each request (sessionCookieHeader): lists belong to the
+ * workspace of the device asking, so a page rendered on the server shows that device's own
+ * investigations and work orders, as the browser will.
  */
 export async function serverApi() {
   await connection();
-  return createApi(serverApiOrigin(), { cache: "no-store", credentials: "omit" });
+  return createApi(serverApiOrigin(), {
+    cache: "no-store",
+    credentials: "omit",
+    headers: await sessionCookieHeader(),
+  });
 }
 
 /** A query client for prefetching on the server; its successful queries are sent to the page. */

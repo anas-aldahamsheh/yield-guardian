@@ -25,6 +25,7 @@ from yield_guardian.api.routes import (
     session,
     wafers,
     work,
+    workspace,
 )
 from yield_guardian.core.logging import configure_logging
 from yield_guardian.core.settings import Settings, get_settings
@@ -96,7 +97,7 @@ def create_app(
             CORSMiddleware,
             allow_origins=settings.cors_origins,
             allow_credentials=True,
-            allow_methods=["GET", "POST", "PUT", "PATCH"],
+            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
             allow_headers=["Content-Type", "X-CSRF-Token", "Last-Event-ID"],
         )
     for module in (
@@ -112,6 +113,7 @@ def create_app(
         llm,
         methods,
         session,
+        workspace,
     ):
         app.include_router(module.router, prefix=API_PREFIX)
 

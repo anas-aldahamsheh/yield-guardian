@@ -195,8 +195,22 @@ test("investigations without a key: not-configured state, no Token Factory call"
   await expect(page.getByRole("note")).toContainText(
     "Live investigations are not configured on this server",
   );
-  for (const g of ["running", "awaiting", "decided"])
-    await expect(page.locator(`[data-group='${g}']`)).toBeVisible();
+  // Every visitor lists only its own investigations, and a new visitor has none yet...
+  await expect(page.getByText("No investigations yet")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open the line" })).toBeVisible();
+  // ...and, apart from them, the recorded example every visitor sees, read-only.
+  if (ids.investigation) {
+    const example = page.locator("[data-group='example']");
+    await expect(example.getByRole("link").first()).toHaveAttribute(
+      "href",
+      `/investigations/${ids.investigation}`,
+    );
+    await expect(example.locator("tbody tr").first()).toContainText("Recorded");
+    await page.goto(`/investigations/${ids.investigation}`);
+    await expect(
+      page.getByText("Recorded run: generated once, replayed without calling a model"),
+    ).toBeVisible();
+  }
   expect(outbound).toEqual([]);
 });
 

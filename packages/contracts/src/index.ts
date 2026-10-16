@@ -10,6 +10,8 @@ import type { WaferMap } from "./schema";
 export const API_PREFIX = "/api/v1";
 export const LINE_SOCKET_PATH = "/ws/line";
 export const CSRF_HEADER = "X-CSRF-Token";
+/** The HttpOnly cookie that holds this device's session (and so its workspace). */
+export const SESSION_COOKIE = "yg_session";
 export const PROBLEM_MEDIA_TYPE = "application/problem+json";
 
 /** Values of a decoded wafer-map cell. */
