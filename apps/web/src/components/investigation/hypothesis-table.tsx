@@ -11,7 +11,7 @@ import type { Assessment, Hypothesis, HypothesisEvidence } from "@/lib/investiga
 import { EvidenceChips, Flags, type Shared, WrittenText } from "./report";
 
 const ASSESSMENT: Record<Assessment, { label: string; className: string }> = {
-  supported: { label: "Supported", className: "text-ink font-medium" },
+  supported: { label: "Supported", className: "text-ink font-[560]" },
   not_supported: { label: "Not supported", className: "text-ink-2" },
   inconclusive: { label: "Inconclusive", className: "text-ink-2" },
 };
@@ -35,7 +35,7 @@ export function HypothesisTable({ rows, ...shared }: { rows: Hypothesis[] } & Sh
       className="mt-9 border-t border-hairline pt-5"
       data-hypotheses
     >
-      <h3 id="hypotheses-title" className="text-[15px] leading-6 font-semibold text-ink">
+      <h3 id="hypotheses-title" className="text-[15px] leading-6 font-[620] text-ink">
         Hypotheses
       </h3>
       <p className="mt-0.5 mb-3 max-w-[72ch] text-[13px] leading-5 text-ink-3">
@@ -54,20 +54,20 @@ export function HypothesisTable({ rows, ...shared }: { rows: Hypothesis[] } & Sh
               Hypotheses, with the evidence for and against each
             </caption>
             <thead>
-              <tr className="border-y border-hairline text-[12px] text-ink-3">
-                <th scope="col" className="w-[24%] px-4 py-2 font-normal sm:px-5">
+              <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                <th scope="col" className="w-[24%] px-5 py-3 font-[520] sm:px-6">
                   Hypothesis
                 </th>
-                <th scope="col" className="w-[16%] px-2 py-2 font-normal">
+                <th scope="col" className="w-[16%] px-3 py-3 font-[520]">
                   Sources
                 </th>
-                <th scope="col" className="w-[24%] px-2 py-2 font-normal">
+                <th scope="col" className="w-[24%] px-3 py-3 font-[520]">
                   Evidence for
                 </th>
-                <th scope="col" className="w-[24%] px-2 py-2 font-normal">
+                <th scope="col" className="w-[24%] px-3 py-3 font-[520]">
                   Evidence against
                 </th>
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                   Assessment
                 </th>
               </tr>
@@ -79,26 +79,26 @@ export function HypothesisTable({ rows, ...shared }: { rows: Hypothesis[] } & Sh
                   className="border-b border-hairline align-top last:border-b-0"
                   data-assessment={row.assessment}
                 >
-                  <th scope="row" className="px-4 py-3 font-normal sm:px-5">
+                  <th scope="row" className="px-5 py-3 font-[420] sm:px-6">
                     <span className="written block text-[16px] leading-6 text-ink">
                       <WrittenText text={row.hypothesis} {...shared} />
                     </span>
                     <Flags issues={shared.issues.get(`hypotheses[${i}]`)} />
                   </th>
-                  <td className="px-2 py-3 text-[13px] text-ink-2">
+                  <td className="px-3 py-3 text-[13px] text-ink-2">
                     <SourceList ids={row.source_ids} sources={sources} />
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-3 py-3">
                     <EvidenceList entries={row.evidence_for} empty="None found" shared={shared} />
                   </td>
-                  <td className="px-2 py-3">
+                  <td className="px-3 py-3">
                     <EvidenceList
                       entries={row.evidence_against}
                       empty="None found"
                       shared={shared}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap sm:px-5">
+                  <td className="px-5 py-3 whitespace-nowrap sm:px-6">
                     <span className={ASSESSMENT[row.assessment].className}>
                       {ASSESSMENT[row.assessment].label}
                     </span>

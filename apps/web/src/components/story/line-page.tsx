@@ -1,16 +1,27 @@
 "use client";
 
 import type { Investigation, RunAlarm, RunCreate, RunCreated } from "@yield-guardian/contracts";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { ChevronDownIcon } from "lucide-react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { usePrefersReducedMotion } from "@/components/motion";
+import { useEntrance } from "@/components/motion/entrance";
+import { Button } from "@/components/ui/button";
 import { YourWork } from "@/components/workspace/your-work";
 import { ApiError, describeError } from "@/lib/api/errors";
 import { withRetry } from "@/lib/api/retry";
 import { useSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
-import { useAfterLoad } from "@/lib/idle";
 import { createRun } from "@/lib/live/api";
 import { DRAFT_KEYS, readDraft, writeDraft } from "@/lib/live/drafts";
 import { originRule } from "@/lib/live/origin";
@@ -48,19 +59,6 @@ import { StationDrawer } from "./station-drawer";
 import { useLineScene } from "./use-line-scene";
 import { useStationClocks } from "./use-station-clocks";
 
-let webgl: boolean | undefined;
-/** WebGL 2, probed once per page; the probe's context is released at once. */
-function webgl2(): boolean {
-  if (webgl !== undefined) return webgl;
-  try {
-    const gl = document.createElement("canvas").getContext("webgl2");
-    webgl = Boolean(gl);
-    gl?.getExtension("WEBGL_lose_context")?.loseContext();
-  } catch {
-    webgl = false;
-  }
-  return webgl;
-}
 const noSubscribe = () => () => {};
 
 function focusKey(focus: Focus): string {
@@ -135,6 +133,9 @@ export function LinePage({
   const [url, setUrl] = useState<LineUrlState>(() =>
     parseLineUrl(new URLSearchParams(initialQuery)),
   );
+  // The headline rises when the page opens on the line alone. A page that opens on a run (a
+  // reload, a link) arrives at rest: the run is shown as it stands and nothing on it moves.
+  const [arrive] = useState(() => url.runId == null);
   /** The run this page has just started: its results arrive on the stream and play as they come. */
   const [freshId, setFreshId] = useState<string | null>(null);
   /**
@@ -150,9 +151,6 @@ export function LinePage({
   const [startError, setStartError] = useState<string | null>(null);
   const { csrf } = useSession();
   const reducedMotion = usePrefersReducedMotion();
-  const idle = useAfterLoad();
-  const gl = useSyncExternalStore(noSubscribe, webgl2, () => false);
-  const use3d = idle && gl && !reducedMotion;
   const bayRef = useRef<HTMLDivElement>(null);
   const picked = useRef(false);
   /** A run opened from Your work, until it is on the line and has the focus. */
@@ -313,6 +311,13 @@ export function LinePage({
 
   const drawer =
     url.station != null && url.station <= 3 && state ? (url.station as 1 | 2 | 3) : null;
+  // The input's size for the run's one-line summary: from the run, or from the intake once the
+  // line shows it.
+  const intake = state && revealed.has("intake") ? stageResult(state, "intake") : null;
+  const size = {
+    units: state?.units ?? intake?.units ?? null,
+    wafers: state?.wafers ?? intake?.wafers ?? null,
+  };
   const twoSources = Boolean(
     state &&
     ((revealed.has("intake") && stageResult(state, "intake")?.two_sources) ||
@@ -360,34 +365,46 @@ export function LinePage({
 
   return (
     <div>
-      <section data-theme="dark" aria-labelledby="line-title" className="bg-room text-ink">
-        <div className="mx-auto w-full max-w-[1600px] px-gutter pt-8 pb-8 sm:pt-10">
-          <div className="mb-6 max-w-[64ch]">
-            <h1
-              id="line-title"
-              className="text-[30px] leading-9 font-medium tracking-[-0.03em] sm:text-[40px] sm:leading-[46px]"
+      <section aria-labelledby="line-title">
+        <div className="mx-auto w-full max-w-[1600px] px-gutter pt-10 pb-10 sm:pt-16">
+          {/* On a page that opens on the line alone, the headline's lines rise out of their
+              masks on the first paint (CSS, before hydration); the space between them keeps the
+              heading's name one sentence. */}
+          <h1 id="line-title" className="text-hero font-[680] text-ink">
+            <span className={arrive ? "hero-line" : "block"} style={{ "--i": 0 } as CSSProperties}>
+              <span className="block">Run real fab data</span>
+            </span>{" "}
+            <span className={arrive ? "hero-line" : "block"} style={{ "--i": 1 } as CSSProperties}>
+              <span className="block">down the line</span>
+            </span>
+          </h1>
+          <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-12 gap-y-7 sm:mt-10 xl:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] xl:items-start">
+            <p
+              className={cn(
+                arrive && "rise-in",
+                "max-w-[46ch] text-[17px] leading-7 text-ink-2 sm:text-lede",
+              )}
+              style={{ "--d": "260ms" } as CSSProperties}
             >
-              Run real fab data down the line
-            </h1>
-            <p className="mt-3 text-[16px] leading-6 text-ink-2">
               Choose an input. Each station computes its result from it while you watch, and the
               line moves only as results arrive. Nothing here is a recording.
             </p>
+            <InputBar
+              open={way}
+              kept={wayKept}
+              arrive={arrive}
+              onOpen={setWay}
+              onStart={start}
+              starting={starting}
+              error={startError}
+              waitingFor={
+                !url.runId && url.station != null ? STATION_NAME[stationAt(url.station)!] : null
+              }
+            />
           </div>
-          <InputBar
-            open={way}
-            kept={wayKept}
-            onOpen={setWay}
-            onStart={start}
-            starting={starting}
-            error={startError}
-            waitingFor={
-              !url.runId && url.station != null ? STATION_NAME[stationAt(url.station)!] : null
-            }
-          />
           {url.runId ? null : yourWork}
 
-          <div ref={bayRef} className="scroll-mt-[calc(var(--bar-height)+12px)]">
+          <div ref={bayRef} className="mt-12 scroll-mt-[calc(var(--bar-height)+16px)] sm:mt-16">
             {run.problem ? (
               <RunProblemNotice problem={run.problem} onNew={newRun} />
             ) : reading ? (
@@ -395,6 +412,7 @@ export function LinePage({
             ) : state ? (
               <RunStrip
                 state={state}
+                size={size}
                 connection={run.connection}
                 playing={playing}
                 onFinish={finish}
@@ -404,7 +422,7 @@ export function LinePage({
               <WakingNote />
             ) : null}
             {twoSources ? <TwoSources /> : null}
-            <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(280px,320px)]">
+            <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,320px)]">
               <div className="min-w-0">
                 <Bay
                   state={state}
@@ -412,7 +430,6 @@ export function LinePage({
                   summaries={summaries}
                   finalTest={finalTest}
                   clocks={clocks}
-                  use3d={use3d}
                   onOpen={(n) => setStation(url.station === n ? null : n)}
                   openStation={url.station}
                 />
@@ -429,8 +446,9 @@ export function LinePage({
                   over={over}
                   // Under the line the rail scrolls within a screen's height less the bar above and the
                   // Ask button's band below, so in view it clears both; beside the line it takes the
-                  // line's height, down to the Ask button's band wherever the page is scrolled.
-                  className="max-h-[min(640px,calc(100dvh-var(--bar-height)-112px))] min-h-[200px] rounded-[2px] bg-die xl:absolute xl:inset-x-0 xl:top-0 xl:h-[min(100%,max(240px,var(--viewport-room,100%)))] xl:max-h-none xl:min-h-0"
+                  // line's height, down to the Ask button's band wherever the page is scrolled (while
+                  // the line is still low on the screen the rail is short, and it grows as it rises).
+                  className="max-h-[min(640px,calc(100dvh-var(--bar-height)-112px))] min-h-[200px] rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] xl:absolute xl:inset-x-0 xl:top-0 xl:h-[min(100%,max(0px,var(--viewport-room,100%)))] xl:max-h-none xl:min-h-0 xl:overflow-hidden"
                 />
               </div>
             </div>
@@ -439,7 +457,7 @@ export function LinePage({
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[1600px] px-gutter pb-16">
+      <div className="mx-auto w-full max-w-[1600px] px-gutter pb-20">
         {drawer && state ? (
           <StationDrawer
             station={drawer}
@@ -516,9 +534,15 @@ function connectionNote(connection: RunConnection, state: RunState): string | nu
 /** The stored run is being read: the server did not have it in time (the API is waking, or down). */
 function ReadingStrip({ waking }: { waking: boolean }) {
   return (
-    <div className="mt-6 border-t border-hairline pt-4">
-      <h2 className="text-[17px] leading-6 font-semibold text-ink">Reading the run</h2>
-      <p className="mt-1 text-[12px] leading-4 text-ink-3" aria-live="polite">
+    <div className="border-t border-hairline pt-8">
+      <h2 className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] sm:text-[30px] sm:leading-9">
+        Reading the run
+      </h2>
+      <p
+        className="mt-2 flex max-w-[72ch] items-start gap-2.5 text-[15px] leading-6 text-ink-2"
+        aria-live="polite"
+      >
+        <span aria-hidden="true" className="live-dot mt-[9px] size-1.5 shrink-0" />
         {waking
           ? "The service is starting after a quiet spell; the run shows as soon as it answers."
           : "Its results show as they stand once they are in."}
@@ -531,22 +555,57 @@ function ReadingStrip({ waking }: { waking: boolean }) {
 function WakingNote() {
   return (
     <p
-      className="mt-6 border-t border-hairline pt-4 text-[13px] leading-5 text-ink-2"
+      className="flex max-w-[72ch] items-start gap-2.5 border-t border-hairline pt-8 text-[15px] leading-6 text-ink-2"
       role="status"
     >
+      <span aria-hidden="true" className="live-dot mt-[9px] size-1.5 shrink-0" />
       The service is starting after a quiet spell; the run starts as soon as it answers.
     </p>
   );
 }
 
+/** The run's input in one line; a new line (once the intake has counted it) fades in. */
+function InputLine({ line }: { line: string }) {
+  const entrance = useEntrance();
+  return (
+    <p className={cn(entrance && "swap-in", "tnum mt-1.5 text-[15px] leading-6 text-ink-2")}>
+      {line}
+    </p>
+  );
+}
+
+/** The input in one line: how many units and wafer maps, and where they come from. */
+function inputLine(
+  state: RunState,
+  size: { units: number | null; wafers: number | null },
+): string | null {
+  const origin = state.origin;
+  if (!origin) return null;
+  const parts: string[] = [];
+  if (size.units) {
+    parts.push(
+      `${plural(size.units, "unit")}${origin.datasets.includes("secom") ? " from SECOM" : ""}`,
+    );
+  }
+  if (size.wafers) {
+    parts.push(
+      `${plural(size.wafers, "wafer map")}${origin.datasets.includes("wm811k") ? " from WM-811K" : ""}`,
+    );
+  }
+  if (!parts.length) return null;
+  return `${parts.join(" and ")}${origin.filename ? ` in ${origin.filename}` : ""}.`;
+}
+
 function RunStrip({
   state,
+  size,
   connection,
   playing,
   onFinish,
   onRepeat,
 }: {
   state: RunState;
+  size: { units: number | null; wafers: number | null };
   connection: RunConnection;
   playing: boolean;
   onFinish: () => void;
@@ -555,55 +614,86 @@ function RunStrip({
   const origin = state.origin;
   const rule = origin ? originRule(origin.rule, origin.seed) : null;
   const note = connectionNote(connection, state);
+  const line = inputLine(state, size);
+  const [about, setAbout] = useState(false);
+  const aboutId = useId();
+  // A run started or opened here fades in; one the page arrived with is simply there.
+  const entrance = useEntrance();
   return (
-    <div className="mt-6 flex flex-col gap-3 border-t border-hairline pt-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="max-w-[96ch] min-w-0">
+    <div
+      className={cn(
+        entrance && "swap-in",
+        "flex flex-col gap-5 border-t border-hairline pt-8 lg:flex-row lg:items-end lg:justify-between",
+      )}
+    >
+      <div className="max-w-[80ch] min-w-0">
         <h2
           id="run-title"
           tabIndex={-1}
-          className="text-[17px] leading-6 font-semibold text-ink outline-none"
+          className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] outline-none sm:text-[30px] sm:leading-9"
         >
           {origin?.title ?? "Starting the run"}
         </h2>
-        {rule ? (
-          <p className="mt-0.5 text-[13px] leading-5 text-ink-2">
+        {line ? <InputLine key={line} line={line} /> : null}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {rule ? (
+            <button
+              type="button"
+              aria-expanded={about}
+              aria-controls={aboutId}
+              onClick={() => setAbout(!about)}
+              className="press inline-flex h-8 items-center gap-1.5 rounded-full pr-2.5 pl-3.5 text-[13px] leading-5 font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]"
+            >
+              Where this input comes from
+              <ChevronDownIcon
+                aria-hidden="true"
+                className={cn(
+                  "size-3.5 text-ink-3 transition-[rotate] duration-(--dur-3) ease-spring",
+                  about && "rotate-180",
+                )}
+              />
+            </button>
+          ) : null}
+          <p className="text-[13px] leading-5 text-ink-3">
+            {state.expiresAt === null ? (
+              "Kept while an investigation uses it."
+            ) : state.expiresAt ? (
+              <>
+                {"Kept until "}
+                <LocalDateTime iso={state.expiresAt} />
+                {", then deleted."}
+              </>
+            ) : null}
+            {note ? (
+              <span className={cn(state.expiresAt !== undefined && "ml-2")}>{`${note}.`}</span>
+            ) : null}
+          </p>
+        </div>
+        {rule && about ? (
+          <p
+            id={aboutId}
+            className="grow-in mt-4 max-w-[80ch] text-[14px] leading-[22px] text-ink-2"
+          >
             {rule.rule}
             {rule.seed ? <span className="tnum text-ink-3">{` ${rule.seed}`}</span> : null}
           </p>
         ) : null}
-        <p className="mt-1 text-[12px] leading-4 text-ink-3">
-          {state.expiresAt === null ? (
-            "Kept while an investigation uses it."
-          ) : state.expiresAt ? (
-            <>
-              {"Kept until "}
-              <LocalDateTime iso={state.expiresAt} />
-              {", then deleted."}
-            </>
-          ) : null}
-          {note ? (
-            <span className={cn(state.expiresAt !== undefined && "ml-2")}>{`${note}.`}</span>
-          ) : null}
-        </p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
         {playing ? (
-          <button
-            type="button"
-            onClick={onFinish}
-            className="rounded-[4px] border border-hairline-strong px-3 py-1.5 text-[13px] leading-5 text-ink hover:bg-die-2"
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onFinish}>
             Show every result now
-          </button>
+          </Button>
         ) : null}
         {origin?.source === "sample" && origin.seed != null && isFinished(state) ? (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => void onRepeat({ source: "sample", seed: origin.seed })}
-            className="rounded-[4px] border border-hairline-strong px-3 py-1.5 text-[13px] leading-5 text-ink hover:bg-die-2"
           >
             Run the same sample again
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>
@@ -611,30 +701,26 @@ function RunStrip({
 }
 
 function RunProblemNotice({ problem, onNew }: { problem: RunProblem; onNew: () => void }) {
+  const entrance = useEntrance();
   return (
     <div
       id="run-problem"
       role="alert"
       tabIndex={-1}
-      className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-hairline-strong bg-die px-4 py-3 outline-none"
+      className={cn(
+        entrance && "swap-in",
+        "unexposed flex flex-wrap items-center justify-between gap-4 rounded-[20px] bg-surface px-5 py-4 shadow-[inset_0_0_0_1px_var(--hairline-strong)] outline-none",
+      )}
     >
-      <p className="text-[15px] leading-6 text-ink">{problem.message}</p>
+      <p className="text-[16px] leading-6 font-[520] text-ink">{problem.message}</p>
       {problem.kind === "other" ? (
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="rounded-[4px] bg-ink px-3 py-1.5 text-[14px] font-medium text-room hover:bg-ink/90"
-        >
+        <Button type="button" onClick={() => window.location.reload()}>
           Reload
-        </button>
+        </Button>
       ) : (
-        <button
-          type="button"
-          onClick={onNew}
-          className="rounded-[4px] bg-ink px-3 py-1.5 text-[14px] font-medium text-room hover:bg-ink/90"
-        >
+        <Button type="button" onClick={onNew}>
           Start a new one
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -643,8 +729,12 @@ function RunProblemNotice({ problem, onNew }: { problem: RunProblem; onNew: () =
 /** Both tracks in one run: say that they are separate real datasets, never one chip. */
 function TwoSources() {
   return (
-    <p className="mt-3 max-w-[96ch] border-l-2 border-safelight-lamp pl-3 text-[14px] leading-5 text-ink-2">
-      <span className="font-medium text-ink">Two separate datasets. </span>
+    <p className="relative mt-4 max-w-[96ch] pl-4 text-[14px] leading-[22px] text-ink-2">
+      <span
+        aria-hidden="true"
+        className="film-light absolute top-1 bottom-1 left-0 w-[3px] rounded-full"
+      />
+      <span className="font-[600] text-ink">Two separate datasets. </span>
       The sensor units are SECOM and the wafer maps are WM-811K: they come from different fabs, so
       no wafer here belongs to any unit. The two tracks run side by side and are never joined.
     </p>
@@ -657,15 +747,15 @@ function TwoSources() {
  */
 function LineStatus({ state, over }: { state: RunState; over: boolean }) {
   return (
-    <p className={cn("mt-3 text-[13px] leading-5", over ? "text-ink-2" : "text-ink-3")}>
+    <p className="mt-4 flex items-start gap-2.5 px-2 text-[14px] leading-5 text-ink-2">
       <span
         aria-hidden="true"
         className={cn(
-          "mr-2 inline-block size-1.5 rounded-full align-middle",
-          over ? "bg-ink-2" : "bg-safelight-lamp",
+          "mt-[7px] inline-block size-1.5 shrink-0 rounded-full",
+          over ? "bg-ink-3" : "live-dot",
         )}
       />
-      {lineStatus(state, over)}
+      <span>{lineStatus(state, over)}</span>
     </p>
   );
 }

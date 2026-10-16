@@ -173,7 +173,7 @@ function LayoutChooser({
 }) {
   return (
     <fieldset className="min-w-0">
-      <legend className="text-[14px] leading-5 font-medium text-ink">Die layout</legend>
+      <legend className="text-[14px] leading-5 font-[560] text-ink">Die layout</legend>
       <p className="text-[13px] leading-5 text-ink-3">
         The six most common map sizes in WM-811K, each the layout of a real wafer.
       </p>
@@ -185,8 +185,8 @@ function LayoutChooser({
             <label
               key={l.layout_id}
               className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-[4px] border border-hairline-strong px-2.5 py-1.5 text-[13px] leading-5 hover:bg-die-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
-                on && "lit border-transparent",
+                "press flex h-9 cursor-pointer items-center gap-2 rounded-full px-3.5 text-[13px] leading-5 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal",
+                on && "lit",
               )}
             >
               <input
@@ -286,7 +286,7 @@ function Canvas({
       }
       if (focused && at >= 0) {
         const r = brush === 3 ? 1 : 0;
-        ctx.strokeStyle = colour("--safelight", "#f5d326");
+        ctx.strokeStyle = colour("--signal", "#f5d326");
         ctx.lineWidth = 2;
         const x = ox + ((at % drawing.width) - r) * pitch;
         const y = oy + (Math.floor(at / drawing.width) - r) * pitch;
@@ -369,7 +369,7 @@ function Canvas({
           setFocused(false);
           stroke.current = null;
         }}
-        className="relative aspect-square w-full max-w-[420px] rounded-full bg-die-2 outline-offset-4"
+        className="relative aspect-square w-full max-w-[420px] rounded-full bg-surface-2 outline-offset-4"
       >
         <canvas
           ref={ref}
@@ -415,8 +415,8 @@ function Canvas({
             <label
               key={b}
               className={cn(
-                "cursor-pointer rounded-[4px] border border-hairline-strong px-2.5 py-1 text-[13px] leading-5 text-ink hover:bg-die-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
-                brush === b && "lit border-transparent",
+                "press inline-flex h-8 cursor-pointer items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal",
+                brush === b && "lit",
               )}
             >
               <input
@@ -468,7 +468,7 @@ function Controls({
                 aria-pressed={k === drawing.current}
                 aria-label={`Wafer ${k + 1}, ${plural(failCount(map), "die")} failing`}
                 className={cn(
-                  "block size-11 rounded-full p-0.5 hover:bg-die-2",
+                  "press block size-11 rounded-full p-0.5 hover:bg-surface-2",
                   k === drawing.current && "lit",
                 )}
               >
@@ -506,7 +506,7 @@ function Controls({
           type="button"
           onClick={onRun}
           disabled={starting}
-          className="inline-flex h-10 items-center rounded-[4px] bg-ink px-4 text-[14px] font-semibold text-room hover:bg-ink/90 disabled:opacity-50"
+          className="press lift sheen-hover inline-flex h-10 items-center justify-center rounded-full bg-ink px-5 text-[14px] font-[600] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink/92 disabled:opacity-50"
         >
           {n === 1 ? "Run your drawing" : `Run your ${n} wafers`}
         </button>
@@ -533,7 +533,7 @@ function SmallButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="rounded-[4px] border border-hairline-strong px-2.5 py-1 text-[13px] leading-5 text-ink hover:bg-die-2 disabled:opacity-40"
+      className="press inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-40"
     >
       {children}
     </button>

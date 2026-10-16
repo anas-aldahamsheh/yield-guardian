@@ -27,28 +27,20 @@ import {
 import { useScene, type SceneStore } from "../scene";
 
 /**
- * Station 2: the monitoring console. Three dials read the unit at the console: Hotelling T² and
+ * Station 2: the monitoring screen. Three dials read the unit at the console: Hotelling T² and
  * SPE on log scales with the model's 99% and 99.9% limits, and the calibrated failure risk with
- * the elevated and high bands of its operating points. The screen below shows the run's units in
+ * the elevated and high bands of its operating points. The strip below shows the run's units in
  * order (a tick per unit, red where T² or SPE is beyond the 99.9% limit) and the EWMA of the
  * leading sensor group that moved most, with its control limits.
  */
 
 const SWEEP = 240;
 const R = 42;
-const DIAL_Y = 66;
-const DIAL_X = [62, 180, 298] as const;
-const SCREEN = { x: 22, y: 138, w: 316, h: 112 } as const;
+const DIAL_Y = 60;
+const DIAL_X = [60, 180, 300] as const;
+const SCREEN = { x: 8, y: 130, w: 344, h: 110 } as const;
 
-export function ConsoleTool({
-  state,
-  store,
-  active,
-}: {
-  state: RunState | null;
-  store: SceneStore;
-  active: boolean;
-}) {
+export function ConsoleTool({ state, store }: { state: RunState | null; store: SceneStore }) {
   const revealed = useScene(store, (s) => s.revealed);
   const charts =
     state && revealed.has("control_charts") ? stageResult(state, "control_charts") : null;
@@ -56,8 +48,7 @@ export function ConsoleTool({
   const drift = state && revealed.has("drift_health") ? stageResult(state, "drift_health") : null;
 
   return (
-    <svg viewBox="-16 0 392 318" className="block h-auto w-full" aria-hidden="true">
-      <ConsoleSilhouette active={active} />
+    <svg viewBox="0 0 360 250" className="block h-auto w-full" aria-hidden="true">
       <LogDial store={store} cx={DIAL_X[0]} label="T²" charts={charts} statistic="t2" />
       <LogDial store={store} cx={DIAL_X[1]} label="SPE" charts={charts} statistic="spe" />
       <RiskDial store={store} cx={DIAL_X[2]} risk={risk} />
@@ -69,32 +60,6 @@ export function ConsoleTool({
         skippedDrift={state?.stages.drift_health.status === "skipped"}
       />
     </svg>
-  );
-}
-
-function ConsoleSilhouette({ active }: { active: boolean }) {
-  return (
-    <g
-      fill="none"
-      stroke="var(--hairline-strong)"
-      strokeWidth={1}
-      vectorEffect="non-scaling-stroke"
-      strokeLinejoin="round"
-    >
-      {/* Upright panel with the dials and the screen */}
-      <rect x={8} y={8} width={344} height={256} rx={4} fill="var(--die)" />
-      {/* Sloped desk and pedestal */}
-      <path d="M 8 264 L 0 286 H 360 L 352 264" fill="var(--die-2)" />
-      <path d="M 150 286 V 306 M 210 286 V 306 M 120 306 H 240" />
-      {/* Status lamp */}
-      <circle
-        cx={338}
-        cy={20}
-        r={3}
-        fill={active ? "var(--safelight-lamp)" : "var(--hairline)"}
-        stroke="none"
-      />
-    </g>
   );
 }
 
@@ -117,10 +82,11 @@ function Needle({ cx, cy, t, tone }: { cx: number; cy: number; t: number | null;
         x2={fixed(x)}
         y2={fixed(y)}
         stroke={tone}
-        strokeWidth={1.6}
+        strokeWidth={1.8}
         strokeLinecap="round"
       />
-      <circle cx={cx} cy={cy} r={3} fill={tone} />
+      <circle cx={cx} cy={cy} r={3.4} fill={tone} />
+      <circle cx={cx} cy={cy} r={1.2} fill="var(--screen)" />
     </g>
   );
 }
@@ -132,7 +98,7 @@ function DialFace({ cx, label }: { cx: number; label: string }) {
         cx={cx}
         cy={DIAL_Y}
         r={R + 8}
-        fill="var(--room)"
+        fill="rgb(255 255 255 / 0.025)"
         stroke="var(--hairline)"
         vectorEffect="non-scaling-stroke"
       />
@@ -148,7 +114,7 @@ function DialFace({ cx, label }: { cx: number; label: string }) {
         textAnchor="middle"
         fontSize={12}
         fill="var(--ink-3)"
-        fontWeight={600}
+        fontWeight={560}
       >
         {label}
       </text>
@@ -425,8 +391,8 @@ function Screen({
         y={y}
         width={w}
         height={h}
-        rx={2}
-        fill="var(--room)"
+        rx={8}
+        fill="rgb(255 255 255 / 0.025)"
         stroke="var(--hairline)"
         vectorEffect="non-scaling-stroke"
       />
@@ -492,8 +458,9 @@ function Screen({
             points={points}
             fill="none"
             stroke="var(--ink)"
-            strokeWidth={1.2}
+            strokeWidth={1.4}
             strokeLinejoin="round"
+            strokeLinecap="round"
           />
           <text x={x + 8} y={strip.y - 5} fontSize={10} fill="var(--ink-3)">
             {`EWMA, sensor group ${group.group_id} (${group.sensors.length} ${group.sensors.length === 1 ? "sensor" : "sensors"}), limits ±${formatNumber(group.ewma_limit, 2)}`}
@@ -510,8 +477,8 @@ function Screen({
           x2={fixed(xAt(unit))}
           y1={y + 4}
           y2={y + h - 4}
-          stroke="var(--safelight-lamp)"
-          strokeWidth={1}
+          stroke="var(--signal)"
+          strokeWidth={1.2}
         />
       ) : null}
     </g>

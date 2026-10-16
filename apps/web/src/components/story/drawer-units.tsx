@@ -245,9 +245,9 @@ function UnitsChart({
           const yOf = (v: number) => top + h - logPosition(v, scale) * h;
           return (
             <g key={row.key}>
-              <text x={0} y={top - 6} className="fill-ink text-[12px] font-semibold">
+              <text x={0} y={top - 6} className="fill-ink text-[12px] font-[620]">
                 {row.label}
-                <tspan className="fill-ink-3 font-normal"> log scale</tspan>
+                <tspan className="fill-ink-3 font-[420]"> log scale</tspan>
               </text>
               {decades(scale).map((e) => (
                 <g key={e}>
@@ -297,7 +297,7 @@ function UnitsChart({
                     y={yOf(limit.v) - 3}
                     textAnchor="end"
                     className="tnum fill-ink-2 text-[10px]"
-                    style={{ paintOrder: "stroke", stroke: "var(--die)", strokeWidth: 3 }}
+                    style={{ paintOrder: "stroke", stroke: "var(--surface)", strokeWidth: 3 }}
                   >
                     {limit.label}
                   </text>
@@ -325,7 +325,7 @@ function UnitsChart({
                   cy={yOf(row.values[at]!)}
                   r={r + 4}
                   fill="none"
-                  stroke="var(--safelight)"
+                  stroke="var(--signal)"
                   strokeWidth={1.5}
                 />
               ) : null}
@@ -338,7 +338,7 @@ function UnitsChart({
             x2={xOf(at)}
             y1={12}
             y2={rows.length * ROW}
-            stroke="var(--safelight)"
+            stroke="var(--signal)"
             strokeWidth={1}
             opacity={0.8}
           />
@@ -440,7 +440,7 @@ function RiskPanel({ result, unit }: { result: SensorRiskView; unit: UnitRiskVie
         <Fact label="This unit">{VALIDITY[unit.validity]}</Fact>
       </dl>
 
-      <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">
+      <h4 className="mt-5 text-[14px] leading-5 font-[620] text-ink">
         What moved this unit&apos;s risk
       </h4>
       <p className="text-[12px] leading-4 text-ink-3">
@@ -466,7 +466,7 @@ function RiskPanel({ result, unit }: { result: SensorRiskView; unit: UnitRiskVie
       )}
       {groups.length ? (
         <>
-          <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">
+          <h4 className="mt-5 text-[14px] leading-5 font-[620] text-ink">
             Sensor groups among them
           </h4>
           <p className="text-[12px] leading-4 text-ink-3">
@@ -573,8 +573,12 @@ function ChartPanel({ charts, unit }: { charts: ControlChartsView; unit: UnitCha
         ))}
       </dl>
       <div className="mt-5 flex flex-wrap items-baseline justify-between gap-2">
-        <h4 className="text-[14px] leading-5 font-semibold text-ink">Sensors behind it</h4>
-        <div role="group" aria-label="Statistic" className="flex gap-1">
+        <h4 className="text-[14px] leading-5 font-[620] text-ink">Sensors behind it</h4>
+        <div
+          role="group"
+          aria-label="Statistic"
+          className="flex gap-0.5 rounded-full bg-surface-2 p-1 shadow-[inset_0_0_0_1px_var(--hairline)]"
+        >
           {(["t2", "spe"] as const).map((s) => (
             <button
               key={s}
@@ -582,8 +586,9 @@ function ChartPanel({ charts, unit }: { charts: ControlChartsView; unit: UnitCha
               aria-pressed={stat === s}
               onClick={() => setStat(s)}
               className={cn(
-                "rounded-[4px] px-2 py-0.5 text-[13px] leading-5 text-ink hover:bg-die-2",
-                stat === s && "lit",
+                "press inline-flex h-7 items-center rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink-2 hover:text-ink",
+                stat === s &&
+                  "bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.08),inset_0_0_0_1px_var(--hairline)] dark:bg-surface-3",
               )}
             >
               {s === "t2" ? "T²" : "SPE"}
@@ -726,7 +731,7 @@ function DriftSpark({
           strokeDasharray="3 3"
         />
         {selected != null && selected < n ? (
-          <line x1={x(selected)} x2={x(selected)} y1={0} y2={h} stroke="var(--safelight)" />
+          <line x1={x(selected)} x2={x(selected)} y1={0} y2={h} stroke="var(--signal)" />
         ) : null}
         <path
           d={path}
@@ -763,8 +768,8 @@ function HealthPanel({ drift }: { drift: DriftHealthView }) {
             aria-pressed={status === s}
             onClick={() => setStatus(s)}
             className={cn(
-              "tnum rounded-[4px] border border-hairline-strong px-2.5 py-1 text-[13px] leading-5 text-ink hover:bg-die-2",
-              status === s && "lit border-transparent",
+              "tnum press inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]",
+              status === s && "lit",
             )}
           >
             {`${HEALTH_STATUS[s]} ${formatInt(drift.health_counts[s] ?? 0)}`}
@@ -777,12 +782,12 @@ function HealthPanel({ drift }: { drift: DriftHealthView }) {
           className="mt-2 max-h-[260px] overflow-y-auto"
         >
           <table className="w-full text-left text-[13px] leading-5">
-            <thead className="sticky top-0 bg-die text-ink-3">
+            <thead className="sticky top-0 bg-surface text-ink-3">
               <tr>
-                <th scope="col" className="py-1 pr-3 font-normal">
+                <th scope="col" className="py-1 pr-3 font-[420]">
                   Sensor
                 </th>
-                <th scope="col" className="py-1 font-normal">
+                <th scope="col" className="py-1 font-[420]">
                   Why
                 </th>
               </tr>
@@ -806,7 +811,7 @@ function HealthPanel({ drift }: { drift: DriftHealthView }) {
       )}
       <details className="mt-3 text-[12px] leading-4 text-ink-3">
         <summary className="cursor-pointer text-ink-2">The rules</summary>
-        <ul className="mt-1 list-disc space-y-1 pl-4">
+        <ul className="mt-1 grid list-disc gap-1 pl-4">
           {drift.rules.map((r) => (
             <li key={r}>{r}</li>
           ))}

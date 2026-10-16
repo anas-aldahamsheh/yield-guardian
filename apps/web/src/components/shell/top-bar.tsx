@@ -1,11 +1,14 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ComponentProps, useLayoutEffect, useRef, useState } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 
+import { Indicator } from "@/components/motion/indicator";
+import { SPRING } from "@/components/motion/springs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,16 +18,16 @@ import { ThemeMenu } from "./theme-menu";
 import { Wordmark } from "./wordmark";
 
 /** The narrow-screen menu button. */
-export function MenuButton(props: ComponentProps<typeof Button>) {
+export function MenuButton({ className, ...props }: ComponentProps<typeof Button>) {
   return (
     <Button
       variant="ghost"
-      size="icon-sm"
-      className="md:hidden"
+      size="icon"
+      className={cn("md:hidden", className)}
       aria-label="Open the menu"
       {...props}
     >
-      <Menu className="size-4" aria-hidden="true" />
+      <Menu className="size-5" strokeWidth={1.75} aria-hidden="true" />
     </Button>
   );
 }
@@ -53,85 +56,117 @@ function MobileNav({ pathname }: { pathname: string }) {
   );
 }
 
+/**
+ * The bar floats once the page scrolls under it: the canvas turns to frosted glass (blurred and
+ * nearly opaque, so nothing reads through) and a hairline appears. The scroll position is written
+ * as an attribute, so scrolling renders nothing in React.
+ */
+function useScrolledAttribute() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      el.toggleAttribute("data-scrolled", window.scrollY > 4);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return ref;
+}
+
 export function TopBar() {
   const pathname = usePathname();
+  const ref = useScrolledAttribute();
 
+  // Fixed rather than sticky (Chromium does not blur the backdrop of this sticky bar), with a
+  // spacer of the bar's height in the page's flow.
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-room">
-      <div className="mx-auto flex h-bar max-w-[1600px] items-stretch gap-6 px-gutter">
-        <Wordmark className="self-center" />
-        <DesktopNav pathname={pathname} />
+    <>
+      <div aria-hidden="true" className="h-bar shrink-0" />
+      <header
+        ref={ref}
+        className={cn(
+          "group/bar fixed inset-x-0 top-0 z-40 bg-canvas transition-[background-color,box-shadow] duration-(--dur-3) ease-out",
+          "data-[scrolled]:bg-canvas/95 data-[scrolled]:shadow-[0_1px_0_var(--hairline),0_12px_32px_-24px_rgb(0_0_0/0.35)] data-[scrolled]:backdrop-blur-2xl data-[scrolled]:backdrop-saturate-[1.8]",
+        )}
+      >
+        <div className="mx-auto flex h-bar max-w-[1600px] items-center gap-4 px-gutter md:gap-8">
+          <Wordmark />
+          <DesktopNav pathname={pathname} />
 
-        <div className="ml-auto flex items-center gap-2">
-          <ThemeMenu />
-          <SessionControl className="hidden md:flex" />
-          <MobileNav pathname={pathname} />
+          <div className="ml-auto flex items-center gap-1.5">
+            <ThemeMenu />
+            <SessionControl className="hidden md:flex" />
+            <MobileNav pathname={pathname} />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }
 
 /**
- * The main navigation on wide screens. The safelight bar under the current page slides to the
- * next page when you navigate, so the move is visible; it does not animate on first paint.
+ * The main navigation on wide screens. The current page sits on a raised pill with the film's
+ * light along its foot; on navigation the pill slides to the next page (shared layout). A paler
+ * pill follows the pointer over the other pages. Nothing moves on the first paint.
  */
 function DesktopNav({ pathname }: { pathname: string }) {
-  const list = useRef<HTMLUListElement>(null);
-  const [bar, setBar] = useState<{ left: number; width: number; animate: boolean } | null>(null);
   const activeHref = NAV_ITEMS.find((item) => isActive(pathname, item.href))?.href ?? null;
-
-  useLayoutEffect(() => {
-    const el = list.current;
-    if (!el) return;
-    const place = (animate: boolean) => {
-      const link = activeHref ? el.querySelector<HTMLElement>(`a[href="${activeHref}"]`) : null;
-      setBar((prev) => (link ? { ...underText(link), animate: animate && prev != null } : null));
-    };
-    place(true);
-    const observer = new ResizeObserver(() => place(false));
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [activeHref]);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <nav aria-label="Main" className="hidden items-stretch md:flex">
-      <ul ref={list} className="relative flex items-stretch">
-        {NAV_ITEMS.map((item) => {
-          const active = item.href === activeHref;
-          return (
-            <li key={item.href} className="flex">
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "relative flex items-center px-3 text-sm no-underline transition-colors duration-[var(--dur-micro)]",
-                  active ? "font-medium text-ink" : "text-ink-2 hover:text-ink",
-                )}
-              >
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-        {bar ? (
-          <li
-            aria-hidden="true"
-            className={cn(
-              "pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full bg-safelight",
-              bar.animate &&
-                "transition-[transform,width] duration-[var(--dur-panel)] ease-[var(--ease-arrive)]",
-            )}
-            style={{ width: bar.width, transform: `translateX(${bar.left}px)` }}
-          />
-        ) : null}
-      </ul>
+    <nav aria-label="Main" className="hidden md:flex">
+      <LayoutGroup id="main-nav">
+        <ul className="flex items-center gap-0.5" onPointerLeave={() => setHovered(null)}>
+          {NAV_ITEMS.map((item) => {
+            const active = item.href === activeHref;
+            return (
+              <li key={item.href} className="relative flex">
+                <AnimatePresence>
+                  {hovered === item.href && !active ? (
+                    <Indicator
+                      key="hover"
+                      layoutId="nav-hover"
+                      fade
+                      transition={SPRING.hover}
+                      className="absolute inset-0 rounded-full bg-surface-2"
+                    />
+                  ) : null}
+                </AnimatePresence>
+                {active ? (
+                  <Indicator
+                    layoutId="nav-current"
+                    className="absolute inset-0 rounded-full bg-surface shadow-[inset_0_0_0_1px_var(--hairline),0_1px_2px_rgb(0_0_0/0.06)] dark:bg-surface-2"
+                  >
+                    <span className="film-light absolute inset-x-3.5 bottom-[3px] h-[2px] rounded-full" />
+                  </Indicator>
+                ) : null}
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  onPointerEnter={() => setHovered(item.href)}
+                  className={cn(
+                    "relative flex h-9 items-center rounded-full px-4 text-[14px] leading-5 font-[540] no-underline transition-colors duration-(--dur-1)",
+                    active ? "text-ink" : "text-ink-2 hover:text-ink",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </LayoutGroup>
     </nav>
   );
-}
-
-/** The bar spans the link's text, inside its padding. */
-function underText(link: HTMLElement): { left: number; width: number } {
-  const pad = Number.parseFloat(getComputedStyle(link).paddingLeft) || 0;
-  return { left: link.offsetLeft + pad, width: link.offsetWidth - 2 * pad };
 }

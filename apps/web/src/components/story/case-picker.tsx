@@ -46,7 +46,7 @@ function Catalog({ onStart, starting }: { onStart: StartRun; starting: boolean }
   const finding = cases.isPending && cases.failureReason instanceof NotReadyYet;
   return (
     <section aria-labelledby="cases-title" className="min-w-0">
-      <h3 id="cases-title" className="text-[15px] leading-6 font-semibold text-ink">
+      <h3 id="cases-title" className="text-[15px] leading-6 font-[620] text-ink">
         Real situations
       </h3>
       <p className="mb-3 text-[13px] leading-5 text-ink-3">
@@ -55,12 +55,9 @@ function Catalog({ onStart, starting }: { onStart: StartRun; starting: boolean }
       {finding ? (
         <p
           role="status"
-          className="flex items-start gap-2 rounded-[2px] border border-hairline px-3 py-2.5 text-[14px] leading-5 text-ink-2"
+          className="flex items-start gap-2 rounded-[14px] px-3 py-2.5 text-[14px] leading-5 text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline)]"
         >
-          <span
-            aria-hidden="true"
-            className="mt-1.5 size-1.5 shrink-0 rounded-full bg-safelight-lamp"
-          />
+          <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-signal" />
           Finding real cases in the data. The service looks for them each time it starts, which
           takes up to half a minute; the list appears here when it is ready.
         </p>
@@ -99,15 +96,15 @@ function CaseRow({
     item.wafers ? plural(item.wafers, "wafer") : null,
   ].filter(Boolean);
   return (
-    <div className="rounded-[2px] border border-hairline px-3 py-2.5">
+    <div className="rounded-[14px] px-3 py-2.5 shadow-[inset_0_0_0_1px_var(--hairline)]">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="text-[15px] leading-6 font-medium text-ink">{item.title}</p>
+        <p className="text-[15px] leading-6 font-[560] text-ink">{item.title}</p>
         <button
           type="button"
           onClick={onRun}
           disabled={disabled}
           aria-label={`Run: ${item.title}`}
-          className="rounded-[4px] border border-hairline-strong px-2.5 py-0.5 text-[13px] leading-5 text-ink hover:bg-die-2 disabled:opacity-50"
+          className="press inline-flex h-7 items-center justify-center rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-50"
         >
           Run
         </button>
@@ -140,7 +137,7 @@ function Browsers({ onStart, starting }: { onStart: StartRun; starting: boolean 
 
   return (
     <section aria-labelledby="browse-title" className="min-w-0">
-      <h3 id="browse-title" className="text-[15px] leading-6 font-semibold text-ink">
+      <h3 id="browse-title" className="text-[15px] leading-6 font-[620] text-ink">
         Choose real items
       </h3>
       <p className="mb-3 text-[13px] leading-5 text-ink-3">
@@ -173,7 +170,7 @@ function Browsers({ onStart, starting }: { onStart: StartRun; starting: boolean 
           type="button"
           disabled={!parts.length || starting}
           onClick={() => void onStart(body)}
-          className="inline-flex h-10 items-center rounded-[4px] bg-ink px-4 text-[14px] font-semibold text-room hover:bg-ink/90 disabled:opacity-50"
+          className="press lift sheen-hover inline-flex h-10 items-center justify-center rounded-full bg-ink px-5 text-[14px] font-[600] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink/92 disabled:opacity-50"
         >
           {parts.length ? `Run ${parts.join(", ")}` : "Tick items to run them"}
         </button>
@@ -237,7 +234,7 @@ function PagedList<T>({
             type="button"
             onClick={() => void query.fetchNextPage()}
             disabled={query.isFetchingNextPage}
-            className="rounded-[4px] border border-hairline-strong px-2 py-0.5 text-[13px] text-ink hover:bg-die-2"
+            className="press inline-flex h-7 items-center justify-center rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]"
           >
             {query.isFetchingNextPage ? "Loading" : "Show more"}
           </button>
@@ -264,8 +261,8 @@ function Tick({
     <li>
       <label
         className={cn(
-          "flex cursor-pointer items-start gap-3 border-b border-hairline px-1 py-2 hover:bg-die-2",
-          checked && "bg-safelight-wash",
+          "flex cursor-pointer items-start gap-3 border-b border-hairline px-1 py-2 hover:bg-surface-2",
+          checked && "bg-signal-wash",
         )}
       >
         <input
@@ -274,7 +271,7 @@ function Tick({
           checked={checked}
           onChange={onChange}
           onClick={name && checked ? onChange : undefined}
-          className="mt-1 size-4 shrink-0 accent-[var(--safelight)]"
+          className="mt-1 size-4 shrink-0 accent-[var(--signal)]"
         />
         <span className="min-w-0">
           <span className="tnum block text-[14px] leading-5 text-ink">{label}</span>

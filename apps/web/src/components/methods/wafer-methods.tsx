@@ -14,7 +14,8 @@ import { formatInt, formatNumber, formatPercent } from "@/lib/format";
 import { type PatternLabel, patternName } from "@/lib/labels";
 
 import { ConfusionMatrix } from "./charts";
-import { EstimateFootnote, Limitations } from "./secom-methods";
+import { Limitations } from "./limitations";
+import { EstimateFootnote } from "./secom-methods";
 import { ScrollRegion } from "@/components/scroll-region";
 
 const SPLIT_NAME: Record<SplitResult["split"], string> = {
@@ -61,20 +62,20 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Macro-F1 by split</caption>
             <thead>
-              <tr className="border-y border-hairline text-[12px] text-ink-3">
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                   Model and split
                 </th>
-                <th scope="col" className="px-3 py-2 text-right font-normal">
+                <th scope="col" className="px-3 py-3 text-right font-[520]">
                   Test wafers
                 </th>
-                <th scope="col" className="w-[28%] px-3 py-2 font-normal">
+                <th scope="col" className="w-[28%] px-3 py-3 font-[520]">
                   Macro-F1
                 </th>
-                <th scope="col" className="px-3 py-2 font-normal">
+                <th scope="col" className="px-3 py-3 font-[520]">
                   Accuracy
                 </th>
-                <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                <th scope="col" className="px-5 py-3 text-right font-[520] sm:px-6">
                   Lots in both
                 </th>
               </tr>
@@ -82,16 +83,16 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
             <tbody>
               {rows.map(({ key, model, s }) => (
                 <tr key={key} className="border-b border-hairline align-top last:border-b-0">
-                  <th scope="row" className="px-4 py-2.5 font-normal sm:px-5">
-                    <span className={model === "CNN" ? "font-medium text-ink" : "text-ink-2"}>
+                  <th scope="row" className="px-5 py-3 font-[420] sm:px-6">
+                    <span className={model === "CNN" ? "font-[560] text-ink" : "text-ink-2"}>
                       {model}
                     </span>
                     <span className="block text-[12px] text-ink-3">{SPLIT_NAME[s.split]}</span>
                   </th>
-                  <td className="tnum px-3 py-2.5 text-right text-ink-2">
+                  <td className="tnum px-3 py-3 text-right text-ink-2">
                     {formatInt(s.test_wafers)}
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-3 py-3">
                     <IntervalMark estimate={s.macro_f1} />
                     <span className="mt-0.5 block text-[12px]">
                       <EstimateText estimate={s.macro_f1} digits={3} />
@@ -102,14 +103,14 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2.5 text-[12px]">
+                  <td className="px-3 py-3 text-[12px]">
                     {s.accuracy ? (
                       <EstimateText estimate={s.accuracy} digits={3} />
                     ) : (
                       <span className="text-ink-3">Not measured yet</span>
                     )}
                   </td>
-                  <td className="tnum px-4 py-2.5 text-right text-ink-2 sm:px-5">
+                  <td className="tnum px-5 py-3 text-right text-ink-2 sm:px-6">
                     {s.lots_in_both == null ? "–" : formatInt(s.lots_in_both)}
                   </td>
                 </tr>
@@ -149,19 +150,19 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                 <caption className="sr-only">Per-pattern metrics, {SPLIT_NAME[split]}</caption>
                 <thead>
                   <tr className="border-b border-hairline text-ink-3">
-                    <th scope="col" className="py-1.5 pr-3 font-normal">
+                    <th scope="col" className="py-2.5 pr-3 font-[520]">
                       Pattern
                     </th>
-                    <th scope="col" className="py-1.5 pr-3 text-right font-normal">
+                    <th scope="col" className="py-2.5 pr-3 text-right font-[520]">
                       Support
                     </th>
-                    <th scope="col" className="py-1.5 pr-3 font-normal">
+                    <th scope="col" className="py-2.5 pr-3 font-[520]">
                       Precision
                     </th>
-                    <th scope="col" className="py-1.5 pr-3 font-normal">
+                    <th scope="col" className="py-2.5 pr-3 font-[520]">
                       Recall
                     </th>
-                    <th scope="col" className="py-1.5 font-normal">
+                    <th scope="col" className="py-2.5 font-[520]">
                       F1
                     </th>
                   </tr>
@@ -169,7 +170,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                 <tbody>
                   {current.per_class.map((c) => (
                     <tr key={c.label} className="border-b border-hairline last:border-b-0">
-                      <th scope="row" className="py-1.5 pr-3 font-normal text-ink">
+                      <th scope="row" className="py-1.5 pr-3 font-[420] text-ink">
                         {patternName(c.label as PatternLabel)}
                       </th>
                       <td className="tnum py-1.5 pr-3 text-right text-ink-2">
@@ -274,7 +275,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
               }
             />
           </dl>
-          <h3 className="mt-5 text-[13px] leading-5 font-medium text-ink">
+          <h3 className="mt-5 text-[13px] leading-5 font-[560] text-ink">
             Classified automatically at a precision target
           </h3>
           {metrics.auto_classification.length ? (
@@ -282,16 +283,16 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
               <caption className="sr-only">Automatic classification by precision target</caption>
               <thead>
                 <tr className="border-b border-hairline text-ink-3">
-                  <th scope="col" className="py-1 pr-3 font-normal">
+                  <th scope="col" className="py-1 pr-3 font-[520]">
                     Target
                   </th>
-                  <th scope="col" className="py-1 pr-3 font-normal">
+                  <th scope="col" className="py-1 pr-3 font-[520]">
                     Confidence above
                   </th>
-                  <th scope="col" className="py-1 pr-3 font-normal">
+                  <th scope="col" className="py-1 pr-3 font-[520]">
                     Share of wafers
                   </th>
-                  <th scope="col" className="py-1 font-normal">
+                  <th scope="col" className="py-1 font-[520]">
                     Precision reached
                   </th>
                 </tr>
@@ -304,7 +305,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
                       key={a.precision_target}
                       className="border-b border-hairline last:border-b-0"
                     >
-                      <th scope="row" className="tnum py-1.5 pr-3 font-normal text-ink">
+                      <th scope="row" className="tnum py-1.5 pr-3 font-[420] text-ink">
                         {formatPercent(a.precision_target, 0)}
                       </th>
                       <td className="tnum py-1.5 pr-3 text-ink-2">
@@ -325,7 +326,7 @@ function WaferContent({ metrics }: { metrics: WaferMetrics }) {
           )}
           {metrics.published.length ? (
             <>
-              <h3 className="mt-5 text-[13px] leading-5 font-medium text-ink">
+              <h3 className="mt-5 text-[13px] leading-5 font-[560] text-ink">
                 Published results on WM-811K
               </h3>
               <p className="text-[12px] leading-4 text-ink-3">

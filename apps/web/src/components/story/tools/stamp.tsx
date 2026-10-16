@@ -13,15 +13,7 @@ import { useScene, type SceneStore } from "../scene";
  * fail colour, up to 70), outlined where the risk had warned. Wafers with a recorded label are counted by
  * whether the model's pattern matched it.
  */
-export function StampTool({
-  state,
-  store,
-  active,
-}: {
-  state: RunState | null;
-  store: SceneStore;
-  active: boolean;
-}) {
+export function StampTool({ state, store }: { state: RunState | null; store: SceneStore }) {
   const shown = useScene(store, (s) => s.revealed.has("final_test"));
   const stamp = useScene(store, (s) => s.stamp);
   const result: FinalTestResult | null = state && shown ? stageResult(state, "final_test") : null;
@@ -35,29 +27,10 @@ export function StampTool({
   const t = Math.min(1, stamp);
 
   return (
-    <svg viewBox="-16 0 272 318" className="block h-auto w-full" aria-hidden="true">
-      {/* Test head on its manipulator */}
+    <svg viewBox="0 0 200 250" className="block h-auto w-full" aria-hidden="true">
+      {/* The seal: drawn once results arrive, inked by the stamp as it lands */}
       <g
-        fill="none"
-        stroke="var(--hairline-strong)"
-        strokeWidth={1}
-        vectorEffect="non-scaling-stroke"
-      >
-        <path d="M 120 4 V 16" />
-        <rect x={64} y={16} width={112} height={56} rx={3} fill="var(--die)" />
-        <path d="M 82 72 V 86 H 158 V 72" />
-        <rect x={74} y={86} width={92} height={10} rx={1} fill="var(--die-2)" />
-        <circle
-          cx={162}
-          cy={28}
-          r={3}
-          fill={active ? "var(--safelight-lamp)" : "var(--hairline)"}
-          stroke="none"
-        />
-      </g>
-      {/* The seal: drawn once results arrive, inked by the stamp */}
-      <g
-        transform={`translate(120 164) rotate(-8) scale(${1.2 - 0.2 * t})`}
+        transform={`translate(100 92) rotate(-8) scale(${1.2 - 0.2 * t})`}
         opacity={result ? 0.25 + 0.75 * t : 1}
       >
         <circle
@@ -114,8 +87,8 @@ export function StampTool({
       </g>
       {/* One mark per unit with a recorded result */}
       {marks.map((u, i) => {
-        const x = 120 - (cols * cell) / 2 + (i % cols) * cell + 1;
-        const y = 240 + Math.floor(i / cols) * cell;
+        const x = 100 - (cols * cell) / 2 + (i % cols) * cell + 1;
+        const y = 172 + Math.floor(i / cols) * cell;
         const visible = i < Math.round(t * marks.length);
         return (
           <g key={u.index} opacity={visible ? 1 : 0}>
@@ -124,6 +97,7 @@ export function StampTool({
               y={y}
               width={cell - 2}
               height={cell - 2}
+              rx={2}
               fill={u.result === "fail" ? "var(--fail)" : "var(--pass)"}
               opacity={u.result === "fail" ? 1 : 0.55}
             />
@@ -133,6 +107,7 @@ export function StampTool({
                 y={y - 1}
                 width={cell}
                 height={cell}
+                rx={2.5}
                 fill="none"
                 stroke="var(--ink)"
                 strokeWidth={1}

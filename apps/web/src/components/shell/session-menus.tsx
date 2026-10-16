@@ -46,7 +46,7 @@ export function SessionMenu({
         <SessionButton session={session} className={className} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="font-normal text-ink-2">
+        <DropdownMenuLabel className="font-[420] text-ink-2">
           Signed in as {ROLE_LABEL[session.role].toLowerCase()}
           {session.expires_at ? (
             <span className="mt-0.5 block text-xs text-ink-3">

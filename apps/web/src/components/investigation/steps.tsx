@@ -45,19 +45,19 @@ export function Steps({
           <li
             key={step.index}
             className={cn(
-              "relative -mx-2 grid grid-cols-[20px_minmax(0,1fr)] gap-x-3 rounded-sm px-2 pt-1 pb-4",
+              "relative -mx-2 grid grid-cols-[20px_minmax(0,1fr)] gap-x-3 rounded-[12px] px-2 pt-1 pb-5",
               fresh.has(String(step.index)) && "flash-new",
             )}
           >
             {!last ? (
               <span
                 aria-hidden="true"
-                className="absolute top-6 bottom-0 left-[17.5px] w-px bg-hairline-strong"
+                className="absolute top-[26px] bottom-0.5 left-[17.5px] w-px bg-hairline-strong"
               />
             ) : null}
             <StepMark status={step.status} />
             <div className="min-w-0">
-              <p className="text-[14px] leading-5 text-ink">
+              <p className="text-[14px] leading-5 font-[540] text-ink">
                 <span className="sr-only">{statusWord(step.status)}: </span>
                 {step.title}
               </p>
@@ -117,24 +117,17 @@ function StepMark({ status }: { status: InvestigationStep["status"] }) {
   return (
     <span
       aria-hidden="true"
-      className="relative z-[1] mt-0.5 flex size-5 items-center justify-center rounded-full bg-die"
+      className="relative z-[1] mt-0.5 flex size-5 items-center justify-center rounded-full bg-surface"
     >
       <svg viewBox="0 0 20 20" className="size-5">
         {status === "running" ? (
           <>
-            <circle
-              cx="10"
-              cy="10"
-              r="8.5"
-              fill="none"
-              stroke="var(--safelight)"
-              strokeWidth="1.5"
-            />
+            <circle cx="10" cy="10" r="8.5" fill="none" stroke="var(--signal)" strokeWidth="1.5" />
             <circle
               cx="10"
               cy="10"
               r="4"
-              fill="var(--safelight)"
+              fill="var(--signal)"
               className={cn("origin-center animate-pulse")}
             />
           </>
@@ -144,7 +137,7 @@ function StepMark({ status }: { status: InvestigationStep["status"] }) {
             <path
               d="M6 10.3l2.6 2.6L14.2 7.4"
               fill="none"
-              stroke="var(--die)"
+              stroke="var(--surface)"
               strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -155,7 +148,7 @@ function StepMark({ status }: { status: InvestigationStep["status"] }) {
             <circle cx="10" cy="10" r="8.5" fill="var(--fail)" />
             <path
               d="M7 7l6 6M13 7l-6 6"
-              stroke="var(--die)"
+              stroke="var(--surface)"
               strokeWidth="1.8"
               strokeLinecap="round"
             />

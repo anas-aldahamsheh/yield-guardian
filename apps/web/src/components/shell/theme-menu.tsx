@@ -21,8 +21,13 @@ export function ThemeButton(props: ComponentProps<typeof Button>) {
   const mounted = useThemeMounted();
   const Icon = !mounted ? Monitor : resolvedTheme === "dark" ? Moon : Sun;
   return (
-    <Button variant="ghost" size="icon-sm" aria-label="Choose the colour theme" {...props}>
-      <Icon className="size-4" aria-hidden="true" />
+    <Button variant="ghost" size="icon" aria-label="Choose the colour theme" {...props}>
+      <Icon
+        key={mounted ? (resolvedTheme ?? "system") : "system"}
+        className="size-[18px] animate-in duration-[480ms] ease-spring fade-in-0 zoom-in-75 spin-in-[-60deg]"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
     </Button>
   );
 }
@@ -34,9 +39,9 @@ const ThemeMenuFull = dynamic(load, {
 });
 
 /**
- * Dark is the yellow room; light is the same bay under white inspection light. The menu (Radix
- * and its positioning code) is fetched when someone points at or focuses the button and mounts,
- * already open, when they press it: no page loads it for its first paint.
+ * Light is the cleanroom, dark is silicon; the line's instrument screens are dark glass in both.
+ * The menu (Radix and its positioning code) is fetched when someone points at or focuses the
+ * button and mounts, already open, when they press it: no page loads it for its first paint.
  */
 export function ThemeMenu() {
   const [opened, setOpened] = useState(false);

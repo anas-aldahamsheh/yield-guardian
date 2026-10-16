@@ -131,7 +131,7 @@ test.describe("How it works", () => {
     await expect(shot).toHaveAttribute("alt", /^لوحة Upload a file/);
     await expect
       .poll(() => shot.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
-      .toBe(1392);
+      .toBe(1376);
   });
 });
 

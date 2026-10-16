@@ -69,20 +69,22 @@ export function Report({
       </p>
       <Flags issues={shared.issues.get("summary")} />
 
-      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+      <h3 className="mt-10 border-t border-hairline pt-7 text-[18px] leading-6 font-[640] tracking-[-0.012em] text-ink">
         Findings
       </h3>
-      <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-5">
+      <ol className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-6">
         {report.findings.map((finding, i) => {
           const verdict = verdicts.get(i);
           return (
             <li key={i} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2">
-              <span className="tnum pt-[5px] text-[13px] leading-5 text-ink-3">{i + 1}.</span>
+              <span className="tnum pt-[6px] text-[13px] leading-5 font-[560] text-ink-3">
+                {i + 1}.
+              </span>
               <div className="min-w-0">
                 <p className="written max-w-[66ch] text-ink">
                   <WrittenText text={finding.claim} {...shared} />
                 </p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-5">
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-5">
                   <EvidenceChips ids={finding.evidence_ids} {...shared} />
                   <span className="text-ink-3">
                     {STRENGTH[finding.strength] ?? finding.strength}
@@ -111,14 +113,16 @@ export function Report({
 
       {showHypotheses ? <HypothesisTable rows={hypotheses} {...shared} /> : null}
 
-      <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+      <h3 className="mt-10 border-t border-hairline pt-7 text-[18px] leading-6 font-[640] tracking-[-0.012em] text-ink">
         Proposed actions
       </h3>
       {actionsSlot ?? (
-        <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-4">
+        <ol className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-6">
           {report.actions.map((action, i) => (
             <li key={i} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2">
-              <span className="tnum pt-[5px] text-[13px] leading-5 text-ink-3">{i + 1}.</span>
+              <span className="tnum pt-[6px] text-[13px] leading-5 font-[560] text-ink-3">
+                {i + 1}.
+              </span>
               <ActionBody action={action} index={i} {...shared} />
             </li>
           ))}
@@ -127,10 +131,10 @@ export function Report({
 
       {report.limitations.length ? (
         <>
-          <h3 className="mt-9 border-t border-hairline pt-5 text-[15px] leading-6 font-semibold text-ink">
+          <h3 className="mt-10 border-t border-hairline pt-7 text-[18px] leading-6 font-[640] tracking-[-0.012em] text-ink">
             Limitations
           </h3>
-          <ul className="mt-2 grid max-w-[68ch] list-disc grid-cols-[minmax(0,1fr)] gap-1.5 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
+          <ul className="mt-4 grid max-w-[68ch] list-disc grid-cols-[minmax(0,1fr)] gap-2 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
             {report.limitations.map((l, i) => (
               <li key={i}>{l}</li>
             ))}
@@ -154,7 +158,7 @@ export function ActionBody({
       <p className="mt-1 max-w-[66ch] text-[15px] leading-6 text-ink-2">
         <WrittenText text={action.rationale} {...shared} />
       </p>
-      <div className="mt-1.5 text-[13px] leading-5">
+      <div className="mt-2 text-[13px] leading-5">
         <EvidenceChips ids={action.evidence_ids} {...shared} />
       </div>
       <Flags issues={shared.issues.get(`actions[${index}]`)} />
@@ -185,7 +189,7 @@ export function WrittenText({
               onSelect({ evidenceId: ref.evidence_id, path: ref.path, number: segment.number })
             }
             className={cn(
-              "tnum inline cursor-pointer rounded-[2px] px-0.5 underline decoration-1 underline-offset-[5px]",
+              "tnum inline cursor-pointer rounded-[4px] px-0.5 underline decoration-1 underline-offset-[5px] transition-[background-color,text-decoration-color] duration-(--dur-1)",
               flagged
                 ? "bg-fail-wash decoration-fail decoration-wavy"
                 : "decoration-hairline-strong decoration-dotted hover:decoration-ink",
@@ -218,7 +222,7 @@ export function UnverifiedMark() {
       <TooltipTrigger asChild>
         <span
           tabIndex={0}
-          className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded-[2px] border border-dashed border-fail px-1 align-baseline text-[11px] leading-4 font-medium tracking-[0.02em] text-fail"
+          className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded-full border border-dashed border-fail px-1.5 align-baseline text-[11px] leading-4 font-[560] tracking-[0.02em] text-fail"
           aria-label="Value hidden: the verifier could not trace it to the evidence."
         >
           unverified
@@ -246,8 +250,8 @@ export function EvidenceChips({
           aria-label={`Show evidence ${id}`}
           aria-pressed={selection?.evidenceId === id && selection.path == null}
           className={cn(
-            "tnum inline-flex h-6 min-w-8 cursor-pointer items-center justify-center rounded-sm border border-hairline-strong px-1.5 text-[12px] text-ink-2 hover:border-ink-3 hover:text-ink",
-            selection?.evidenceId === id && "lit border-transparent text-ink",
+            "press tnum inline-flex h-6 min-w-9 cursor-pointer items-center justify-center rounded-full px-2 text-[12px] leading-4 font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink hover:shadow-[inset_0_0_0_1px_var(--edge)]",
+            selection?.evidenceId === id && "lit text-ink hover:bg-signal-wash",
           )}
         >
           {id}
@@ -265,9 +269,9 @@ export function Flags({ issues }: { issues: VerificationIssue[] | undefined }) {
       {issues.map((issue, i) => (
         <li
           key={i}
-          className="flex max-w-[66ch] gap-2 rounded-sm border-l-2 border-fail bg-fail-wash px-3 py-1.5 text-[13px] leading-5 text-ink"
+          className="flex max-w-[66ch] gap-2 rounded-[10px] bg-fail-wash px-3 py-2 text-[13px] leading-5 text-ink shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_26%,transparent)]"
         >
-          <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}.</span>
+          <span className="font-[560]">{ISSUE_CODE[issue.code] ?? issue.code}.</span>
           <span className="text-ink-2">{issue.message}</span>
         </li>
       ))}

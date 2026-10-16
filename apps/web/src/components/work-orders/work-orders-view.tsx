@@ -3,10 +3,12 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { WorkOrder } from "@yield-guardian/contracts";
+import { XIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
+import { Tag } from "@/components/tag";
 import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
@@ -19,6 +21,10 @@ import { AuditLog } from "./audit-log";
 import { WorkOrderSection } from "./work-order-view";
 import { ScrollRegion } from "@/components/scroll-region";
 
+/**
+ * A work order's status as a word on a chip, with a dot that repeats it: an open ring while it is
+ * open, the signal while in progress, pass when done, grey when cancelled.
+ */
 export function StatusMark({
   status,
   className,
@@ -27,13 +33,21 @@ export function StatusMark({
   className?: string;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap", className)}>
+    <span
+      className={cn(
+        "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560] whitespace-nowrap text-ink",
+        (status === "open" || status === "in_progress") && "bg-signal-wash",
+        status === "done" && "bg-pass-wash",
+        status === "cancelled" && "bg-surface-2 text-ink-2",
+        className,
+      )}
+    >
       <span
         aria-hidden="true"
         className={cn(
-          "size-2 rounded-full",
-          status === "open" && "bg-safelight",
-          status === "in_progress" && "border-[1.5px] border-safelight",
+          "size-1.5 shrink-0 rounded-full",
+          status === "open" && "shadow-[inset_0_0_0_1.5px_var(--signal)]",
+          status === "in_progress" && "bg-signal",
           status === "done" && "bg-pass",
           status === "cancelled" && "bg-mark-muted",
         )}
@@ -59,22 +73,23 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
       {order ? (
         <section
           aria-label={`Work order ${order}`}
-          className="border-b border-hairline pb-8"
+          className="grow-in scroll-mt-[calc(var(--bar-height)+24px)] border-b border-hairline pb-10"
           id="work-order"
         >
-          <div className="mb-3">
+          <div className="mb-4">
             <Link
               href={workOrdersHref()}
               scroll={false}
-              className="text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+              className="press inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-[560] text-ink-2 no-underline shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
             >
+              <XIcon className="size-3.5" strokeWidth={2} aria-hidden />
               Close this work order
             </Link>
           </div>
           <WorkOrderSection id={order} showInvestigation />
         </section>
       ) : null}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <Panel
           title="Work orders"
           description={total != null ? `${formatInt(total)} in all, newest first.` : undefined}
@@ -82,18 +97,21 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
         >
           {query.isError ? (
             <ErrorState
-              className="mx-4 sm:mx-5"
+              className="mx-5 sm:mx-6"
               error={query.error}
               onRetry={() => void query.refetch()}
             />
           ) : !query.data ? (
-            <Placeholder className="mx-4 h-48 sm:mx-5" label="Loading work orders" />
+            <Placeholder className="mx-5 h-48 sm:mx-6" label="Loading work orders" />
           ) : orders.length === 0 ? (
-            <EmptyState className="mx-4 sm:mx-5" title="No work orders yet">
+            <EmptyState
+              className="unexposed mx-5 border-solid bg-surface sm:mx-6"
+              title="No work orders yet"
+            >
               A work order opens when an engineer approves actions in an{" "}
               <Link
                 href="/investigations"
-                className="underline decoration-hairline-strong underline-offset-4"
+                className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
               >
                 investigation report
               </Link>
@@ -104,17 +122,17 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
               <table className="w-full min-w-[640px] border-collapse text-left text-[14px] leading-5">
                 <caption className="sr-only">Work orders</caption>
                 <thead>
-                  <tr className="border-y border-hairline text-[12px] text-ink-3">
-                    <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                  <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                    <th scope="col" className="py-3 pr-3 pl-5 font-[520] sm:pl-6">
                       Work order
                     </th>
-                    <th scope="col" className="px-2 py-2 font-normal">
+                    <th scope="col" className="px-3 py-3 font-[520]">
                       Status
                     </th>
-                    <th scope="col" className="px-2 py-2 font-normal">
+                    <th scope="col" className="px-3 py-3 font-[520]">
                       Outcome
                     </th>
-                    <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                    <th scope="col" className="py-3 pr-5 pl-3 text-right font-[520] sm:pr-6">
                       Updated
                     </th>
                   </tr>
@@ -123,32 +141,35 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                   {orders.map((o) => (
                     <tr
                       key={o.work_order_id}
-                      className="border-b border-hairline last:border-b-0 hover:bg-die-2"
+                      aria-current={o.work_order_id === order ? "true" : undefined}
+                      className="group/row border-b border-hairline transition-colors duration-(--dur-1) last:border-b-0 hover:bg-surface-2 aria-[current]:bg-signal-wash aria-[current]:shadow-[inset_3px_0_0_var(--signal)]"
                     >
-                      <th scope="row" className="px-4 py-2.5 font-normal sm:px-5">
+                      <th scope="row" className="py-3.5 pr-3 pl-5 align-top font-[420] sm:pl-6">
                         <Link
                           href={workOrderHref(o.work_order_id, o.investigation_id)}
-                          className="tnum text-ink underline decoration-hairline-strong underline-offset-4"
+                          className="tnum text-[15px] leading-[22px] font-[600] text-ink no-underline decoration-ink underline-offset-4 group-hover/row:underline focus-visible:underline"
                         >
                           {o.work_order_id}
                         </Link>
                         {o.example ? (
-                          <span className="ml-2 text-[12px] text-ink-3">Example</span>
+                          <Tag className="ml-2 group-hover/row:bg-surface-3">Example</Tag>
                         ) : null}
-                        <span className="mt-0.5 block text-[13px] text-ink-2">{o.title}</span>
-                        <span className="block text-[12px] text-ink-3">
+                        <span className="mt-0.5 block text-[13.5px] leading-5 text-ink-2">
+                          {o.title}
+                        </span>
+                        <span className="mt-0.5 block text-[12.5px] leading-4 text-ink-3">
                           {o.actions.length} {o.actions.length === 1 ? "action" : "actions"}, opened
                           by {o.created_by}
                         </span>
                       </th>
-                      <td className="px-2 py-2.5 align-top text-ink-2">
+                      <td className="px-3 py-3.5 align-top text-ink-2">
                         <StatusMark status={o.status} />
                       </td>
-                      <td className="px-2 py-2.5 align-top text-[13px] text-ink-2">
+                      <td className="px-3 py-3.5 align-top text-[13.5px] leading-5 text-ink-2">
                         {o.outcome ? (
                           <>
                             <span className="line-clamp-2">{o.outcome}</span>
-                            <span className="block text-[12px] text-ink-3">
+                            <span className="mt-0.5 block text-[12.5px] leading-4 text-ink-3">
                               {o.outcome_confirmed ? "Confirmed" : "Not confirmed"}
                             </span>
                           </>
@@ -156,7 +177,7 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                           <span className="text-ink-3">Not recorded</span>
                         )}
                       </td>
-                      <td className="tnum px-4 py-2.5 text-right align-top text-[13px] text-ink-3 sm:px-5">
+                      <td className="tnum py-3.5 pr-5 pl-3 text-right align-top text-[13px] leading-5 text-ink-3 sm:pr-6">
                         <LocalDateTime iso={o.updated_at} />
                       </td>
                     </tr>
@@ -164,7 +185,7 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                 </tbody>
               </table>
               {query.hasNextPage ? (
-                <div className="px-4 pt-3 sm:px-5">
+                <div className="px-5 pt-4 sm:px-6">
                   <Button
                     variant="outline"
                     size="sm"

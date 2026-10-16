@@ -69,7 +69,7 @@ export function WorkOrderSection({
     const notFound = query.error instanceof ApiError && query.error.status === 404;
     return (
       <div data-work-order={id}>
-        <Heading className="mb-3 text-[18px] leading-7 font-semibold text-ink">
+        <Heading className="mb-3 text-[22px] leading-[30px] font-[640] tracking-[-0.02em] text-ink">
           Work order <span className="tnum">{id}</span>
         </Heading>
         <ErrorState
@@ -85,13 +85,13 @@ export function WorkOrderSection({
   const cause = readConfirmedCause(o);
   return (
     <div data-work-order={o.work_order_id}>
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="max-w-[72ch] min-w-0">
-          <Heading className="text-[20px] leading-7 font-semibold text-ink">
+          <Heading className="text-[24px] leading-[30px] font-[650] tracking-[-0.02em] text-ink sm:text-[28px] sm:leading-[34px]">
             Work order <span className="tnum">{o.work_order_id}</span>
           </Heading>
-          <p className="mt-0.5 text-[15px] leading-6 text-ink">{o.title}</p>
-          <p className="tnum mt-0.5 text-[13px] leading-5 text-ink-2">
+          <p className="mt-1.5 text-[16px] leading-6 text-ink">{o.title}</p>
+          <p className="tnum mt-1 text-[13.5px] leading-5 text-ink-2">
             Opened by {o.created_by} on <LocalDateTime iso={o.created_at} />
             {showInvestigation ? (
               <>
@@ -99,7 +99,7 @@ export function WorkOrderSection({
                 from{" "}
                 <Link
                   href={investigationHref(o.investigation_id)}
-                  className="text-ink underline decoration-hairline-strong underline-offset-4"
+                  className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
                 >
                   investigation {o.investigation_id}
                 </Link>
@@ -108,10 +108,10 @@ export function WorkOrderSection({
             .
           </p>
         </div>
-        <StatusMark status={o.status} className="text-[14px] text-ink" />
+        <StatusMark status={o.status} className="h-7 px-3 text-[13px]" />
       </header>
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-street">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-5">
           <Panel title="Progress">
             <StatusTrack status={o.status} />
           </Panel>
@@ -124,13 +124,15 @@ export function WorkOrderSection({
               {o.actions.map((a, i) => (
                 <li
                   key={i}
-                  className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-2 border-t border-hairline pt-3 first:border-t-0 first:pt-0"
+                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 border-t border-hairline pt-4 first:border-t-0 first:pt-0"
                 >
-                  <span className="tnum text-[14px] leading-6 text-ink-3">{i + 1}.</span>
+                  <span className="tnum mt-px grid size-7 place-items-center rounded-full bg-surface-2 text-[12.5px] leading-4 font-[600] text-ink-2">
+                    {i + 1}
+                  </span>
                   <div className="min-w-0">
-                    <p className="text-[15px] leading-6 text-ink">{a.action}</p>
-                    <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{a.rationale}</p>
-                    <p className="tnum mt-1 text-[12px] leading-4 text-ink-3">
+                    <p className="text-[15.5px] leading-6 font-[540] text-ink">{a.action}</p>
+                    <p className="mt-1 text-[14px] leading-[22px] text-ink-2">{a.rationale}</p>
+                    <p className="tnum mt-1.5 text-[12.5px] leading-4 text-ink-3">
                       Evidence {a.evidence_ids.join(", ")}
                       {showInvestigation ? (
                         <>
@@ -138,7 +140,7 @@ export function WorkOrderSection({
                           in{" "}
                           <Link
                             href={investigationHref(o.investigation_id)}
-                            className="underline decoration-hairline-strong underline-offset-4"
+                            className="text-ink-2 underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:text-ink hover:decoration-ink"
                           >
                             the report
                           </Link>
@@ -175,7 +177,7 @@ function ConfirmedCausePanel({
       description="Recorded when the work order was closed. It is the fab's own record, not a prediction, and is never given to a language model."
       data-confirmed-cause
     >
-      <p className="max-w-[66ch] text-[15px] leading-6 text-ink">{cause.text}</p>
+      <p className="max-w-[66ch] text-[16px] leading-[26px] text-ink">{cause.text}</p>
       {confirmed ? (
         <p className="mt-1.5 max-w-[66ch] text-[13px] leading-5 text-ink-2" data-confirms>
           Confirms hypothesis <span className="tnum">{confirmed.index + 1}</span> of the report:{" "}
@@ -208,29 +210,36 @@ function StatusTrack({ status }: { status: WorkOrder["status"] }) {
           const current = s === status;
           return (
             <li key={s} className="relative min-w-0" aria-current={current ? "step" : undefined}>
-              <div className="flex items-center">
+              <div className="flex h-5 items-center">
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "relative z-10 size-3 shrink-0 rounded-full border-[1.5px]",
-                    done ? "border-ink bg-ink" : "border-hairline-strong bg-die",
-                    current && "ring-4 ring-safelight/35",
+                    "relative z-10 size-3.5 shrink-0 rounded-full transition-[background-color,box-shadow] duration-(--dur-4) ease-out",
+                    done
+                      ? "bg-ink shadow-[0_0_0_4px_var(--surface)]"
+                      : "bg-surface shadow-[inset_0_0_0_2px_var(--hairline-strong),0_0_0_4px_var(--surface)]",
+                    current &&
+                      "shadow-[0_0_0_4px_var(--surface),0_0_0_6px_color-mix(in_oklab,var(--signal)_55%,transparent)]",
                   )}
                 />
                 {i < WORK_ORDER_FLOW.length - 1 ? (
                   <span
                     aria-hidden="true"
-                    className={cn(
-                      "h-px grow",
-                      status !== "cancelled" && i < reached ? "bg-ink" : "bg-hairline-strong",
-                    )}
-                  />
+                    className="relative mx-1 h-0.5 grow rounded-full bg-hairline"
+                  >
+                    <span
+                      className={cn(
+                        "absolute inset-0 origin-left rounded-full bg-ink transition-transform duration-(--dur-5) ease-out",
+                        status !== "cancelled" && i < reached ? "scale-x-100" : "scale-x-0",
+                      )}
+                    />
+                  </span>
                 ) : null}
               </div>
               <span
                 className={cn(
-                  "mt-1.5 block text-[13px] leading-5",
-                  current ? "font-medium text-ink" : done ? "text-ink-2" : "text-ink-3",
+                  "mt-2.5 block text-[13.5px] leading-5",
+                  current ? "font-[600] text-ink" : done ? "text-ink-2" : "text-ink-3",
                 )}
               >
                 {WORK_ORDER_STATUS[s]}
@@ -240,7 +249,7 @@ function StatusTrack({ status }: { status: WorkOrder["status"] }) {
         })}
       </ol>
       {status === "cancelled" ? (
-        <p className="mt-3 text-[13px] leading-5 text-ink-2">
+        <p className="mt-4 text-[13.5px] leading-5 text-ink-2">
           Cancelled: the work will not be done.
         </p>
       ) : null}
@@ -300,8 +309,8 @@ function UpdatePanel({
     return (
       <Panel title="Outcome">
         <Readonly order={order} />
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-die-2 px-3 py-2">
-          <p className="text-[13px] leading-5 text-ink-2">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-surface-2 py-2.5 pr-2.5 pl-4">
+          <p className="text-[13.5px] leading-5 text-ink-2">
             Updating a work order needs an engineer session.
           </p>
           <Button
@@ -327,7 +336,7 @@ function UpdatePanel({
         }}
       >
         <div>
-          <p id="wo-status" className="mb-1.5 text-[13px] leading-5 font-medium text-ink">
+          <p id="wo-status" className="mb-2 text-[13.5px] leading-5 font-[560] text-ink">
             Status
           </p>
           <ToggleGroup
@@ -370,8 +379,8 @@ function UpdatePanel({
         </div>
         <div
           className={cn(
-            "rounded-sm border px-3 py-2.5",
-            confirmedNow ? "border-ink" : "border-hairline",
+            "rounded-[14px] px-4 py-3.5 transition-[background-color,box-shadow] duration-(--dur-2)",
+            confirmedNow ? "lit" : "shadow-[inset_0_0_0_1px_var(--hairline-strong)]",
           )}
         >
           <label
@@ -389,7 +398,7 @@ function UpdatePanel({
             />
             <span>
               I confirm this outcome
-              <span className="mt-0.5 block text-[13px] text-ink-2">
+              <span className="mt-1 block text-[13px] leading-5 text-ink-2">
                 Reports describe findings as associations. Only a confirmed outcome lets later
                 reports name a cause.
                 {!canConfirm ? " Write the outcome first." : ""}
@@ -430,7 +439,7 @@ function UpdatePanel({
               Discard changes
             </Button>
           ) : (
-            <span className="text-[13px] text-ink-3">No changes</span>
+            <span className="text-[13.5px] text-ink-3">No changes</span>
           )}
         </div>
       </form>
@@ -458,10 +467,12 @@ function CauseEditor({
   const written = text.trim().length > 0;
   return (
     <fieldset
-      className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-sm border border-hairline px-3 pt-1 pb-3"
+      className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-[14px] border border-hairline-strong px-4 pt-1 pb-4"
       data-cause-editor
     >
-      <legend className="px-1 text-[13px] leading-5 font-medium text-ink">Confirmed cause</legend>
+      <legend className="px-1.5 text-[13.5px] leading-5 font-[600] text-ink">
+        Confirmed cause
+      </legend>
       <p className="text-[13px] leading-5 text-ink-2">
         What the fab found to be the cause. It is kept as the fab&rsquo;s own record: never shown as
         a prediction, and never given to a language model.
@@ -479,7 +490,7 @@ function CauseEditor({
       </div>
       {hypotheses?.length ? (
         <fieldset className="min-w-0" disabled={!written}>
-          <legend className="mb-1.5 text-[13px] leading-5 font-medium text-ink">
+          <legend className="mb-1.5 text-[13px] leading-5 font-[560] text-ink">
             Which hypothesis of the report it confirms
           </legend>
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
@@ -530,20 +541,20 @@ function CauseEditor({
 
 function Readonly({ order }: { order: WorkOrder }) {
   return (
-    <dl className="grid grid-cols-[minmax(0,1fr)] gap-3 text-[14px] leading-5">
+    <dl className="grid grid-cols-[minmax(0,1fr)] gap-4 text-[14.5px] leading-[22px]">
       <div>
-        <dt className="text-[12px] text-ink-3">Note</dt>
-        <dd className="text-ink">{order.note || <span className="text-ink-3">None</span>}</dd>
+        <dt className="text-[12.5px] leading-4 text-ink-3">Note</dt>
+        <dd className="mt-1 text-ink">{order.note || <span className="text-ink-3">None</span>}</dd>
       </div>
       <div>
-        <dt className="text-[12px] text-ink-3">Outcome</dt>
-        <dd className="text-ink">
+        <dt className="text-[12.5px] leading-4 text-ink-3">Outcome</dt>
+        <dd className="mt-1 text-ink">
           {order.outcome || <span className="text-ink-3">Not recorded yet</span>}
         </dd>
       </div>
       <div>
-        <dt className="text-[12px] text-ink-3">Confirmed by an engineer</dt>
-        <dd className="text-ink">{order.outcome_confirmed ? "Yes" : "No"}</dd>
+        <dt className="text-[12.5px] leading-4 text-ink-3">Confirmed by an engineer</dt>
+        <dd className="mt-1 text-ink">{order.outcome_confirmed ? "Yes" : "No"}</dd>
       </div>
     </dl>
   );

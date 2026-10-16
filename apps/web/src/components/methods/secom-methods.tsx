@@ -17,6 +17,7 @@ import { formatInt, formatNumber, formatPValue, formatSigned } from "@/lib/forma
 import { cn } from "@/lib/utils";
 
 import { BlocksBar, PrCurve, ReliabilityDiagram } from "./charts";
+import { Limitations } from "./limitations";
 import { ScrollRegion } from "@/components/scroll-region";
 
 const metricOf = (m: ModelResult, id: string) => m.metrics.find((x) => x.metric === id)?.estimate;
@@ -109,7 +110,7 @@ function SecomContent({
         bodyClassName="px-0 sm:px-0"
       >
         {reading ? (
-          <p className="mx-4 mb-4 max-w-[90ch] rounded-sm border-l-2 border-safelight bg-die-2 px-3 py-2 text-[14px] leading-6 text-ink sm:mx-5">
+          <p className="mx-4 mb-4 max-w-[90ch] rounded-sm border-l-2 border-signal bg-surface-2 px-3 py-2 text-[14px] leading-6 text-ink sm:mx-5">
             {reading}
           </p>
         ) : null}
@@ -117,12 +118,12 @@ function SecomContent({
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">SECOM model metrics with confidence intervals</caption>
             <thead>
-              <tr className="border-y border-hairline text-[12px] text-ink-3">
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                   Model
                 </th>
                 {metricIds.map((id) => (
-                  <th key={id} scope="col" className="px-3 py-2 font-normal">
+                  <th key={id} scope="col" className="px-3 py-3 font-[520]">
                     {labels[id]}
                     {id === "brier" ? " (lower is better)" : ""}
                   </th>
@@ -135,11 +136,11 @@ function SecomContent({
                   key={model.model}
                   className={cn(
                     "border-b border-hairline last:border-b-0",
-                    model.main && "bg-die-2",
+                    model.main && "bg-surface-2",
                   )}
                 >
-                  <th scope="row" className="px-4 py-2.5 align-top font-normal sm:px-5">
-                    <span className={model.main ? "font-medium text-ink" : "text-ink-2"}>
+                  <th scope="row" className="px-5 py-3 align-top font-[420] sm:px-6">
+                    <span className={model.main ? "font-[560] text-ink" : "text-ink-2"}>
                       {model.label}
                     </span>
                     {model.main ? (
@@ -151,7 +152,7 @@ function SecomContent({
                   {metricIds.map((id) => {
                     const e = metricOf(model, id);
                     return (
-                      <td key={id} className="px-3 py-2.5 align-top">
+                      <td key={id} className="px-3 py-3 align-top">
                         {e ? (
                           <>
                             <IntervalMark
@@ -196,17 +197,17 @@ function SecomContent({
             <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-5">
               <caption className="sr-only">Paired comparisons</caption>
               <thead>
-                <tr className="border-y border-hairline text-[12px] text-ink-3">
-                  <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                  <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                     Baseline
                   </th>
-                  <th scope="col" className="px-3 py-2 font-normal">
+                  <th scope="col" className="px-3 py-3 font-[520]">
                     Metric
                   </th>
-                  <th scope="col" className="px-3 py-2 font-normal">
+                  <th scope="col" className="px-3 py-3 font-[520]">
                     Difference
                   </th>
-                  <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+                  <th scope="col" className="px-5 py-3 text-right font-[520] sm:px-6">
                     p
                   </th>
                 </tr>
@@ -217,11 +218,11 @@ function SecomContent({
                     key={`${c.baseline}-${c.metric}`}
                     className="border-b border-hairline last:border-b-0"
                   >
-                    <th scope="row" className="px-4 py-2 font-normal text-ink sm:px-5">
+                    <th scope="row" className="px-5 py-2.5 font-[420] text-ink sm:px-6">
                       {modelLabel[c.baseline] ?? c.baseline}
                     </th>
-                    <td className="px-3 py-2 text-ink-2">{labels[c.metric] ?? c.metric}</td>
-                    <td className="tnum px-3 py-2">
+                    <td className="px-3 py-2.5 text-ink-2">{labels[c.metric] ?? c.metric}</td>
+                    <td className="tnum px-3 py-2.5">
                       <span className="text-ink">{formatSigned(c.difference.value, 3)}</span>
                       {c.difference.ci_low != null && c.difference.ci_high != null ? (
                         <span className="text-ink-3">
@@ -235,7 +236,7 @@ function SecomContent({
                         </span>
                       ) : null}
                     </td>
-                    <td className="tnum px-4 py-2 text-right text-ink sm:px-5">
+                    <td className="tnum px-5 py-2.5 text-right text-ink sm:px-6">
                       {formatPValue(c.p_value)}
                     </td>
                   </tr>
@@ -340,19 +341,19 @@ function SecomContent({
                 <table className="tnum mt-2 w-full border-collapse text-left text-[12px] leading-5">
                   <thead>
                     <tr className="text-ink-3">
-                      <th scope="col" className="py-1 pr-2 font-normal">
+                      <th scope="col" className="py-1 pr-2 font-[520]">
                         Fold
                       </th>
-                      <th scope="col" className="py-1 pr-2 text-right font-normal">
+                      <th scope="col" className="py-1 pr-2 text-right font-[520]">
                         Train units
                       </th>
-                      <th scope="col" className="py-1 pr-2 text-right font-normal">
+                      <th scope="col" className="py-1 pr-2 text-right font-[520]">
                         Validation units
                       </th>
-                      <th scope="col" className="py-1 pr-2 text-right font-normal">
+                      <th scope="col" className="py-1 pr-2 text-right font-[520]">
                         Failures
                       </th>
-                      <th scope="col" className="py-1 text-right font-normal">
+                      <th scope="col" className="py-1 text-right font-[520]">
                         Average precision
                       </th>
                     </tr>
@@ -397,19 +398,19 @@ function OperatingPointsView({ data }: { data: OperatingPoints }) {
           <caption className="sr-only">Operating points on the test block</caption>
           <thead>
             <tr className="border-b border-hairline text-ink-3">
-              <th scope="col" className="py-1.5 pr-2 font-normal">
+              <th scope="col" className="py-2.5 pr-2 font-[520]">
                 Point
               </th>
-              <th scope="col" className="py-1.5 pr-2 font-normal">
+              <th scope="col" className="py-2.5 pr-2 font-[520]">
                 Recall
               </th>
-              <th scope="col" className="py-1.5 pr-2 font-normal">
+              <th scope="col" className="py-2.5 pr-2 font-[520]">
                 Precision
               </th>
-              <th scope="col" className="py-1.5 pr-2 font-normal">
+              <th scope="col" className="py-2.5 pr-2 font-[520]">
                 False alarms per 100
               </th>
-              <th scope="col" className="py-1.5 text-right font-normal">
+              <th scope="col" className="py-2.5 text-right font-[520]">
                 TP / FP / FN
               </th>
             </tr>
@@ -417,7 +418,7 @@ function OperatingPointsView({ data }: { data: OperatingPoints }) {
           <tbody>
             {data.points.map((p) => (
               <tr key={p.id} className="border-b border-hairline align-top last:border-b-0">
-                <th scope="row" className="py-1.5 pr-2 font-normal text-ink">
+                <th scope="row" className="py-1.5 pr-2 font-[420] text-ink">
                   {p.label}
                   {p.id === data.default ? (
                     <span className="block text-ink-3">Used on the line</span>
@@ -460,18 +461,5 @@ export function EstimateFootnote({
     <p className={cn("mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5", className)}>
       {estimate.method ? `Intervals: ${estimate.method}.` : ""} {estimate.note ?? ""}
     </p>
-  );
-}
-
-export function Limitations({ items, title }: { items: string[]; title: string }) {
-  if (!items.length) return null;
-  return (
-    <Panel title={title}>
-      <ul className="grid max-w-[90ch] list-disc grid-cols-[minmax(0,1fr)] gap-1.5 pl-5 text-[14px] leading-6 text-ink-2">
-        {items.map((l) => (
-          <li key={l}>{l}</li>
-        ))}
-      </ul>
-    </Panel>
   );
 }

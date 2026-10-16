@@ -162,7 +162,7 @@ function WaferChooser({
               aria-pressed={selected === i}
               onClick={() => onSelect(i)}
               className={cn(
-                "flex w-full flex-col items-center gap-1 rounded-[4px] p-1.5 hover:bg-die-2",
+                "press flex w-full flex-col items-center gap-1.5 rounded-[14px] p-2 hover:bg-surface-2",
                 selected === i && "lit",
               )}
             >
@@ -256,7 +256,7 @@ function WaferDetail({
             {`Recorded in WM-811K as ${patternName(recorded.recorded_label)}: the model ${recorded.agrees ? "agrees" : `read ${patternName(recorded.predicted_label)}`}.`}
           </p>
         ) : null}
-        <h4 className="text-[14px] leading-5 font-semibold text-ink">Pattern probabilities</h4>
+        <h4 className="text-[14px] leading-5 font-[620] text-ink">Pattern probabilities</h4>
         {wafer.probabilities ? (
           <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-0.5">
             {probs.map((p) => (
@@ -282,13 +282,13 @@ function WaferDetail({
           <StillReading what="this wafer's pattern probabilities" />
         )}
 
-        <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">Unknown score</h4>
+        <h4 className="mt-5 text-[14px] leading-5 font-[620] text-ink">Unknown score</h4>
         <div className="relative mt-2 h-5" aria-hidden="true">
           <div className="absolute inset-x-0 top-2 h-1 rounded-full bg-hairline" />
           <div className="absolute top-2 right-0 left-1/2 h-1 rounded-r-full bg-ink-3/50" />
           <div className="absolute top-0 left-1/2 h-5 w-px bg-ink-2" />
           <div
-            className="absolute top-0.5 size-4 -translate-x-1/2 rounded-full border-2 border-ink bg-die"
+            className="absolute top-0.5 size-4 -translate-x-1/2 rounded-full border-2 border-ink bg-surface"
             style={{ left: `${unknownPos * 100}%` }}
           />
         </div>
@@ -296,7 +296,7 @@ function WaferDetail({
           {`${formatReading(wafer.unknown_score)} against ${formatReading(wafer.unknown_threshold)}, the score above which a map counts as unknown (the scale ends at twice it). Energy score ${energy[0]}, a cross-check; the lot test counts a map as unknown above ${energy[1]}.`}
         </p>
 
-        <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">
+        <h4 className="mt-5 text-[14px] leading-5 font-[620] text-ink">
           Do the failing dies cluster?
         </h4>
         <p className="text-[14px] leading-5 text-ink-2">
@@ -304,6 +304,7 @@ function WaferDetail({
             ? `${wafer.spatial.clustered ? "Yes" : "Not beyond chance"}: ${formatInt(wafer.spatial.statistic)} neighbouring pairs of failing dies against ${formatNumber(wafer.spatial.expected, 1)} expected at random (p ${formatPValue(wafer.spatial.p_value)}, ${formatInt(wafer.spatial.permutations)} permutations).`
             : "Not tested: the map has too few failing dies for a join-count test."}
         </p>
+        <Method>{pattern.method}</Method>
       </DrawerSection>
 
       <div className="min-w-0 lg:col-span-2">
@@ -346,9 +347,6 @@ function WaferDetail({
           <NotYet stage={stageSimilar} what="The similar wafers" />
         )}
       </div>
-      <div className="lg:col-span-2">
-        <Method>{pattern.method}</Method>
-      </div>
     </div>
   );
 }
@@ -374,7 +372,7 @@ function Causes({ causes, focus }: { causes: PatternCauses; focus: string | null
             )}
           >
             <p className="text-[14px] leading-5 text-ink">
-              <span className="font-semibold">{patternName(c.label)}</span>
+              <span className="font-[620]">{patternName(c.label)}</span>
               <span className="text-ink-3">{`, ${c.confidence} confidence`}</span>
             </p>
             <p className="text-[14px] leading-5 text-ink-2">{c.hypothesis}</p>
@@ -466,19 +464,19 @@ function LotPanel({ lot, method, energy }: { lot: LotItemView; method: string; e
             <caption className="sr-only">{`Pattern tests of ${lot.lot}`}</caption>
             <thead className="text-ink-3">
               <tr>
-                <th scope="col" className="py-1 pr-3 font-normal">
+                <th scope="col" className="py-1 pr-3 font-[420]">
                   Pattern
                 </th>
-                <th scope="col" className="py-1 pr-3 text-right font-normal">
+                <th scope="col" className="py-1 pr-3 text-right font-[420]">
                   Wafers
                 </th>
-                <th scope="col" className="py-1 pr-3 text-right font-normal">
+                <th scope="col" className="py-1 pr-3 text-right font-[420]">
                   Expected rate
                 </th>
-                <th scope="col" className="py-1 pr-3 text-right font-normal">
+                <th scope="col" className="py-1 pr-3 text-right font-[420]">
                   p
                 </th>
-                <th scope="col" className="py-1 text-right font-normal">
+                <th scope="col" className="py-1 text-right font-[420]">
                   q
                 </th>
               </tr>

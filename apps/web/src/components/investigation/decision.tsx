@@ -60,8 +60,8 @@ export function DecisionActions({
     });
 
   return (
-    <div className="mt-2">
-      <ol className="grid grid-cols-[minmax(0,1fr)] gap-4">
+    <div className="mt-4">
+      <ol className="grid grid-cols-[minmax(0,1fr)] gap-6">
         {report.actions.map((action, i) => {
           const approved = decision?.verdict === "approve" && decision.actions.includes(i);
           return (
@@ -72,15 +72,29 @@ export function DecisionActions({
                   checked={chosen.has(i)}
                   onChange={() => toggle(i)}
                   aria-label={`Approve action ${i + 1}`}
-                  className="mt-[7px] size-4 cursor-pointer accent-[var(--ink)]"
+                  className="mt-[7px] size-[18px] cursor-pointer accent-[var(--ink)]"
                 />
               ) : (
-                <span className="tnum pt-[5px] text-[13px] leading-5 text-ink-3">{i + 1}.</span>
+                <span className="tnum pt-[6px] text-[13px] leading-5 font-[560] text-ink-3">
+                  {i + 1}.
+                </span>
               )}
               <div className="min-w-0">
                 <ActionBody action={action} index={i} {...shared} />
                 {decision ? (
-                  <p className="mt-1 text-[13px] leading-5 text-ink-3">
+                  <p
+                    className={cn(
+                      "mt-2 inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560]",
+                      approved ? "bg-pass-wash text-ink" : "bg-surface-2 text-ink-2",
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        approved ? "bg-pass" : "bg-mark-muted",
+                      )}
+                    />
                     {approved ? "Approved" : "Not approved"}
                   </p>
                 ) : null}
@@ -93,11 +107,13 @@ export function DecisionActions({
       {decision ? (
         <div
           className={cn(
-            "swap-in mt-6 rounded-sm border-l-2 px-4 py-3",
-            decision.verdict === "approve" ? "border-pass bg-pass-wash" : "border-ink bg-die-2",
+            "swap-in mt-8 rounded-[16px] px-4 py-4 sm:px-5",
+            decision.verdict === "approve"
+              ? "bg-pass-wash shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--pass)_28%,transparent)]"
+              : "bg-surface-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)]",
           )}
         >
-          <p className="text-[15px] leading-6 text-ink">
+          <p className="text-[15.5px] leading-6 font-[560] text-ink">
             {decision.verdict === "approve"
               ? `Approved ${plural(decision.actions.length, "action")}`
               : "Rejected"}{" "}
@@ -109,7 +125,7 @@ export function DecisionActions({
           {investigation.work_order_id ? (
             <Link
               href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
-              className="mt-2 inline-block text-[14px] text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+              className="press mt-3 inline-flex h-9 items-center rounded-full bg-ink px-4 text-[14px] font-[560] text-canvas no-underline hover:bg-ink/92"
             >
               Work order {investigation.work_order_id}
             </Link>
@@ -133,7 +149,7 @@ export function DecisionActions({
           </Link>
         </div>
       ) : investigation.status === "awaiting_decision" && !canAct ? (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-die-2 px-4 py-3">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-[16px] bg-surface-2 py-3 pr-3 pl-4 sm:pl-5">
           <p className="text-[14px] leading-5 text-ink-2">
             Approving or rejecting a report needs an engineer session.
           </p>
@@ -147,7 +163,7 @@ export function DecisionActions({
           </Button>
         </div>
       ) : open ? (
-        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 rounded-sm bg-die-2 px-4 py-4">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-4 rounded-[16px] bg-surface-2 p-4 sm:p-5">
           <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
             <Label htmlFor={noteId} className="text-[13px] text-ink-2">
               Note for the work order (optional)
@@ -158,7 +174,7 @@ export function DecisionActions({
               maxLength={2000}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              className="bg-die"
+              className="bg-surface"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">

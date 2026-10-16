@@ -13,22 +13,22 @@ describe("palettes", () => {
     expect([...palettes.dark.keys()].sort()).toEqual([...palettes.light.keys()].sort());
   });
 
-  it("write the yellow room identically for the system preference", () => {
+  it("write the dark palette identically for the system preference", () => {
     expect(Object.fromEntries(systemDarkPalette)).toEqual(Object.fromEntries(palettes.dark));
   });
 });
 
-const SURFACES = ["room", "die", "die-2"] as const;
+const SURFACES = ["canvas", "surface", "surface-2"] as const;
 const THEMES: Theme[] = ["light", "dark"];
 
 const REQUIREMENTS: [name: string, minimum: number, job: string][] = [
   ["ink", 7, "body text (AAA)"],
   ["ink-2", 4.5, "secondary text"],
   ["ink-3", 4.5, "muted text and axis labels"],
-  ["safelight", 3, "focus outline and selection marks"],
+  ["signal", 3, "focus outline, selection and live marks"],
   ["pass", 3, "pass marks"],
   ["fail", 3, "fail marks"],
-  ["concern", 3, "elevated-risk marks"],
+  ["concern", 3, "elevated-risk and warning marks"],
   ["mark-muted", 3, "baseline series"],
   ["edge", 3, "control edges"],
 ];
@@ -40,6 +40,23 @@ describe.each(THEMES)("%s theme", (theme) => {
         minimum,
       );
     }
+  });
+
+  it("keeps muted text readable on the pressed surface too", () => {
+    expect(contrastRatio(token("ink-3", theme), token("surface-3", theme))).toBeGreaterThanOrEqual(
+      4.5,
+    );
+  });
+
+  it("keeps the instrument glass dark: light ink reads on it in both themes", () => {
+    expect(contrastRatio(token("ink", "dark"), token("screen", theme))).toBeGreaterThanOrEqual(7);
+  });
+
+  it("keeps concern and fail apart for normal vision (15) and under deutan simulation (8)", () => {
+    const concern = token("concern", theme);
+    const fail = token("fail", theme);
+    expect(cvdDeltaE(concern, fail)).toBeGreaterThanOrEqual(15);
+    expect(cvdDeltaE(concern, fail, "deutan")).toBeGreaterThanOrEqual(8);
   });
 
   it("keeps pass and fail apart for readers with colour-vision deficiency", () => {

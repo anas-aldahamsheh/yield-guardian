@@ -21,6 +21,23 @@ function shortestDigits(abs: number): [integer: string, fraction: string] {
   return [digits.slice(0, point), digits.slice(point)];
 }
 
+/** The decimal `int.frac` (non-negative) rounded half away from zero to `digits` decimals. */
+function roundDigits(
+  int: string,
+  frac: string,
+  digits: number,
+): [integer: string, fraction: string] {
+  if (frac.length <= digits) return [int, frac + "0".repeat(digits - frac.length)];
+  const kept = (int + frac.slice(0, digits)).split("");
+  if (frac.charCodeAt(digits) >= 53 /* "5" */) {
+    let k = kept.length - 1;
+    while (k >= 0 && kept[k] === "9") kept[k--] = "0";
+    if (k < 0) kept.unshift("1");
+    else kept[k] = String(Number(kept[k]) + 1);
+  }
+  return [kept.slice(0, kept.length - digits).join(""), kept.slice(kept.length - digits).join("")];
+}
+
 /**
  * en-US with a fixed number of decimals, exactly as Intl.NumberFormat writes it: the shortest
  * round-trip decimal rounded half away from zero, comma-grouped, "-" before negatives (and -0).
@@ -34,20 +51,7 @@ export function formatFixed(value: number, digits: number): string {
       maximumFractionDigits: digits,
     }).format(value);
   }
-  let [int, frac] = shortestDigits(Math.abs(value));
-  if (frac.length > digits) {
-    const kept = (int + frac.slice(0, digits)).split("");
-    if (frac.charCodeAt(digits) >= 53 /* "5" */) {
-      let k = kept.length - 1;
-      while (k >= 0 && kept[k] === "9") kept[k--] = "0";
-      if (k < 0) kept.unshift("1");
-      else kept[k] = String(Number(kept[k]) + 1);
-    }
-    int = kept.slice(0, kept.length - digits).join("");
-    frac = kept.slice(kept.length - digits).join("");
-  } else {
-    frac += "0".repeat(digits - frac.length);
-  }
+  const [int, frac] = roundDigits(...shortestDigits(Math.abs(value)), digits);
   const grouped = int.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return `${value < 0 || Object.is(value, -0) ? "-" : ""}${grouped}${digits ? `.${frac}` : ""}`;
 }
@@ -185,11 +189,34 @@ export function formatDuration(ms: number | null | undefined): string {
   return `${formatNumber(ms / 1000, ms < 10_000 ? 1 : 0)} s`;
 }
 
-/** Large counts in a compact form: 12.4k, 3.1M. */
+const COMPACT_SUFFIXES = ["", "K", "M", "B", "T"];
+
+/**
+ * Large counts in a compact form: 12.4K, 3.1M. Exactly what Intl.NumberFormat en-US writes with
+ * notation "compact" and at most one decimal: the value in its thousands group, rounded half
+ * away from zero (into the next group when it rounds to 1000), without a trailing ".0". Written
+ * out for the same reason as formatFixed; format.test.ts checks it against Intl.
+ */
 export function formatCompact(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return DASH;
-  compactFmt ??= new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 });
-  return compactFmt.format(value);
+  const abs = Math.abs(value);
+  if (abs >= 1e15) {
+    compactFmt ??= new Intl.NumberFormat(LOCALE, { notation: "compact", maximumFractionDigits: 1 });
+    return compactFmt.format(value);
+  }
+  const [int, frac] = shortestDigits(abs);
+  const digits = int.replace(/^0+(?=\d)/, "");
+  const sign = value < 0 || Object.is(value, -0) ? "-" : "";
+  for (let group = Math.floor((digits.length - 1) / 3); ; group += 1) {
+    const cut = digits.length - group * 3;
+    const [whole, decimal] = roundDigits(
+      cut > 0 ? digits.slice(0, cut) : "0",
+      (cut > 0 ? digits.slice(cut) : "0".repeat(-cut) + digits) + frac,
+      1,
+    );
+    if (whole.length > 3 && group < COMPACT_SUFFIXES.length - 1) continue;
+    return `${sign}${whole}${decimal === "0" ? "" : `.${decimal}`}${COMPACT_SUFFIXES[group]}`;
+  }
 }
 let compactFmt: Intl.NumberFormat | undefined;
 

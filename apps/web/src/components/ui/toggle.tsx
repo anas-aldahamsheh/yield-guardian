@@ -6,17 +6,18 @@ import { cn } from "@/lib/utils";
 import { Toggle as TogglePrimitive } from "radix-ui";
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-[color,background-color,box-shadow] duration-[var(--dur-micro)] hover:bg-muted hover:text-ink disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=on]:bg-safelight-wash data-[state=on]:text-ink data-[state=on]:shadow-[inset_0_-2px_0_var(--safelight)] dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "press inline-flex items-center justify-center gap-2 rounded-full text-[14px] leading-5 font-[560] whitespace-nowrap text-ink-2 outline-offset-2 hover:text-ink disabled:pointer-events-none disabled:opacity-45 data-[state=on]:text-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-transparent",
-        outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+        default: "bg-transparent hover:bg-surface-2 data-[state=on]:bg-signal-wash",
+        outline:
+          "bg-transparent shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 data-[state=on]:bg-surface data-[state=on]:shadow-[inset_0_0_0_1px_var(--edge)]",
       },
       size: {
-        default: "h-9 min-w-9 px-2",
-        sm: "h-8 min-w-8 px-1.5",
-        lg: "h-10 min-w-10 px-2.5",
+        default: "h-9 min-w-9 px-3",
+        sm: "h-8 min-w-8 px-3 text-[13px]",
+        lg: "h-10 min-w-10 px-4",
       },
     },
     defaultVariants: {

@@ -135,7 +135,7 @@ export function SensorSeriesChart({
 
   return (
     <div className="min-w-0">
-      <dl className="tnum grid min-h-[44px] grid-cols-2 gap-x-6 gap-y-1 rounded-sm bg-die-2 px-3 py-1.5 text-[13px] leading-5 sm:grid-cols-4">
+      <dl className="tnum grid min-h-[44px] grid-cols-2 gap-x-6 gap-y-1 rounded-sm bg-surface-2 px-3 py-1.5 text-[13px] leading-5 sm:grid-cols-4">
         {hovered ? (
           <>
             <Item label="Unit">
@@ -311,7 +311,7 @@ export function SensorSeriesChart({
               x2={x(hovered.sequence)}
               y1={M.top}
               y2={HEIGHT - M.bottom + 17}
-              stroke="var(--safelight)"
+              stroke="var(--signal)"
               strokeWidth={1.5}
             />
           ) : null}

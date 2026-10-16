@@ -64,7 +64,7 @@ export function SensorGroupsTable({
             const containsSelected = selectedSensor != null && g.sensors.includes(selectedSensor);
             return (
               <Fragment key={g.group_id}>
-                <tr className={cn("border-b border-hairline", containsSelected && "bg-die-2")}>
+                <tr className={cn("border-b border-hairline", containsSelected && "bg-surface-2")}>
                   <th scope="row" className="px-4 py-2 align-top font-normal sm:px-5">
                     <button
                       type="button"
@@ -95,7 +95,7 @@ export function SensorGroupsTable({
                   <td className="px-2 py-2 align-top">
                     <span className="flex items-center gap-2">
                       <span
-                        className="h-2.5 rounded-[2px] bg-ink-2"
+                        className="h-2.5 rounded-[6px] bg-ink-2"
                         style={{ width: `${(g.importance / max) * 100}%`, minWidth: 2 }}
                         aria-hidden="true"
                       />
@@ -123,7 +123,7 @@ export function SensorGroupsTable({
                   </td>
                 </tr>
                 {expanded ? (
-                  <tr id={`group-${g.group_id}`} className="border-b border-hairline bg-die-2">
+                  <tr id={`group-${g.group_id}`} className="border-b border-hairline bg-surface-2">
                     <td colSpan={6} className="px-4 py-3 sm:px-5">
                       <UnivariateTable group={g} />
                     </td>
@@ -162,7 +162,7 @@ function SensorLinks({
             // 24 px tall: a touch target that meets WCAG 2.2 target size.
             "min-h-6 cursor-pointer underline decoration-hairline-strong underline-offset-4 hover:text-ink",
             s === group.representative ? "font-medium text-ink" : "text-ink-2",
-            selected === s && "lit rounded-[2px] px-0.5",
+            selected === s && "lit rounded-[6px] px-0.5",
           )}
           title={s === group.representative ? "Representative sensor" : undefined}
         >

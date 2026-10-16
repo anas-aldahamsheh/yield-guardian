@@ -76,7 +76,7 @@ export function DieMap({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
       if (!data) return;
-      const surface = token(canvas, "--die-2", "#ffffff");
+      const surface = token(canvas, "--surface-2", "#ffffff");
       const pass = token(canvas, "--hairline-strong", "#b9bdc2");
       const fail = token(canvas, "--fail", "#c62b44");
       const n = Math.max(data.height, data.width);
@@ -116,7 +116,7 @@ export function DieMap({
       if (highlight != null && highlight >= 0) {
         const r = Math.floor(highlight / data.width);
         const c = highlight % data.width;
-        ctx.strokeStyle = token(canvas, "--safelight", "#a27900");
+        ctx.strokeStyle = token(canvas, "--signal", "#a27900");
         ctx.lineWidth = 2;
         ctx.strokeRect(ox + c * pitch - 1, oy + r * pitch - 1, pitch + 2, pitch + 2);
       }
@@ -152,7 +152,7 @@ export function FrequencyLegend({ max = 1, className }: { max?: number; classNam
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ramp = frequencyRamp(token(el, "--die-2", "#ffffff"), token(el, "--fail", "#c62b44"));
+    const ramp = frequencyRamp(token(el, "--surface-2", "#ffffff"), token(el, "--fail", "#c62b44"));
     el.style.background = `linear-gradient(to right, ${ramp.join(", ")})`;
   });
   return (
@@ -160,7 +160,7 @@ export function FrequencyLegend({ max = 1, className }: { max?: number; classNam
       <div
         ref={ref}
         aria-hidden="true"
-        className="h-2.5 w-full rounded-[2px] border border-hairline"
+        className="h-2.5 w-full rounded-[6px] border border-hairline"
       />
       <div className="tnum mt-1 flex justify-between">
         <span>0%</span>

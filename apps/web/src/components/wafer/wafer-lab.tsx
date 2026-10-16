@@ -124,7 +124,7 @@ export function WaferLab() {
                       onClick={() => setSelected(w.wafer_id)}
                       aria-current={w.wafer_id === current ? "true" : undefined}
                       className={cn(
-                        "flex w-full cursor-pointer items-baseline justify-between gap-3 border-b border-hairline px-4 py-2 text-left text-[14px] leading-5 hover:bg-die-2 sm:px-5",
+                        "flex w-full cursor-pointer items-baseline justify-between gap-3 border-b border-hairline px-4 py-2 text-left text-[14px] leading-5 hover:bg-surface-2 sm:px-5",
                         w.wafer_id === current && "lit",
                       )}
                     >
@@ -271,10 +271,10 @@ function WaferDetailView({ detail }: { detail: WaferDetail }) {
                     <span className={cn(c.label === p.top_label ? "text-ink" : "text-ink-2")}>
                       {patternName(c.label as PatternLabel)}
                     </span>
-                    <span className="h-2 rounded-[2px] bg-hairline">
+                    <span className="h-2 rounded-[6px] bg-hairline">
                       <span
                         className={cn(
-                          "block h-2 rounded-[2px]",
+                          "block h-2 rounded-[6px]",
                           c.label === p.top_label ? "bg-ink" : "bg-ink-3",
                         )}
                         style={{ width: `${Math.max(0.5, c.probability * 100)}%` }}
@@ -393,7 +393,7 @@ function SimilarItem({
         <DieMap
           data={data}
           label={`Wafer ${wafer.wafer_id}`}
-          className="rounded-sm bg-die-2 p-1 group-hover:outline group-hover:outline-1 group-hover:outline-hairline-strong"
+          className="rounded-sm bg-surface-2 p-1 group-hover:outline group-hover:outline-1 group-hover:outline-hairline-strong"
         />
         <span className="tnum mt-1 block truncate text-[12px] leading-4 text-ink">
           {wafer.wafer_id}

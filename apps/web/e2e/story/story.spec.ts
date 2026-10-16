@@ -167,6 +167,9 @@ test("a mouse stroke paints the dies under it, in every part of the wafer", asyn
   const canvas = page
     .getByRole("application", { name: /Wafer 1 of your drawing/ })
     .locator("canvas");
+  // The panel opens under the hero and scrolls itself into view: draw once it is still.
+  await expect(canvas).toBeInViewport({ ratio: 1 });
+  await settled(page);
   const box = (await canvas.boundingBox())!;
   // A stroke across the lower right quarter, well inside the round die area.
   await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.72);

@@ -194,14 +194,16 @@ function StatusFilter({
             onClick={() => onToggle(s)}
             className={cn(
               "flex cursor-pointer flex-col items-start rounded-sm border px-2.5 py-1.5 text-left transition-colors",
-              !all && on ? "border-ink bg-die-2" : "border-hairline hover:border-hairline-strong",
+              !all && on
+                ? "border-ink bg-surface-2"
+                : "border-hairline hover:border-hairline-strong",
               !on && "opacity-55",
             )}
           >
             <span className="flex items-center gap-1.5 text-[12px] leading-4 text-ink-2">
               <span
                 aria-hidden="true"
-                className="size-2.5 rounded-[2px]"
+                className="size-2.5 rounded-[6px]"
                 style={
                   s === "dead"
                     ? { boxShadow: `inset 0 0 0 1px ${statusColour(s)}` }
@@ -246,7 +248,7 @@ function SensorDetail({ sensor, report }: { sensor: string; report: SensorHealth
           <span className="flex items-center gap-1.5 text-[13px] font-normal text-ink-2">
             <span
               aria-hidden="true"
-              className="size-2.5 rounded-[2px]"
+              className="size-2.5 rounded-[6px]"
               style={
                 status === "dead"
                   ? { boxShadow: `inset 0 0 0 1px ${statusColour(status)}` }
@@ -346,7 +348,7 @@ function WeeklyMissing({ health, windows }: { health: SensorHealth; windows: Hea
             <li key={w.window_id} className="min-w-0">
               <div
                 className={cn(
-                  "relative h-9 rounded-[2px] bg-die-2",
+                  "relative h-9 rounded-[6px] bg-surface-2",
                   flat && "outline outline-1 -outline-offset-1 outline-concern",
                 )}
                 title={`Week from ${w.start.slice(0, 10)}: ${v == null ? "no units" : `${formatPercent(v)} missing`}${flat ? ", flat line" : ""}`}
@@ -354,7 +356,7 @@ function WeeklyMissing({ health, windows }: { health: SensorHealth; windows: Hea
                 {v != null ? (
                   <span
                     aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0 rounded-[2px] bg-ink-2"
+                    className="absolute inset-x-0 bottom-0 rounded-[6px] bg-ink-2"
                     style={{ height: `${Math.max(v > 0 ? 6 : 0, (v / max) * 100)}%` }}
                   />
                 ) : null}
@@ -452,8 +454,8 @@ function AttentionTable({
                 <tr
                   key={s.sensor}
                   className={cn(
-                    "border-b border-hairline last:border-b-0 hover:bg-die-2",
-                    selected === s.sensor && "bg-die-2",
+                    "border-b border-hairline last:border-b-0 hover:bg-surface-2",
+                    selected === s.sensor && "bg-surface-2",
                   )}
                 >
                   <th scope="row" className="px-4 py-2 font-normal sm:px-5">

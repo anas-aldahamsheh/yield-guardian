@@ -21,8 +21,9 @@
     "dev:next": "next dev"
   },
   "dependencies": {
-    "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
-    "@fontsource-variable/source-serif-4": "5.3.0",
+    "@fontsource-variable/mona-sans": "5.3.0",
+    "@fontsource-variable/newsreader": "5.3.0",
+    "@fontsource-variable/readex-pro": "5.3.0",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.1",
     "@react-three/postprocessing": "3.2.0",
@@ -32,9 +33,9 @@
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
     "d3": "7.9.0",
+    "framer-motion": "14.2.0",
     "gsap": "3.15.0",
     "lucide-react": "1.57.0",
-    "motion": "14.2.0",
     "next": "16.4.0",
     "next-themes": "0.4.6",
     "openapi-fetch": "0.17.0",

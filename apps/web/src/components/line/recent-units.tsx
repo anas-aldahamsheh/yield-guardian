@@ -68,7 +68,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
               <tr
                 key={u.sequence}
                 className={cn(
-                  "border-b border-hairline last:border-b-0 hover:bg-die-2",
+                  "border-b border-hairline last:border-b-0 hover:bg-surface-2",
                   fresh.has(String(u.sequence)) &&
                     (u.fdc_alarm === "alarm" || u.risk_band === "high"
                       ? "flash-alarm"

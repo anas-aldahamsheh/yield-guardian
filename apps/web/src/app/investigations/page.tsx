@@ -5,6 +5,7 @@ import {
   InvestigationsPage,
   type InvestigationsTab,
 } from "@/components/investigation/investigations-page";
+import { DirectionalPage } from "@/components/page-transition";
 import { q } from "@/lib/api/queries";
 import { serverApi, serverQueryClient } from "@/lib/api/server";
 import { isWorkOrderId } from "@/lib/routes";
@@ -35,8 +36,10 @@ export default async function InvestigationsRoute({
     await client.prefetchInfiniteQuery(q.investigationPages(api));
   }
   return (
-    <HydrationBoundary state={dehydrate(client)}>
-      <InvestigationsPage tab={tab} order={tab === "work-orders" ? order : null} />
-    </HydrationBoundary>
+    <DirectionalPage>
+      <HydrationBoundary state={dehydrate(client)}>
+        <InvestigationsPage tab={tab} order={tab === "work-orders" ? order : null} />
+      </HydrationBoundary>
+    </DirectionalPage>
   );
 }
