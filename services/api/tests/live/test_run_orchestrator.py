@@ -329,16 +329,17 @@ async def test_a_sample_is_the_same_for_the_same_seed() -> None:
     assert f"Seed {unseeded.seed}" in unseeded.rule
 
 
-async def test_a_sample_always_has_a_recorded_fail_and_two_labelled_wafers() -> None:
+async def test_a_sample_always_has_a_recorded_fail_and_only_labelled_wafers() -> None:
     materialise = Materialiser(
         Engines(sensors=real_sensor_engine(), wafers=real_wafer_engine()), None, None
     )
     for seed in range(20):
         origin, data = await materialise(SampleRunCreate(source="sample", seed=seed))
         assert any(u.result == "fail" for u in data.units), seed
-        assert sum(w.label not in (None, "none") for w in data.wafers) >= 2, seed
+        assert data.wafers, seed
+        assert all(w.label is not None for w in data.wafers), seed
         assert "at least one recorded failure" in origin.rule
-        assert "at least 2 labelled wafers" in origin.rule
+        assert "every wafer has a recorded label" in origin.rule
         assert f"Seed {seed}" in origin.rule
 
 

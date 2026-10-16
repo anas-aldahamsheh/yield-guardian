@@ -12787,7 +12787,7 @@
           "source"
         ],
         "title": "SampleRunCreate",
-        "description": "One click: the server picks, at random, a window of real SECOM units among the windows\nwith at least one recorded failure, and a real WM-811K lot among the lots with at least two\nlabelled wafers."
+        "description": "One click: the server picks, at random, a window of real SECOM units among the windows\nwith at least one recorded failure, and a real WM-811K lot among the lots in which every wafer\nhas a recorded label."
       },
       "SecomMetrics": {
         "properties": {

@@ -296,8 +296,8 @@ def test_a_sample_is_one_whole_real_lot(engine: LiveWafers, bundle: WafermapBund
     ]
     assert len(picked.items) >= 2
     assert f"lot {lot} ({len(picked.items)} wafers, " in picked.rule
-    assert sum(w.label not in (None, "none") for w in picked.items) >= 2
-    assert "demo lots with at least 2 labelled wafers" in picked.rule
+    assert all(w.label is not None for w in picked.items)
+    assert "demo lots in which every wafer has a recorded label" in picked.rule
     lots = {engine.sample(random.Random(seed)).items[0].lot for seed in range(40)}
     assert len(lots) > 30
 
