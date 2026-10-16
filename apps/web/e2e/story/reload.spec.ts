@@ -9,6 +9,7 @@ import {
 } from "@yield-guardian/contracts";
 
 import { INVESTIGATION_STATUS } from "../../src/lib/labels";
+import { steady } from "../steady";
 
 import { RUN_ID, eventsOf, fixture, sampleEvents } from "./fixture";
 import { GATEWAY, startStoryProxy, type StoryProxy } from "./stub";
@@ -216,7 +217,8 @@ test("a finished run comes back after a reload as it was, with nothing replayed 
   await page.keyboard.press("ArrowRight");
   await expect(page).toHaveURL(new RegExp(`\\?run=${RUN_ID}&station=2&unit=\\d+$`));
   await settled(page);
-  const before = await visibleLine(page);
+  // The dials glide to the unit chosen; the line is compared with once they rest.
+  const before = await steady(page, () => visibleLine(page));
   expect(before.unit).toMatch(/^Unit \d+/);
   expect(before.count).toEqual([`${red.length} alarms, ${alarms.length - red.length} warnings`]);
   expect(before.line).toEqual([FINISHED]);
@@ -486,8 +488,9 @@ test("while the API wakes the page says so, then shows the run as it stands", as
   expect(seen).not.toContain("arrive-from");
   // Each read waits longer than the last (and at least as long as asked): a few tries, not a storm.
   expect(counts["/api/v1/runs/{run}"]).toBeLessThanOrEqual(4);
-  expect(counts["/api/v1/session"] ?? 0).toBeLessThanOrEqual(4);
-  expect(counts["/api/v1/session/workspace"] ?? 0).toBeLessThanOrEqual(1);
+  // The workspace's opening waits for the API the same way, and its answer is the session.
+  expect(counts["/api/v1/session/workspace"]).toBeLessThanOrEqual(4);
+  expect(counts["/api/v1/session"] ?? 0).toBe(0);
   expect(counts["/api/v1/meta"] ?? 0).toBeLessThanOrEqual(1);
 });
 

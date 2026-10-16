@@ -129,9 +129,16 @@ describe("the session on a first visit", () => {
   });
 
   it("asks GET /session once when the API keeps no workspaces", async () => {
+    // The API's own answer when it has no database: a 503 that names no wait.
+    const notKept = {
+      title: "Not ready",
+      status: 503,
+      code: "not_ready",
+      detail: "The session service is not available yet.",
+    };
     const calls = api((call) =>
       Promise.resolve(
-        call === "POST /api/v1/session/workspace" ? json({}, 503) : json(NO_WORKSPACE),
+        call === "POST /api/v1/session/workspace" ? json(notKept, 503) : json(NO_WORKSPACE),
       ),
     );
     const seen: string[] = [];

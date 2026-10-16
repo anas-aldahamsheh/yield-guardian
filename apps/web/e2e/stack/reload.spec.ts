@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { steady } from "../steady";
+
 import { getJson } from "./api";
 
 /**
@@ -208,7 +210,8 @@ test("a real sample reloads as it stood, with the drawer and the unit in view", 
   await page.keyboard.press("ArrowRight");
   await expect(page).toHaveURL(/&station=2&unit=\d+$/);
   await settled(page);
-  const before = await visibleLine(page);
+  // The dials glide to the unit chosen; the line is compared with once they rest.
+  const before = await steady(page, () => visibleLine(page));
   expect(before.count).toEqual([countOf(run)]);
   expect(before.finished).toBe(1);
   expect(before.unit).toMatch(/^Unit \d+/);

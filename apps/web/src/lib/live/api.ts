@@ -86,13 +86,17 @@ function json(body: unknown, headers: Record<string, string> = {}): RequestInit 
   };
 }
 
-/** Starts a run, recorded in this device's workspace (opened first on a first visit). */
+/**
+ * Starts a run, recorded in this device's workspace (opened first on a first visit). While the
+ * workspace waits for a waking API this is refused with a 503, as the API refuses a run then, so
+ * the Line page says the service is starting and asks again (lib/api/opening.ts).
+ */
 export async function createRun(
   body: RunCreate,
   csrf: Record<string, string> = {},
   doFetch?: Fetch,
 ) {
-  await workspaceReady();
+  await workspaceReady({ refuseWhileWaking: true });
   return call<RunCreated>("/runs", json(body, csrf), doFetch);
 }
 
