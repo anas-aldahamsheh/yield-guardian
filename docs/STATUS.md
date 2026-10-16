@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-16 11:39 UTC (updated as each item changes)
+**Last updated:** 2026-10-16 11:52 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
-## Progress: 98 of 100 done (98%), 1 in progress, 1 not started
+## Progress: 100 of 100 done (100%), 0 in progress, 0 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -20,7 +20,7 @@
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
 | V: Version 2, the live story | 14 of 14 | 0 | 0 |
-| R: Requests after v2 | 2 of 4 | 1 | 1 |
+| R: Requests after v2 | 4 of 4 | 0 | 0 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Done | 98 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 2 of 4) |
+| Done | 100 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 4 of 4) |
 | Current focus | The owner's requests after v2: R1 (a refresh keeps everything) and R2 (a separate workspace for every visitor) are done and merged; the redesign of the whole interface (R3) is in progress, then one deploy |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -233,8 +233,8 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 |---|---|---|---|---|
 | R1 | A refresh keeps everything: the stored run renders at once with no replay, the open drawer, focus and alarm stay, an alarm keeps its investigation, the API is asked for the session and meta once | Cloud | ✅ | Merged into main (98c711c). The server reads the run before the page is sent, so a reload paints it as it stood, with no replay, and the live stream resumes from the last event it had. The open drawer, focus, selected alarm and unsent drafts stay; an alarm's investigation is stored by the API; one query client reads /session and /meta once. Checks on 98c711c: API ruff, mypy and 1,219 tests on PostgreSQL (lead rerun); web typecheck, lint, format and 355 unit tests (lead rerun); browser tests 126 passed, 2 skipped by design; stack reload 4 and flows 14 passed; no fixture content in 684 build files (worker). Limit: a run over 128 M characters, or slower than 10 s to read, falls back to "Reading the run" |
 | R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | ✅ | Merged into main (4ba3261, then cbb6334). Each device opens its own workspace on its first visit, with no sign-up. Another visitor's run, upload or investigation answers exactly like an ID that never existed, on every route, the live stream and a reload included. A workspace and everything in it is kept 30 days after its last use (WORKSPACE_SESSION_DAYS). Your work on the Line lists each run with its live state, alarms and warnings, and its actions: rename, note, run again, compare, investigate alarms, CSV and report, archive. A one-time code that lasts 10 minutes continues the workspace on another device (/join; the code stays in the link's fragment). Admins see device sessions and can end one. The recorded example investigation is listed for every visitor, read-only (D-010). Checks on 4ba3261: API ruff, mypy and 1,247 tests on PostgreSQL; migrations up, down and up to 0005; contracts current; web typecheck, lint, format and 370 unit tests (lead rerun); browser tests 149 mock and 57 stack passed (worker). A first visit while the API wakes waits for it and still gets its workspace (cbb6334): the opening asks again on no answer, on a waking 503 and on a proxy's 5xx, for about 95 s, and a run started meanwhile waits for it; web typecheck, lint, format and 381 unit tests (lead rerun); 150 mock and 58 stack browser tests passed (worker) |
-| R3 | The whole interface redesigned: layout, colour, type, hover, motion and page transitions, with the line's motion still driven only by arrived results | Cloud | 🟡 | Redesign worker, with Motion as the owner asked. Rebased onto R1 and R2, with R2's screens in the new design. Frozen at the owner's request to finish fast (D-013): only the essential checks run before the deploy; Lighthouse tuning (budget: mobile 90 / 100 / 100 on / and /how) comes after it |
-| R4 | Deploy R1 to R3 and check them live | PC | ⏳ | Worker 3, after the merge |
+| R3 | The whole interface redesigned: layout, colour, type, hover, motion and page transitions, with the line's motion still driven only by arrived results | Cloud | ✅ | Merged into main (3131ca9), frozen at the owner's request to finish fast (D-013). Lead checks on 3131ca9: typecheck, lint, format, 392 unit tests, fresh build, no fixture content in 838 build files. Not run before the deploy (D-013): mock and stack browser suites, Lighthouse tuning, guide re-shots |
+| R4 | Deploy R1 to R3 and check them live | PC | ✅ | Worker 3: live from main 3131ca9 (images r4-3131ca9). Ready; migration 0005 (head); a reload shows a finished run at once with its details open; yg_session HttpOnly, Secure, Lax, 30 days; a second browser sees no runs and gets the same not-found page for another's run as for a made-up ID; continue on another device works; / and /investigations at 375 dark and 1440 light with the new design, no console errors, no sideways scroll; the example is listed. Minor: a made-up ID with a very old time prefix answers 410 instead of 404. Rollback: compose.yaml.before-yield-guardian-r4 and images v2-f754631 |
 
 ## Waiting on you
 
@@ -246,6 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-16 11:52 | R3 merged (3131ca9) and R4 done: the final version with R1 to R3 is live, deployed once (D-011), with every live check passing. 100 of 100 |
 | 2026-10-16 11:39 | The owner asked to finish as fast as possible (D-013): the redesign is frozen and only what is broken gets fixed; before the deploy only the essential checks run; Lighthouse tuning, the guide screenshot retake and the full screenshot review move to after the deploy. 98 of 100 |
 | 2026-10-16 09:04 | R2 done (cbb6334): a first visit while the API wakes waits for it and still gets its workspace; R1's reload tests now wait for the dials to come to rest before reading them (they had read a glide under load; nothing moves after a reload). The redesign is rebased onto R1 and R2. 98 of 100 |
 | 2026-10-16 07:05 | R2 merged into main (4ba3261): a separate workspace for every visitor with no login, Your work, continue on another device, device sessions for admins, kept 30 days after last use; every check passes on the lead's rerun. One fix before deploy is in progress: a first visit while the API wakes gets its workspace. The redesign is rebasing onto main. 97 of 100 |
