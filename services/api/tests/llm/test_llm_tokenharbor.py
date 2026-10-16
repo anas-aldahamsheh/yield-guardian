@@ -160,11 +160,40 @@ async def test_without_a_tokenharbor_key_the_chain_starts_at_token_factory(
     assert factory.call_count == 1
 
 
-def test_the_verifier_never_uses_tokenharbor() -> None:
+def test_tokenharbor_goes_first_on_every_text_role() -> None:
     stack = stack_with(HARBOR_KEY)
+    for role in (Role.INVESTIGATOR, Role.WRITER, Role.VERIFIER, Role.CHAT, Role.ROUTER):
+        assert stack.registry.resolve(role).usable[0].choice.model == TOKENHARBOR_MODEL
     models = [r.choice.model for r in stack.registry.resolve(Role.VERIFIER).usable]
-    assert models == ["GLM-5.3-Flash", "DeepSeek-V4-Flash"]
-    assert stack.registry.resolve(Role.CHAT).usable[0].choice.model == TOKENHARBOR_MODEL
+    assert models == [TOKENHARBOR_MODEL, "GLM-5.3-Flash", "DeepSeek-V4-Flash"]
+
+
+async def test_tokenharbor_gets_a_thinking_budget_and_a_cut_off_tool_call_falls_back(
+    respx_mock: respx.Router,
+) -> None:
+    cut = {"id": "c1", "type": "function", "function": {"name": "get_run", "arguments": '{"ru'}}
+    harbor = respx_mock.post(HARBOR_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "model": "deepseek-v4.1-flash",
+                "choices": [
+                    {
+                        "message": {"content": None, "tool_calls": [cut]},
+                        "finish_reason": "length",
+                    }
+                ],
+            },
+        )
+    )
+    respx_mock.post(FACTORY_URL).mock(return_value=completion("Qwen3.8-Flash-Next", "Hello."))
+    stack = stack_with(HARBOR_KEY)
+    try:
+        result = await stack.gateway.complete(Role.CHAT, request())
+    finally:
+        await stack.aclose()
+    assert body(harbor)["max_tokens"] == 8192
+    assert result.model == "Qwen3.8-Flash-Next"
 
 
 async def test_malformed_tool_arguments_in_history_are_sent_as_a_json_object(

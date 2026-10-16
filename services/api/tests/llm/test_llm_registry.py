@@ -40,9 +40,9 @@ def registry(store: InMemoryRoleAssignmentStore | None = None) -> ModelRegistry:
 def test_defaults_follow_plan_section_7_1() -> None:
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
-        Role.INVESTIGATOR: "DeepSeek-V4.1-Flash",
-        Role.WRITER: "Qwen3.8-Flash-Next",
-        Role.VERIFIER: "GLM-5.3-Flash",
+        Role.INVESTIGATOR: TOKENHARBOR_MODEL,
+        Role.WRITER: TOKENHARBOR_MODEL,
+        Role.VERIFIER: TOKENHARBOR_MODEL,
         Role.CHAT: TOKENHARBOR_MODEL,
         Role.ROUTER: TOKENHARBOR_MODEL,
         Role.VISION: "DeepSeek-V4.1-Flash",
@@ -52,17 +52,18 @@ def test_defaults_follow_plan_section_7_1() -> None:
     # returned long outputs reliably live, 2026-10-14), then DeepSeek, then MiMo. MiMo refused
     # strict json_schema live; every structured default is json_object.
     assert DEFAULT_CHAINS[Role.WRITER] == (
+        ModelChoice(model=TOKENHARBOR_MODEL, response_mode=OBJECT, provider=Provider.TOKENHARBOR),
         ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
         ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
         ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT),
     )
-    # The verifier, vision and OCR chains are Token Factory only.
-    for role in (Role.VERIFIER, Role.VISION, Role.OCR):
+    # The vision and OCR chains are Token Factory only.
+    for role in (Role.VISION, Role.OCR):
         assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[role])
     writer, verifier = DEFAULT_CHAINS[Role.WRITER], DEFAULT_CHAINS[Role.VERIFIER]
     assert family_problems(writer, verifier, ProfileCatalog()) == []
-    # The verifier's primary is outside the writer's families.
-    assert DEFAULT_CHAINS[Role.VERIFIER][0].model == "GLM-5.3-Flash"
+    # After TokenHarbor, the verifier's first model is outside the writer's families.
+    assert DEFAULT_CHAINS[Role.VERIFIER][1].model == "GLM-5.3-Flash"
     assert all(c.response_mode is not SCHEMA for chain in DEFAULT_CHAINS.values() for c in chain)
 
 

@@ -199,6 +199,9 @@ ROLE_TIMEOUT_S: dict[Role, float] = {
 """Seconds one call of the role may take, retries included, before the next model is tried."""
 
 PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {Provider.TOKENHARBOR: 90.0}
+HARBOR_MIN_MAX_TOKENS = 8192
+"""Output budget TokenHarbor gets at least: its model thinks before answering, and 2,048 tokens
+were spent on thinking alone live on 2026-10-16."""
 """A tighter deadline for a provider tried ahead of Token Factory: a slow or stuck TokenHarbor
 call gives way to the Token Factory chain after this long, whatever the role allows."""
 
@@ -312,6 +315,9 @@ class LlmGateway:
         if request.reasoning_effort is not None:
             raise ValueError("reasoning_effort is set per role by the registry, not by callers")
         update: dict[str, Any] = {"reasoning_effort": resolved.choice.reasoning_effort}
+        if resolved.choice.provider is Provider.TOKENHARBOR:
+            # Its model always thinks first: a small budget is spent before any answer.
+            update["max_tokens"] = max(request.max_tokens or 0, HARBOR_MIN_MAX_TOKENS)
         if spec is not None:
             mode = mode_override or resolved.choice.response_mode
             if mode is ResponseMode.JSON_SCHEMA:
@@ -435,8 +441,9 @@ class LlmGateway:
         self, result: ChatResult, log: _Logger, parse: Callable[[ChatResult], T]
     ) -> tuple[ChatResult, T]:
         self.quota.record_spend(result.points)
-        if result.is_empty:
-            await log.done(result, CallStatus.EMPTY, error="empty answer")
+        if result.is_empty or (result.truncated and result.tool_calls):
+            # A tool call cut off at the output limit has broken arguments: try the next model.
+            await log.done(result, CallStatus.EMPTY, error="empty or cut-off answer")
             raise EmptyCompletionError(result.model, result.finish_reason)
         try:
             value = parse(result)

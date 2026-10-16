@@ -129,9 +129,10 @@ async def test_catalog_lists_every_profile_with_its_availability() -> None:
 async def test_roles_show_primary_effort_and_fallbacks() -> None:
     roles = {row.role: row for row in await make_admin().roles()}
     assert set(roles) == {"investigator", "writer", "verifier", "chat", "router", "ocr", "vision"}
-    assert roles["writer"].model_id == "Qwen3.8-Flash-Next"  # not TokenHarbor
-    assert roles["writer"].reasoning_effort == "none"
+    assert roles["writer"].model_id == "deepseek-v4.1-flash:free"  # TokenHarbor first
+    assert roles["writer"].reasoning_effort is None
     assert roles["writer"].fallbacks == [
+        "Qwen3.8-Flash-Next",
         "DeepSeek-V4.1-Flash",
         "MiMo-V2.6-Flash",
     ]

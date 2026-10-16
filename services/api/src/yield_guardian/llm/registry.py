@@ -100,8 +100,9 @@ _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
     Role.INVESTIGATOR: (
-        # Not TokenHarbor: live on 2026-10-16 its thinking model spent the whole 2,048-token
-        # budget reasoning (empty answer) and sent a tool call with invalid JSON arguments.
+        # TokenHarbor first (owner's choice). Its thinking model gets HARBOR_MIN_MAX_TOKENS of
+        # output, and an empty or cut-off answer falls back to Token Factory.
+        _harbor(_T),
         _c("DeepSeek-V4.1-Flash", "low", _T),
         _c("GLM-5.3-Flash", "low", _T),
         _c("Qwen3.8-Flash-Next", "low", _T),
@@ -113,13 +114,15 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         # writing, and MiMo-V2.6-Flash (about 5 tokens/s) and Qwen3.8-27B ran past the writer
         # deadline. All answer in json_object (MiMo refuses strict json_schema) and the report
         # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
-        # one MiMo effort the docs name. Not TokenHarbor: live on 2026-10-16 its thinking model
-        # spent all 16,384 output tokens reasoning and returned an empty report (89 s).
+        # one MiMo effort the docs name. TokenHarbor first (owner's choice); live on 2026-10-16
+        # it once spent all 16,384 output tokens reasoning (empty report, 89 s), which falls back.
+        _harbor(_O),
         _c("Qwen3.8-Flash-Next", "none", _O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),
     ),
     Role.VERIFIER: (
+        _harbor(_O),
         _c("GLM-5.3-Flash", "low", _O),
         _c("DeepSeek-V4-Flash", "low", _O),
     ),
