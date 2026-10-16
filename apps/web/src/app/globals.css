@@ -1140,7 +1140,7 @@
 }
 
 /* A theme switch changes every colour in one step: no control fades on its own clock
-   (theme-menu-full.tsx sets the class for the frames the switch takes). */
+   (theme-toggle.tsx sets the class for the frames the switch takes). */
 .theme-switching,
 .theme-switching *,
 .theme-switching *::before,

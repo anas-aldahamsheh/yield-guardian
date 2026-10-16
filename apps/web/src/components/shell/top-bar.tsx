@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
 import { SessionControl } from "./session-control";
-import { ThemeMenu } from "./theme-menu";
+import { ThemeToggle } from "./theme-toggle";
 import { Wordmark } from "./wordmark";
 
 /** The narrow-screen menu button. */
@@ -105,7 +105,7 @@ export function TopBar() {
           <DesktopNav pathname={pathname} />
 
           <div className="ml-auto flex items-center gap-1.5">
-            <ThemeMenu />
+            <ThemeToggle />
             <SessionControl className="hidden md:flex" />
             <MobileNav pathname={pathname} />
           </div>
