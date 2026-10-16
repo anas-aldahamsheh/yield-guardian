@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-16 05:16 UTC (updated as each item changes)
+**Last updated:** 2026-10-16 05:09 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
@@ -246,7 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
-| 2026-10-16 05:16 | R1 done and merged into main (98c711c): a refresh shows the run as it stood at once, with no replay, and keeps the open drawer, focus, alarm and drafts; /session and /meta are read once. The weekly usage limit stopped all three workers from about 18:20 to 04:00 UTC; each resumed at the reset (D-012). R2 finished on its branch with every check passing and is rebasing onto R1; the redesign rebases once after R2 lands. D-010 records the one shared item, the recorded example investigation, read-only for every visitor. 97 of 100 |
+| 2026-10-16 05:09 | R1 done and merged into main (98c711c): a refresh shows the run as it stood at once, with no replay, and keeps the open drawer, focus, alarm and drafts; /session and /meta are read once. The weekly usage limit stopped all three workers from about 18:20 to 04:00 UTC; each resumed at the reset (D-012). R2 finished on its branch with every check passing and is rebasing onto R1; the redesign rebases once after R2 lands. D-010 records the one shared item, the recorded example investigation, read-only for every visitor. 97 of 100 |
 | 2026-10-15 14:40 | The owner's rules recorded in PLAN §16: D-010 every visitor is a separate user with no login for now; D-011 nothing goes live until R1 to R3 are finished, merged and checked, then the final version is deployed once; D-012 workers cut off by the quota resume as soon as it renews (an hourly check does it). Redesign checkpoint 1 (the Line page) sent to the owner. 96 of 100 |
 | 2026-10-15 13:14 | R1 to R4 added for the owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor with no login, and a redesign of the whole interface. The reload, sessions and redesign workers are running; worker 3 stopped its own three workers before they committed anything. 96 of 100 |
 | 2026-10-15 12:50 | V14 done: v2 live from main f754631 with the live checks passing (worker 3). Two notes from the live checks: the 413 message named the body limit (33 MB) instead of the 32 MB file limit, fixed on main; automated mouse strokes on the draw canvas only registered in its top-left half, which a new browser test shows is the automation tool, not the page. 96 of 96 |
