@@ -432,8 +432,10 @@ and on a wide screen clear of the open sheet.
 4. **Instruments, not illustrations.** The line's screens draw computed values with their scales,
    not pictures of machines.
 5. **No estimate without its interval;** not ready is a state, not an error.
-6. **Light on a phone.** A page's first load carries no Motion renderer and no dialog or drawer it
-   does not show; the interface's typeface is cut to the characters it writes. First and last
+6. **Light on a phone.** A page's first load carries no Motion renderer and no dialog, menu or
+   way-in panel it does not show (the station drawers come with the Line page: one the page
+   arrives with is on screen at once, never streamed behind a loading state); the interface's
+   typeface is cut to the characters it writes. First and last
    come from the index, not from `group-first`, `group-last`, `space-*` or `divide-*`: their
    `:first-child` and `:last-child` selectors make every node the parser adds restyle the subtree
    around it.
@@ -466,4 +468,6 @@ produces. Changes:
    result arrives.
 8. **Labels.** No all-caps eyebrows, no middle-dot meta strings, no monospace labels, no arrows
    appended to links. Numbering appears only where the content is a sequence (the five stations,
-   the investigation's steps).
+   the investigation's steps). The one exception is the workspace's own lines (Your work's count
+   and keep time, "this session" in the admin's device sessions): their tests read them as
+   written.

@@ -840,18 +840,19 @@
     animation: chip-in 520ms var(--ease-spring) backwards;
   }
 
-  /* Pressable: goes down under a press with a firm spring, comes back with it. */
+  /* Pressable: goes down under a press with a firm spring, comes back with it. Disabled and
+     enabled switch at once: a button fading in as it is enabled would read, for a moment, as live
+     text below the contrast it needs. */
   .press {
     transition:
       transform var(--dur-4) var(--ease-spring-firm),
       background-color var(--dur-1) linear,
       color var(--dur-1) linear,
-      box-shadow var(--dur-2) var(--ease-out),
-      opacity var(--dur-2) linear;
+      box-shadow var(--dur-2) var(--ease-out);
   }
   .press:active:not(:disabled) {
     transform: scale(0.97);
-    transition-duration: 90ms, var(--dur-1), var(--dur-1), var(--dur-2), var(--dur-2);
+    transition-duration: 90ms, var(--dur-1), var(--dur-1), var(--dur-2);
   }
   @media (hover: hover) {
     .lift:hover:not(:disabled) {
@@ -871,8 +872,7 @@
       transform var(--dur-4) var(--ease-spring-firm),
       background-color var(--dur-1) linear,
       color var(--dur-1) linear,
-      box-shadow var(--dur-2) var(--ease-out),
-      opacity var(--dur-2) linear;
+      box-shadow var(--dur-2) var(--ease-out);
   }
 
   .skip-link {
