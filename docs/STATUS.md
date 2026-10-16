@@ -1,10 +1,10 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-15 14:40 UTC (updated as each item changes)
+**Last updated:** 2026-10-16 05:16 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
-## Progress: 96 of 100 done (96%), 3 in progress, 1 not started
+## Progress: 97 of 100 done (97%), 2 in progress, 1 not started
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
@@ -20,7 +20,7 @@
 | Q: Quality | 5 of 5 | 0 | 0 |
 | X: Submission | 2 of 2 | 0 | 0 |
 | V: Version 2, the live story | 14 of 14 | 0 | 0 |
-| R: Requests after v2 | 0 of 4 | 3 | 1 |
+| R: Requests after v2 | 1 of 4 | 2 | 1 |
 <!-- progress:end -->
 
 | Symbol | Meaning |
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Done | 96 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 0 of 4) |
+| Done | 97 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 1 of 4) |
 | Current focus | The owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor, and a redesign of the whole interface |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
@@ -231,8 +231,8 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
-| R1 | A refresh keeps everything: the stored run renders at once with no replay, the open drawer, focus and alarm stay, an alarm keeps its investigation, the API is asked for the session and meta once | Cloud | 🟡 | Reload worker. Live finding: a finished run showed "Connecting to the run" for seconds after a refresh; the alarm-to-investigation link lived only in the browser; /session and /meta were each fetched about 10 times on one live load |
-| R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | 🟡 | Sessions worker. Defaults: another visitor's check answers 404 like a missing one; a workspace and its checks are kept 30 days after its last use instead of 24 h |
+| R1 | A refresh keeps everything: the stored run renders at once with no replay, the open drawer, focus and alarm stay, an alarm keeps its investigation, the API is asked for the session and meta once | Cloud | ✅ | Merged into main (98c711c). The server reads the run before the page is sent, so a reload paints it as it stood, with no replay, and the live stream resumes from the last event it had. The open drawer, focus, selected alarm and unsent drafts stay; an alarm's investigation is stored by the API; one query client reads /session and /meta once. Checks on 98c711c: API ruff, mypy and 1,219 tests on PostgreSQL (lead rerun); web typecheck, lint, format and 355 unit tests (lead rerun); browser tests 126 passed, 2 skipped by design; stack reload 4 and flows 14 passed; no fixture content in 684 build files (worker). Limit: a run over 128 M characters, or slower than 10 s to read, falls back to "Reading the run" |
+| R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | 🟡 | Sessions worker: built on its branch (6b82732) with every check passing (1,244 API tests, 312 unit tests, 138 mock and 52 stack browser tests); now rebasing onto R1. Defaults: another visitor's check answers 404 like a missing one; a workspace and its checks are kept 30 days after its last use instead of 24 h |
 | R3 | The whole interface redesigned: layout, colour, type, hover, motion and page transitions, with the line's motion still driven only by arrived results | Cloud | 🟡 | Redesign worker, with Motion as the owner asked. Budgets: Lighthouse mobile 90 / 100 / 100 on / and /how, axe 0, reduced-motion path |
 | R4 | Deploy R1 to R3 and check them live | PC | ⏳ | Worker 3, after the merge |
 
@@ -246,6 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-16 05:16 | R1 done and merged into main (98c711c): a refresh shows the run as it stood at once, with no replay, and keeps the open drawer, focus, alarm and drafts; /session and /meta are read once. The weekly usage limit stopped all three workers from about 18:20 to 04:00 UTC; each resumed at the reset (D-012). R2 finished on its branch with every check passing and is rebasing onto R1; the redesign rebases once after R2 lands. D-010 records the one shared item, the recorded example investigation, read-only for every visitor. 97 of 100 |
 | 2026-10-15 14:40 | The owner's rules recorded in PLAN §16: D-010 every visitor is a separate user with no login for now; D-011 nothing goes live until R1 to R3 are finished, merged and checked, then the final version is deployed once; D-012 workers cut off by the quota resume as soon as it renews (an hourly check does it). Redesign checkpoint 1 (the Line page) sent to the owner. 96 of 100 |
 | 2026-10-15 13:14 | R1 to R4 added for the owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor with no login, and a redesign of the whole interface. The reload, sessions and redesign workers are running; worker 3 stopped its own three workers before they committed anything. 96 of 100 |
 | 2026-10-15 12:50 | V14 done: v2 live from main f754631 with the live checks passing (worker 3). Two notes from the live checks: the 413 message named the body limit (33 MB) instead of the 32 MB file limit, fixed on main; automated mouse strokes on the draw canvas only registered in its top-left half, which a new browser test shows is the automation tool, not the page. 96 of 96 |

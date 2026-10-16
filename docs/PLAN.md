@@ -416,7 +416,7 @@ If time runs short, the last slices are cut and listed as cut in STATUS. Quality
 | D-007 | 2026-10-14 | Name: Yield Guardian, held in one config value so it can be renamed |
 | D-008 | 2026-10-14 | Paper search by PostgreSQL full-text search (no embedding model on Token Factory) |
 | D-009 | 2026-10-14 | No request limits of any kind in the product (owner's decision). The quota is protected only by minimal testing calls, the cache and recorded runs |
-| D-010 | 2026-10-15 | Each visitor is a separate user with no login for now (login comes later): no visitor sees another's checks, files or investigations (owner's decision, R2) |
+| D-010 | 2026-10-15 | Each visitor is a separate user with no login for now (login comes later): no visitor sees another's checks, files or investigations (owner's decision, R2). The one shared item is the recorded example investigation, which is no one's data: every visitor sees it, read-only (lead's default, told to the owner) |
 | D-011 | 2026-10-15 | Nothing goes live until all open work is finished, merged and checked; then the final version is deployed once (owner's rule) |
 | D-012 | 2026-10-15 | When the usage quota runs out, every worker it cut off resumes as soon as the quota renews, without waiting to be asked (owner's rule) |
 
