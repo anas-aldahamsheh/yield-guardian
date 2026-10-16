@@ -1,6 +1,6 @@
 # Yield Guardian: Status
 
-**Last updated:** 2026-10-16 05:09 UTC (updated as each item changes)
+**Last updated:** 2026-10-16 07:05 UTC (updated as each item changes)
 **Plan:** [PLAN.md](PLAN.md) (v1, done) and [PLAN_V2.md](PLAN_V2.md) (v2, done and live); the owner's requests after v2 are section R
 
 <!-- progress:start -->
@@ -38,7 +38,7 @@
 | | |
 |---|---|
 | Done | 97 of 100 (v1: 82 of 82; v2: 14 of 14; requests after v2: 1 of 4) |
-| Current focus | The owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor, and a redesign of the whole interface |
+| Current focus | The owner's requests after v2: R1 (a refresh keeps everything) and R2 (a separate workspace for every visitor) are merged; R2's last fix and the redesign of the whole interface (R3) are in progress, then one deploy |
 | Blocked | Nothing |
 | Waiting on you | Rotate the Token Factory key when convenient (it appeared in the chat) |
 
@@ -232,7 +232,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 | ID | Item | Where | Status | Evidence / notes |
 |---|---|---|---|---|
 | R1 | A refresh keeps everything: the stored run renders at once with no replay, the open drawer, focus and alarm stay, an alarm keeps its investigation, the API is asked for the session and meta once | Cloud | ✅ | Merged into main (98c711c). The server reads the run before the page is sent, so a reload paints it as it stood, with no replay, and the live stream resumes from the last event it had. The open drawer, focus, selected alarm and unsent drafts stay; an alarm's investigation is stored by the API; one query client reads /session and /meta once. Checks on 98c711c: API ruff, mypy and 1,219 tests on PostgreSQL (lead rerun); web typecheck, lint, format and 355 unit tests (lead rerun); browser tests 126 passed, 2 skipped by design; stack reload 4 and flows 14 passed; no fixture content in 684 build files (worker). Limit: a run over 128 M characters, or slower than 10 s to read, falls back to "Reading the run" |
-| R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | 🟡 | Sessions worker: built on its branch (6b82732) with every check passing (1,244 API tests, 312 unit tests, 138 mock and 52 stack browser tests); now rebasing onto R1. Defaults: another visitor's check answers 404 like a missing one; a workspace and its checks are kept 30 days after its last use instead of 24 h |
+| R2 | A separate workspace for every visitor, with no login (login is for later): each one's checks, uploads and investigations are theirs alone, kept with their live status, with actions on each check, continue on another device, and an admin view of sessions | Cloud | 🟡 | Merged into main (4ba3261). Each device opens its own workspace on its first visit, with no sign-up. Another visitor's run, upload or investigation answers exactly like an ID that never existed, on every route, the live stream and a reload included. A workspace and everything in it is kept 30 days after its last use (WORKSPACE_SESSION_DAYS). Your work on the Line lists each run with its live state, alarms and warnings, and its actions: rename, note, run again, compare, investigate alarms, CSV and report, archive. A one-time code that lasts 10 minutes continues the workspace on another device (/join; the code stays in the link's fragment). Admins see device sessions and can end one. The recorded example investigation is listed for every visitor, read-only (D-010). Checks on 4ba3261: API ruff, mypy and 1,247 tests on PostgreSQL; migrations up, down and up to 0005; contracts current; web typecheck, lint, format and 370 unit tests (lead rerun); browser tests 149 mock and 57 stack passed (worker). Left: a first visit while the API wakes must still get its workspace (the opening is not retried yet) |
 | R3 | The whole interface redesigned: layout, colour, type, hover, motion and page transitions, with the line's motion still driven only by arrived results | Cloud | 🟡 | Redesign worker, with Motion as the owner asked. Budgets: Lighthouse mobile 90 / 100 / 100 on / and /how, axe 0, reduced-motion path |
 | R4 | Deploy R1 to R3 and check them live | PC | ⏳ | Worker 3, after the merge |
 
@@ -246,6 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-16 07:05 | R2 merged into main (4ba3261): a separate workspace for every visitor with no login, Your work, continue on another device, device sessions for admins, kept 30 days after last use; every check passes on the lead's rerun. One fix before deploy is in progress: a first visit while the API wakes gets its workspace. The redesign is rebasing onto main. 97 of 100 |
 | 2026-10-16 05:09 | R1 done and merged into main (98c711c): a refresh shows the run as it stood at once, with no replay, and keeps the open drawer, focus, alarm and drafts; /session and /meta are read once. The weekly usage limit stopped all three workers from about 18:20 to 04:00 UTC; each resumed at the reset (D-012). R2 finished on its branch with every check passing and is rebasing onto R1; the redesign rebases once after R2 lands. D-010 records the one shared item, the recorded example investigation, read-only for every visitor. 97 of 100 |
 | 2026-10-15 14:40 | The owner's rules recorded in PLAN §16: D-010 every visitor is a separate user with no login for now; D-011 nothing goes live until R1 to R3 are finished, merged and checked, then the final version is deployed once; D-012 workers cut off by the quota resume as soon as it renews (an hourly check does it). Redesign checkpoint 1 (the Line page) sent to the owner. 96 of 100 |
 | 2026-10-15 13:14 | R1 to R4 added for the owner's requests after v2: a refresh keeps everything, a fully separate workspace for every visitor with no login, and a redesign of the whole interface. The reload, sessions and redesign workers are running; worker 3 stopped its own three workers before they committed anything. 96 of 100 |
