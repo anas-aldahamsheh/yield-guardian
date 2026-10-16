@@ -6,6 +6,7 @@ import pytest
 
 from tests.llm.helpers import NOW
 from yield_guardian.llm.profiles import (
+    ANTHROPIC_MODEL,
     DOCUMENTED_PROFILES,
     OPENROUTER_MODEL,
     CatalogEntry,
@@ -40,18 +41,19 @@ def registry(store: InMemoryRoleAssignmentStore | None = None) -> ModelRegistry:
 def test_defaults_follow_plan_section_7_1() -> None:
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
-        Role.INVESTIGATOR: OPENROUTER_MODEL,
-        Role.WRITER: OPENROUTER_MODEL,
-        Role.VERIFIER: OPENROUTER_MODEL,
-        Role.CHAT: OPENROUTER_MODEL,
-        Role.ROUTER: OPENROUTER_MODEL,
-        Role.VISION: OPENROUTER_MODEL,
+        Role.INVESTIGATOR: ANTHROPIC_MODEL,
+        Role.WRITER: ANTHROPIC_MODEL,
+        Role.VERIFIER: ANTHROPIC_MODEL,
+        Role.CHAT: ANTHROPIC_MODEL,
+        Role.ROUTER: ANTHROPIC_MODEL,
+        Role.VISION: ANTHROPIC_MODEL,
         Role.OCR: "MinerU2.5-Pro",
     }
     # TokenHarbor first (when its key is set), then Qwen3.8-Flash-Next (the one model that
     # returned long outputs reliably live, 2026-10-14), then DeepSeek, then MiMo. MiMo refused
     # strict json_schema live; every structured default is json_object.
     assert DEFAULT_CHAINS[Role.WRITER] == (
+        ModelChoice(model=ANTHROPIC_MODEL, response_mode=OBJECT, provider=Provider.ANTHROPIC),
         ModelChoice(model=OPENROUTER_MODEL, response_mode=OBJECT, provider=Provider.OPENROUTER),
         ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
         ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
@@ -59,11 +61,11 @@ def test_defaults_follow_plan_section_7_1() -> None:
     )
     # OCR is Token Factory only; OpenRouter (and for the text roles TokenHarbor) come first.
     assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[Role.OCR])
-    assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[Role.VISION][1:])
+    assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[Role.VISION][2:])
     writer, verifier = DEFAULT_CHAINS[Role.WRITER], DEFAULT_CHAINS[Role.VERIFIER]
     assert family_problems(writer, verifier, ProfileCatalog()) == []
     # After OpenRouter and TokenHarbor, the verifier's first model is outside the writer's families.
-    assert DEFAULT_CHAINS[Role.VERIFIER][2].model == "GLM-5.3-Flash"
+    assert DEFAULT_CHAINS[Role.VERIFIER][3].model == "GLM-5.3-Flash"
     assert all(c.response_mode is not SCHEMA for chain in DEFAULT_CHAINS.values() for c in chain)
 
 
@@ -124,7 +126,8 @@ def test_default_mode_uses_json_schema_only_where_supported() -> None:
          "listed twice"),
         (Role.CHAT, [ModelChoice(model=m, reasoning_effort="low") for m in
                      ["DeepSeek-V4-Flash", "DeepSeek-V4.1-Flash", "DeepSeek-V4-Flash-Vision-Exp",
-                      "GLM-5.3-Flash", "Qwen3.8-Flash-Next", "Qwen3.8-27B"]], "at most 5"),
+                      "GLM-5.3-Flash", "Qwen3.8-Flash-Next", "Qwen3.8-27B", "MiMo-V2.6-Flash"]],
+         "at most 6"),
     ],
 )  # fmt: skip
 def test_invalid_chains_are_explained(role: Role, chain: list[ModelChoice], problem: str) -> None:

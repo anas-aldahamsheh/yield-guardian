@@ -35,6 +35,10 @@ class Settings(BaseSettings):
         None, description="OpenRouter key; when set, openai/gpt-4o is tried first on every role."
     )
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    anthropic_api_key: SecretStr | None = Field(
+        None, description="Anthropic key; when set, Claude Haiku 5.5 is tried first on every role."
+    )
+    anthropic_base_url: str = "https://api.anthropic.com/v1"
 
     session_secret: SecretStr | None = Field(None, description="At least 32 random bytes, base64.")
     session_ttl_minutes: int = Field(

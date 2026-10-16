@@ -201,6 +201,7 @@ ROLE_TIMEOUT_S: dict[Role, float] = {
 PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {
     Provider.TOKENHARBOR: 90.0,
     Provider.OPENROUTER: 120.0,
+    Provider.ANTHROPIC: 120.0,
 }
 HARBOR_MIN_MAX_TOKENS = 8192
 """Output budget TokenHarbor gets at least: its model thinks before answering, and 2,048 tokens

@@ -272,3 +272,48 @@ async def test_openrouter_answers_when_it_works(respx_mock: respx.Router) -> Non
         await stack.aclose()
     assert result.model == "google/gemma-4-31b-it:free"
     assert router.call_count == 1
+
+
+ANTHROPIC_URL = "https://api.anthropic.com/v1/chat/completions"
+
+
+async def test_anthropic_answers_first_and_a_failure_falls_back(respx_mock: respx.Router) -> None:
+    anthropic = respx_mock.post(ANTHROPIC_URL).mock(
+        return_value=completion("claude-haiku-5-5", "Hello from Haiku.")
+    )
+    stack = assemble_llm_stack(
+        settings(harbor_key=None).model_copy(
+            update={
+                "anthropic_api_key": SecretStr("ant-placeholder-not-a-key"),
+                "anthropic_base_url": "https://api.anthropic.com/v1",
+            }
+        )
+    )
+    try:
+        assert stack.registry.resolve(Role.WRITER).usable[0].choice.model == "claude-haiku-5-5"
+        result = await stack.gateway.complete(Role.INVESTIGATOR, request())
+    finally:
+        await stack.aclose()
+    assert result.model == "claude-haiku-5-5"
+    assert (
+        anthropic.calls.last.request.headers["authorization"] == "Bearer ant-placeholder-not-a-key"
+    )
+    assert "reasoning_effort" not in body(anthropic)
+
+    down = respx_mock.post(ANTHROPIC_URL).mock(return_value=httpx.Response(529))
+    factory = respx_mock.post(FACTORY_URL).mock(return_value=completion("GLM-5.3-Flash", "Hi."))
+    stack = assemble_llm_stack(
+        settings(harbor_key=None).model_copy(
+            update={
+                "anthropic_api_key": SecretStr("ant-placeholder-not-a-key"),
+                "anthropic_base_url": "https://api.anthropic.com/v1",
+            }
+        )
+    )
+    try:
+        fallback = await stack.gateway.complete(Role.VERIFIER, request())
+    finally:
+        await stack.aclose()
+    assert down.call_count >= 1
+    assert factory.call_count == 1
+    assert fallback.model == "GLM-5.3-Flash"

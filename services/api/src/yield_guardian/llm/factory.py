@@ -56,6 +56,8 @@ class LlmStack:
     """The TokenHarbor client, when ``TOKENHARBOR_API_KEY`` is set."""
     openrouter_client: TokenFactoryClient | None = None
     """The OpenRouter client, when ``OPENROUTER_API_KEY`` is set."""
+    anthropic_client: TokenFactoryClient | None = None
+    """The Anthropic client, when ``ANTHROPIC_API_KEY`` is set."""
 
     async def aclose(self) -> None:
         await self.client.aclose()
@@ -63,6 +65,8 @@ class LlmStack:
             await self.harbor_client.aclose()
         if self.openrouter_client is not None:
             await self.openrouter_client.aclose()
+        if self.anthropic_client is not None:
+            await self.anthropic_client.aclose()
 
 
 def key_configured(settings: Settings) -> bool:
@@ -72,6 +76,11 @@ def key_configured(settings: Settings) -> bool:
 
 def harbor_key_configured(settings: Settings) -> bool:
     key = settings.tokenharbor_api_key
+    return key is not None and bool(key.get_secret_value().strip())
+
+
+def anthropic_key_configured(settings: Settings) -> bool:
+    key = settings.anthropic_api_key
     return key is not None and bool(key.get_secret_value().strip())
 
 
@@ -120,7 +129,20 @@ def assemble_llm_stack(
         if openrouter_key_configured(settings)
         else None
     )
+    anthropic_client = (
+        TokenFactoryClient(
+            api_key=settings.anthropic_api_key,
+            base_url=settings.anthropic_base_url,
+            http=http,
+            retry=TOKENHARBOR_RETRY,
+            timeout=OPENROUTER_TIMEOUT,
+        )
+        if anthropic_key_configured(settings)
+        else None
+    )
     providers = [Provider.TOKEN_FACTORY]
+    if anthropic_client is not None:
+        providers.append(Provider.ANTHROPIC)
     if harbor_client is not None:
         providers.append(Provider.TOKENHARBOR)
     if openrouter_client is not None:
@@ -130,6 +152,7 @@ def assemble_llm_stack(
         for provider, client in (
             (Provider.TOKENHARBOR, harbor_client),
             (Provider.OPENROUTER, openrouter_client),
+            (Provider.ANTHROPIC, anthropic_client),
         )
         if client is not None
     }
@@ -172,6 +195,7 @@ def assemble_llm_stack(
         admin=admin,
         harbor_client=harbor_client,
         openrouter_client=openrouter_client,
+        anthropic_client=anthropic_client,
     )
 
 
