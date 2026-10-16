@@ -8,6 +8,7 @@
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
+| 2026-10-16 13:20 | Live at 31b8d3d after quick fixes requested by the owner: scroll to the bay, menu alignment, a light/dark toggle, no frame on the open station, round wafers, delete a run from Your work, a Result section under the line (problems checked against final test, unseen units only, wafers vs recorded labels), and real samples that always include a recorded failure and labelled wafers. Every live check passed. 100 of 100 |
 | F: Foundations | 6 of 6 | 0 | 0 |
 | D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
