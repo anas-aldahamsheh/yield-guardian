@@ -64,6 +64,12 @@ export function ResultSection({
   const pattern = revealed.has("wafer_pattern") ? stageResult(state, "wafer_pattern") : null;
   const hasUnits = (state.units ?? risk?.units.length ?? 0) > 0;
   const hasWafers = (state.wafers ?? pattern?.wafers.length ?? 0) > 0;
+  const [tab, setTab] = useState<"problems" | "units" | "wafers">("problems");
+  const tabs = [
+    { id: "problems" as const, label: "Problems" },
+    ...(hasUnits ? [{ id: "units" as const, label: "Units (SECOM)" }] : []),
+    ...(hasWafers ? [{ id: "wafers" as const, label: "Wafers (WM-811K)" }] : []),
+  ];
 
   return (
     <section
@@ -80,17 +86,36 @@ export function ResultSection({
         What the line found, next to what really happened. The sensor units and the wafers come from
         different datasets, so each is checked on its own.
       </p>
-      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">
-        <Problems
-          state={state}
-          alarms={state.alarms.filter((a) => alarmsShown.has(a.alarm_id))}
-          final={final}
-          finalKnown={finalKnown}
-          over={over}
-          onLinked={onLinked}
-          className="xl:col-span-2"
-        />
-        {hasUnits ? (
+      {/* One part at a time: a tab per part, the problems first. */}
+      <div role="tablist" aria-label="Result" className="mt-6 flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "press inline-flex h-9 items-center rounded-full px-4 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink",
+              tab === t.id && "lit text-ink",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4">
+        {tab === "problems" ? (
+          <Problems
+            state={state}
+            alarms={state.alarms.filter((a) => alarmsShown.has(a.alarm_id))}
+            final={final}
+            finalKnown={finalKnown}
+            over={over}
+            onLinked={onLinked}
+          />
+        ) : null}
+        {tab === "units" && hasUnits ? (
           <Units
             risk={risk}
             final={final}
@@ -99,7 +124,7 @@ export function ResultSection({
             onShowUnit={onShowUnit}
           />
         ) : null}
-        {hasWafers ? <Wafers wafers={pattern?.wafers ?? null} /> : null}
+        {tab === "wafers" && hasWafers ? <Wafers wafers={pattern?.wafers ?? null} /> : null}
       </div>
     </section>
   );

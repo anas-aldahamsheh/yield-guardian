@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { useChangeKey, useTicker } from "@/components/motion";
@@ -465,33 +464,20 @@ function StationTile({
       ) : null}
       <Finding sentence={summary.sentence} />
       {canOpen ? (
-        <div className="mt-auto pt-2.5">
-          <button
-            type="button"
-            onClick={() => onOpen(n)}
-            aria-expanded={open}
-            aria-controls="station-drawer"
-            className={cn(
-              "press group/open inline-flex h-8 items-center gap-1.5 rounded-full pr-2.5 pl-3.5 text-[13px] leading-5 font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]",
-              open && "lit",
-            )}
-          >
-            {/* The name says which station; the tile already shows it, so the label is short. */}
-            <span className="sr-only">
-              {open
-                ? `Showing ${summary.name.toLowerCase()} `
-                : `Open ${summary.name.toLowerCase()} `}
-            </span>
-            Details
-            <ChevronDown
-              aria-hidden="true"
-              className={cn(
-                "size-3.5 text-ink-3 transition-[rotate,translate] duration-(--dur-3) ease-spring",
-                open ? "rotate-180" : "group-hover/open:translate-y-0.5",
-              )}
-            />
-          </button>
-        </div>
+        // The whole tile opens the station's details (no separate Details button).
+        <button
+          type="button"
+          onClick={() => onOpen(n)}
+          aria-expanded={open}
+          aria-controls="station-drawer"
+          className="absolute inset-0 z-10 cursor-pointer rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <span className="sr-only">
+            {open
+              ? `Showing ${summary.name.toLowerCase()} `
+              : `Open ${summary.name.toLowerCase()} details`}
+          </span>
+        </button>
       ) : null}
     </Tile>
   );
