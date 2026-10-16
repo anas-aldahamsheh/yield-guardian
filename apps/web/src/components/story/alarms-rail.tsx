@@ -99,7 +99,7 @@ export function alarmPlace(state: RunState, alarm: RunAlarm): string {
 }
 
 /** WM-811K lots are named "lot45647"; a lot from a file or a drawing is named as given. */
-function lotName(lot: string): string {
+export function lotName(lot: string): string {
   return /^lot/i.test(lot) ? lot : `lot ${lot}`;
 }
 
@@ -423,7 +423,7 @@ function Fold({
 }
 
 /** Investigate one alarm: sign in when there is no engineer session, then start and follow it. */
-function Investigate({
+export function Investigate({
   runId,
   alarm,
   onLinked,

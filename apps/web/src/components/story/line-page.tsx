@@ -54,6 +54,7 @@ import { AlarmsRail } from "./alarms-rail";
 import { Bay, type ClockStation } from "./bay";
 import { InputBar, type Way } from "./input-bar";
 import { LaterStations } from "./later-stations";
+import { ResultSection } from "./result-section";
 import { useScene } from "./scene";
 import { StationDrawer } from "./station-drawer";
 import { useLineScene } from "./use-line-scene";
@@ -104,7 +105,7 @@ function finalTestSummary(
       sentence: stage.problem?.detail ?? stage.problem?.title ?? "Final test stopped.",
     };
   const result = revealed.has("final_test") ? stageResult(state, "final_test") : null;
-  if (result) return { tone: "ok", sentence: result.summary };
+  if (result) return { tone: "ok", sentence: `${result.summary} See the result below.` };
   if (state.status === "failed")
     return { tone: "failed", sentence: "The run stopped before final test." };
   return {
@@ -462,6 +463,17 @@ export function LinePage({
               </div>
             </div>
           </div>
+          {/* The result, under the line: it comes once final test is stamped (or the line is
+              over without it), and each part fills as its stage is shown. */}
+          {state && (over || revealed.has("final_test")) ? (
+            <ResultSection
+              state={state}
+              revealed={revealed}
+              alarmsShown={alarmsShown}
+              over={over}
+              onLinked={linked}
+            />
+          ) : null}
           {url.runId ? yourWork : null}
         </div>
       </section>
