@@ -66,7 +66,7 @@ export function ResultSection({
   const hasWafers = (state.wafers ?? pattern?.wafers.length ?? 0) > 0;
   const [tab, setTab] = useState<"problems" | "units" | "wafers">("problems");
   const tabs = [
-    { id: "problems" as const, label: "Problems" },
+    { id: "problems" as const, label: "Predicted problems" },
     ...(hasUnits ? [{ id: "units" as const, label: "Failure predictions vs outcome" }] : []),
     ...(hasWafers ? [{ id: "wafers" as const, label: "Pattern predictions vs outcome" }] : []),
   ];
