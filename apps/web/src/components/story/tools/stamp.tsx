@@ -30,7 +30,7 @@ export function StampTool({ state, store }: { state: RunState | null; store: Sce
     <svg viewBox="0 0 200 250" className="block h-auto w-full" aria-hidden="true">
       {/* The seal: drawn once results arrive, inked by the stamp as it lands */}
       <g
-        transform={`translate(100 92) rotate(-8) scale(${1.2 - 0.2 * t})`}
+        transform={`translate(100 92) scale(${1.2 - 0.2 * t})`}
         opacity={result ? 0.25 + 0.75 * t : 1}
       >
         <circle
@@ -46,41 +46,38 @@ export function StampTool({ state, store }: { state: RunState | null; store: Sce
           stroke={result ? "var(--ink-2)" : "var(--hairline)"}
           strokeWidth={0.75}
         />
-        <text y={-28} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
-          Actual outcome
-        </text>
         {result && result.units_with_result > 0 ? (
           <g className="tnum">
             <text
-              y={9}
+              y={-2}
               textAnchor="middle"
-              fontSize={34}
+              fontSize={36}
               fontWeight={300}
               fill={failed ? "var(--fail)" : "var(--pass)"}
             >
               {formatInt(failed)}
             </text>
-            <text y={26} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
+            <text y={18} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
               {failed === 1 ? "unit failed" : "units failed"}
             </text>
-            <text y={41} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
+            <text y={35} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
               {`${formatInt(passed)} passed`}
             </text>
           </g>
         ) : result && result.wafers_with_label > 0 ? (
           <g className="tnum">
-            <text y={9} textAnchor="middle" fontSize={34} fontWeight={300} fill="var(--ink)">
+            <text y={-2} textAnchor="middle" fontSize={36} fontWeight={300} fill="var(--ink)">
               {formatInt(result.wafers_agreeing)}
             </text>
-            <text y={26} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
+            <text y={18} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
               {`of ${formatInt(result.wafers_with_label)} wafers`}
             </text>
-            <text y={41} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
+            <text y={35} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
               matched
             </text>
           </g>
         ) : (
-          <text y={5} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
+          <text y={4} textAnchor="middle" fontSize={12} fill="var(--ink-3)">
             {skipped ? "no recorded results" : ""}
           </text>
         )}

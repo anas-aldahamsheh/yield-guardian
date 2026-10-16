@@ -60,7 +60,7 @@ import { StationDrawer } from "./station-drawer";
 import { useLineScene } from "./use-line-scene";
 import { useStationClocks } from "./use-station-clocks";
 
-const noSubscribe = () => () => {};
+const noSubscribe = () => () => { };
 
 function focusKey(focus: Focus): string {
   if (!focus) return "";
@@ -257,9 +257,9 @@ export function LinePage({
       reading
         ? readingLine()
         : summarizeLine(state, {
-            shown: (s) => revealed.has(s),
-            alarmShown: (a) => alarmsShown.has(a.alarm_id),
-          }),
+          shown: (s) => revealed.has(s),
+          alarmShown: (a) => alarmsShown.has(a.alarm_id),
+        }),
     [reading, state, revealed, alarmsShown],
   );
   const finalTest = useMemo(
@@ -281,7 +281,6 @@ export function LinePage({
   const clocks = useStationClocks(state, tones);
 
   const setStation = (n: number | null) => {
-    if (!url.runId) return;
     setStationBy("person");
     go({ ...url, station: n }, "replace");
   };
@@ -438,20 +437,23 @@ export function LinePage({
               <WakingNote />
             ) : null}
             {twoSources ? <TwoSources /> : null}
-            <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,320px)]">
-              <div className="min-w-0">
+            <div className="mt-6 flex flex-col gap-6">
+              <div className="w-full min-w-0">
                 <Bay
                   state={state}
                   store={store}
                   summaries={summaries}
                   finalTest={finalTest}
                   clocks={clocks}
-                  onOpen={(n) => setStation(url.station === n ? null : n)}
+                  onOpen={(n) => setStation(n)}
                   openStation={url.station}
+                  focus={focus}
+                  onFocus={setFocus}
+                  revealed={revealed}
                 />
                 {state ? <LineStatus state={state} over={over} /> : null}
               </div>
-              <div className="relative">
+              <div className="w-full">
                 <AlarmsRail
                   state={state}
                   reading={reading}
@@ -460,29 +462,14 @@ export function LinePage({
                   onLinked={linked}
                   selected={url.alarm}
                   over={over}
-                  // Under the line the rail scrolls within a screen's height less the bar above and the
-                  // Ask button's band below, so in view it clears both; beside the line it takes the
-                  // line's height, down to the Ask button's band wherever the page is scrolled (while
-                  // the line is still low on the screen the rail is short, and it grows as it rises).
-                  className="max-h-[min(640px,calc(100dvh-var(--bar-height)-112px))] min-h-[200px] rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] xl:absolute xl:inset-x-0 xl:top-0 xl:h-[min(100%,max(0px,var(--viewport-room,100%)))] xl:max-h-none xl:min-h-0"
+                  className="max-h-[460px] min-h-[140px] w-full rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)]"
                 />
               </div>
             </div>
           </div>
-          {drawer && state ? (
-            <StationDrawer
-              station={drawer}
-              state={state}
-              revealed={revealed}
-              focus={focus}
-              onFocus={setFocus}
-              onClose={() => setStation(null)}
-              // A drawer open in the URL (a reload, a link, back and forward) is already where the
-              // person left it: it neither fades in nor moves the page.
-              restored={stationBy !== "person"}
-              landing={stationBy === "document"}
-            />
-          ) : null}
+          {/* Note: In-depth station inspection is rendered directly inside Bay in Focused Mode,
+              keeping the clicked box on the left with its diagnostics under it, and detailed telemetry near it.
+              The old bottom StationDrawer is no longer rendered here, preventing downward page scrolling. */}
           {/* The result, under the line: it comes once final test is stamped (or the line is
               over without it), and each part fills as its stage is shown. */}
           {state && (over || revealed.has("final_test")) ? (
