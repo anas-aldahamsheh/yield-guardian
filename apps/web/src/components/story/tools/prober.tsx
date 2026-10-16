@@ -11,6 +11,7 @@ import {
   type WaferPatternView,
 } from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
+import { dieEdges, dieGap } from "@/components/wafer/die-map";
 import { formatInt } from "@/lib/format";
 
 import { failsAlong, gridOf, probeOrder } from "../probe-order";
@@ -193,11 +194,13 @@ function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly Wafer
     ctx.fillRect(c - radius, c - radius, radius * 2, radius * 2);
     ctx.restore();
 
-    const n = Math.max(grid.height, grid.width);
-    const pitch = (radius * 2 * 0.93) / n;
-    const ox = c - (grid.width * pitch) / 2;
-    const oy = c - (grid.height * pitch) / 2;
-    const gap = pitch >= 5 ? Math.max(1, Math.round(pitch * 0.14)) : pitch >= 3 ? 1 : 0;
+    // The dies fill 0.93 of the wafer's diameter, each axis fitted on its own (real dies are
+    // rectangular), on edges rounded to whole device pixels.
+    const diameter = radius * 2 * 0.93;
+    const xs = dieEdges(grid.width, diameter, c - diameter / 2);
+    const ys = dieEdges(grid.height, diameter, c - diameter / 2);
+    const pitch = Math.min(diameter / grid.width, diameter / grid.height);
+    const gap = dieGap(pitch, dpr);
     const probed = Math.min(order.length, Math.floor(dies));
     const pass = color("--ink-3", "#9ba0ac");
     const fail = color("--fail", "#f95e62");
@@ -205,13 +208,13 @@ function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly Wafer
     const cell = (k: number) => {
       const col = k % grid.width;
       const row = Math.floor(k / grid.width);
-      const x0 = Math.round(ox + col * pitch);
-      const y0 = Math.round(oy + row * pitch);
+      const x0 = xs[col]!;
+      const y0 = ys[row]!;
       return [
         x0,
         y0,
-        Math.max(1, Math.round(ox + (col + 1) * pitch) - gap - x0),
-        Math.max(1, Math.round(oy + (row + 1) * pitch) - gap - y0),
+        Math.max(1, xs[col + 1]! - gap - x0),
+        Math.max(1, ys[row + 1]! - gap - y0),
       ] as const;
     };
 

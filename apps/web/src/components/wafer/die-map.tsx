@@ -41,6 +41,21 @@ export function frequencyRamp(surface: string, fail: string, steps = 9): string[
   );
 }
 
+/**
+ * Edges of `count` dies laid across `span` device pixels from `offset`, rounded to whole device
+ * pixels so every die stays crisp: die i runs from edges[i] to edges[i + 1]. Each axis is fitted
+ * on its own (x step = diameter / width, y step = diameter / height), because real dies are
+ * rectangular: a grid that is not square still fills the round wafer edge to edge.
+ */
+export function dieEdges(count: number, span: number, offset = 0): number[] {
+  return Array.from({ length: count + 1 }, (_, i) => Math.round(offset + (i * span) / count));
+}
+
+/** Whole device pixels left between dies, from the smaller of the two die steps. */
+export function dieGap(step: number, dpr: number): number {
+  return step >= 6 * dpr ? Math.max(1, Math.round(dpr)) : step >= 3 * dpr ? 1 : 0;
+}
+
 export function DieMap({
   data,
   label,
@@ -67,25 +82,27 @@ export function DieMap({
       const size = canvas.clientWidth;
       if (!size) return;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
+      const side = Math.round(size * dpr);
+      canvas.width = side;
+      canvas.height = side;
       // Backed by memory, not the GPU: a map is up to 40,000 small squares, which a GPU-backed
       // canvas rasterises one by one (for seconds per map where the GPU is emulated).
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, size, size);
+      // Drawn in device pixels, on die edges rounded to whole pixels.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, side, side);
       if (!data) return;
       const surface = token(canvas, "--surface-2", "#ffffff");
       const pass = token(canvas, "--hairline-strong", "#b9bdc2");
       const fail = token(canvas, "--fail", "#c62b44");
-      const n = Math.max(data.height, data.width);
-      const pitch = size / n;
-      const gap = pitch >= 6 ? 1 : pitch >= 3 ? 0.5 : 0;
-      const ox = (size - data.width * pitch) / 2;
-      const oy = (size - data.height * pitch) / 2;
+      const xs = dieEdges(data.width, side);
+      const ys = dieEdges(data.height, side);
+      const gap = dieGap(Math.min(side / data.width, side / data.height), dpr);
       const ramp = data.kind === "frequency" ? frequencyRamp(surface, fail) : [];
       for (let r = 0; r < data.height; r += 1) {
+        const y = ys[r]!;
+        const h = Math.max(1, ys[r + 1]! - gap - y);
         for (let c = 0; c < data.width; c += 1) {
           const i = r * data.width + c;
           let colour: string | null = null;
@@ -105,20 +122,22 @@ export function DieMap({
           }
           if (!colour) continue;
           ctx.fillStyle = colour;
-          ctx.fillRect(
-            ox + c * pitch + gap / 2,
-            oy + r * pitch + gap / 2,
-            pitch - gap,
-            pitch - gap,
-          );
+          const x = xs[c]!;
+          ctx.fillRect(x, y, Math.max(1, xs[c + 1]! - gap - x), h);
         }
       }
       if (highlight != null && highlight >= 0) {
         const r = Math.floor(highlight / data.width);
         const c = highlight % data.width;
+        const line = Math.max(1, Math.round(dpr));
         ctx.strokeStyle = token(canvas, "--signal", "#a27900");
-        ctx.lineWidth = 2;
-        ctx.strokeRect(ox + c * pitch - 1, oy + r * pitch - 1, pitch + 2, pitch + 2);
+        ctx.lineWidth = 2 * line;
+        ctx.strokeRect(
+          xs[c]! - line,
+          ys[r]! - line,
+          xs[c + 1]! - xs[c]! + 2 * line,
+          ys[r + 1]! - ys[r]! + 2 * line,
+        );
       }
     };
     draw();

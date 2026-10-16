@@ -14,7 +14,7 @@ import {
 } from "react";
 
 import { ErrorState, Placeholder } from "@/components/states";
-import { DieMap } from "@/components/wafer/die-map";
+import { DieMap, dieEdges, dieGap } from "@/components/wafer/die-map";
 import { formatInt, plural } from "@/lib/format";
 import { getDrawLayouts } from "@/lib/live/api";
 import {
@@ -257,40 +257,51 @@ function Canvas({
       const size = canvas.clientWidth;
       if (!size) return;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
+      const side = Math.round(size * dpr);
+      canvas.width = side;
+      canvas.height = side;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, size, size);
+      // Drawn in device pixels, on die edges rounded to whole pixels; each axis is fitted to the
+      // wafer on its own, so a grid that is not square still draws round.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, side, side);
       const css = getComputedStyle(canvas);
       const colour = (name: string, fallback: string) =>
         css.getPropertyValue(name).trim() || fallback;
-      const n = Math.max(drawing.height, drawing.width);
-      const pitch = size / n;
-      const ox = (size - drawing.width * pitch) / 2;
-      const oy = (size - drawing.height * pitch) / 2;
-      const gap = pitch >= 6 ? 1 : 0.5;
+      const { width, height } = drawing;
+      const xs = dieEdges(width, side);
+      const ys = dieEdges(height, side);
+      const gap = dieGap(Math.min(side / width, side / height), dpr);
       const pass = colour("--hairline-strong", "#4f4c43");
       const fail = colour("--fail", "#eb556e");
       for (let i = 0; i < map.length; i += 1) {
         const v = map[i];
         if (v === WAFER_CELL.noDie) continue;
+        const c = i % width;
+        const r = Math.floor(i / width);
         ctx.fillStyle = v === WAFER_CELL.fail ? fail : pass;
         ctx.fillRect(
-          ox + (i % drawing.width) * pitch + gap / 2,
-          oy + Math.floor(i / drawing.width) * pitch + gap / 2,
-          pitch - gap,
-          pitch - gap,
+          xs[c]!,
+          ys[r]!,
+          Math.max(1, xs[c + 1]! - gap - xs[c]!),
+          Math.max(1, ys[r + 1]! - gap - ys[r]!),
         );
       }
       if (focused && at >= 0) {
-        const r = brush === 3 ? 1 : 0;
+        // The hover die, or the 3 by 3 brush around it, on the same edges.
+        const k = brush === 3 ? 1 : 0;
+        const c = at % width;
+        const r = Math.floor(at / width);
+        const clamp = (v: number, n: number) => Math.min(n, Math.max(0, v));
+        const x0 = xs[clamp(c - k, width)]!;
+        const x1 = xs[clamp(c + k + 1, width)]!;
+        const y0 = ys[clamp(r - k, height)]!;
+        const y1 = ys[clamp(r + k + 1, height)]!;
+        const line = Math.max(1, Math.round(dpr));
         ctx.strokeStyle = colour("--signal", "#f5d326");
-        ctx.lineWidth = 2;
-        const x = ox + ((at % drawing.width) - r) * pitch;
-        const y = oy + (Math.floor(at / drawing.width) - r) * pitch;
-        ctx.strokeRect(x - 1, y - 1, pitch * (2 * r + 1) + 2, pitch * (2 * r + 1) + 2);
+        ctx.lineWidth = 2 * line;
+        ctx.strokeRect(x0 - line, y0 - line, x1 - x0 + 2 * line, y1 - y0 + 2 * line);
       }
     };
     draw();
@@ -301,14 +312,9 @@ function Canvas({
 
   const cellAt = (event: PointerEvent<HTMLCanvasElement>): number | null => {
     const box = event.currentTarget.getBoundingClientRect();
-    const n = Math.max(drawing.height, drawing.width);
-    const pitch = box.width / n;
-    const col = Math.floor(
-      (event.clientX - box.left - (box.width - drawing.width * pitch) / 2) / pitch,
-    );
-    const row = Math.floor(
-      (event.clientY - box.top - (box.height - drawing.height * pitch) / 2) / pitch,
-    );
+    if (!box.width || !box.height) return null;
+    const col = Math.floor(((event.clientX - box.left) / box.width) * drawing.width);
+    const row = Math.floor(((event.clientY - box.top) / box.height) * drawing.height);
     if (row < 0 || row >= drawing.height || col < 0 || col >= drawing.width) return null;
     return row * drawing.width + col;
   };
