@@ -8,7 +8,6 @@
 
 | Area | Done | In progress | Not started |
 |---|---|---|---|
-| 2026-10-16 13:20 | Live at 31b8d3d after quick fixes requested by the owner: scroll to the bay, menu alignment, a light/dark toggle, no frame on the open station, round wafers, delete a run from Your work, a Result section under the line (problems checked against final test, unseen units only, wafers vs recorded labels), and real samples that always include a recorded failure and labelled wafers. Every live check passed. 100 of 100 |
 | F: Foundations | 6 of 6 | 0 | 0 |
 | D: Data | 5 of 5 | 0 | 0 |
 | S: SECOM science | 10 of 10 | 0 | 0 |
@@ -247,6 +246,7 @@ The owner's requests of 2026-10-15 after v2 went live (12:50 to 13:06 UTC), each
 
 | Time (UTC) | Change |
 |---|---|
+| 2026-10-16 13:20 | Live at 31b8d3d after quick fixes requested by the owner: scroll to the bay, menu alignment, a light/dark toggle, no frame on the open station, round wafers, delete a run from Your work, a Result section under the line (problems checked against final test, unseen units only, wafers vs recorded labels), and real samples that always include a recorded failure and labelled wafers. Every live check passed. 100 of 100 |
 | 2026-10-16 11:52 | R3 merged (3131ca9) and R4 done: the final version with R1 to R3 is live, deployed once (D-011), with every live check passing. 100 of 100 |
 | 2026-10-16 11:39 | The owner asked to finish as fast as possible (D-013): the redesign is frozen and only what is broken gets fixed; before the deploy only the essential checks run; Lighthouse tuning, the guide screenshot retake and the full screenshot review move to after the deploy. 98 of 100 |
 | 2026-10-16 09:04 | R2 done (cbb6334): a first visit while the API wakes waits for it and still gets its workspace; R1's reload tests now wait for the dials to come to rest before reading them (they had read a glide under load; nothing moves after a reload). The redesign is rebased onto R1 and R2. 98 of 100 |
