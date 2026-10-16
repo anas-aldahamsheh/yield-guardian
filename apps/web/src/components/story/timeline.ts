@@ -298,7 +298,7 @@ export function createLineTimeline(
         walked.forEach((w, i) => {
           const duration = i === 0 ? FIRST_WAFER : later;
           const dies = { v: 0 };
-          const total = dieCount(w.map);
+          const total = w.map ? dieCount(w.map) : 0;
           tl.call(() => store.set({ wafer: w.index, dies: 0 }), [], t);
           tl.to(
             dies,
@@ -389,6 +389,9 @@ export function createLineTimeline(
           const alarm = state.alarms.find((a) => a.alarm_id === arrival.alarmId);
           // Alarms of a stage already scheduled are placed with it; later ones are placed now.
           if (alarm && segmentEnd.has(alarm.stage)) placeAlarm(alarm);
+          // A stage the line showed before following the stream (its result came with the
+          // run's stored state): the alarm has nothing to wait for.
+          else if (alarm && store.get().revealed.has(alarm.stage)) showAlarm(alarm);
           else if (alarm) waiting.set(alarm.stage, [...(waiting.get(alarm.stage) ?? []), alarm]);
           break;
         }

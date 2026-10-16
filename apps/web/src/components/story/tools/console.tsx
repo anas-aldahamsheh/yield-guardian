@@ -1,15 +1,16 @@
 "use client";
 
-import type {
-  ControlChartsResult,
-  DriftHealthResult,
-  GroupDrift,
-  SensorRiskResult,
-} from "@yield-guardian/contracts";
 import { useMemo } from "react";
 
 import { formatNumber, formatPercent, formatReading } from "@/lib/format";
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { leadingDrift } from "@/lib/live/rest";
+import {
+  stageResult,
+  type ControlChartsView,
+  type DriftHealthView,
+  type RunState,
+  type SensorRiskView,
+} from "@/lib/live/run-state";
 
 import {
   arcPath,
@@ -165,7 +166,7 @@ function LogDial({
   store: SceneStore;
   cx: number;
   label: string;
-  charts: ControlChartsResult | null;
+  charts: ControlChartsView | null;
   statistic: "t2" | "spe";
 }) {
   const value = useScene(store, (s) => (statistic === "t2" ? s.t2 : s.spe));
@@ -273,7 +274,7 @@ function RiskDial({
 }: {
   store: SceneStore;
   cx: number;
-  risk: SensorRiskResult | null;
+  risk: SensorRiskView | null;
 }) {
   const value = useScene(store, (s) => s.risk);
   const domain = useMemo(
@@ -383,13 +384,6 @@ function RiskDial({
   );
 }
 
-/** The leading group whose EWMA moved furthest relative to its limit. */
-export function leadingDrift(drift: DriftHealthResult | null): GroupDrift | null {
-  if (!drift?.groups.length) return null;
-  const score = (g: GroupDrift) => Math.max(0, ...g.ewma.map((v) => Math.abs(v))) / g.ewma_limit;
-  return drift.groups.reduce((best, g) => (score(g) > score(best) ? g : best));
-}
-
 function Screen({
   store,
   charts,
@@ -398,9 +392,9 @@ function Screen({
   skippedDrift,
 }: {
   store: SceneStore;
-  charts: ControlChartsResult | null;
-  risk: SensorRiskResult | null;
-  drift: DriftHealthResult | null;
+  charts: ControlChartsView | null;
+  risk: SensorRiskView | null;
+  drift: DriftHealthView | null;
   skippedDrift: boolean;
 }) {
   const unit = useScene(store, (s) => s.unit);
@@ -412,12 +406,14 @@ function Screen({
   const xAt = (i: number) => x + 8 + ((i + 0.5) / Math.max(1, n)) * (w - 16);
   const ticks = { y: y + 10, h: 12 };
   const strip = { y: y + 40, h: h - 52 };
-  const span = group ? Math.max(group.ewma_limit * 1.25, ...group.ewma.map((v) => Math.abs(v))) : 1;
+  // The leading group's EWMA is in every first paint (lib/live/glance.ts).
+  const ewma = group?.ewma ?? [];
+  const span = group ? Math.max(group.ewma_limit * 1.25, ...ewma.map((v) => Math.abs(v))) : 1;
   const yAt = (v: number) => strip.y + strip.h / 2 - (v / span) * (strip.h / 2);
   const shown = Math.floor(drawn);
   const points = group
-    ? group.ewma
-        .slice(0, Math.max(0, Math.min(group.ewma.length, shown)))
+    ? ewma
+        .slice(0, Math.max(0, Math.min(ewma.length, shown)))
         .map((v, i) => `${fixed(xAt(i))},${fixed(yAt(v))}`)
         .join(" ")
     : "";

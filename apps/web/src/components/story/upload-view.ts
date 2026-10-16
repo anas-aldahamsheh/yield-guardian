@@ -15,6 +15,34 @@ export const UPLOAD_ACCEPT =
 /** Issues listed one by one; the rest are counted. */
 export const ISSUES_SHOWN = 50;
 
+/** Whether a value read back from storage is an upload summary as the API sent it. */
+export function isUpload(value: unknown): value is UploadSummary {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Partial<Record<keyof UploadSummary, unknown>>;
+  return (
+    typeof v.upload_id === "string" &&
+    typeof v.filename === "string" &&
+    typeof v.expires_at === "string" &&
+    (v.kind === "sensors" || v.kind === "wafers") &&
+    typeof v.runnable === "boolean" &&
+    typeof v.units === "number" &&
+    typeof v.wafers === "number" &&
+    typeof v.lots === "number" &&
+    typeof v.missing_readings === "number" &&
+    Array.isArray(v.issues)
+  );
+}
+
+/** A checked upload kept from before a reload, while the API still keeps the file; else null. */
+export function keptUpload(
+  summary: UploadSummary | null,
+  now: number = Date.now(),
+): UploadSummary | null {
+  if (!summary) return null;
+  const expires = Date.parse(summary.expires_at);
+  return Number.isFinite(expires) && expires > now ? summary : null;
+}
+
 /** A file the page will not send, with the reason in plain words; null when it may go. */
 export function checkFile(file: { name: string; size: number }): string | null {
   const lower = file.name.toLowerCase();

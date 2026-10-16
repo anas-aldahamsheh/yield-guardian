@@ -48,7 +48,8 @@ export function DieMap({
   max = 1,
   highlight,
 }: {
-  data: DieMapData;
+  /** Null while the map is still being read: the canvas keeps its place, drawn once it is. */
+  data: DieMapData | null;
   /** Accessible description; the canvas is an image. */
   label: string;
   className?: string;
@@ -68,10 +69,13 @@ export function DieMap({
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(size * dpr);
       canvas.height = Math.round(size * dpr);
-      const ctx = canvas.getContext("2d");
+      // Backed by memory, not the GPU: a map is up to 40,000 small squares, which a GPU-backed
+      // canvas rasterises one by one (for seconds per map where the GPU is emulated).
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
+      if (!data) return;
       const surface = token(canvas, "--die-2", "#ffffff");
       const pass = token(canvas, "--hairline-strong", "#b9bdc2");
       const fail = token(canvas, "--fail", "#c62b44");

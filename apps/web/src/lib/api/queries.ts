@@ -20,11 +20,13 @@ export type QueryOf<P extends keyof paths> = paths[P] extends {
   : never;
 
 export const q = {
+  /** What the API serves (bundles, features): read once and kept for the page's life. */
   meta: (api: Api) =>
     queryOptions({
       queryKey: ["meta"],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/meta", { signal })),
-      staleTime: 5 * MINUTE,
+      staleTime: Infinity,
+      gcTime: Infinity,
     }),
 
   results: (api: Api) =>
@@ -41,11 +43,16 @@ export const q = {
       staleTime: 30 * MINUTE,
     }),
 
+  /**
+   * Who this browser is: read once, then kept until something changes it (starting a session,
+   * signing in or out sets or reloads it: lib/api/session.ts).
+   */
   session: (api: Api) =>
     queryOptions({
       queryKey: ["session"],
       queryFn: ({ signal }) => unwrap(api.GET("/api/v1/session", { signal })),
-      staleTime: 5 * MINUTE,
+      staleTime: Infinity,
+      gcTime: Infinity,
     }),
 
   fdcSeries: (api: Api, range: Range = {}) =>

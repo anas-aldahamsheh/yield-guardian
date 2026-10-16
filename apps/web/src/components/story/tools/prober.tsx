@@ -1,10 +1,15 @@
 "use client";
 
-import type { WaferPatternItem, WaferPatternResult } from "@yield-guardian/contracts";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import {
+  arrivedLive,
+  stageResult,
+  type RunState,
+  type WaferItem,
+  type WaferPatternView,
+} from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
 import { FILM } from "@/lib/wafer/geometry";
 import { formatInt } from "@/lib/format";
@@ -66,7 +71,13 @@ export function ProberTool({
           aria-hidden="true"
         >
           <ProberSilhouette active={active} />
-          <Carrier2D store={store} pattern={pattern} tested={tested} flagged={lotFlagged} />
+          <Carrier2D
+            store={store}
+            pattern={pattern}
+            tested={tested}
+            flagged={lotFlagged}
+            live={state != null && arrivedLive(state, { stage: "wafer_pattern" })}
+          />
         </svg>
         <div className="absolute aspect-square" style={CHUCK}>
           {flat ? <Probed2D store={store} wafers={wafers} /> : null}
@@ -85,16 +96,16 @@ export function ProberTool({
           <ProbeReadout store={store} wafers={wafers} />
         </div>
       </div>
-      {use3d ? (
-        <p
-          className={cn(
-            "mt-1.5 px-4 text-[12px] leading-4 text-ink-3",
-            !(onChuck && ready3d) && "invisible",
-          )}
-        >
-          {`Wafer colour: an assumed ${FILM.centreNm} nm oxide film.`}
-        </p>
-      ) : null}
+      {/* Its line is there from the first paint, so the line does not move when the 3D wafer
+          loads after the page (a reload shows the stations where they were). */}
+      <p
+        className={cn(
+          "mt-1.5 px-4 text-[12px] leading-4 text-ink-3",
+          !(use3d && onChuck && ready3d) && "invisible",
+        )}
+      >
+        {`Wafer colour: an assumed ${FILM.centreNm} nm oxide film.`}
+      </p>
     </div>
   );
 }
@@ -131,11 +142,11 @@ function ProberSilhouette({ active }: { active: boolean }) {
 }
 
 /** The cabinet's readout: which wafer is on the chuck, dies probed so far and how many failed. */
-function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: WaferPatternItem[] }) {
+function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
   const wafer = index != null ? wafers.find((w) => w.index === index) : undefined;
-  const grid = useMemo(() => (wafer ? gridOf(wafer.map) : null), [wafer]);
+  const grid = useMemo(() => (wafer?.map ? gridOf(wafer.map) : null), [wafer]);
   const order = useMemo(() => (grid ? probeOrder(grid) : null), [grid]);
   const fails = useMemo(() => (grid && order ? failsAlong(grid, order) : null), [grid, order]);
   if (!wafer || !order || !fails) return null;
@@ -154,11 +165,11 @@ function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: WaferPatte
 }
 
 /** The probed wafer as a flat map: dies probed so far show their result, the probe is a lit square. */
-function Probed2D({ store, wafers }: { store: SceneStore; wafers: WaferPatternItem[] }) {
+function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
   const wafer = index != null ? wafers.find((w) => w.index === index) : undefined;
-  const grid = useMemo(() => (wafer ? gridOf(wafer.map) : null), [wafer]);
+  const grid = useMemo(() => (wafer?.map ? gridOf(wafer.map) : null), [wafer]);
   const order = useMemo(() => (grid ? probeOrder(grid) : null), [grid]);
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -219,12 +230,18 @@ function Carrier2D({
   pattern,
   tested,
   flagged,
+  live,
 }: {
   store: SceneStore;
-  pattern: WaferPatternResult | null;
+  pattern: WaferPatternView | null;
   /** Lots the lot test covered, once its result is shown. */
   tested: ReadonlySet<string>;
   flagged: boolean;
+  /**
+   * The wafer maps reached this page on the stream: each probed wafer slides into its slot as
+   * the line shows it. Read with the run's stored state (a reload), they are in their slots.
+   */
+  live: boolean;
 }) {
   const wafers = pattern?.wafers ?? [];
   const filled = useScene(store, (s) => s.carrier);
@@ -267,7 +284,10 @@ function Carrier2D({
               vectorEffect="non-scaling-stroke"
             />
             {loaded && tone ? (
-              <g className={styles.slot} opacity={wafer.index === current ? 1 : 0.8}>
+              <g
+                className={live ? styles.slot : undefined}
+                opacity={wafer.index === current ? 1 : 0.8}
+              >
                 <rect
                   x={x0}
                   y={y - 1.1}

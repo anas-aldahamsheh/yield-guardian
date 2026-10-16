@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatInt, formatPercent, formatPlantTime, plural } from "@/lib/format";
 import { stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import { STATION_NAME } from "@/lib/live/stations";
 import { stationAt, type Focus } from "@/lib/live/url-state";
+import { cn } from "@/lib/utils";
 
 import { DrawerSection, Fact, NotYet } from "./drawer-parts";
 import { UnitsDrawer } from "./drawer-units";
 import { WafersDrawer } from "./drawer-wafers";
+
+/**
+ * Whether this page was opened anew at its address, not reloaded or reached with back and
+ * forward, and nothing has scrolled it yet: there is no reading position to keep.
+ */
+function openedAnew(): boolean {
+  const entry = performance.getEntriesByType("navigation")[0] as
+    PerformanceNavigationTiming | undefined;
+  return entry?.type === "navigate" && window.scrollY === 0;
+}
 
 /**
  * A station's drawer, opened under the line: everything that station computed, for every unit
@@ -23,6 +34,8 @@ export function StationDrawer({
   focus,
   onFocus,
   onClose,
+  restored = false,
+  landing = false,
 }: {
   station: 1 | 2 | 3;
   state: RunState;
@@ -30,26 +43,46 @@ export function StationDrawer({
   focus: Focus;
   onFocus: (focus: Focus) => void;
   onClose: () => void;
+  /**
+   * Open because the URL says so (a reload, a link, back and forward), not opened just now: it
+   * is shown where it is, without fading in, and the page stays where the browser put it.
+   */
+  restored?: boolean;
+  /** It came with the page itself: a link opened anew brings it into view at once. */
+  landing?: boolean;
 }) {
   const name = STATION_NAME[stationAt(station)!];
   const heading = useRef<HTMLHeadingElement>(null);
   const shown = (stage: StageId) => revealed.has(stage);
+  // The drawer fades in when it opens, never later (a restored one is already there).
+  const [quiet] = useState(restored);
 
   // Opening a station moves the reading position to its drawer: the heading comes to the top,
   // under the site bar (the page's scroll padding), so the drawer's contents are in view.
   useEffect(() => {
+    if (restored) {
+      // A reload and back and forward keep the scroll position the browser restores; a link
+      // opened anew (on another device, say) has none, so the drawer is brought into view.
+      if (landing && openedAnew()) {
+        heading.current?.focus({ preventScroll: true });
+        heading.current?.scrollIntoView({ block: "start" });
+      }
+      return;
+    }
     heading.current?.focus({ preventScroll: true });
     heading.current?.scrollIntoView({
       block: "start",
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
+    // Only a station opened anew moves the page, once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station]);
 
   return (
     <section
       id="station-drawer"
       aria-labelledby="station-drawer-title"
-      className="panel swap-in mt-6 px-4 pt-4 pb-6 sm:px-6"
+      className={cn("panel mt-6 px-4 pt-4 pb-6 sm:px-6", !quiet && "swap-in")}
     >
       <header className="mb-5 flex items-start justify-between gap-4 border-b border-hairline pb-3">
         <h2

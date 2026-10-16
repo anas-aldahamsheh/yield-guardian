@@ -36,6 +36,7 @@ from yield_guardian.contracts.base import (
     UnitId,
     WaferId,
 )
+from yield_guardian.contracts.investigation import InvestigationStatus
 from yield_guardian.contracts.knowledge import PatternCauses
 from yield_guardian.contracts.line import FdcAlarmLevel, RiskBand
 from yield_guardian.contracts.secom import FdcLimits, MetricValue, SensorStatus
@@ -534,7 +535,12 @@ class RunAlarm(Contract):
     title: str = Field(max_length=120, examples=["Sensor relationships broke (SPE)"])
     meaning: str = Field(max_length=400, description="One plain sentence.")
     sensors: list[SensorId] = Field(default_factory=list, max_length=10)
-    investigation_id: str | None = None
+    investigation_id: str | None = Field(
+        None, description="The newest investigation opened from this alarm, if any."
+    )
+    investigation_status: InvestigationStatus | None = Field(
+        None, description="That investigation's status when the run was read."
+    )
 
 
 class StageState(Contract):
@@ -545,6 +551,11 @@ class StageState(Contract):
     elapsed_ms: float | None = None
     result: StageResult | None = None
     problem: Problem | None = None
+    started_at: datetime | None = Field(
+        None,
+        description="When a running stage started computing (server time); with the run's "
+        "`read_at` it gives how long it has computed so far.",
+    )
 
 
 class Run(Contract):
@@ -565,6 +576,12 @@ class Run(Contract):
         description="When the run is deleted (24 h after creation); null while an "
         "investigation uses it, so the evidence behind a decision stays openable."
     )
+    last_seq: Count = Field(
+        0,
+        description="Seq of the newest event this state includes. The event stream with "
+        "Last-Event-ID set to it carries exactly what happened after this state was read.",
+    )
+    read_at: datetime | None = Field(None, description="Server time this state was read.")
 
 
 class _Event(Contract):

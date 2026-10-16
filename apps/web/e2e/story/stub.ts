@@ -1,7 +1,13 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import net, { type AddressInfo } from "node:net";
 
-import type { RunEvent, StageState } from "@yield-guardian/contracts";
+import type {
+  Investigation,
+  InvestigationCreate,
+  RunAlarm,
+  RunEvent,
+  StageState,
+} from "@yield-guardian/contracts";
 
 import {
   RUN_ID,
@@ -19,6 +25,12 @@ import {
  * stream streams as the API's would: one stage result after another, `pace` ms apart, resuming
  * from Last-Event-ID, and, when asked, holding before a stage's result until the test releases
  * it. Tests open the page on the proxy's origin.
+ *
+ * As the API does, GET /runs/{id} answers with the run as far as it has gone: up to the last
+ * event its stream has sent since the run was created here (the whole run when none was), with
+ * each alarm's investigation, from the investigations started through the proxy (their status as
+ * the gateway's investigator double has it). The proxy registers itself with the gateway, so
+ * the pages Next.js renders read the same runs as the browser (scripts/gateway.ts).
  */
 
 export { SENSORS_ONLY_ID };
@@ -45,9 +57,26 @@ export interface StoryProxy {
   uploads: string[];
   /** Last-Event-ID of each request to the event stream, in order (null for the first). */
   resumes: (string | null)[];
-  configure(options: { run?: string; pacing?: Pacing; gone?: boolean }): void;
-  /** Lets a held stream go on. */
+  /** Each GET /runs/{id}: who asked (the browser, or Next.js rendering the page) and its answer. */
+  reads: { from: "browser" | "server"; status: number; lastSeq: number | null }[];
+  /**
+   * `run` also starts afresh: no run has progressed, no alarm is investigated, the API is up.
+   * `browserReadDelay`: the browser's GET /runs/{id} answers that many ms late, as a large run's
+   * full state does over a slow network (the page Next.js renders reads it at once).
+   */
+  configure(options: {
+    run?: string;
+    pacing?: Pacing;
+    gone?: boolean;
+    browserReadDelay?: number;
+  }): void;
+  /** Lets a held stream go on; streams opened after it do not hold. */
   release(): void;
+  /**
+   * The API asleep for `ms`: every API request through the proxy, the browser's and the ones
+   * Next.js makes for a run while rendering, answers 503 with Retry-After: 1 until then.
+   */
+  sleep(ms: number): void;
   close(): Promise<void>;
 }
 
@@ -71,15 +100,27 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
   let run = RUN_ID;
   let pacing: Pacing = {};
   let gone = false;
+  let browserReadDelay = 0;
+  let asleepUntil = 0;
   let dropped = false;
   let releases: (() => void)[] = [];
+  /** How far each run created here has gone: the seq of the last event its stream sent. */
+  const progress = new Map<string, number>();
+  /** Investigations started through the proxy, by trigger ref (`run:alarm`). */
+  const investigations = new Map<string, { id: string; status: Investigation["status"] }>();
   const state = {
     created: [] as unknown[],
     uploads: [] as string[],
     resumes: [] as (string | null)[],
+    reads: [] as StoryProxy["reads"],
   };
 
-  const stream = async (req: IncomingMessage, res: ServerResponse, events: readonly RunEvent[]) => {
+  const stream = async (
+    req: IncomingMessage,
+    res: ServerResponse,
+    runId: string,
+    events: readonly RunEvent[],
+  ) => {
     const after = Number(req.headers["last-event-id"] ?? "0") || 0;
     state.resumes.push((req.headers["last-event-id"] as string | undefined) ?? null);
     res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
@@ -98,8 +139,10 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
           if (closed) return;
         }
         if (pacing.pace) await sleep(pacing.pace);
+        if (closed) return;
       }
       res.write(`event: ${event.type}\nid: ${event.seq}\ndata: ${JSON.stringify(event)}\n\n`);
+      if (progress.has(runId)) progress.set(runId, Math.max(progress.get(runId)!, event.seq));
       sent += 1;
       if (pacing.dropAfter != null && !dropped && sent >= pacing.dropAfter) {
         // The connection ends before run_done, as a dropped one would; what was sent arrives.
@@ -119,6 +162,7 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
     if (req.method === "POST" && parts.length === 0) {
       state.created.push(JSON.parse((await readBody(req)) || "null"));
       const started = RUNS[run]![0] as Extract<RunEvent, { type: "run_started" }>;
+      progress.set(run, started.seq);
       return send(res, 201, {
         run_id: run,
         events_url: `/api/v1/runs/${run}/events`,
@@ -128,23 +172,81 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
     if (parts[0] === "cases") return send(res, 200, fixture.cases);
     if (parts[0] === "layouts") return send(res, 200, fixture.layouts);
     const runId = parts[0]!;
-    if (gone) return send(res, 410, fixture.gone);
+    const from = req.headers["x-forwarded-host"] ? "server" : "browser";
+    const read = (status: number, lastSeq: number | null = null) => {
+      if (parts.length === 1) state.reads.push({ from, status, lastSeq });
+    };
+    if (gone) {
+      read(410);
+      return send(res, 410, fixture.gone);
+    }
     const events = RUNS[runId];
-    if (!events)
+    if (!events) {
+      read(404);
       return send(res, 404, {
         title: "Not found",
         status: 404,
         code: "not_found",
         detail: `No run ${runId}.`,
       });
-    if (parts[1] === "events") return stream(req, res, events);
-    if (parts.length === 1) return send(res, 200, snapshotOf(events, runId));
+    }
+    if (parts[1] === "events") return stream(req, res, runId, events);
+    if (parts.length === 1) {
+      if (from === "browser" && browserReadDelay) await sleep(browserReadDelay);
+      const upTo = progress.get(runId);
+      const snapshot = snapshotOf(
+        upTo == null ? events : events.filter((e) => e.seq <= upTo),
+        runId,
+      );
+      snapshot.alarms = await Promise.all(snapshot.alarms.map((a) => investigated(runId, a)));
+      read(200, snapshot.last_seq);
+      return send(res, 200, snapshot);
+    }
     return send(res, 404, {
       title: "Not found",
       status: 404,
       code: "not_found",
       detail: url.pathname,
     });
+  };
+
+  /** An alarm with the investigation started from it, its status read now, as the API does. */
+  const investigated = async (runId: string, alarm: RunAlarm): Promise<RunAlarm> => {
+    const link = investigations.get(`${runId}:${alarm.alarm_id}`);
+    if (!link) return alarm;
+    const answer = await fetch(`${upstream.origin}/api/v1/investigations/${link.id}`).catch(
+      () => null,
+    );
+    const now = answer?.ok ? ((await answer.json()) as Investigation).status : link.status;
+    return { ...alarm, investigation_id: link.id, investigation_status: now };
+  };
+
+  /** POST /investigations goes to the gateway; one started from a run alarm is noted. */
+  const investigate = async (req: IncomingMessage, res: ServerResponse) => {
+    const body = await readBody(req);
+    const answer = await fetch(`${upstream.origin}/api/v1/investigations`, {
+      method: "POST",
+      headers: Object.fromEntries(
+        Object.entries(req.headers)
+          .filter(([k, v]) => typeof v === "string" && !["host", "content-length"].includes(k))
+          .map(([k, v]) => [k, v as string]),
+      ),
+      body,
+    });
+    const text = await answer.text();
+    if (answer.ok) {
+      const trigger = (JSON.parse(body || "null") as InvestigationCreate | null)?.trigger;
+      const investigation = JSON.parse(text) as Investigation;
+      if (trigger?.kind === "run_alarm")
+        investigations.set(trigger.ref, {
+          id: investigation.investigation_id,
+          status: investigation.status,
+        });
+    }
+    res.writeHead(answer.status, {
+      "Content-Type": answer.headers.get("content-type") ?? "application/json",
+    });
+    res.end(text);
   };
 
   const pass = (req: IncomingMessage, res: ServerResponse) => {
@@ -173,18 +275,32 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
 
   const server = http.createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (url.pathname.startsWith("/api/") && Date.now() < asleepUntil) {
+      // The proxy in front of a sleeping API: nothing reaches it until it is up.
+      req.resume();
+      res.writeHead(503, { "Content-Type": "text/plain", "Retry-After": "1" });
+      res.end("Starting.");
+      return;
+    }
     if (url.pathname.startsWith("/api/v1/runs")) {
       void runs(req, res, url);
+      return;
+    }
+    if (url.pathname === "/api/v1/investigations" && req.method === "POST") {
+      investigate(req, res).catch(() => {
+        if (!res.headersSent) res.writeHead(502);
+        res.end();
+      });
       return;
     }
     if (url.pathname === "/api/v1/uploads" && req.method === "POST") {
       void readBody(req).then((body) => {
         state.uploads.push(body);
-        send(
-          res,
-          200,
-          /filename="[^"]*wafer[^"]*"/i.test(body) ? fixture.uploadBad : fixture.uploadOk,
-        );
+        const summary = /filename="[^"]*wafer[^"]*"/i.test(body)
+          ? fixture.uploadBad
+          : fixture.uploadOk;
+        // Kept for an hour from now, as the API keeps a checked file.
+        send(res, 200, { ...summary, expires_at: new Date(Date.now() + 3_600_000).toISOString() });
       });
       return;
     }
@@ -208,30 +324,54 @@ export async function startStoryProxy(target: string): Promise<StoryProxy> {
   });
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const { port } = server.address() as AddressInfo;
+  const registered = await fetch(`${upstream.origin}/__mock/runs-upstream`, {
+    method: "PUT",
+    body: `http://127.0.0.1:${port}`,
+  }).catch(() => null);
+  if (registered?.status !== 204) {
+    server.close();
+    throw new Error(
+      `The gateway at ${upstream.origin} did not take the runs stand-in (${registered?.status ?? "no answer"}): restart it with --mock from this checkout.`,
+    );
+  }
 
   return {
     origin: `http://localhost:${port}`,
     ...state,
     configure(options) {
-      if (options.run) run = options.run;
+      if (options.run) {
+        run = options.run;
+        progress.clear();
+        investigations.clear();
+        asleepUntil = 0;
+      }
       if (options.pacing) {
         pacing = options.pacing;
         dropped = false;
       }
       if (options.gone != null) gone = options.gone;
+      if (options.browserReadDelay != null) browserReadDelay = options.browserReadDelay;
     },
     release() {
+      pacing = { ...pacing, holdBefore: null };
       const pending = releases;
       releases = [];
       for (const r of pending) r();
     },
-    close: () =>
-      new Promise<void>((resolve) => {
+    sleep(ms) {
+      asleepUntil = Date.now() + ms;
+    },
+    close: async () => {
+      await fetch(`${upstream.origin}/__mock/runs-upstream`, { method: "DELETE" }).catch(
+        () => null,
+      );
+      await new Promise<void>((resolve) => {
         for (const socket of sockets) socket.destroy();
         for (const r of releases) r();
         server.closeAllConnections();
         server.close(() => resolve());
-      }),
+      });
+    },
   };
 }
 

@@ -7,8 +7,10 @@ import {
   ISSUES_SHOWN,
   MAX_UPLOAD_BYTES,
   checkFile,
+  isUpload,
   issueLine,
   issuePlace,
+  keptUpload,
   sortIssues,
   uploadView,
 } from "./upload-view";
@@ -30,6 +32,21 @@ describe("the upload view", () => {
     );
     expect(checkFile({ name: "units.json", size: 10 })).toMatch(/not a CSV or XLSX file/);
     expect(checkFile({ name: "units.csv", size: 0 })).toMatch(/is empty/);
+  });
+
+  it("keeps a checked upload across a reload only while the API keeps the file", () => {
+    const summary = fixture.uploadOk;
+    const kept = JSON.parse(JSON.stringify(summary)) as unknown;
+    expect(isUpload(kept)).toBe(true);
+    const now = Date.parse(summary.expires_at);
+    expect(keptUpload(summary, now - 60_000)).toBe(summary);
+    expect(keptUpload(summary, now + 1)).toBeNull();
+    expect(keptUpload({ ...summary, expires_at: "never" }, now)).toBeNull();
+    expect(keptUpload(null)).toBeNull();
+    expect(isUpload({ ...summary, upload_id: 7 })).toBe(false);
+    expect(isUpload({ ...summary, kind: "logs" })).toBe(false);
+    expect(isUpload({ ...summary, issues: "none" })).toBe(false);
+    expect(isUpload(null)).toBe(false);
   });
 
   it("names the row and column of each issue in the file's own numbering", () => {

@@ -21,7 +21,7 @@ import {
   plural,
 } from "@/lib/format";
 import { investigateRunAlarm } from "@/lib/live/api";
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { arrivedLive, stageResult, type RunState } from "@/lib/live/run-state";
 import { turnsRed } from "@/lib/live/stations";
 import { useScrollFocus } from "@/lib/use-scroll-focus";
 import { investigationHref } from "@/lib/routes";
@@ -29,6 +29,9 @@ import { cn } from "@/lib/utils";
 
 import styles from "./story.module.css";
 import { useViewportRoom } from "./use-viewport-room";
+
+/** An investigation was started from an alarm (the line records it with the run). */
+export type OnLinked = (alarmId: string, investigation: Investigation) => void;
 
 /** Warnings of one kind are folded into one row from this many on. */
 const FOLD = 4;
@@ -122,6 +125,7 @@ export function alarmReading(alarm: RunAlarm): string | null {
  */
 export function AlarmsRail({
   state,
+  reading = false,
   shown,
   onShow,
   onLinked,
@@ -130,11 +134,13 @@ export function AlarmsRail({
   className,
 }: {
   state: RunState | null;
+  /** The run's stored state is being read: its alarms come with it. */
+  reading?: boolean;
   /** The run has ended and the line has shown every result. */
   over?: boolean;
   shown: ReadonlySet<string>;
   onShow: (alarm: RunAlarm) => void;
-  onLinked: (alarmId: string, investigationId: string) => void;
+  onLinked: OnLinked;
   /** The alarm chosen with its Show button (the URL's `alarm`). */
   selected?: string | null;
   className?: string;
@@ -176,8 +182,9 @@ export function AlarmsRail({
       <div ref={scroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24">
         {!state ? (
           <p className="px-4 py-4 text-[14px] leading-5 text-ink-3">
-            When a station finds something, its alarm arrives here with what it means, and you can
-            start an investigation of it.
+            {reading
+              ? "Reading this run's alarms."
+              : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
           </p>
         ) : !alarms.length ? (
           <p className="px-4 py-4 text-[14px] leading-5 text-ink-3">
@@ -189,7 +196,12 @@ export function AlarmsRail({
               row.kind === "one" ? (
                 <li
                   key={row.alarm.alarm_id}
-                  className={cn("border-b border-hairline", styles.slideIn)}
+                  className={cn(
+                    "border-b border-hairline",
+                    // Only an alarm that reached this page on the stream slides in; one read
+                    // with the run's stored state (a reload, a link) is already there.
+                    arrivedLive(state, { alarmId: row.alarm.alarm_id }) && styles.slideIn,
+                  )}
                 >
                   <AlarmItem
                     state={state}
@@ -202,7 +214,11 @@ export function AlarmsRail({
               ) : (
                 <li
                   key={`fold-${row.key}`}
-                  className={cn("border-b border-hairline", styles.slideIn)}
+                  className={cn(
+                    "border-b border-hairline",
+                    row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id })) &&
+                      styles.slideIn,
+                  )}
                 >
                   <Fold
                     state={state}
@@ -246,7 +262,7 @@ function AlarmItem({
   state: RunState;
   alarm: RunAlarm;
   onShow: (alarm: RunAlarm) => void;
-  onLinked: (alarmId: string, investigationId: string) => void;
+  onLinked: OnLinked;
   compact?: boolean;
   selected?: boolean;
 }) {
@@ -300,7 +316,7 @@ function Fold({
   state: RunState;
   alarms: RunAlarm[];
   onShow: (alarm: RunAlarm) => void;
-  onLinked: (alarmId: string, investigationId: string) => void;
+  onLinked: OnLinked;
   selected?: string | null;
 }) {
   const holdsSelected = alarms.some((a) => a.alarm_id === selected);
@@ -361,7 +377,7 @@ function Investigate({
 }: {
   runId: string;
   alarm: RunAlarm;
-  onLinked: (alarmId: string, investigationId: string) => void;
+  onLinked: OnLinked;
 }) {
   const client = useQueryClient();
   const { canAct, csrf } = useSession();
@@ -374,11 +390,12 @@ function Investigate({
     onSuccess: (investigation: Investigation) => {
       client.setQueryData(["investigations", investigation.investigation_id], investigation);
       void client.invalidateQueries({ queryKey: ["investigations", "list"] });
-      onLinked(alarm.alarm_id, investigation.investigation_id);
+      onLinked(alarm.alarm_id, investigation);
     },
   });
 
-  if (alarm.investigation_id) return <Progress id={alarm.investigation_id} />;
+  if (alarm.investigation_id)
+    return <Progress id={alarm.investigation_id} stored={alarm.investigation_status ?? null} />;
   if (liveInvestigations === false) {
     return (
       <span className="text-[12px] leading-4 text-ink-3">
@@ -429,12 +446,14 @@ function Investigate({
 
 /**
  * An investigation's progress: its status, steps so far and the latest one. Station 4 under the
- * line follows its stream, which keeps this row current.
+ * line follows its stream, which keeps this row current. Until the investigation itself is read,
+ * the status the run's stored state carries (`stored`) stands for it, so a reload shows it at once.
  */
-function Progress({ id }: { id: string }) {
+function Progress({ id, stored }: { id: string; stored: Investigation["status"] | null }) {
   const api = useApi();
   const query = useQuery(q.investigation(api, id));
   const inv = query.data;
+  const status = inv?.status ?? stored;
   const last = inv?.steps.at(-1);
   return (
     <span
@@ -442,8 +461,8 @@ function Progress({ id }: { id: string }) {
       aria-live="polite"
     >
       <span className="flex flex-wrap items-center gap-x-3">
-        {inv ? (
-          <StatusLabel status={inv.status} />
+        {status ? (
+          <StatusLabel status={status} />
         ) : (
           <span className="text-ink-3">Starting the investigation</span>
         )}

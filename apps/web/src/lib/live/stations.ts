@@ -1,15 +1,18 @@
-import type {
-  LotItem,
-  LotResult,
-  RunAlarm,
-  WaferPatternItem,
-  WaferPatternResult,
-} from "@yield-guardian/contracts";
+import type { RunAlarm, WaferPatternItem } from "@yield-guardian/contracts";
 
 import { formatInt, formatNumber, formatPercent, formatPValue, plural } from "@/lib/format";
 import { patternName } from "@/lib/labels";
 
-import { STAGES, stageResult, type RunState, type StageId } from "./run-state";
+import {
+  STAGES,
+  stageResult,
+  type LotItemView,
+  type LotView,
+  type RunState,
+  type StageId,
+  type WaferItem,
+  type WaferPatternView,
+} from "./run-state";
 import type { Station } from "./url-state";
 
 /**
@@ -291,8 +294,8 @@ type WaferLabel = WaferPatternItem["top_label"];
  * caution next to the prediction (check the map by eye), not a replacement.
  */
 export function patternCounts(
-  wafers: readonly WaferPatternItem[],
-  lot?: LotResult | null,
+  wafers: readonly WaferItem[],
+  lot?: LotView | null,
 ): [WaferLabel, number][] {
   const counts = new Map<WaferLabel, number>();
   const add = (label: WaferLabel, n: number) => {
@@ -314,17 +317,17 @@ export function patternCounts(
  * the training-period reference rates had it). Only a wafer of a lot the test covered is
  * counted at all.
  */
-export function countsAsUnknown(w: WaferPatternItem, pattern: WaferPatternResult): boolean {
+export function countsAsUnknown(w: WaferItem, pattern: WaferPatternView): boolean {
   return w.top_label !== "none" && w.energy_score > pattern.energy_threshold;
 }
 
 /** Wafers of a lot the lot test counts as unknown although the model predicted a defect pattern. */
-export function energyUnknown(pattern: WaferPatternResult, item: LotItem): number {
+export function energyUnknown(pattern: WaferPatternView, item: LotItemView): number {
   return pattern.wafers.filter((w) => w.lot === item.lot && countsAsUnknown(w, pattern)).length;
 }
 
 /** The lots the lot test covered, once its result is in. */
-export function testedLots(lot: LotResult | null | undefined): ReadonlySet<string> {
+export function testedLots(lot: LotView | null | undefined): ReadonlySet<string> {
   return new Set(lot?.lots.map((l) => l.lot) ?? []);
 }
 
@@ -392,6 +395,23 @@ export function summarizeLine(state: RunState | null, view: SummaryView = {}): S
     }));
   }
   return [manufacturing(state, v), monitoring(state, v), waferTest(state, v)];
+}
+
+/** What a station says while the run's stored results are read (a reload of a large run). */
+export const READING_SENTENCE = "Reading this run's stored result.";
+
+/**
+ * The three line stations while the run's stored state is read: nothing is computing, so no
+ * station says it is, nor that it is waiting for the input.
+ */
+export function readingLine(): StationSummary[] {
+  return (["manufacturing", "monitoring", "wafer_test"] as const).map((station) => ({
+    station,
+    name: STATION_NAME[station],
+    tone: "idle" as const,
+    sentence: READING_SENTENCE,
+    number: null,
+  }));
 }
 
 const IDLE_SENTENCE: Record<"manufacturing" | "monitoring" | "wafer_test", string> = {

@@ -12,6 +12,7 @@ import {
 } from "@yield-guardian/contracts";
 
 import { ApiError, isProblem } from "@/lib/api/errors";
+import { retryAfterMs } from "@/lib/api/retry";
 
 import { RUN_GONE_MESSAGE } from "./sse";
 
@@ -24,33 +25,14 @@ type Fetch = typeof fetch;
 
 /**
  * The service is up but not ready for this yet (503 with Retry-After): the case catalog is still
- * being found in the data after a start. Callers wait and ask again; it is not a failure.
+ * being found in the data after a start. Callers wait and ask again (the shared retry policy,
+ * lib/api/retry.ts, waits as told); it is not a failure.
  */
 export class NotReadyYet extends ApiError {
-  constructor(
-    problem: ApiError["problem"],
-    /** How long to wait before asking again, ms. */
-    readonly retryAfterMs: number,
-  ) {
-    super(503, problem);
+  constructor(problem: ApiError["problem"], retryAfter: number) {
+    super(503, problem, undefined, retryAfter);
   }
 }
-
-function retryAfterMs(header: string | null): number | null {
-  if (!header) return null;
-  const seconds = Number(header);
-  if (Number.isFinite(seconds)) return Math.min(30_000, Math.max(1_000, seconds * 1000));
-  const at = Date.parse(header);
-  return Number.isNaN(at) ? null : Math.min(30_000, Math.max(1_000, at - Date.now()));
-}
-
-/** Retry policy for queries that can answer "not ready yet": wait as told, up to about two minutes. */
-export const retryWhenNotReady = {
-  retry: (failures: number, error: Error) =>
-    error instanceof NotReadyYet ? failures < 60 : failures < 1,
-  retryDelay: (_failures: number, error: Error) =>
-    error instanceof NotReadyYet ? error.retryAfterMs : 1_000,
-};
 
 export type UploadFormat = "csv" | "xlsx";
 export type UploadKind = UploadSummary["kind"];
@@ -83,12 +65,13 @@ async function call<T>(
   }
   if (!response.ok) {
     const problem = isProblem(body) ? body : null;
-    const wait = response.status === 503 ? retryAfterMs(response.headers.get("Retry-After")) : null;
-    if (wait != null) throw new NotReadyYet(problem, wait);
+    const wait = response.status >= 500 ? retryAfterMs(response.headers.get("Retry-After")) : null;
+    if (wait != null && response.status === 503) throw new NotReadyYet(problem, wait);
     throw new ApiError(
       response.status,
       problem,
       response.status === 410 ? RUN_GONE_MESSAGE : undefined,
+      wait,
     );
   }
   return body as T;

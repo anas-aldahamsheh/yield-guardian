@@ -13,9 +13,13 @@ import {
   STAGES,
   applyRunEvent,
   applyRunSnapshot,
+  arrivedLive,
   emptyRunState,
   isFinished,
+  knownBefore,
+  linkInvestigation,
   reduceRunEvents,
+  runStateFrom,
   stageResult,
   type RunState,
 } from "./run-state";
@@ -29,6 +33,19 @@ function settled(state: RunState) {
     alarms: state.alarms,
     alarmsNotListed: state.alarmsNotListed,
     contiguousSeq: state.contiguousSeq,
+  };
+}
+
+/**
+ * Without the stages' start times: a stage that finished before a snapshot was read has no
+ * start in it (only a running stage's start counts there, for its clock).
+ */
+function withoutStarts(view: ReturnType<typeof settled>) {
+  return {
+    ...view,
+    stages: Object.fromEntries(
+      Object.entries(view.stages).map(([id, { startedAt: _, ...rest }]) => [id, rest]),
+    ),
   };
 }
 
@@ -141,21 +158,68 @@ describe("run state", () => {
     expect(emptyRunState(RUN_ID).expiresAt).toBeUndefined();
   });
 
-  it("merges a mid-run snapshot with the stream that follows", () => {
+  it("merges a mid-run snapshot with the stream after its last event (a reload mid-run)", () => {
     const cut = 12;
     const snapshot = snapshotOf(sampleEvents.slice(0, cut));
     let state = applyRunSnapshot(emptyRunState(RUN_ID), snapshot);
     expect(state.status).toBe("running");
-    // The stream replays from its start (no Last-Event-ID yet): nothing goes back.
-    state = sampleEvents.reduce(applyRunEvent, state);
-    expect(settled(state)).toEqual(settled(reduceRunEvents(RUN_ID, sampleEvents)));
-    // Results the snapshot already had are not queued again.
+    // The snapshot names the last event it includes: the stream resumes right after it.
+    expect(state.contiguousSeq).toBe(snapshot.last_seq);
+    expect(snapshot.last_seq).toBe(sampleEvents[cut - 1]!.seq);
+    const after = sampleEvents.filter((e) => e.seq > snapshot.last_seq!);
+    state = after.reduce(applyRunEvent, state);
+    const full = reduceRunEvents(RUN_ID, sampleEvents);
+    expect(withoutStarts(settled(state))).toEqual(withoutStarts(settled(full)));
+    // Results the snapshot already had are not queued again; the rest are, once each.
     const known = new Set(snapshot.stages.filter((s) => s.status === "done").map((s) => s.stage));
     expect(known.size).toBeGreaterThan(0);
     expect(state.arrivals.some((a) => a.kind === "result" && known.has(a.stage))).toBe(false);
     expect(state.arrivals.filter((a) => a.kind === "result")).toHaveLength(
       STAGES.length - known.size,
     );
+    expect(knownBefore(state)).toEqual(known);
+    // A replay of the whole stream (a reconnect without Last-Event-ID) changes nothing more.
+    expect(sampleEvents.reduce(applyRunEvent, state)).toBe(state);
+  });
+
+  it("merges a snapshot that names no last event with a replay of the stream from its start", () => {
+    const cut = 12;
+    const snapshot = { ...snapshotOf(sampleEvents.slice(0, cut)), last_seq: 0 };
+    let state = applyRunSnapshot(emptyRunState(RUN_ID), snapshot);
+    expect(state.contiguousSeq).toBeNull();
+    state = sampleEvents.reduce(applyRunEvent, state);
+    expect(settled(state)).toEqual(settled(reduceRunEvents(RUN_ID, sampleEvents)));
+    const known = new Set(snapshot.stages.filter((s) => s.status === "done").map((s) => s.stage));
+    expect(state.arrivals.some((a) => a.kind === "result" && known.has(a.stage))).toBe(false);
+  });
+
+  it("never moves the resume point back for an older snapshot", () => {
+    const state = reduceRunEvents(RUN_ID, sampleEvents.slice(0, 20));
+    const older = snapshotOf(sampleEvents.slice(0, 8));
+    expect(applyRunSnapshot(state, older).contiguousSeq).toBe(state.contiguousSeq);
+  });
+
+  it("carries a running stage's start and the time the snapshot was read", () => {
+    const cut = sampleEvents.findIndex(
+      (e) => e.type === "stage_started" && e.stage === "control_charts",
+    );
+    const snapshot = snapshotOf(sampleEvents.slice(0, cut + 1));
+    const state = runStateFrom(snapshot);
+    expect(state.stages.control_charts.status).toBe("running");
+    expect(state.stages.control_charts.startedAt).toBe(sampleEvents[cut]!.at);
+    expect(state.readAt).toBe(snapshot.read_at);
+  });
+
+  it("shows a stored run at rest: nothing in it arrived on the stream", () => {
+    const state = runStateFrom(snapshotOf(sampleEvents));
+    expect(state.arrivals).toEqual([]);
+    expect(knownBefore(state)).toEqual(new Set(STAGES));
+    expect(arrivedLive(state, { stage: "wafer_pattern" })).toBe(false);
+    expect(arrivedLive(state, { alarmId: state.alarms[0]!.alarm_id })).toBe(false);
+    const streamed = reduceRunEvents(RUN_ID, sampleEvents);
+    expect(knownBefore(streamed)).toEqual(new Set());
+    expect(arrivedLive(streamed, { stage: "wafer_pattern" })).toBe(true);
+    expect(arrivedLive(streamed, { alarmId: streamed.alarms[0]!.alarm_id })).toBe(true);
   });
 
   it("keeps an investigation link that either the snapshot or the stream carries", () => {
@@ -163,13 +227,38 @@ describe("run state", () => {
     const alarm = state.alarms[0]!;
     const run = snapshotOf(sampleEvents);
     run.alarms = run.alarms.map((a) =>
-      a.alarm_id === alarm.alarm_id ? { ...a, investigation_id: "inv_1" } : a,
+      a.alarm_id === alarm.alarm_id
+        ? { ...a, investigation_id: "inv_1", investigation_status: "running" }
+        : a,
     );
     const linked = applyRunSnapshot(state, run);
     expect(linked.alarms[0]!.investigation_id).toBe("inv_1");
+    expect(linked.alarms[0]!.investigation_status).toBe("running");
     // A later replay of the alarm without the link keeps it.
     const again = applyRunSnapshot(linked, snapshotOf(sampleEvents));
     expect(again.alarms[0]!.investigation_id).toBe("inv_1");
+    expect(again.alarms[0]!.investigation_status).toBe("running");
+    // A newer read carries the status it has now.
+    run.alarms = run.alarms.map((a) =>
+      a.alarm_id === alarm.alarm_id ? { ...a, investigation_status: "awaiting_decision" } : a,
+    );
+    expect(applyRunSnapshot(again, run).alarms[0]!.investigation_status).toBe("awaiting_decision");
+  });
+
+  it("records an investigation started on this page, with its status", () => {
+    const state = runStateFrom(snapshotOf(sampleEvents));
+    const alarm = state.alarms[1]!;
+    const linked = linkInvestigation(state, alarm.alarm_id, "inv_2", "queued");
+    expect(linked.alarms[1]).toMatchObject({
+      investigation_id: "inv_2",
+      investigation_status: "queued",
+    });
+    expect(linkInvestigation(linked, alarm.alarm_id, "inv_2", "queued")).toBe(linked);
+    // A link with no status keeps the one known.
+    expect(linkInvestigation(linked, alarm.alarm_id, "inv_2").alarms[1]!.investigation_status).toBe(
+      "queued",
+    );
+    expect(linkInvestigation(state, "RA-999", "inv_3")).toBe(state);
   });
 
   it("orders alarms by number whatever order they arrive in", () => {

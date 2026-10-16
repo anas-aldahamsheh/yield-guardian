@@ -2,6 +2,7 @@ import createClient from "openapi-fetch";
 import { CSRF_HEADER, type paths } from "@yield-guardian/contracts";
 
 import { ApiError, isProblem } from "./errors";
+import { retryAfterMs } from "./retry";
 
 /**
  * A client typed by the API contracts. Every path, parameter and response body is checked
@@ -38,7 +39,13 @@ export async function unwrap<D>(request: Promise<ApiResult<D>>): Promise<D> {
     throw new ApiError(0, null, error instanceof Error ? error.message : "Network error");
   }
   if (result.error !== undefined || !result.response.ok) {
-    throw new ApiError(result.response.status, isProblem(result.error) ? result.error : null);
+    const { status, headers } = result.response;
+    throw new ApiError(
+      status,
+      isProblem(result.error) ? result.error : null,
+      undefined,
+      status >= 500 ? retryAfterMs(headers.get("Retry-After")) : null,
+    );
   }
   return result.data as D;
 }

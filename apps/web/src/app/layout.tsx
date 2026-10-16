@@ -7,6 +7,7 @@ import { ChatLauncher } from "@/components/chat/chat-launcher";
 import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/shell/site-footer";
 import { TopBar } from "@/components/shell/top-bar";
+import { metaState } from "@/lib/api/server";
 
 import "./globals.css";
 
@@ -78,8 +79,11 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Every page renders per request (the CSP nonce is per request, and no API data is ever
-  // fetched while building).
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // fetched while building). What the API serves comes with the page: nothing waits for it.
+  const [nonce, meta] = await Promise.all([
+    headers().then((h) => h.get("x-nonce") ?? undefined),
+    metaState(),
+  ]);
 
   return (
     <html
@@ -88,7 +92,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
-        <Providers nonce={nonce}>
+        <Providers nonce={nonce} state={meta}>
           <a href="#main" className="skip-link">
             Skip to content
           </a>

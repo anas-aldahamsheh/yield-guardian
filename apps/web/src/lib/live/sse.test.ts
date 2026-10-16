@@ -195,6 +195,15 @@ describe("followRun", () => {
     expect(harness.sleeps).toEqual([100, 200, 400, 800, 1000, 100]);
   });
 
+  it("waits as long as a 503 asks (Retry-After) while the API wakes", async () => {
+    const { harness, done } = follow([
+      () => new Response("", { status: 503, headers: { "Retry-After": "3" } }),
+      () => streamResponse([sseBody(events)]),
+    ]);
+    await expect(done).resolves.toEqual({ finished: true });
+    expect(harness.sleeps).toEqual([3000]);
+  });
+
   it("uses the server's retry time as the first pause", async () => {
     const { harness, done } = follow([
       () => streamResponse([sseBody(events.slice(0, 2), { retryMs: 3000 })]),

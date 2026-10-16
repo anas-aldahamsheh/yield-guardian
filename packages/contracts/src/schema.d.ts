@@ -3693,7 +3693,18 @@ export interface components {
        * @description When the run is deleted (24 h after creation); null while an investigation uses it, so the evidence behind a decision stays openable.
        */
       expires_at: string | null;
+      /**
+       * Last Seq
+       * @description Seq of the newest event this state includes. The event stream with Last-Event-ID set to it carries exactly what happened after this state was read.
+       * @default 0
+       */
+      last_seq: number;
       origin: components["schemas"]["RunOrigin"];
+      /**
+       * Read At
+       * @description Server time this state was read.
+       */
+      read_at?: string | null;
       /**
        * Run Id
        * @example run_01jaf3k9x2m4q7r8s0t1v2w3x4
@@ -3722,8 +3733,25 @@ export interface components {
        * @example RA-3
        */
       alarm_id: string;
-      /** Investigation Id */
+      /**
+       * Investigation Id
+       * @description The newest investigation opened from this alarm, if any.
+       */
       investigation_id?: string | null;
+      /**
+       * Investigation Status
+       * @description That investigation's status when the run was read.
+       */
+      investigation_status?:
+        | (
+            | "queued"
+            | "running"
+            | "awaiting_decision"
+            | "approved"
+            | "rejected"
+            | "failed"
+          )
+        | null;
       /**
        * Kind
        * @enum {string}
@@ -4558,6 +4586,11 @@ export interface components {
         | "wafer_similar"
         | "lot"
         | "final_test";
+      /**
+       * Started At
+       * @description When a running stage started computing (server time); with the run's `read_at` it gives how long it has computed so far.
+       */
+      started_at?: string | null;
       /**
        * Station
        * @enum {string}

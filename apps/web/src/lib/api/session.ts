@@ -19,7 +19,7 @@ const VISITOR: SessionInfo = {
 /** The current session; a visitor until the API says otherwise. */
 export function useSession() {
   const api = useApi();
-  const query = useQuery({ ...q.session(api), retry: false });
+  const query = useQuery(q.session(api));
   const session = query.data ?? VISITOR;
   return {
     session,

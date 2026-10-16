@@ -28,7 +28,7 @@ import zlib
 from collections.abc import AsyncIterator, Callable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Literal, get_args
+from typing import Literal, cast, get_args
 
 import numpy as np
 import structlog
@@ -38,6 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import InstrumentedAttribute
 
 from yield_guardian.contracts.base import Contract, Problem
+from yield_guardian.contracts.investigation import InvestigationStatus
 from yield_guardian.contracts.runs import (
     STAGE_STATION,
     Run,
@@ -176,16 +177,31 @@ def used_by_investigation(run_id: InstrumentedAttribute[str] | str) -> ColumnEle
     return exists().where(func.starts_with(InvestigationRow.trigger_ref, run_id + ":"))
 
 
-async def alarm_investigations(db: AsyncSession, run_id: str) -> dict[str, str]:
-    """Alarm ID to the newest investigation opened from it."""
+@dataclass(frozen=True)
+class AlarmInvestigation:
+    investigation_id: str
+    status: InvestigationStatus
+
+
+async def alarm_investigations(db: AsyncSession, run_id: str) -> dict[str, AlarmInvestigation]:
+    """Alarm ID to the newest investigation opened from it, with its status."""
     rows = (
         await db.execute(
-            select(InvestigationRow.trigger_ref, InvestigationRow.investigation_id)
+            select(
+                InvestigationRow.trigger_ref,
+                InvestigationRow.investigation_id,
+                InvestigationRow.status,
+            )
             .where(func.starts_with(InvestigationRow.trigger_ref, run_id + ":"))
             .order_by(InvestigationRow.created_at, InvestigationRow.investigation_id)
         )
     ).all()
-    return {ref.partition(":")[2]: investigation_id for ref, investigation_id in rows}
+    return {
+        ref.partition(":")[2]: AlarmInvestigation(
+            investigation_id, cast(InvestigationStatus, status)
+        )
+        for ref, investigation_id, status in rows
+    }
 
 
 async def retain_in(db: AsyncSession, run_id: str) -> None:
@@ -312,7 +328,7 @@ class DbRunStore:
                     )
                 ],
             )
-        return self._run(row, list(stages), {}, used=False)
+        return self._run(row, list(stages), {}, used=False, read_at=now)
 
     async def update(
         self,
@@ -338,6 +354,8 @@ class DbRunStore:
                 if status in TERMINAL:
                     row.finished_at = self._now()
             if stage is not None:
+                if stage.status == "running" and stage.started_at is None:
+                    stage = stage.model_copy(update={"started_at": self._now()})
                 await self._set_stage(db, run_id, stage)
             if alarms:
                 row.alarms = [*row.alarms, *(a.model_dump(mode="json") for a in alarms)]
@@ -355,12 +373,16 @@ class DbRunStore:
 
     async def get(self, run_id: str) -> Run:
         """The run with its stages and alarms (each alarm with the investigation opened from it,
-        if any). NotFoundError for an unknown run, GoneError once it expired."""
-        async with self._sessionmaker() as db:
+        if any, and its status). One consistent snapshot: `last_seq` is the newest event it
+        includes, so the stream after it carries exactly what came later. NotFoundError for an
+        unknown run, GoneError once it expired."""
+        async with self._sessionmaker() as db, db.begin():
+            await db.connection(execution_options={"isolation_level": "REPEATABLE READ"})
             row, used = await self._live(db, run_id)
             investigations = await alarm_investigations(db, run_id)
             stages = await self._stages(db, run_id)
-        return self._run(row, stages, investigations, used=used)
+            read_at = self._now()
+        return self._run(row, stages, investigations, used=used, read_at=read_at)
 
     async def unit_chart(self, run_id: str, index: int) -> UnitChartResult:
         """Unit `index`'s control-chart result with `z`. NotFoundError when the run has no such
@@ -655,14 +677,25 @@ class DbRunStore:
 
     @staticmethod
     def _run(
-        row: RunRow, stages: list[StageState], investigations: dict[str, str], *, used: bool
+        row: RunRow,
+        stages: list[StageState],
+        investigations: dict[str, AlarmInvestigation],
+        *,
+        used: bool,
+        read_at: datetime,
     ) -> Run:
-        alarms = [
-            RunAlarm.model_validate(
-                {**a, "investigation_id": investigations.get(a["alarm_id"], a["investigation_id"])}
-            )
-            for a in row.alarms
-        ]
+        alarms: list[RunAlarm] = []
+        for stored in row.alarms:
+            alarm = RunAlarm.model_validate(stored)
+            found = investigations.get(alarm.alarm_id)
+            if found is not None:
+                alarm = alarm.model_copy(
+                    update={
+                        "investigation_id": found.investigation_id,
+                        "investigation_status": found.status,
+                    }
+                )
+            alarms.append(alarm)
         return Run(
             run_id=row.run_id,
             created_at=row.created_at,
@@ -674,6 +707,8 @@ class DbRunStore:
             alarms=alarms,
             alarms_not_listed=row.alarms_not_listed,
             expires_at=None if used else row.expires_at,
+            last_seq=row.last_seq,
+            read_at=read_at,
         )
 
     @contextlib.contextmanager

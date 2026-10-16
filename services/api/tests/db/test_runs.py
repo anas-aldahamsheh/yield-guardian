@@ -108,7 +108,13 @@ async def test_a_run_keeps_its_input_and_reads_one_item_at_a_time(
     assert await store.get_unit_input(run_id, 25) is None
     assert await store.get_wafer_input(run_id, -1) is None
     assert await store.get_run("run_01jaf3k9x2m4q7r8s0t1v2w3x4") is None
-    assert await store.get_run(run_id) == run
+    again = await store.get_run(run_id)
+    # Each read carries the moment it was made; the run read is the same.
+    assert again is not None
+    assert again.read_at is not None
+    assert run.read_at is not None
+    assert again.read_at >= run.read_at
+    assert again.model_copy(update={"read_at": run.read_at}) == run
 
 
 async def test_events_are_numbered_resume_after_a_seq_and_end_after_run_done(

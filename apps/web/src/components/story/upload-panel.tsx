@@ -15,10 +15,24 @@ import {
   type UploadFormat,
   type UploadKind,
 } from "@/lib/live/api";
+import {
+  DRAFT_KEYS,
+  readDraft,
+  readJsonDraft,
+  writeDraft,
+  writeJsonDraft,
+} from "@/lib/live/drafts";
 import { cn } from "@/lib/utils";
 
 import type { StartRun } from "./input-bar";
-import { UPLOAD_ACCEPT, checkFile, issueLine, uploadView } from "./upload-view";
+import {
+  UPLOAD_ACCEPT,
+  checkFile,
+  isUpload,
+  issueLine,
+  keptUpload,
+  uploadView,
+} from "./upload-view";
 
 const FORMATS: UploadFormat[] = ["csv", "xlsx"];
 
@@ -47,12 +61,23 @@ export function UploadPanel({ onStart, starting }: { onStart: StartRun; starting
   const inputId = useId();
   const [refused, setRefused] = useState<string | null>(null);
   const [over, setOver] = useState(false);
-  const upload = useMutation({ mutationFn: (file: File) => uploadFile(file, csrf) });
+  // A file the API checked but that has not run yet, kept for this tab so a reload keeps it
+  // (lib/live/drafts.ts); the file itself stays with the API, as uploaded, until it expires.
+  const [kept, setKept] = useState(() => keptUpload(readJsonDraft(DRAFT_KEYS.upload, isUpload)));
+  const upload = useMutation({
+    mutationFn: (file: File) => uploadFile(file, csrf),
+    onSuccess: (summary) => {
+      if (readDraft(DRAFT_KEYS.way) === "upload") writeJsonDraft(DRAFT_KEYS.upload, summary);
+    },
+  });
+  const summary = upload.data ?? kept;
 
   const send = (file: File | undefined) => {
     if (!file) return;
     const problem = checkFile(file);
     setRefused(problem);
+    setKept(null);
+    writeDraft(DRAFT_KEYS.upload, null);
     if (problem) {
       upload.reset();
       return;
@@ -113,11 +138,11 @@ export function UploadPanel({ onStart, starting }: { onStart: StartRun; starting
             {`${describeError(upload.error).title}. ${describeError(upload.error).detail}`}
           </p>
         ) : null}
-        {upload.data && !refused ? (
+        {summary && !refused ? (
           <UploadResult
-            summary={upload.data}
+            summary={summary}
             starting={starting}
-            onRun={() => void onStart({ source: "upload", upload_id: upload.data.upload_id })}
+            onRun={() => void onStart({ source: "upload", upload_id: summary.upload_id })}
           />
         ) : null}
       </div>

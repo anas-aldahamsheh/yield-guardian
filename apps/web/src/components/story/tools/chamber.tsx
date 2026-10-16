@@ -2,9 +2,7 @@
 
 import { memo, useMemo, useState } from "react";
 
-import type { UnitChartResult } from "@yield-guardian/contracts";
-
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { stageResult, type RunState, type UnitChartView } from "@/lib/live/run-state";
 import { useUnitChart } from "@/lib/live/use-unit-chart";
 import { formatNumber } from "@/lib/format";
 
@@ -42,7 +40,7 @@ function sensorId(i: number) {
 /** The lamps of the bank for one unit's chart result, in sensor order. */
 export function bankLamps(
   state: RunState | null,
-  chart: UnitChartResult | undefined,
+  chart: UnitChartView | undefined,
   showReadings: boolean,
 ): BankLamp[] {
   const intake = state ? stageResult(state, "intake") : null;
@@ -52,7 +50,11 @@ export function bankLamps(
   const row = showReadings ? chart : undefined;
   const flagged =
     row && row.level === "alarm"
-      ? new Set([...row.top_spe.slice(0, 5), ...row.top_t2.slice(0, 5)].map((c) => c.sensor))
+      ? new Set(
+          [...(row.top_spe ?? []).slice(0, 5), ...(row.top_t2 ?? []).slice(0, 5)].map(
+            (c) => c.sensor,
+          ),
+        )
       : new Set<string>();
   return Array.from({ length: N_SENSORS }, (_, i) => {
     const sensor = sensorId(i);

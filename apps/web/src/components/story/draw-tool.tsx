@@ -5,6 +5,7 @@ import { WAFER_CELL } from "@yield-guardian/contracts";
 import {
   type KeyboardEvent,
   type PointerEvent,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -15,7 +16,15 @@ import {
 import { ErrorState, Placeholder } from "@/components/states";
 import { DieMap } from "@/components/wafer/die-map";
 import { formatInt, plural } from "@/lib/format";
-import { getDrawLayouts, retryWhenNotReady } from "@/lib/live/api";
+import { getDrawLayouts } from "@/lib/live/api";
+import {
+  DRAFT_KEYS,
+  isDrawingDraft,
+  readDraft,
+  readJsonDraft,
+  writeJsonDraft,
+  type DrawingDraft,
+} from "@/lib/live/drafts";
 import { cn } from "@/lib/utils";
 
 import {
@@ -26,12 +35,14 @@ import {
   centreDie,
   clearWafer,
   dieCount,
+  drawingDraft,
   drawnWafers,
   failCount,
   moveCursor,
   newDrawing,
   paint,
   removeWafer,
+  restoreDrawing,
   selectWafer,
   strokeValue,
   type Brush,
@@ -60,11 +71,23 @@ export function DrawTool({ onStart, starting }: { onStart: StartRun; starting: b
     queryKey: ["runs", "layouts"],
     queryFn: ({ signal }) => getDrawLayouts({ signal }),
     staleTime: 30 * 60_000,
-    ...retryWhenNotReady,
   });
-  const [layoutId, setLayoutId] = useState<string | null>(null);
-  const [edits, setEdits] = useState<Record<string, Drawing>>({});
-  const items = layouts.data?.items ?? [];
+  // A drawing not run yet, kept for this tab so a reload keeps it (lib/live/drafts.ts).
+  const [kept] = useState(() => readJsonDraft(DRAFT_KEYS.drawing, isDrawingDraft));
+  const [layoutId, setLayoutId] = useState<string | null>(kept?.layoutId ?? null);
+  const [changed, setChanged] = useState<Record<string, Drawing>>({});
+  const items = useMemo(() => layouts.data?.items ?? [], [layouts.data]);
+  const restored = useMemo(() => {
+    const out: Record<string, Drawing> = {};
+    for (const l of items) {
+      const draft = kept?.edits[l.layout_id];
+      const drawing = draft ? restoreDrawing(l, draft) : null;
+      if (drawing) out[l.layout_id] = drawing;
+    }
+    return out;
+  }, [kept, items]);
+  const edits = useMemo(() => ({ ...restored, ...changed }), [restored, changed]);
+  useKeptDrawing(layouts.data != null, layoutId, edits);
   const layout = items.find((l) => l.layout_id === layoutId) ?? items[0];
   const base = useMemo(() => (layout ? newDrawing(layout) : null), [layout]);
 
@@ -77,7 +100,7 @@ export function DrawTool({ onStart, starting }: { onStart: StartRun; starting: b
   const id = layout.layout_id;
   const drawing = edits[id] ?? base;
   const update = (fn: (d: Drawing) => Drawing) =>
-    setEdits((e) => ({ ...e, [id]: fn(e[id] ?? base) }));
+    setChanged((e) => ({ ...e, [id]: fn(e[id] ?? restored[id] ?? base) }));
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
@@ -94,6 +117,47 @@ export function DrawTool({ onStart, starting }: { onStart: StartRun; starting: b
       </div>
     </div>
   );
+}
+
+/**
+ * Keeps the drawing for this tab a moment after each change, and at once when the page is left
+ * (a reload), so painting stays smooth. Only once the layouts are in: before that the drawing
+ * kept from the last load is not back on them yet, and keeping it would lose it.
+ */
+function useKeptDrawing(
+  ready: boolean,
+  layoutId: string | null,
+  drawings: Record<string, Drawing>,
+) {
+  const latest = useRef<{ layoutId: string | null; drawings: Record<string, Drawing> } | null>(
+    null,
+  );
+  const save = useCallback(() => {
+    const now = latest.current;
+    if (!now) return;
+    latest.current = null;
+    // Only while the draw panel is the open way: closing it, or running the drawing, drops it.
+    if (readDraft(DRAFT_KEYS.way) !== "draw") return;
+    const ids = Object.keys(now.drawings);
+    const draft: DrawingDraft | null =
+      now.layoutId == null && !ids.length
+        ? null
+        : {
+            layoutId: now.layoutId,
+            edits: Object.fromEntries(ids.map((id) => [id, drawingDraft(now.drawings[id]!)])),
+          };
+    writeJsonDraft(DRAFT_KEYS.drawing, draft);
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    latest.current = { layoutId, drawings };
+    const timer = window.setTimeout(save, 400);
+    return () => window.clearTimeout(timer);
+  }, [ready, layoutId, drawings, save]);
+  useEffect(() => {
+    window.addEventListener("pagehide", save);
+    return () => window.removeEventListener("pagehide", save);
+  }, [save]);
 }
 
 function LayoutChooser({

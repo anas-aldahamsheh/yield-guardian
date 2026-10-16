@@ -1,15 +1,6 @@
 "use client";
 
-import type {
-  ControlChartsResult,
-  DriftHealthResult,
-  FinalTestResult,
-  GroupDrift,
-  MetricValue,
-  SensorRiskResult,
-  UnitChartResult,
-  UnitRiskResult,
-} from "@yield-guardian/contracts";
+import type { FinalTestResult, MetricValue } from "@yield-guardian/contracts";
 import { type KeyboardEvent, useMemo, useState } from "react";
 
 import { useWidth } from "@/components/charts/use-width";
@@ -27,13 +18,23 @@ import {
   plural,
 } from "@/lib/format";
 import { BAND_NAME, HEALTH_STATUS, HEALTH_STATUS_ORDER } from "@/lib/labels";
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { defaultUnit } from "@/lib/live/rest";
+import {
+  stageResult,
+  type ControlChartsView,
+  type DriftHealthView,
+  type GroupDriftView,
+  type RunState,
+  type SensorRiskView,
+  type UnitChartView,
+  type UnitRiskView,
+} from "@/lib/live/run-state";
 import { cn } from "@/lib/utils";
 
-import { DrawerSection, Fact, Method, NotYet } from "./drawer-parts";
+import { DrawerSection, Fact, Method, NotYet, StillReading } from "./drawer-parts";
 import { decadeLabel, decades, logDomain, logPosition, riskDomain } from "./scales";
 
-const VALIDITY: Record<UnitRiskResult["validity"], string> = {
+const VALIDITY: Record<UnitRiskView["validity"], string> = {
   held_out: "Held out: the model never trained on this unit.",
   in_training:
     "In training: the model saw this unit while it learned, so its score here is in-sample and optimistic.",
@@ -52,13 +53,6 @@ export function skillText(m: MetricValue): string {
  * sensors behind its risk and its statistics, drift of the leading sensor groups, sensor health,
  * and whether the warnings matched final test.
  */
-function defaultUnit(charts: ControlChartsResult | null, risk: SensorRiskResult | null): number {
-  const alarm = charts?.units.findIndex((u) => u.level === "alarm") ?? -1;
-  if (alarm !== -1) return alarm;
-  if (!risk?.units.length) return 0;
-  return risk.units.reduce((best, u, i, all) => (u.risk > all[best]!.risk ? i : best), 0);
-}
-
 export function UnitsDrawer({
   state,
   shown,
@@ -139,8 +133,8 @@ function UnitsChart({
   selected,
   onSelect,
 }: {
-  charts: ControlChartsResult;
-  risk: SensorRiskResult | null;
+  charts: ControlChartsView;
+  risk: SensorRiskView | null;
   selected: number | null;
   onSelect: (index: number) => void;
 }) {
@@ -377,14 +371,16 @@ function UnitsChart({
 // Risk of one unit
 // ---------------------------------------------------------------------------------------------
 
-function RiskPanel({ result, unit }: { result: SensorRiskResult; unit: UnitRiskResult }) {
+function RiskPanel({ result, unit }: { result: SensorRiskView; unit: UnitRiskView }) {
   const top = riskDomain([unit.risk], result.threshold);
   const pos = (v: number) => `${Math.min(100, (v / top) * 100)}%`;
-  const rest = unit.raw_score - unit.base_value - unit.top.reduce((s, f) => s + f.shap, 0);
-  const maxShap = Math.max(Math.abs(rest), ...unit.top.map((f) => Math.abs(f.shap)), 1e-9);
+  // Null for a moment after a reload when this is not the unit that was open (read just after).
+  const features = unit.top;
+  const rest = unit.raw_score - unit.base_value - (features ?? []).reduce((s, f) => s + f.shap, 0);
+  const maxShap = Math.max(Math.abs(rest), ...(features ?? []).map((f) => Math.abs(f.shap)), 1e-9);
   const groups = useMemo(() => {
     const by = new Map<string, { sensors: string[]; shap: number }>();
-    for (const f of unit.top) {
+    for (const f of features ?? []) {
       if (!f.group_id) continue;
       const g = by.get(f.group_id) ?? { sensors: [], shap: 0 };
       if (!g.sensors.includes(f.sensor)) g.sensors.push(f.sensor);
@@ -392,7 +388,7 @@ function RiskPanel({ result, unit }: { result: SensorRiskResult; unit: UnitRiskR
       by.set(f.group_id, g);
     }
     return [...by.entries()].sort((a, b) => Math.abs(b[1].shap) - Math.abs(a[1].shap));
-  }, [unit]);
+  }, [features]);
 
   return (
     <DrawerSection
@@ -450,20 +446,24 @@ function RiskPanel({ result, unit }: { result: SensorRiskResult; unit: UnitRiskR
       <p className="text-[12px] leading-4 text-ink-3">
         {`TreeSHAP in log-odds: from the base ${formatSigned(unit.base_value)} to ${formatSigned(unit.raw_score)} for this unit. Right raises the risk, left lowers it.`}
       </p>
-      <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-0.5">
-        {unit.top.map((f) => (
-          <ShapRow
-            key={f.feature}
-            name={f.sensor}
-            detail={
-              f.indicator ? "missing" : f.value == null ? "no reading" : formatReading(f.value)
-            }
-            shap={f.shap}
-            max={maxShap}
-          />
-        ))}
-        <ShapRow name="All other features" detail="" shap={rest} max={maxShap} muted />
-      </ul>
+      {features ? (
+        <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-0.5">
+          {features.map((f) => (
+            <ShapRow
+              key={f.feature}
+              name={f.sensor}
+              detail={
+                f.indicator ? "missing" : f.value == null ? "no reading" : formatReading(f.value)
+              }
+              shap={f.shap}
+              max={maxShap}
+            />
+          ))}
+          <ShapRow name="All other features" detail="" shap={rest} max={maxShap} muted />
+        </ul>
+      ) : (
+        <StillReading what="the features behind this unit's risk" />
+      )}
       {groups.length ? (
         <>
           <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">
@@ -536,12 +536,13 @@ function ShapRow({
 // T² and SPE of one unit, and the sensors behind them
 // ---------------------------------------------------------------------------------------------
 
-function ChartPanel({ charts, unit }: { charts: ControlChartsResult; unit: UnitChartResult }) {
+function ChartPanel({ charts, unit }: { charts: ControlChartsView; unit: UnitChartView }) {
   const [stat, setStat] = useState<"t2" | "spe">(
     unit.spe / charts.limits.spe_999 > unit.t2 / charts.limits.t2_999 ? "spe" : "t2",
   );
+  // Null for a moment after a reload when this is not the unit that was open (read just after).
   const rows = stat === "t2" ? unit.top_t2 : unit.top_spe;
-  const max = Math.max(...rows.map((r) => Math.abs(r.share)), 1e-9);
+  const max = Math.max(...(rows ?? []).map((r) => Math.abs(r.share)), 1e-9);
   return (
     <DrawerSection
       title={`Control statistics of unit ${unit.unit_id}`}
@@ -595,23 +596,30 @@ function ChartPanel({ charts, unit }: { charts: ControlChartsResult; unit: UnitC
           ? "Each sensor's squared residual: the parts add up to SPE."
           : "Each sensor's part of T²: the parts add up to T², and one can be negative when it pulls the score back."}
       </p>
-      <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-0.5">
-        {rows.map((r) => (
-          <li
-            key={r.sensor}
-            className="tnum grid grid-cols-[56px_minmax(0,1fr)_88px] items-center gap-2 text-[12px] leading-5"
-          >
-            <span className="text-ink">{r.sensor}</span>
-            <span className="relative h-3" aria-hidden="true">
-              <span
-                className={cn("absolute inset-y-0.5 left-0", r.share >= 0 ? "bg-ink-2" : "bg-pass")}
-                style={{ width: `${(Math.abs(r.share) / max) * 100}%` }}
-              />
-            </span>
-            <span className="text-right text-ink-2">{`${formatReading(r.contribution, 3)}, ${formatPercent(r.share)}`}</span>
-          </li>
-        ))}
-      </ul>
+      {rows ? (
+        <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-0.5">
+          {rows.map((r) => (
+            <li
+              key={r.sensor}
+              className="tnum grid grid-cols-[56px_minmax(0,1fr)_88px] items-center gap-2 text-[12px] leading-5"
+            >
+              <span className="text-ink">{r.sensor}</span>
+              <span className="relative h-3" aria-hidden="true">
+                <span
+                  className={cn(
+                    "absolute inset-y-0.5 left-0",
+                    r.share >= 0 ? "bg-ink-2" : "bg-pass",
+                  )}
+                  style={{ width: `${(Math.abs(r.share) / max) * 100}%` }}
+                />
+              </span>
+              <span className="text-right text-ink-2">{`${formatReading(r.contribution, 3)}, ${formatPercent(r.share)}`}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <StillReading what="the sensors behind this unit's statistics" />
+      )}
     </DrawerSection>
   );
 }
@@ -625,7 +633,7 @@ function DriftPanel({
   unitIds,
   selected,
 }: {
-  drift: DriftHealthResult;
+  drift: DriftHealthView;
   unitIds: string[];
   selected: number | null;
 }) {
@@ -637,7 +645,12 @@ function DriftPanel({
       <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 2xl:grid-cols-3">
         {drift.groups.map((g) => (
           <li key={g.group_id}>
-            <DriftSpark group={g} unitIds={unitIds} selected={selected} />
+            {/* Null for a moment after a reload when this drawer was not open (read just after). */}
+            {g.ewma ? (
+              <DriftSpark group={{ ...g, ewma: g.ewma }} unitIds={unitIds} selected={selected} />
+            ) : (
+              <StillReading what={`the EWMA of ${g.group_id}`} />
+            )}
           </li>
         ))}
       </ul>
@@ -651,7 +664,7 @@ function DriftSpark({
   unitIds,
   selected,
 }: {
-  group: GroupDrift;
+  group: GroupDriftView & { ewma: number[] };
   unitIds: string[];
   selected: number | null;
 }) {
@@ -734,7 +747,7 @@ function DriftSpark({
 // Sensor health
 // ---------------------------------------------------------------------------------------------
 
-function HealthPanel({ drift }: { drift: DriftHealthResult }) {
+function HealthPanel({ drift }: { drift: DriftHealthView }) {
   const [status, setStatus] = useState<(typeof HEALTH_STATUS_ORDER)[number]>("dead");
   const list = drift.health.filter((h) => h.status === status);
   return (

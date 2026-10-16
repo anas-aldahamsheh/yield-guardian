@@ -3,12 +3,8 @@
 import {
   decodeWaferCells,
   type FinalTestResult,
-  type LotItem,
   type PatternCauses,
   type WaferMap,
-  type WaferPatternItem,
-  type WaferPatternResult,
-  type WaferSimilarResult,
 } from "@yield-guardian/contracts";
 import { useMemo } from "react";
 
@@ -26,15 +22,25 @@ import {
   plural,
 } from "@/lib/format";
 import { patternName } from "@/lib/labels";
-import { stageResult, type RunState } from "@/lib/live/run-state";
+import { defaultWafer } from "@/lib/live/rest";
+import {
+  stageResult,
+  type LotItemView,
+  type RunState,
+  type WaferItem,
+  type WaferPatternView,
+  type WaferSimilarView,
+} from "@/lib/live/run-state";
 import { countsAsUnknown, energyUnknown, formatApart, testedLots } from "@/lib/live/stations";
 import { cn } from "@/lib/utils";
 
-import { DrawerSection, Method, NotYet } from "./drawer-parts";
+import { DrawerSection, Method, NotYet, StillReading } from "./drawer-parts";
 
 type WaferStage = "wafer_pattern" | "wafer_similar" | "lot" | "final_test";
 
-function results(map: WaferMap) {
+/** A map to draw; null until the full run has it (a reload draws it once read). */
+function results(map: WaferMap | null) {
+  if (!map) return null;
   return {
     kind: "results" as const,
     height: map.height,
@@ -49,11 +55,7 @@ function results(map: WaferMap) {
  * eye), and, once the lot test has covered its lot, the test counts it as unknown because its
  * energy score is above the test's threshold.
  */
-export function waferVerdict(
-  w: WaferPatternItem,
-  pattern: WaferPatternResult,
-  tested: boolean,
-): string {
+export function waferVerdict(w: WaferItem, pattern: WaferPatternView, tested: boolean): string {
   const accept = pattern.accept_threshold;
   const name = w.top_label === "none" ? "No defect pattern" : patternName(w.top_label);
   const verdict = w.auto_accepted
@@ -66,12 +68,12 @@ export function waferVerdict(
   return [verdict, ...cautions.filter(Boolean)].join(" ");
 }
 
-export function unknownCaution(w: WaferPatternItem): string {
+export function unknownCaution(w: WaferItem): string {
   return `The map looks unlike the maps the model learned from (unknown score ${formatReading(w.unknown_score)}, unknown from ${formatReading(w.unknown_threshold)}), so check it by eye.`;
 }
 
 /** Null unless the lot test counts the wafer as unknown rather than its predicted pattern. */
-export function lotTestCaution(w: WaferPatternItem, pattern: WaferPatternResult): string | null {
+export function lotTestCaution(w: WaferItem, pattern: WaferPatternView): string | null {
   if (!countsAsUnknown(w, pattern)) return null;
   const [score, limit] = formatApart(w.energy_score, pattern.energy_threshold);
   return `The lot test counts it as unknown, not as ${patternName(w.top_label)}: its energy score ${score} is above the test's threshold ${limit}.`;
@@ -82,12 +84,6 @@ export function lotTestCaution(w: WaferPatternItem, pattern: WaferPatternResult)
  * it, the most similar real wafers, literature causes of the patterns found, and the lot test
  * with its stacked map.
  */
-function defaultWafer(pattern: WaferPatternResult): number | null {
-  if (!pattern.wafers.length) return null;
-  const marked = pattern.wafers.findIndex((w) => w.is_unknown || w.top_label !== "none");
-  return marked === -1 ? 0 : marked;
-}
-
 export function WafersDrawer({
   state,
   shown,
@@ -147,7 +143,7 @@ function WaferChooser({
   selected,
   onSelect,
 }: {
-  pattern: WaferPatternResult;
+  pattern: WaferPatternView;
   /** Lots the lot test covered: their wafers show how the test counted them. */
   tested: ReadonlySet<string>;
   selected: number | null;
@@ -177,7 +173,7 @@ function WaferChooser({
                 )}
               >
                 <DieMap
-                  data={maps[i]!}
+                  data={maps[i] ?? null}
                   label={`Wafer ${w.wafer} of ${w.lot}`}
                   className="rounded-full"
                 />
@@ -213,20 +209,28 @@ function WaferDetail({
   final,
   stageSimilar,
 }: {
-  wafer: WaferPatternItem;
-  pattern: WaferPatternResult;
+  wafer: WaferItem;
+  pattern: WaferPatternView;
   /** Whether the lot test covered the wafer's lot (and its result is shown). */
   tested: boolean;
-  similar: WaferSimilarResult | null;
+  similar: WaferSimilarView | null;
   final: FinalTestResult | null;
   stageSimilar: RunState["stages"]["wafer_similar"];
 }) {
   const data = useMemo(() => results(wafer.map), [wafer]);
-  const fails = useMemo(() => data.cells.reduce((n, v) => n + (v === 2 ? 1 : 0), 0), [data]);
-  const dies = useMemo(() => data.cells.reduce((n, v) => n + (v !== 0 ? 1 : 0), 0), [data]);
-  const probs = [...wafer.probabilities].sort((a, b) => b.probability - a.probability);
+  // Counted on the map. The page's first paint carries the map of the wafer it shows; another
+  // one chosen before the full run is read is counted once it is.
+  const counted = useMemo(() => {
+    if (!data) return null;
+    const fails = data.cells.reduce((n, v) => n + (v === 2 ? 1 : 0), 0);
+    const dies = data.cells.reduce((n, v) => n + (v !== 0 ? 1 : 0), 0);
+    return `${formatInt(fails)} of ${formatInt(dies)} dies failed`;
+  }, [data]);
+  const probs = [...(wafer.probabilities ?? [])].sort((a, b) => b.probability - a.probability);
   const recorded = final?.wafers.find((w) => w.index === wafer.index);
-  const neighbours = similar?.wafers.find((w) => w.index === wafer.index)?.similar ?? [];
+  const entry = similar?.wafers.find((w) => w.index === wafer.index);
+  // Null for a moment after a reload when this is not the wafer that was shown (read just after).
+  const neighbours = entry ? entry.similar : [];
   const drawn = wafer.source_wafer == null;
   const unknownPos = Math.min(1, wafer.unknown_score / (wafer.unknown_threshold * 2));
   const energy = formatApart(wafer.energy_score, pattern.energy_threshold);
@@ -236,11 +240,11 @@ function WaferDetail({
       <div className="min-w-0">
         <DieMap
           data={data}
-          label={`Wafer ${wafer.wafer} of ${wafer.lot}: ${formatInt(fails)} of ${formatInt(dies)} dies failed`}
+          label={`Wafer ${wafer.wafer} of ${wafer.lot}${counted ? `: ${counted}` : ""}`}
           className="max-w-[340px] rounded-full"
         />
         <p className="tnum mt-2 text-[13px] leading-5 text-ink-2">
-          {`${drawn ? "Your drawing" : wafer.source_wafer}: wafer ${wafer.wafer} of ${wafer.lot}, ${formatInt(fails)} of ${formatInt(dies)} dies failed.`}
+          {`${drawn ? "Your drawing" : wafer.source_wafer}: wafer ${wafer.wafer} of ${wafer.lot}${counted ? `, ${counted}` : ""}.`}
         </p>
       </div>
       <DrawerSection
@@ -253,26 +257,30 @@ function WaferDetail({
           </p>
         ) : null}
         <h4 className="text-[14px] leading-5 font-semibold text-ink">Pattern probabilities</h4>
-        <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-0.5">
-          {probs.map((p) => (
-            <li
-              key={p.label}
-              className="tnum grid grid-cols-[88px_minmax(0,1fr)_56px] items-center gap-2 text-[12px] leading-5"
-            >
-              <span className="text-ink">{patternName(p.label)}</span>
-              <span className="relative h-2.5 rounded-[1px] bg-hairline" aria-hidden="true">
-                <span
-                  className={cn(
-                    "absolute inset-y-0 left-0 rounded-[1px]",
-                    p.label === wafer.top_label ? "bg-ink" : "bg-ink-3",
-                  )}
-                  style={{ width: `${p.probability * 100}%` }}
-                />
-              </span>
-              <span className="text-right text-ink-2">{formatProbability(p.probability)}</span>
-            </li>
-          ))}
-        </ul>
+        {wafer.probabilities ? (
+          <ul className="mt-1.5 grid grid-cols-[minmax(0,1fr)] gap-0.5">
+            {probs.map((p) => (
+              <li
+                key={p.label}
+                className="tnum grid grid-cols-[88px_minmax(0,1fr)_56px] items-center gap-2 text-[12px] leading-5"
+              >
+                <span className="text-ink">{patternName(p.label)}</span>
+                <span className="relative h-2.5 rounded-[1px] bg-hairline" aria-hidden="true">
+                  <span
+                    className={cn(
+                      "absolute inset-y-0 left-0 rounded-[1px]",
+                      p.label === wafer.top_label ? "bg-ink" : "bg-ink-3",
+                    )}
+                    style={{ width: `${p.probability * 100}%` }}
+                  />
+                </span>
+                <span className="text-right text-ink-2">{formatProbability(p.probability)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <StillReading what="this wafer's pattern probabilities" />
+        )}
 
         <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink">Unknown score</h4>
         <div className="relative mt-2 h-5" aria-hidden="true">
@@ -308,24 +316,30 @@ function WaferDetail({
                 : ""
             }`}
           >
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-3">
-              {neighbours.map((s) => (
-                <li key={s.wafer_id} className="min-w-0">
-                  <DieMap
-                    data={results(s.map)}
-                    label={`${s.wafer_id}, ${patternName(s.recorded_label)}`}
-                    className="rounded-full"
-                  />
-                  <p className="tnum mt-1 truncate text-[12px] leading-4 text-ink">{s.wafer_id}</p>
-                  <p className="tnum text-[11px] leading-4 text-ink-3">{`${formatNumber(s.similarity, 3)} similar`}</p>
-                  <p className="text-[11px] leading-4 text-ink-2">
-                    {s.recorded_label
-                      ? `recorded ${patternName(s.recorded_label)}`
-                      : `read as ${patternName(s.predicted_label)}`}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {neighbours ? (
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-3">
+                {neighbours.map((s) => (
+                  <li key={s.wafer_id} className="min-w-0">
+                    <DieMap
+                      data={results(s.map)}
+                      label={`${s.wafer_id}, ${patternName(s.recorded_label)}`}
+                      className="rounded-full"
+                    />
+                    <p className="tnum mt-1 truncate text-[12px] leading-4 text-ink">
+                      {s.wafer_id}
+                    </p>
+                    <p className="tnum text-[11px] leading-4 text-ink-3">{`${formatNumber(s.similarity, 3)} similar`}</p>
+                    <p className="text-[11px] leading-4 text-ink-2">
+                      {s.recorded_label
+                        ? `recorded ${patternName(s.recorded_label)}`
+                        : `read as ${patternName(s.predicted_label)}`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <StillReading what="the most similar wafers" />
+            )}
             <Method>{similar.method}</Method>
           </DrawerSection>
         ) : (
@@ -399,10 +413,16 @@ function Causes({ causes, focus }: { causes: PatternCauses; focus: string | null
   );
 }
 
-function LotPanel({ lot, method, energy }: { lot: LotItem; method: string; energy: number }) {
+function LotPanel({ lot, method, energy }: { lot: LotItemView; method: string; energy: number }) {
   const stacked = lot.stacked;
+  const frequencies = stacked?.frequencies ?? null;
+  // The highest share sets the legend: the page's first paint carries it without the map.
   const max = stacked
-    ? Math.max(0.05, ...stacked.frequencies.filter((v): v is number => v != null))
+    ? Math.max(
+        0.05,
+        stacked.peak ?? 0,
+        ...(frequencies ?? []).filter((v): v is number => v != null),
+      )
     : 1;
   const tests = [...lot.tests].sort((a, b) => a.q_value - b.q_value);
   return (
@@ -419,12 +439,16 @@ function LotPanel({ lot, method, energy }: { lot: LotItem; method: string; energ
           {stacked ? (
             <>
               <DieMap
-                data={{
-                  kind: "frequency",
-                  height: stacked.height,
-                  width: stacked.width,
-                  values: stacked.frequencies,
-                }}
+                data={
+                  frequencies
+                    ? {
+                        kind: "frequency",
+                        height: stacked.height,
+                        width: stacked.width,
+                        values: frequencies,
+                      }
+                    : null
+                }
                 max={max}
                 label={`Stacked failure map of ${lot.lot}: the share of its ${stacked.wafers} wafers that failed at each die`}
                 className="max-w-[300px] rounded-full"
