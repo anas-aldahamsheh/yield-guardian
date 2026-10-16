@@ -15,6 +15,7 @@ JSON Pointer the model writes into its report resolves in the stored evidence.
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -282,6 +283,7 @@ _SCIENCE_TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
             lambda s, a: s.secom.get_fdc_series(from_seq=a.from_seq, to_seq=a.to_seq),
             lambda a: f"Read FDC points for sequences {a.from_seq} to {a.to_seq}",
             _fdc_summary,
+            hidden=("/points/*/timestamp", "/points/*/fdc_period"),
         ),
         Tool(
             "get_contributions",
@@ -317,6 +319,7 @@ _SCIENCE_TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
             lambda a: f"Find wafers similar to {a.wafer_id}",
             _similar_summary,
             hidden=("/results/*/map",),
+            caps=(("/results", 5),),
         ),
         Tool(
             "get_lot_stats",
@@ -325,7 +328,8 @@ _SCIENCE_TOOLS: Mapping[ToolName, Tool[Any, Any]] = {
             lambda s, a: s.wafer.get_lot(a.lot),
             lambda a: f"Read the pattern tests of lot {a.lot}",
             _lot_summary,
-            hidden=("/stacked/frequencies",),
+            hidden=("/stacked",),
+            caps=(("/wafers", 12),),
         ),
         Tool(
             "search_knowledge",
@@ -369,20 +373,66 @@ def _drop(data: Any, pattern: Sequence[str]) -> Any:
     return data
 
 
+def _cap(data: Any, pattern: Sequence[str], limit: int, path: str, cut: dict[str, int]) -> Any:
+    """Cut the lists matched by ``pattern`` to their first ``limit`` items; ``cut`` gets the
+    full length of each list cut, by its path."""
+    if not pattern:
+        if isinstance(data, list) and len(data) > limit:
+            cut[path or "/"] = len(data)
+            return data[:limit]
+        return data
+    head, rest = pattern[0], pattern[1:]
+    if isinstance(data, dict):
+        return {
+            k: _cap(v, rest, limit, f"{path}/{k}", cut) if head in ("*", k) else v
+            for k, v in data.items()
+        }
+    if isinstance(data, list):
+        return [
+            _cap(v, rest, limit, f"{path}/{i}", cut) if head in ("*", str(i)) else v
+            for i, v in enumerate(data)
+        ]
+    return data
+
+
+VIEW_DIGITS = 4
+"""Significant digits of a decimal in the model's view. A number the writer copies from it still
+matches the stored value (:mod:`yield_guardian.agent.numbers` allows half a unit in the last
+written digit)."""
+
+
+def _rounded(data: Any) -> Any:
+    if isinstance(data, float):
+        return float(f"{data:.{VIEW_DIGITS}g}") if math.isfinite(data) else data
+    if isinstance(data, dict):
+        return {k: _rounded(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [_rounded(v) for v in data]
+    return data
+
+
 def model_view(evidence: Evidence) -> dict[str, Any]:
-    """What a language model is shown of one piece of evidence."""
+    """What a language model is shown of one piece of evidence: the data without the parts a
+    tool hides (maps, per-item lists, repeated text), long lists cut to their first items, and
+    decimals at 4 significant digits. The stored evidence keeps everything."""
+    tool = TOOLS[evidence.tool]
     data: Any = evidence.model_dump(mode="json")["data"]
-    for pattern in TOOLS[evidence.tool].hidden:
+    for pattern in tool.hidden:
         data = _drop(data, pattern.strip("/").split("/"))
+    cut: dict[str, int] = {}
+    for pattern, limit in tool.caps:
+        data = _cap(data, pattern.strip("/").split("/"), limit, "", cut)
     view: dict[str, Any] = {
         "evidence_id": evidence.evidence_id,
         "tool": evidence.tool,
         "arguments": evidence.arguments,
         "summary": evidence.summary,
-        "data": data,
+        "data": _rounded(data),
     }
-    if TOOLS[evidence.tool].hidden:
-        view["omitted_from_view"] = list(TOOLS[evidence.tool].hidden)
+    if tool.hidden:
+        view["omitted_from_view"] = list(tool.hidden)
+    if cut:
+        view["lists_cut_in_view"] = {path: f"first of {n}" for path, n in cut.items()}
     return view
 
 

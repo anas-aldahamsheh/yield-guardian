@@ -31,6 +31,8 @@ class Tool[A: ToolArgs, R: BaseModel]:
     summary: Callable[[A, R], str]
     hidden: tuple[str, ...] = ()
     """JSON Pointer patterns left out of the model's view (``*`` matches any key or index)."""
+    caps: tuple[tuple[str, int], ...] = ()
+    """Lists the model's view cuts to their first items: (JSON Pointer pattern, how many)."""
 
     def spec(self) -> ToolSpec:
         return ToolSpec(

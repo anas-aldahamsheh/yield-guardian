@@ -176,7 +176,7 @@ async def test_get_run_wafer_has_pattern_shape_similar_wafers_and_causes(runs: F
     view = model_view(outcome.evidence)["data"]
     assert "map" not in view["pattern"]
     assert all("map" not in item for item in view["similar"])
-    assert "frequencies" not in view["lot_result"]["stacked"]
+    assert "stacked" not in view["lot_result"]
 
 
 async def test_get_run_wafer_falls_back_to_the_input_and_the_knowledge_base(runs: FakeRuns) -> None:
@@ -205,7 +205,7 @@ async def test_get_run_lot_has_tests_stacked_profile_wafers_and_alarms(runs: Fak
     assert [w["source_wafer"] for w in lot["wafers"]] == ["lot47542-12", None, None]
     assert [a["alarm_id"] for a in lot["alarms"]] == ["RA-2", "RA-3"]
     assert outcome.evidence is not None
-    assert "frequencies" not in model_view(outcome.evidence)["data"]["result"]["stacked"]
+    assert "stacked" not in model_view(outcome.evidence)["data"]["result"]
 
 
 @pytest.mark.parametrize(
