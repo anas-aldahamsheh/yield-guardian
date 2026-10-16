@@ -172,8 +172,12 @@ def to_llm_call(record: LlmCallRecord) -> LlmCall:
 
 
 def provider_of(model: str) -> str:
-    """The provider that serves ``model``: TokenHarbor's ids end in ``:free``."""
-    return "tokenharbor" if model.endswith(":free") else "token_factory"
+    """The provider that serves ``model``, from its id."""
+    if model.startswith("claude-"):
+        return "anthropic"
+    if model.endswith(":free"):
+        return "tokenharbor" if model.startswith("deepseek-") else "openrouter"
+    return "token_factory"
 
 
 def to_call_trace(record: LlmCallRecord) -> ModelCallTrace:

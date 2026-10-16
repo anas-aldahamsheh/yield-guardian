@@ -409,7 +409,7 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
             developer_role=DeveloperRole.MAP_TO_SYSTEM,
             supports_tools=True,
             supports_json_object=True,
-            supports_json_schema=False,
+            supports_json_schema=True,
             supports_streaming=True,
             reports_reasoning_tokens=False,
             pricing=None,
@@ -418,8 +418,8 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
             notes=(
                 "Served by Anthropic, not Token Factory: not in the Token Factory catalog, "
                 "and its usage carries no points (pricing unknown).",
-                "Anthropic's OpenAI-compatible endpoint: json_object is validated in code; a failure falls back.",
-                "No reasoning_effort or other extra parameter is sent; json_object only.",
+                "Anthropic's OpenAI-compatible endpoint: only json_schema is accepted for JSON (json_object is refused with HTTP 400).",
+                "No reasoning_effort or other extra parameter is sent.",
                 "Any failure (rate limit, authentication, credits, timeout) moves to the next "
                 "model.",
             ),

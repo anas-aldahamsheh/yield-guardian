@@ -132,14 +132,14 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
         # one MiMo effort the docs name. Not TokenHarbor (owner's choice): live on 2026-10-16 it
         # spent all 16,384 output tokens reasoning twice and returned no report (87 and 89 s).
-        _anthropic(_O),
+        _anthropic(ResponseMode.JSON_SCHEMA),
         _router_first(_O),
         _c("Qwen3.8-Flash-Next", "none", _O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),
     ),
     Role.VERIFIER: (
-        _anthropic(_O),
+        _anthropic(ResponseMode.JSON_SCHEMA),
         _router_first(_O),
         _harbor(_O),
         _c("GLM-5.3-Flash", "low", _O),
@@ -153,14 +153,14 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         _c("DeepSeek-V4-Flash", "none", _T),
     ),
     Role.ROUTER: (
-        _anthropic(_O),
+        _anthropic(ResponseMode.JSON_SCHEMA),
         _router_first(_O),
         _harbor(_O),
         _c("MiniCPM5-2B", None, _O),
         _c("DeepSeek-V4-Flash", "none", _O),
     ),
     Role.VISION: (
-        _anthropic(_O),
+        _anthropic(ResponseMode.JSON_SCHEMA),
         _router_first(_O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("Qwen3.8-Flash-Next", "low", _O),

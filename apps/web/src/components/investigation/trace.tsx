@@ -16,6 +16,8 @@ import { Elapsed } from "./elapsed";
 const PROVIDER: Record<string, string> = {
   token_factory: "Token Factory",
   tokenharbor: "TokenHarbor",
+  openrouter: "OpenRouter",
+  anthropic: "Anthropic",
 };
 
 type Row =
