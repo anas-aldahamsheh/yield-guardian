@@ -249,10 +249,18 @@ function Tile({
         // Column rules between stations, inset so they never touch the rounded corners.
         "before:pointer-events-none before:absolute before:top-12 before:bottom-6 before:left-0 before:hidden before:w-px before:bg-hairline md:[&:nth-child(2n)]:before:block xl:[&:nth-child(n+2)]:before:block",
         tone === "alarm" && "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)] before:opacity-0",
-        open && "shadow-[inset_0_0_0_1.5px_var(--signal)] before:opacity-0",
+        open && "before:opacity-0",
       )}
     >
       <Track index={index} reached={reached} working={tone === "working"} live={live} />
+      {/* The open station's frame, held clear of the track so the rail and the node never cross
+          its border: right of the rail in one column, below it from two columns up. */}
+      {open ? (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 right-0 bottom-0 left-11 rounded-[22px] shadow-[inset_0_0_0_1.5px_var(--signal)] md:top-10 md:left-0"
+        />
+      ) : null}
       <div className="flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-1 self-start">
         {heading}
       </div>
