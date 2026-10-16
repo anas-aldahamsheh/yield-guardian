@@ -319,7 +319,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
             <div>
               <p className="text-[12.5px] leading-4 font-[560] text-ink-3">Try</p>
               <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
-                {suggestions(pageContext).map((s, i) => (
+                {suggestions(useContext ? pageContext : null).map((s, i) => (
                   <li
                     key={s}
                     className="rise-in"
