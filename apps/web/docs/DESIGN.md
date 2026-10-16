@@ -196,12 +196,12 @@ finish in under 400 ms, a page's entrance in under 700 ms.
    settle in. A page opened, reloaded or linked to with a run arrives at rest: nothing on the line
    (instruments, counts, dials, rail) moves until a result arrives or the reader acts, and an
    entrance plays only for what appears while the reader is on the page (`useEntrance`).
-2. _A run arrives_ (driven by results only): the track's film light advances to each station when
-   that station's first result is shown; its node lights; its screen gets one sweep of light; its
-   chip springs to the new state; its count ticks from zero to the value. Lamps power up row by
-   row; needles sweep to each unit; dies are probed in order; wafers slide into the carrier; the
-   stamp drops with a spring. Alarms slide into the rail with a spring, and a red ring pulses once
-   on the station that turned red.
+2. _A run arrives_ (driven by results only): the track's film lights up stretch by stretch, up to
+   each station when that station's first result is shown; its node lights; its screen gets one
+   sweep of light; its chip springs to the new state; its count ticks from zero to the value.
+   Lamps power up row by row; needles sweep to each unit; dies are probed in order; wafers slide
+   into the carrier; the stamp drops with a spring. Alarms slide into the rail with a spring, and
+   a red ring pulses once on the station that turned red.
 3. _Navigation:_ the page settles in (opacity and a 14 px rise, 520 ms); the navigation indicator
    slides to the new item (shared layout); the mobile menu's links stagger in. Between the
    investigations list and an investigation, the title and the status chip travel from the row to
@@ -219,6 +219,17 @@ finish in under 400 ms, a page's entrance in under 700 ms.
 6. _Charts:_ a series draws in (path length) and bars grow from the baseline when their data
    arrives or first scrolls into view: real values only, once.
 
+**Motion and the compositor.** While a transform runs, Chrome cannot tell where its element ends
+up, so everything drawn after it that might overlap it is lifted onto layers of its own until it
+settles; on the line that is every station below or beside it, rastered again on every frame. So
+the line moves only where nothing can overlap: swapped content (an evidence record, a tab, a
+station's sentence) crossfades without moving; the primary action, the show-all buttons and a
+station's chip move inside a clip of their own, with room for a shadow, a focus ring or a spring's
+overshoot; the track's film lights up by opacity and stops short of the next station; one-shot
+lights (a screen's sweep, the red ring) leave the page once played; a screen's glow on hover shows
+at once; the prober's light is drawn into its canvas, which is drawn on the CPU, instead of laid
+over it. A result arriving then rasters again what it changed, not the stations around it.
+
 **Reduced motion.** `MotionConfig reducedMotion="user"` turns Motion's transforms and layout
 animation off; the CSS rule cuts every animation and transition to nothing, view transitions
 included (pages swap at once); the line's timeline rests the scene at once (every arrived result
@@ -235,7 +246,7 @@ or static; the live rail and live edge show their light still, full length.
 | Input, select           | surface, edge, radius 10, 16 px text on phones       | edge darkens                   | n/a        | signal ring                   | n/a                                                                                                                     | 45%      |
 | Tab, segmented control  | ink-2 text                                           | ink text                       | n/a        | signal ring                   | ink text on a sliding pill (layout)                                                                                     | 45%      |
 | Table row, list row     | transparent                                          | surface-2                      | n/a        | signal ring on the row's link | `aria-current`: signal edge at the start                                                                                |          |
-| Station                 | ghost instruments, grey node                         | screen lifts its glow          | n/a        | on its open button            | open: signal edge; working: signal node, one sheen, clock; done: calm; alarm: fail tint and one ring; failed: fail text |          |
+| Station                 | ghost instruments, grey node                         | screen shows its glow and edge | n/a        | on its open button            | open: signal edge; working: signal node, one sheen, clock; done: calm; alarm: fail tint and one ring; failed: fail text |          |
 | Status chip             | idle hidden; needs grey                              |                                |            |                               | working: signal dot pulsing; done: pass dot; alarm and failed: fail dot                                                 |          |
 | New row, new alarm      | lit once in signal (new) or fail (alarm), then fades |                                |            |                               |                                                                                                                         |          |
 | Not measured yet        | unexposed die field, plain words, "Check again"      |                                |            |                               |                                                                                                                         |          |

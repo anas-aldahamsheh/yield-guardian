@@ -361,8 +361,9 @@ test("a run reloaded while it computes goes on from the last event it had, repla
     await expect(showAll).toBeHidden({ timeout: 500 });
   }).toPass({ timeout: 30_000 });
   await expect(page.getByRole("group", { name: "3 Wafer test" })).toContainText("Computing");
-  await settled(page); // the dials glide to the unit they rest on
-  const before = await visibleLine(page);
+  await settled(page);
+  // The dials glide to the unit they rest on; the line is compared with once they rest.
+  const before = await steady(page, () => visibleLine(page));
 
   const reads = proxy.reads.length;
   const resumes = proxy.resumes.length;

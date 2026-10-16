@@ -12,7 +12,6 @@ import {
 } from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
 import { formatInt } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 import { failsAlong, gridOf, probeOrder } from "../probe-order";
 import { useScene, type SceneStore } from "../scene";
@@ -47,7 +46,6 @@ export function ProberTool({ state, store }: { state: RunState | null; store: Sc
   const lotFlagged = Boolean(lots?.lots.some((l) => l.flagged));
   const tested = useMemo(() => testedLots(lots), [lots]);
   const wafers = pattern?.wafers ?? [];
-  const onChuck = useScene(store, (s) => s.wafer != null);
 
   return (
     <div className="relative">
@@ -75,19 +73,6 @@ export function ProberTool({ state, store }: { state: RunState | null; store: Sc
       </svg>
       <div className="absolute aspect-square" style={CHUCK}>
         <Probed2D store={store} wafers={wafers} />
-        {/* The film's light: faint, over the wafer only, lightening and never hiding a die. */}
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute rounded-full transition-opacity duration-(--dur-5)",
-            onChuck ? "opacity-[0.13]" : "opacity-0",
-          )}
-          style={{
-            inset: `${(0.5 - WAFER_R) * 100}%`,
-            backgroundImage:
-              "radial-gradient(60% 50% at 30% 22%, rgb(255 255 255 / 0.5), transparent 70%), linear-gradient(135deg, var(--film-1), var(--film-3) 45%, var(--film-5) 75%, var(--film-6))",
-          }}
-        />
       </div>
       <div className="absolute flex items-center justify-center" style={READOUT}>
         <ProbeReadout store={store} wafers={wafers} />
@@ -152,7 +137,9 @@ function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly Wafer
     const side = Math.round(size * dpr);
     canvas.width = side;
     canvas.height = side;
-    const ctx = canvas.getContext("2d");
+    // Drawn on the CPU: the map is small, and a canvas kept on the GPU is a layer of its own that
+    // anything drawn over it (the light crossing the screen) has to be lifted above.
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, side, side);
@@ -182,6 +169,29 @@ function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly Wafer
     ctx.beginPath();
     ctx.arc(c, c + radius, radius * 0.035, Math.PI, 0);
     ctx.fill();
+    // The film's light, faint, on the wafer's face under the dies: it lightens the wafer and never
+    // covers a die. Drawn here rather than laid over the canvas, which would have to be lifted
+    // onto a layer of its own above it, and the station drawn after it with it.
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(c, c, radius, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.globalAlpha = 0.13;
+    const film = ctx.createLinearGradient(c - radius, c - radius, c + radius, c + radius);
+    film.addColorStop(0, color("--film-1", "#c09df4"));
+    film.addColorStop(0.45, color("--film-3", "#71b8f4"));
+    film.addColorStop(0.75, color("--film-5", "#44c6ca"));
+    film.addColorStop(1, color("--film-6", "#44cf80"));
+    ctx.fillStyle = film;
+    ctx.fillRect(c - radius, c - radius, radius * 2, radius * 2);
+    const lx = c - radius * 0.4;
+    const ly = c - radius * 0.56;
+    const glow = ctx.createRadialGradient(lx, ly, 0, lx, ly, radius * 0.8);
+    glow.addColorStop(0, "rgb(255 255 255 / 0.5)");
+    glow.addColorStop(1, "rgb(255 255 255 / 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(c - radius, c - radius, radius * 2, radius * 2);
+    ctx.restore();
 
     const n = Math.max(grid.height, grid.width);
     const pitch = (radius * 2 * 0.93) / n;

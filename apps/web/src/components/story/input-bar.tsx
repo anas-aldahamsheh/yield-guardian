@@ -126,16 +126,22 @@ export function InputBar({
           </Note>
         ) : null}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-          <button
-            type="button"
-            onClick={() => void onStart({ source: "sample", seed: null })}
-            disabled={starting}
-            aria-describedby={noteId}
-            className="group press lift sheen-hover magnetic inline-flex h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-ink pr-7 pl-5 text-[16px] font-[600] tracking-[-0.005em] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),0_14px_30px_-14px_rgb(17_22_32/0.55),inset_0_1px_0_rgb(255_255_255/0.14)] disabled:opacity-70"
-          >
-            <SampleGlyph working={starting} />
-            {starting ? "Starting the run" : "Try a real sample"}
-          </button>
+          {/* The button leans, lifts and turns its glyph inside a clip of its own, wide enough for
+              its shadow: while a transform runs the compositor cannot tell where it ends up, and
+              unclipped it would lift the whole line below onto layers of their own until it
+              settled. */}
+          <div className="grid shrink-0 [overflow:clip] [overflow-clip-margin:48px]">
+            <button
+              type="button"
+              onClick={() => void onStart({ source: "sample", seed: null })}
+              disabled={starting}
+              aria-describedby={noteId}
+              className="group press lift sheen-hover magnetic inline-flex h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-ink pr-7 pl-5 text-[16px] font-[600] tracking-[-0.005em] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),0_14px_30px_-14px_rgb(17_22_32/0.55),inset_0_1px_0_rgb(255_255_255/0.14)] disabled:opacity-70"
+            >
+              <SampleGlyph working={starting} />
+              {starting ? "Starting the run" : "Try a real sample"}
+            </button>
+          </div>
           <p id={noteId} className="max-w-[52ch] text-[13.5px] leading-5 text-ink-2">
             A real sample is a run of consecutive SECOM units and one{" "}
             <span className="whitespace-nowrap">WM-811K</span> lot, picked at random. The rule and
