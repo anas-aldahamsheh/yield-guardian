@@ -127,7 +127,7 @@ export function Bay({
           heading={
             <>
               <h3 id="final-test" className="text-[16px] leading-6 font-[630] tracking-[-0.01em]">
-                Final test
+                Actual outcome
               </h3>
               <ToneChip tone={finalTest.tone} clock={clocks.final_test} live={live} />
             </>

@@ -175,7 +175,7 @@ export const RUN_STAGE: Record<string, string> = {
   wafer_pattern: "Wafer patterns",
   wafer_similar: "Similar wafers",
   lot: "Lots",
-  final_test: "Final test",
+  final_test: "Actual outcome",
 };
 
 export const STAGE_STATUS: Record<string, string> = {

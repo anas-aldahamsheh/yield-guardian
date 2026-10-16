@@ -47,7 +47,7 @@ export function StampTool({ state, store }: { state: RunState | null; store: Sce
           strokeWidth={0.75}
         />
         <text y={-28} textAnchor="middle" fontSize={13} fill="var(--ink-2)">
-          Final test
+          Actual outcome
         </text>
         {result && result.units_with_result > 0 ? (
           <g className="tnum">

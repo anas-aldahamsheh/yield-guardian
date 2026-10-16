@@ -465,7 +465,7 @@ function Units({
                     </caption>
                     <thead>
                       <tr className="border-b border-hairline">
-                        {["Unit", "Our prediction", "Final test", "Result"].map((h) => (
+                        {["Unit", "Our prediction", "Actual outcome", "Result"].map((h) => (
                           <th
                             key={h}
                             scope="col"

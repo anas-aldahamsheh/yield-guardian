@@ -276,7 +276,7 @@ const ROWS: { label: string; value: (side: RunSide) => string }[] = [
   { label: "Alarms", value: (s) => formatInt(s.alarms) },
   { label: "Warnings", value: (s) => formatInt(s.warnings) },
   { label: "More, not listed", value: (s) => formatInt(s.alarms_not_listed) },
-  { label: "Final test", value: (s) => s.final_test ?? "Did not run" },
+  { label: "Actual outcome", value: (s) => s.final_test ?? "Did not run" },
 ];
 
 function Comparison({ comparison, runs }: { comparison: RunComparison; runs: WorkRun[] }) {

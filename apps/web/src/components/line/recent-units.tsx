@@ -59,7 +59,7 @@ export function RecentUnits({ units, lag }: { units: UnitSummary[]; lag: number 
                 Control charts
               </th>
               <th scope="col" className="px-4 py-2 font-normal sm:px-5">
-                Final test
+                Actual outcome
               </th>
             </tr>
           </thead>

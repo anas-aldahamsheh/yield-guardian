@@ -818,7 +818,7 @@ function Announcer({
         <p key={s.station}>{`${s.name}${s.tone === "alarm" ? ", alarm" : ""}: ${s.sentence}`}</p>
       ))}
       {finalTest.tone === "ok" || finalTest.tone === "needs" ? (
-        <p>{`Final test: ${finalTest.sentence}`}</p>
+        <p>{`Actual outcome: ${finalTest.sentence}`}</p>
       ) : null}
       {over ? (
         <p>

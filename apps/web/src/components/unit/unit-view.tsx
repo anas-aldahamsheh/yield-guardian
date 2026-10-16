@@ -119,7 +119,7 @@ function UnitReadings({ unit: u }: { unit: UnitDetail }) {
           }
         />
         <Reading
-          label="Final test"
+          label="Actual outcome"
           value={
             u.final_test === "fail" ? (
               <span className="text-fail">Fail</span>
