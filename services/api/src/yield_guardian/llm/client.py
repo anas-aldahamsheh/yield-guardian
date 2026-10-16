@@ -221,7 +221,8 @@ class TokenFactoryClient:
                 )
             except httpx.TimeoutException as exc:
                 raise TransportError(f"timeout on {method} {path}: {type(exc).__name__}") from exc
-            except httpx.HTTPError as exc:
+            except (httpx.HTTPError, OSError) as exc:
+                # OSError: a socket or TLS failure httpx did not wrap; the next model may answer.
                 raise TransportError(f"{method} {path} failed: {type(exc).__name__}") from exc
             headers = _lower_headers(response.headers)
             self._notify(headers)

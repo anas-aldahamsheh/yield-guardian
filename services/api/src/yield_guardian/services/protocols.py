@@ -139,6 +139,8 @@ class InvestigationStore(Protocol):
         self, investigation_id: str, decision: DecisionCreate, *, session: ActiveSession
     ) -> Investigation: ...
 
+    async def stop(self, investigation_id: str, *, session: ActiveSession) -> Investigation: ...
+
 
 class WorkOrderStore(Protocol):
     async def list(

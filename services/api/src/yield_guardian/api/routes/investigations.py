@@ -127,6 +127,21 @@ async def decide_investigation(
     return await store.decide(investigation_id, body, session=session)
 
 
+@router.post(
+    "/investigations/{investigation_id}/stop",
+    operation_id="stop_investigation",
+    responses=problem_responses(401, 403, 404, 409, 503),
+)
+async def stop_investigation(
+    session: EngineerSession, store: Investigations, investigation_id: InvestigationPath
+) -> Investigation:
+    """Stop a queued or running investigation: no further model calls are made, its evidence so
+    far is kept, no report is written, and it ends as `failed` with the reason "Stopped by the
+    user". 409 once it has finished (or awaits a decision); the product's example is read-only
+    (403); another workspace's investigation answers 404, as a missing one does."""
+    return await store.stop(investigation_id, session=session)
+
+
 @router.get(
     "/investigations/{investigation_id}/evidence/{evidence_id}",
     operation_id="get_evidence",

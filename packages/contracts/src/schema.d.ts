@@ -276,6 +276,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/investigations/{investigation_id}/stop": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Stop Investigation
+     * @description Stop a queued or running investigation: no further model calls are made, its evidence so
+     *     far is kept, no report is written, and it ends as `failed` with the reason "Stopped by the
+     *     user". 409 once it has finished (or awaits a decision); the product's example is read-only
+     *     (403); another workspace's investigation answers 404, as a missing one does.
+     */
+    post: operations["stop_investigation"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/knowledge/patterns": {
     parameters: {
       query?: never;
@@ -1583,6 +1606,7 @@ export interface components {
         | "investigation.created"
         | "investigation.approved"
         | "investigation.rejected"
+        | "investigation.stopped"
         | "work_order.created"
         | "work_order.updated"
         | "role.updated";
@@ -6960,6 +6984,7 @@ export interface operations {
               | "investigation.created"
               | "investigation.approved"
               | "investigation.rejected"
+              | "investigation.stopped"
               | "work_order.created"
               | "work_order.updated"
               | "role.updated"
@@ -7529,6 +7554,84 @@ export interface operations {
         };
         content: {
           "text/markdown": string;
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  stop_investigation: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path: {
+        investigation_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Investigation"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
         };
       };
       /** @description Not found */

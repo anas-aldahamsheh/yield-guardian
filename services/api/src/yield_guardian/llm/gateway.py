@@ -17,7 +17,10 @@ once, because another model on the same account would fail the same way.
 
 Every non-streaming call has a wall-clock deadline per role (:data:`ROLE_TIMEOUT_S`), retries
 included: a call that has not answered by then is abandoned as a :class:`TransportError` and the
-next model of the chain is tried, like any other model-specific failure. (The client's own
+next model of the chain is tried, like any other model-specific failure. The deadline does not
+wait for the call to honour its cancellation: the call is abandoned when the time is up, so an
+HTTP stack that delays or swallows a cancellation cannot hold the chain (a live writer call of
+2026-10-16 timed out and the next model was never called). (The client's own
 timeouts are 15 s to connect and 10 minutes between bytes, the documented server limit; the
 first live writer revision waited on two such reads.)
 """
@@ -26,7 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import AsyncGenerator, Callable, Mapping
+from collections.abc import AsyncGenerator, Callable, Coroutine, Mapping
 from contextlib import aclosing
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -113,6 +116,29 @@ def fallback_reason(exc: BaseException) -> str | None:
     ):
         return str(exc)
     return None
+
+
+async def within[T](call: Coroutine[Any, Any, T], limit: float) -> T:
+    """The result of ``call``, or TimeoutError after ``limit`` seconds. On time-out the call is
+    cancelled and abandoned, not awaited: unlike ``asyncio.timeout``, a call that is slow to
+    unwind (or never does) cannot hold its caller past the deadline."""
+    task = asyncio.ensure_future(call)
+    try:
+        done, _ = await asyncio.wait({task}, timeout=limit)
+    except asyncio.CancelledError:
+        task.cancel()
+        raise
+    if not done:
+        task.cancel()
+        task.add_done_callback(_consume)
+        raise TimeoutError
+    return task.result()
+
+
+def _consume(future: asyncio.Future[Any]) -> None:
+    """Retrieve an abandoned call's outcome, so asyncio does not log it as never retrieved."""
+    if not future.cancelled():
+        future.exception()
 
 
 @dataclass(frozen=True, slots=True)
@@ -319,8 +345,7 @@ class LlmGateway:
         limit = self.timeouts[role]
         try:
             try:
-                async with asyncio.timeout(limit):
-                    reply = await self.client.chat_completion(built.body)
+                reply = await within(self.client.chat_completion(built.body), limit)
             except TimeoutError as exc:
                 raise TransportError(f"no answer within {limit:g} s (role deadline)") from exc
             parsed = parse_chat_completion(reply.payload)

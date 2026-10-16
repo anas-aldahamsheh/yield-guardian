@@ -98,7 +98,9 @@ class DbResponseCache:
     async def get(self, key: str) -> ChatResult | None:
         try:
             async with self._sessions.begin() as db:
-                row = await db.get(LlmResponseCacheRow, key, with_for_update=True)
+                # A row another transaction holds is a miss, never a wait: the cache read
+                # comes before the call's deadline and must not hold the role chain.
+                row = await db.get(LlmResponseCacheRow, key, with_for_update={"skip_locked": True})
                 if row is None:
                     return None
                 row.hits += 1

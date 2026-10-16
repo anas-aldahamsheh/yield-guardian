@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from typing import cast
 
 import structlog
-from sqlalchemy import func, select, tuple_
+from sqlalchemy import func, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yield_guardian.agent.run_results import find_alarm, parse_run_alarm_ref
@@ -91,6 +91,15 @@ NO_REPORT = Problem(
     code="internal_error",
     detail="The investigator stopped before its report was ready for a decision.",
 )
+
+STOPPED = Problem(
+    title="Stopped by the user",
+    status=409,
+    code="conflict",
+    detail="The investigation was stopped before its report was written. Its evidence so far "
+    "is kept.",
+)
+STOPPABLE: frozenset[str] = frozenset({"queued", "running"})
 
 EventFactory = Callable[[int, datetime], InvestigationEventPayload]
 EventBatch = list[InvestigationEventPayload]
@@ -315,9 +324,19 @@ class StoreSink:
         self._id = investigation_id
         self._resuming = resuming
 
+    async def _open(self, db: AsyncSession) -> InvestigationRow:
+        """The locked row, while the investigation is not closed: a run stopped by the user or
+        closed by the queue (timed out, interrupted) takes no more writes from its runner, so a
+        late write can never overwrite the final status (ConflictError ends the runner)."""
+        row = await _lock(db, self._id)
+        if row.status in TERMINAL:
+            log.warning("runner_write_after_close", investigation_id=self._id, status=row.status)
+            raise ConflictError(f"Investigation {self._id} is closed ({row.status}).")
+        return row
+
     async def _apply(self, mutate: Callable[[InvestigationRow], None], make: EventFactory) -> None:
         async with self._sessionmaker() as db, db.begin():
-            row = await _lock(db, self._id)
+            row = await self._open(db)
             mutate(row)
             await _append(db, row, make)
 
@@ -326,7 +345,7 @@ class StoreSink:
             log.warning("runner_status_ignored", investigation_id=self._id, status=status)
             return
         async with self._sessionmaker() as db, db.begin():
-            await _set_status(db, await _lock(db, self._id), status)
+            await _set_status(db, await self._open(db), status)
 
     async def step(self, step: InvestigationStep) -> None:
         def mutate(row: InvestigationRow) -> None:
@@ -682,6 +701,62 @@ class DbInvestigationStore:
                 db, investigation_id, "resume", {"actor_role": actor.role, "actor_name": actor.name}
             )
         return to_investigation(row)
+
+    async def stop(self, investigation_id: str, *, session: ActiveSession) -> Investigation:
+        """Stop a queued or running investigation: it is failed with :data:`STOPPED` (its
+        evidence is kept, no report is written), its run job is closed so no worker starts or
+        keeps it, and every worker is woken to cancel its runner. ConflictError when it is not
+        queued or running; ReadOnlyError for the product's example."""
+        actor = audit.Actor.of(session)
+        async with self._sessionmaker() as db, db.begin():
+            row = await _lock(db, investigation_id)
+            if not session.viewer.sees(row.workspace_id):
+                raise NotFoundError(f"Investigation {investigation_id} does not exist.")
+            if is_example(row.recorded, row.workspace_id):
+                raise ReadOnlyError(
+                    f"Investigation {investigation_id} is the recorded example every visitor "
+                    "sees, so nobody stops it."
+                )
+            if row.status not in STOPPABLE:
+                raise ConflictError(
+                    f"Investigation {investigation_id} is not running (it is {row.status}), "
+                    "so there is nothing to stop."
+                )
+            row.error = STOPPED.model_dump(mode="json")
+            await _append(
+                db, row, lambda seq, at: ErrorEvent(type="error", seq=seq, at=at, problem=STOPPED)
+            )
+            await _set_status(db, row, "failed")
+            await _end(db, row)
+            await _reopen_alarm(db, row)
+            await db.execute(
+                update(InvestigationJobRow)
+                .where(
+                    InvestigationJobRow.investigation_id == investigation_id,
+                    InvestigationJobRow.kind == "run",
+                    InvestigationJobRow.status.in_(("queued", "running")),
+                )
+                .values(status="failed", error="stopped", finished_at=func.now())
+            )
+            audit.record(db, actor, "investigation.stopped", "investigation", investigation_id)
+            await db.execute(select(func.pg_notify(JOBS_CHANNEL, investigation_id)))
+        return to_investigation(row)
+
+    async def closed(self, investigation_ids: builtins.list[str]) -> builtins.list[str]:
+        """Those of `investigation_ids` that are closed (finished, failed or stopped)."""
+        if not investigation_ids:
+            return []
+        async with self._sessionmaker() as db:
+            return builtins.list(
+                (
+                    await db.scalars(
+                        select(InvestigationRow.investigation_id).where(
+                            InvestigationRow.investigation_id.in_(investigation_ids),
+                            InvestigationRow.status.in_(TERMINAL),
+                        )
+                    )
+                ).all()
+            )
 
     async def trigger(self, investigation_id: str) -> InvestigationTrigger:
         async with self._sessionmaker() as db:

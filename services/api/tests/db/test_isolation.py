@@ -68,6 +68,7 @@ def neighbour_routes(b: Browser, o: Browser) -> list[tuple[str, Request]]:
                 f"/api/v1/investigations/{i}/decision", json={"verdict": "reject"}, headers=h
             ),
         ),
+        (o.investigation_id, lambda i: c.post(f"/api/v1/investigations/{i}/stop", headers=h)),
         (o.work_order_id, lambda i: c.get(f"/api/v1/work-orders/{i}")),
         (
             o.work_order_id,

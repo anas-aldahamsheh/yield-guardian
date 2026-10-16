@@ -29,6 +29,7 @@ import { EvidencePanel } from "./evidence-panel";
 import { type EvidenceSelection, Report } from "./report";
 import { StatusLabel } from "./status-label";
 import { Steps } from "./steps";
+import { StopInvestigationButton } from "./stop-investigation";
 
 export function InvestigationView({ id }: { id: string }) {
   const api = useApi();
@@ -104,7 +105,14 @@ export function InvestigationView({ id }: { id: string }) {
           </span>
         }
         actions={
-          !LIVE_STATUSES.has(stored.status) && !(stored.recorded && stored.status === "failed") ? (
+          LIVE_STATUSES.has(stored.status) && replay == null ? (
+            <StopInvestigationButton
+              investigationId={stored.investigation_id}
+              recorded={stored.recorded}
+              title={stored.title}
+            />
+          ) : !LIVE_STATUSES.has(stored.status) &&
+            !(stored.recorded && stored.status === "failed") ? (
             <Button
               variant="outline"
               size="sm"

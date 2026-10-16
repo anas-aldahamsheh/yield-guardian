@@ -9,6 +9,7 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
+import httpx
 import pytest
 import respx
 from langgraph.checkpoint.memory import InMemorySaver
@@ -455,6 +456,49 @@ async def test_a_writer_failure_fails_the_investigation(respx_mock: respx.Router
     sink = RecordingSink()
     await runner(FakeScience()).run(INV, UNIT, sink)
     assert [p.code for p in sink.of("error")] == ["upstream_error"]
+    assert sink.statuses == ["running", "failed"]
+    assert sink.final_steps()[-1].node == "write"
+    assert sink.final_steps()[-1].status == "failed"
+
+
+async def test_a_writer_transport_failure_moves_to_the_next_writer(
+    respx_mock: respx.Router,
+) -> None:
+    # The live run of 2026-10-16: the first writer's call ended as a TransportError.
+    model = ScriptedModel().mount(respx_mock)
+    model.add("investigator", PLAN_EVIDENCE, text_reply("READY"))
+    model.add("writer", httpx.ReadTimeout("no answer"), json_reply(GOOD_REPORT))
+    model.add("verifier", json_reply(SUPPORTED))
+    sink = RecordingSink()
+    await runner(FakeScience()).run(INV, UNIT, sink)
+    assert [b["model"] for b in model.bodies("writer")] == [
+        "Qwen3.8-Flash-Next",
+        "DeepSeek-V4.1-Flash",
+    ]
+    assert sink.statuses == ["running", "awaiting_decision"]
+    assert sink.of("error") == []
+    write = next(s for s in sink.final_steps() if s.node == "write")
+    assert write.status == "completed"
+    assert [call.model_id for call in write.llm] == ["Qwen3.8-Flash-Next", "DeepSeek-V4.1-Flash"]
+
+
+async def test_when_every_writer_fails_in_transport_the_investigation_fails(
+    respx_mock: respx.Router,
+) -> None:
+    model = ScriptedModel().mount(respx_mock)
+    model.add("investigator", text_reply("READY"))
+    model.add(
+        "writer",
+        httpx.ReadTimeout("no answer"),
+        httpx.ConnectError("refused"),
+        httpx.RemoteProtocolError("closed"),
+    )
+    sink = RecordingSink()
+    await runner(FakeScience()).run(INV, UNIT, sink)
+    assert len(model.bodies("writer")) == 3
+    (problem,) = sink.of("error")
+    assert problem.title == "No model available"
+    assert "TransportError" in (problem.detail or "") or "failed" in (problem.detail or "")
     assert sink.statuses == ["running", "failed"]
     assert sink.final_steps()[-1].node == "write"
     assert sink.final_steps()[-1].status == "failed"

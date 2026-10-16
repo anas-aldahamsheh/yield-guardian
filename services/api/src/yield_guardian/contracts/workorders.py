@@ -22,6 +22,7 @@ AuditAction = Literal[
     "investigation.created",
     "investigation.approved",
     "investigation.rejected",
+    "investigation.stopped",
     "work_order.created",
     "work_order.updated",
     "role.updated",

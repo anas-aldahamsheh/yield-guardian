@@ -8,7 +8,10 @@ process died) is recovered by any worker: a run is failed with an error event, a
 again because the engineer's decision must be applied. An investigation left queued or running
 with no live job (its job ended without closing it) is failed the same way, its alarm reopened.
 A run is also bounded in wall time (``run_timeout_s``): past it, it fails with
-:data:`TIMED_OUT` and its alarm reopens. A job acts for the investigation's workspace: its tools
+:func:`timed_out` and its alarm reopens. The bound does not wait for the runner to honour its
+cancellation: the run is closed when the time is up, whatever the runner is stuck in. A run the
+user stops (:meth:`DbInvestigationStore.stop`) is closed by the API; the worker running it is
+woken and cancels its runner, and a runner that writes after either close is refused. A job acts for the investigation's workspace: its tools
 read only what that workspace may open (:mod:`yield_guardian.services.access`).
 """
 
@@ -46,6 +49,8 @@ NO_RUNNER_DETAIL = (
 NO_RUNNER = Problem(
     title="Investigator not available", status=503, code="not_ready", detail=NO_RUNNER_DETAIL
 )
+CANCEL_GRACE_S = 5.0
+"""How long a cancelled runner may take to unwind before its run is closed without it."""
 INVESTIGATION_TIMEOUT_S = 1800.0
 """Wall-time bound of one investigation run (30 minutes, the recorder's default); each model call has its own deadline
 in the gateway, so this only stops a run that keeps going call after call."""
@@ -69,6 +74,12 @@ RUN_FAILED = Problem(
     code="internal_error",
     detail="The investigator stopped with an unexpected error. It has been logged.",
 )
+
+
+def _consume(future: asyncio.Future[None]) -> None:
+    """Retrieve an abandoned runner's outcome, so asyncio does not log it as never retrieved."""
+    if not future.cancelled():
+        future.exception()
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,6 +121,8 @@ class JobWorker:
         self._wake = asyncio.Event()
         self._loop_task: asyncio.Task[None] | None = None
         self._tasks: set[asyncio.Task[None]] = set()
+        self._runs: dict[str, asyncio.Future[None]] = {}
+        """The runner of each run this worker is running, by investigation."""
 
     async def start(self) -> None:
         self._loop_task = asyncio.create_task(self._loop(), name="investigation-jobs")
@@ -131,6 +144,7 @@ class JobWorker:
         with subscription as notified:
             while True:
                 try:
+                    await self._cancel_closed()
                     await self._recover_stale()
                     while (job := await self._claim()) is not None:
                         task = asyncio.create_task(self._execute(job), name=f"job-{job.job_id}")
@@ -149,6 +163,15 @@ class JobWorker:
                 waiter.cancel()
             notified.clear()
             self._wake.clear()
+
+    async def _cancel_closed(self) -> None:
+        """Cancel the runners of this worker's runs that were closed elsewhere (stopped by the
+        user in any API process): no further model call is made for them."""
+        for investigation_id in await self._store.closed(list(self._runs)):
+            run = self._runs.get(investigation_id)
+            if run is not None and not run.done():
+                log.info("run_cancelled_closed", investigation_id=investigation_id)
+                run.cancel()
 
     async def _claim(self) -> Job | None:
         running = aliased(InvestigationJobRow)
@@ -242,7 +265,11 @@ class JobWorker:
         async with self._sessionmaker() as db, db.begin():
             await db.execute(
                 update(InvestigationJobRow)
-                .where(InvestigationJobRow.job_id == job.job_id)
+                .where(
+                    InvestigationJobRow.job_id == job.job_id,
+                    # A job closed while it ran (its run stopped by the user) keeps that.
+                    InvestigationJobRow.status == "running",
+                )
                 .values(status=status, error=error, finished_at=func.now())
             )
 
@@ -313,24 +340,43 @@ class JobWorker:
         trigger = await self._store.trigger(investigation_id)
         # Only DbInvestigationStore.create_recorded puts a position in the payload.
         as_of = job.payload.get("as_of")
+        run: asyncio.Future[None] = asyncio.ensure_future(
+            runner.run(
+                investigation_id,
+                trigger,
+                self._store.sink(investigation_id),
+                as_of=as_of if isinstance(as_of, int) else None,
+            )
+        )
+        self._runs[investigation_id] = run
         try:
-            async with asyncio.timeout(self._run_timeout_s):
-                await runner.run(
-                    investigation_id,
-                    trigger,
-                    self._store.sink(investigation_id),
-                    as_of=as_of if isinstance(as_of, int) else None,
-                )
-        except TimeoutError:
+            # Not asyncio.timeout: that waits for the runner to unwind, and a call stuck where
+            # cancellation does not reach (the live writer call of 2026-10-16) kept a run
+            # "running" past every bound.
+            done, _ = await asyncio.wait({run}, timeout=self._run_timeout_s)
+            if not done:
+                run.cancel()
+                await asyncio.wait({run}, timeout=CANCEL_GRACE_S)
+        except asyncio.CancelledError:
+            run.cancel()
+            raise
+        finally:
+            self._runs.pop(investigation_id, None)
+            run.add_done_callback(_consume)
+        if not done:
             log.warning("run_timed_out", investigation_id=investigation_id)
             await self._store.close_run(investigation_id, timed_out(self._run_timeout_s))
             return
-        except ServiceError as exc:
+        if run.cancelled():  # closed elsewhere (stopped by the user): already failed
+            await self._store.close_run(investigation_id)
+            return
+        exc = run.exception()
+        if isinstance(exc, ServiceError):
             log.warning("runner_error", investigation_id=investigation_id, detail=exc.detail)
             await self._store.close_run(investigation_id, exc.problem())
             return
-        except Exception:
-            log.exception("runner_crashed", investigation_id=investigation_id)
+        if exc is not None:
+            log.error("runner_crashed", investigation_id=investigation_id, exc_info=exc)
             await self._store.close_run(investigation_id, RUN_FAILED)
             return
         await self._store.close_run(investigation_id)

@@ -158,6 +158,7 @@ export const AUDIT_ACTION: Record<string, string> = {
   "investigation.created": "Started an investigation",
   "investigation.approved": "Approved a report",
   "investigation.rejected": "Rejected a report",
+  "investigation.stopped": "Stopped an investigation",
   "work_order.created": "Opened a work order",
   "work_order.updated": "Updated a work order",
   "role.updated": "Changed a model role",

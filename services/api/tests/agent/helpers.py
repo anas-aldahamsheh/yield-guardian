@@ -262,12 +262,15 @@ def role_of(body: dict[str, Any]) -> str:
 
 @dataclass
 class ScriptedModel:
-    """Answers each role's requests with the replies queued for it, in order."""
+    """Answers each role's requests with the replies queued for it, in order; a queued
+    exception (such as ``httpx.ReadTimeout``) is raised as the transport's failure."""
 
-    queues: dict[str, list[httpx.Response]] = field(default_factory=lambda: defaultdict(list))
+    queues: dict[str, list[httpx.Response | Exception]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
     requests: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
 
-    def add(self, role: str, *replies: httpx.Response) -> ScriptedModel:
+    def add(self, role: str, *replies: httpx.Response | Exception) -> ScriptedModel:
         self.queues[role].extend(replies)
         return self
 
@@ -282,7 +285,10 @@ class ScriptedModel:
         queue = self.queues[role]
         if not queue:
             raise AssertionError(f"no scripted reply left for the {role} role")
-        return queue.pop(0)
+        reply = queue.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
 
     def bodies(self, role: str) -> list[dict[str, Any]]:
         return [body for r, body in self.requests if r == role]

@@ -46,6 +46,37 @@ export function useStartInvestigation() {
   });
 }
 
+/**
+ * Stops a queued or running investigation: no further model calls are made, its evidence so far
+ * is kept and no report is written. The run ends as failed, "Stopped by the user".
+ */
+export function useStopInvestigation(investigationId: string) {
+  const api = useApi();
+  const client = useQueryClient();
+  const { csrf } = useSession();
+  return useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.POST("/api/v1/investigations/{investigation_id}/stop", {
+          params: { path: { investigation_id: investigationId } },
+          headers: csrf,
+        }),
+      ),
+    onSuccess: (investigation) => {
+      client.setQueryData<Investigation>(["investigations", investigationId], investigation);
+      void client.invalidateQueries({ queryKey: ["investigations"] });
+      void client.invalidateQueries({ queryKey: ["alarms"] });
+      toast("Investigation stopped", { description: "Its evidence so far is kept." });
+    },
+    onError: (error) => {
+      // Already finished (409) or gone: show where it stands now.
+      void client.invalidateQueries({ queryKey: ["investigations"] });
+      const copy = describeError(error);
+      toast.error(copy.title, { description: copy.detail });
+    },
+  });
+}
+
 /** Approves (some of) a report's actions, which opens a work order, or rejects the report. */
 export function useDecideInvestigation(investigationId: string) {
   const api = useApi();

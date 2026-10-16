@@ -597,6 +597,39 @@ async def test_a_call_past_the_role_deadline_moves_down_the_chain(
     assert "no answer within 0.05 s" in (first.error_message or "")
 
 
+async def test_a_call_slow_to_unwind_does_not_hold_the_chain_past_the_deadline(
+    respx_mock: respx.Router, stack: Stack
+) -> None:
+    """The deadline abandons the call: an HTTP stack that delays its cancellation (a TLS close
+    on a dead connection) cannot keep the next model from being called."""
+    import asyncio
+    import time
+
+    stack.gateway.timeouts[Role.WRITER] = 0.05
+    calls: list[str] = []
+
+    async def answer(request: httpx.Request) -> httpx.Response:
+        model = json.loads(request.content)["model"]
+        calls.append(model)
+        if model == "Qwen3.8-Flash-Next":
+            try:
+                await asyncio.sleep(5)
+            except asyncio.CancelledError:
+                await asyncio.sleep(0.5)  # slow to honour the cancellation
+                raise
+        return completion(model, '{"label": "x", "count": 1}')
+
+    respx_mock.post(host=HOST).mock(side_effect=answer)
+    started = time.monotonic()
+    out = await stack.gateway.complete_structured(
+        Role.WRITER, json_request(), FixtureAnswer, schema_name="fixture_answer"
+    )
+    assert time.monotonic() - started < 0.4
+    assert out.result.model == "DeepSeek-V4.1-Flash"
+    assert calls == ["Qwen3.8-Flash-Next", "DeepSeek-V4.1-Flash"]
+    await asyncio.sleep(0.6)  # let the abandoned call unwind before the loop closes
+
+
 async def test_when_every_model_times_out_the_reason_names_the_deadline(
     respx_mock: respx.Router, stack: Stack
 ) -> None:

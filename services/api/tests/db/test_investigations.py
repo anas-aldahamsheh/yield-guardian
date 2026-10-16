@@ -1,7 +1,9 @@
 """Investigations end to end with the fake runner: queue, events, snapshot, decision, alarms."""
 
 import asyncio
+import contextlib
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import pytest
 from pydantic import SecretStr
@@ -12,6 +14,7 @@ from tests.db.conftest import clean
 from tests.db.fakes import REPORT, FakeRunner
 from yield_guardian.contracts.investigation import (
     DecisionCreate,
+    Evidence,
     InvestigationEventPayload,
     InvestigationTrigger,
 )
@@ -21,7 +24,8 @@ from yield_guardian.core.settings import Settings
 from yield_guardian.db.tables import InvestigationJobRow, InvestigationRow
 from yield_guardian.services.access import NOBODY, viewing
 from yield_guardian.services.alarms import AlarmStateStore
-from yield_guardian.services.errors import ConflictError
+from yield_guardian.services.audit import Actor
+from yield_guardian.services.errors import ConflictError, ReadOnlyError
 from yield_guardian.services.investigations import (
     check_run_alarm,
     new_investigation_id,
@@ -32,6 +36,16 @@ from yield_guardian.services.persistence import Persistence, build_persistence
 from yield_guardian.services.protocols import ActiveSession, InvestigationStore
 
 ALARM = InvestigationTrigger(kind="alarm", ref="AL-1043-t2")
+REPORT_EVIDENCE = Evidence(
+    evidence_id="E1",
+    investigation_id="inv_0000000001",
+    tool="get_risk",
+    arguments={"unit_id": 1043},
+    data={"risk": 0.5},
+    summary="Risk of unit 1043.",
+    created_at=datetime(2026, 10, 14, 8, 0, tzinfo=UTC),
+    source=None,
+)
 
 
 async def _engineer(persistence: Persistence, name: str = "Dana") -> ActiveSession:
@@ -582,3 +596,112 @@ async def test_a_run_alarm_is_investigated_once_at_a_time_and_found_by_run(
     }
     assert await store.for_run("run_testcase000") == {}  # a prefix of the ID is another run
     assert await store.for_run("run_testcase_001") == {}  # "_" is not a wildcard
+
+
+async def test_a_stopped_run_takes_no_late_write_and_its_alarm_reopens(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    runner.behaviour = "block"
+    store = persistence.investigations
+    session = await _engineer(persistence)
+    created = await store.create(ALARM, session=session)
+    await asyncio.wait_for(runner.started.wait(), 10)
+    stopped = await store.stop(created.investigation_id, session=session)
+    assert stopped.status == "failed"
+    assert stopped.error is not None
+    assert stopped.error.title == "Stopped by the user"
+    # A write from a runner that has not noticed yet is refused; the status stays.
+    sink = store.sink(created.investigation_id)
+    with pytest.raises(ConflictError):
+        await sink.evidence(REPORT_EVIDENCE)
+    with pytest.raises(ConflictError):
+        await sink.status("awaiting_decision")
+    investigation = await store.get(created.investigation_id)
+    assert (investigation.status, investigation.evidence) == ("failed", [])
+    alarm = await persistence.alarms.get("AL-1043-t2")
+    assert (alarm.status, alarm.investigation_id) == ("open", None)
+    async with persistence.database.sessionmaker() as db:
+        jobs = (
+            await db.execute(select(InvestigationJobRow.status, InvestigationJobRow.error))
+        ).all()
+    assert [tuple(j) for j in jobs] == [("failed", "stopped")]
+    with pytest.raises(ConflictError):
+        await store.stop(created.investigation_id, session=session)
+
+
+async def test_a_queued_run_that_is_stopped_never_runs(
+    persistence: Persistence, runner: FakeRunner
+) -> None:
+    await persistence.jobs.stop()
+    session = await _engineer(persistence)
+    created = await persistence.investigations.create(
+        InvestigationTrigger(kind="unit", ref="7"), session=session
+    )
+    await persistence.investigations.stop(created.investigation_id, session=session)
+    worker = JobWorker(
+        persistence.database.sessionmaker,
+        persistence.investigations,
+        _provider(runner),
+        persistence.notifier,
+        poll_s=0.05,
+    )
+    await worker.start()
+    await asyncio.sleep(0.3)
+    await worker.stop()
+    assert runner.runs == []
+    assert (await persistence.investigations.get(created.investigation_id)).status == "failed"
+
+
+async def test_a_finished_or_recorded_investigation_cannot_be_stopped(
+    persistence: Persistence,
+) -> None:
+    store = persistence.investigations
+    session = await _engineer(persistence)
+    done = await store.create(ALARM, session=session)
+    await _collect(persistence, done.investigation_id)
+    with pytest.raises(ConflictError, match="nothing to stop"):
+        await store.stop(done.investigation_id, session=session)
+    example = await store.create_recorded(
+        InvestigationTrigger(kind="unit", ref="5"), actor=Actor(role="system", name="R"), as_of=0
+    )
+    with pytest.raises(ReadOnlyError):
+        await store.stop(example.investigation_id, session=session)
+
+
+class StubbornRunner(FakeRunner):
+    """A runner stuck where cancellation does not reach it (the live writer call)."""
+
+    async def run(self, investigation_id: str, *args: Any, **kwargs: Any) -> None:
+        self.runs.append(investigation_id)
+        self.started.set()
+        while not self.release.is_set():
+            with contextlib.suppress(asyncio.CancelledError):
+                await self.release.wait()
+
+
+async def test_a_run_stuck_past_cancellation_is_still_failed_at_its_wall_time(
+    persistence: Persistence,
+) -> None:
+    runner = StubbornRunner()
+    await persistence.jobs.stop()
+    worker = JobWorker(
+        persistence.database.sessionmaker,
+        persistence.investigations,
+        _provider(runner),
+        persistence.notifier,
+        run_timeout_s=0.3,
+    )
+    await worker.start()
+    try:
+        created = await persistence.investigations.create(
+            ALARM, session=await _engineer(persistence)
+        )
+        events = await _collect(persistence, created.investigation_id)
+    finally:
+        runner.release.set()
+        await worker.stop()
+    assert _types(events)[-3:] == ["error", "status", "end"]
+    investigation = await persistence.investigations.get(created.investigation_id)
+    assert investigation.status == "failed"
+    assert investigation.error is not None
+    assert investigation.error.title == "Investigation timed out"

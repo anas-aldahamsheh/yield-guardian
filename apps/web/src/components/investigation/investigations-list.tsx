@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 
 import { Elapsed } from "./elapsed";
 import { StatusLabel } from "./status-label";
+import { StopInvestigationButton } from "./stop-investigation";
 
 type Status = InvestigationSummary["status"];
 type GroupId = "running" | "awaiting" | "decided" | "failed" | "example";
@@ -336,6 +337,11 @@ function InvestigationTable({
             <th scope="col" className="py-3 pr-5 pl-3 font-[520] sm:pr-6">
               Work order
             </th>
+            {elapsed ? (
+              <th scope="col" className="py-3 pr-5 pl-3 sm:pr-6">
+                <span className="sr-only">Actions</span>
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -390,6 +396,18 @@ function InvestigationTable({
                   <span className="text-ink-3">–</span>
                 )}
               </td>
+              {elapsed ? (
+                <td className="py-2.5 pr-5 pl-3 text-right sm:pr-6">
+                  {LIVE_STATUSES.has(inv.status) ? (
+                    <StopInvestigationButton
+                      investigationId={inv.investigation_id}
+                      recorded={inv.recorded}
+                      title={inv.title}
+                      size="xs"
+                    />
+                  ) : null}
+                </td>
+              ) : null}
             </m.tr>
           ))}
         </tbody>
