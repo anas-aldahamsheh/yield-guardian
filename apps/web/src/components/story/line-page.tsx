@@ -381,10 +381,10 @@ export function LinePage({
           <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-12 gap-y-7 sm:mt-10 xl:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] xl:items-start">
             <p
               className={cn(
-                arrive && "rise-in",
+                arrive && "settle-in",
                 "max-w-[46ch] text-[17px] leading-7 text-ink-2 sm:text-lede",
               )}
-              style={{ "--d": "260ms" } as CSSProperties}
+              style={{ "--d": "120ms" } as CSSProperties}
             >
               Choose an input. Each station computes its result from it while you watch, and the
               line moves only as results arrive. Nothing here is a recording.

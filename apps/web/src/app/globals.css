@@ -834,6 +834,14 @@
     animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 70ms);
   }
 
+  /* A page's main text settles into place: it moves a few pixels but is drawn from the first
+     frame, so it is there to read as soon as the page is. Faded in from nothing, it would stay
+     off screen until its animation began, and on a slow phone that waits for the page's script. */
+  .settle-in {
+    animation: settle-in 700ms var(--ease-out) backwards;
+    animation-delay: var(--d, 0ms);
+  }
+
   /* A station's state changing live: the chip springs in (scale and opacity, no filter: a filter
      would draw it through a pass of its own while it plays). */
   .chip-in {
@@ -1037,6 +1045,14 @@
   }
   to {
     opacity: 1;
+    transform: none;
+  }
+}
+@keyframes settle-in {
+  from {
+    transform: translateY(10px);
+  }
+  to {
     transform: none;
   }
 }

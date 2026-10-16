@@ -118,8 +118,8 @@ export function PlainArabic() {
           <span>كيف يعمل Yield Guardian</span>
         </h1>
         <p
-          className="rise-in mt-6 max-w-[58ch] text-[18px] leading-9 text-ink-2 sm:text-[20px] sm:leading-10"
-          style={{ "--d": "200ms" } as CSSProperties}
+          className="settle-in mt-6 max-w-[58ch] text-[18px] leading-9 text-ink-2 sm:text-[20px] sm:leading-10"
+          style={{ "--d": "120ms" } as CSSProperties}
         >
           برنامج لمهندسي الجودة والمردود في مصانع رقائق السيليكون: يساعدهم على اكتشاف المشكلة مبكراً
           وتضييق مكان البحث عنها. هذا القسم بكلام بسيط، وتحته قسم للخبراء بالإنجليزية، ثم دليل
