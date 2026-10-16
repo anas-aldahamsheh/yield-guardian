@@ -16,7 +16,7 @@ from pydantic import SecretStr
 from tests.llm.helpers import PLACEHOLDER_KEY
 from yield_guardian.core.settings import Settings
 from yield_guardian.llm.factory import LlmStack, assemble_llm_stack
-from yield_guardian.llm.messages import ChatMessage, ChatRequest
+from yield_guardian.llm.messages import ChatMessage, ChatRequest, FunctionCall, ToolCall
 from yield_guardian.llm.profiles import TOKENHARBOR_MODEL
 from yield_guardian.llm.registry import Role
 from yield_guardian.llm.results import ChatResult
@@ -165,3 +165,30 @@ def test_the_verifier_never_uses_tokenharbor() -> None:
     models = [r.choice.model for r in stack.registry.resolve(Role.VERIFIER).usable]
     assert models == ["GLM-5.3-Flash", "DeepSeek-V4-Flash"]
     assert stack.registry.resolve(Role.CHAT).usable[0].choice.model == TOKENHARBOR_MODEL
+
+
+async def test_malformed_tool_arguments_in_history_are_sent_as_a_json_object(
+    respx_mock: respx.Router,
+) -> None:
+    # One model's broken tool call must not make every fallback answer HTTP 400.
+    factory = respx_mock.post(FACTORY_URL).mock(
+        return_value=completion("Qwen3.8-Flash-Next", "Hello.")
+    )
+    broken = ToolCall(id="c1", function=FunctionCall(name="get_run", arguments="{run_id: 'x'"))
+    good = ToolCall(id="c2", function=FunctionCall(name="get_run", arguments='{"run_id": "x"}'))
+    req = ChatRequest(
+        messages=(
+            ChatMessage.user("Hello?"),
+            ChatMessage(role="assistant", content=None, tool_calls=(broken, good)),
+            ChatMessage(role="tool", tool_call_id="c1", content="refused"),
+            ChatMessage(role="tool", tool_call_id="c2", content="ok"),
+        ),
+        max_tokens=256,
+    )
+    stack = stack_with(None)
+    try:
+        await stack.gateway.complete(Role.CHAT, req)
+    finally:
+        await stack.aclose()
+    calls = body(factory)["messages"][1]["tool_calls"]
+    assert [c["function"]["arguments"] for c in calls] == ["{}", '{"run_id": "x"}']

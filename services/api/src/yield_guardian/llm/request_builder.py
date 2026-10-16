@@ -15,6 +15,7 @@ Every change made to the caller's messages is listed in :attr:`BuiltRequest.adju
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -25,6 +26,7 @@ from yield_guardian.llm.messages import (
     ImagePart,
     NamedToolChoice,
     TextPart,
+    ToolCall,
 )
 from yield_guardian.llm.profiles import (
     DeveloperRole,
@@ -189,7 +191,19 @@ def _message_json(message: ChatMessage) -> dict[str, Any]:
         return out
     out["content"] = _content_json(message)
     if message.tool_calls:
-        out["tool_calls"] = [call.model_dump(mode="json") for call in message.tool_calls]
+        out["tool_calls"] = [_tool_call_json(call) for call in message.tool_calls]
+    return out
+
+
+def _tool_call_json(call: ToolCall) -> dict[str, Any]:
+    """The call as the API takes it, its arguments always a JSON object: providers answer HTTP
+    400 to a history holding one model's malformed arguments, which would sink every fallback."""
+    out = call.model_dump(mode="json")
+    try:
+        parsed = json.loads(call.function.arguments)
+    except ValueError:
+        parsed = None
+    out["function"]["arguments"] = json.dumps(parsed if isinstance(parsed, dict) else {})
     return out
 
 

@@ -100,7 +100,8 @@ _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
     Role.INVESTIGATOR: (
-        _harbor(_T),
+        # Not TokenHarbor: live on 2026-10-16 its thinking model spent the whole 2,048-token
+        # budget reasoning (empty answer) and sent a tool call with invalid JSON arguments.
         _c("DeepSeek-V4.1-Flash", "low", _T),
         _c("GLM-5.3-Flash", "low", _T),
         _c("Qwen3.8-Flash-Next", "low", _T),

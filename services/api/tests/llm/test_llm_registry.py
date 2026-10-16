@@ -40,7 +40,7 @@ def registry(store: InMemoryRoleAssignmentStore | None = None) -> ModelRegistry:
 def test_defaults_follow_plan_section_7_1() -> None:
     primaries = {role: chain[0].model for role, chain in DEFAULT_CHAINS.items()}
     assert primaries == {
-        Role.INVESTIGATOR: TOKENHARBOR_MODEL,
+        Role.INVESTIGATOR: "DeepSeek-V4.1-Flash",
         Role.WRITER: "Qwen3.8-Flash-Next",
         Role.VERIFIER: "GLM-5.3-Flash",
         Role.CHAT: TOKENHARBOR_MODEL,
