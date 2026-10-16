@@ -57,7 +57,7 @@ function results(map: WaferMap | null) {
  */
 export function waferVerdict(w: WaferItem, pattern: WaferPatternView, tested: boolean): string {
   const accept = pattern.accept_threshold;
-  const name = w.top_label === "none" ? "No defect pattern" : patternName(w.top_label);
+  const name = patternName(w.top_label);
   const verdict = w.auto_accepted
     ? `${name} at ${formatProbability(w.top_probability)}, classified automatically (the 99%-precision threshold is ${formatProbability(accept)}).`
     : `${name} at ${formatProbability(w.top_probability)}, for review: below the ${formatProbability(accept)} needed to classify it automatically.`;
@@ -153,7 +153,7 @@ function WaferChooser({
   return (
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(72px,1fr))] gap-2" aria-label="Wafers">
       {pattern.wafers.map((w, i) => {
-        const label = w.top_label === "none" ? "no pattern" : patternName(w.top_label);
+        const label = patternName(w.top_label);
         const uncounted = tested.has(w.lot) && countsAsUnknown(w, pattern);
         return (
           <li key={w.index}>
@@ -248,7 +248,7 @@ function WaferDetail({
         </p>
       </div>
       <DrawerSection
-        title={wafer.top_label === "none" ? "No defect pattern" : patternName(wafer.top_label)}
+        title={patternName(wafer.top_label)}
         description={waferVerdict(wafer, pattern, tested)}
       >
         {recorded ? (

@@ -13,7 +13,9 @@ export type PatternLabel =
 
 export function patternName(label: PatternLabel | null | undefined): string {
   if (label == null) return "Unlabelled";
-  return label === "none" ? "No pattern" : label;
+  if (label === "none") return "Light scatter";
+  if (label === "Random") return "Heavy scatter";
+  return label;
 }
 
 export const ROLE_NAMES: Record<string, string> = {
