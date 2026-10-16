@@ -9,6 +9,7 @@ import {
   describeContext,
   emptyAnswer,
   extractVisiblePageContent,
+  formatAnswerMarkdown,
   lineChatContext,
   parseLineLocation,
   parseSse,
@@ -79,6 +80,17 @@ describe("segmentAnswer", () => {
     expect(parts.filter((p) => p.cite).map((p) => p.cite)).toEqual(["E1"]);
     expect(parts.some((p) => p.unverified)).toBe(true);
     expect(parts.filter((p) => p.flagged).map((p) => p.text)).toEqual(["7.2"]);
+  });
+});
+
+describe("formatAnswerMarkdown", () => {
+  it("encodes citations, unverified marks, and flagged numbers into custom anchor schemas", () => {
+    const raw = "### Wafer Pattern\nEdge-Ring pattern observed [E1]. Yield: 98.4% [unverified], sensor drift at 42.5.";
+    const formatted = formatAnswerMarkdown(raw, ["42.5"]);
+    expect(formatted).toContain("[E1](#cite:E1)");
+    expect(formatted).toContain("[unverified](#unverified)");
+    expect(formatted).toContain("[42.5](#flagged:42.5)");
+    expect(formatted).toContain("### Wafer Pattern");
   });
 });
 

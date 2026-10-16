@@ -77,11 +77,19 @@ const components: Components = {
 export function Markdown({
   children,
   className,
+  components: customComponents,
   ...props
-}: { children: string; className?: string } & Omit<ComponentProps<"div">, "children">) {
+}: {
+  children: string;
+  className?: string;
+  components?: Components;
+} & Omit<ComponentProps<"div">, "children">) {
+  const mergedComponents: Components = customComponents
+    ? { ...components, ...customComponents }
+    : components;
   return (
     <div className={cn("min-w-0", className)} {...props}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={mergedComponents}>
         {children}
       </ReactMarkdown>
     </div>

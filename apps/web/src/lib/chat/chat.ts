@@ -204,6 +204,24 @@ export function segmentAnswer(text: string, unverifiedNumbers: string[]): TextPa
 }
 
 /**
+ * Formats an answer's text as Markdown while converting citations ("[E1]"),
+ * unverified tokens ("[unverified]") and flagged unverified numbers into
+ * custom anchor schemes (#cite:E1, #unverified, #flagged:n) so ReactMarkdown
+ * can render them as interactive widgets.
+ */
+export function formatAnswerMarkdown(text: string, unverifiedNumbers: string[]): string {
+  const parts = segmentAnswer(text, unverifiedNumbers);
+  return parts
+    .map((p) => {
+      if (p.cite) return `[${p.cite}](#cite:${p.cite})`;
+      if (p.unverified) return `[unverified](#unverified)`;
+      if (p.flagged) return `[${p.text}](#flagged:${encodeURIComponent(p.text)})`;
+      return p.text;
+    })
+    .join("");
+}
+
+/**
  * The Line page's address, `/?run=<id>&station=<n>&unit=<index>|wafer=<index>|lot=<name>` and
  * `alarm=<RA-n>`, plus the real item a v1 link picked (`pick=unit:<id>`, see lib/routes.ts) and
  * a SECOM sensor. Each value is kept only when it is well formed (as the run contract defines
