@@ -26,11 +26,22 @@ export function SessionButton({
   ...props
 }: { session: Session } & ComponentProps<typeof Button>) {
   return (
-    <Button size="sm" variant="ghost" className={cn("gap-1.5", className)} {...props}>
-      <span className="size-1.5 rounded-full bg-pass" aria-hidden="true" />
+    <Button
+      size="sm"
+      variant="outline"
+      className={cn("group/session gap-2 pr-2.5 pl-3 data-[state=open]:bg-surface-2", className)}
+      {...props}
+    >
+      <span className="relative flex size-2" aria-hidden="true">
+        <span className="absolute inset-0 rounded-full bg-pass" />
+        <span className="absolute -inset-1 rounded-full bg-pass-wash" />
+      </span>
       <span>{session.display_name ?? ROLE_LABEL[session.role]}</span>
       <span className="text-ink-3">{session.display_name ? ROLE_LABEL[session.role] : null}</span>
-      <ChevronDown className="size-3.5 text-ink-3" aria-hidden="true" />
+      <ChevronDown
+        className="size-3.5 text-ink-3 transition-transform duration-(--dur-3) ease-spring group-data-[state=open]/session:rotate-180"
+        aria-hidden="true"
+      />
     </Button>
   );
 }
@@ -55,7 +66,9 @@ export function SessionControl({
   const adminLogin = meta.data?.features.admin_login ?? false;
 
   if (loading) {
-    return <div className={cn("h-8 w-36 rounded-md bg-die-2", className)} aria-hidden="true" />;
+    return (
+      <div className={cn("h-8 w-36 rounded-full bg-surface-2", className)} aria-hidden="true" />
+    );
   }
 
   if (session.role === "visitor") {
@@ -67,13 +80,7 @@ export function SessionControl({
           className,
         )}
       >
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => guest.mutate()}
-          disabled={guest.isPending}
-          className="border-hairline-strong"
-        >
+        <Button size="sm" onClick={() => guest.mutate()} disabled={guest.isPending}>
           {guest.isPending ? "Starting session…" : "Try as engineer"}
         </Button>
         {adminLogin ? (
@@ -86,7 +93,6 @@ export function SessionControl({
             }}
             onPointerEnter={() => void loadMenus()}
             onFocus={() => void loadMenus()}
-            className="text-ink-2"
           >
             Admin sign-in
           </Button>

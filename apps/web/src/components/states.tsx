@@ -1,6 +1,7 @@
 "use client";
 
 import type { UseQueryResult } from "@tanstack/react-query";
+import { CircleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -30,12 +31,7 @@ export function ErrorState({
         compact={compact}
         action={
           onRetry ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onRetry}
-              className="border-hairline-strong bg-transparent"
-            >
+            <Button size="sm" variant="outline" onClick={onRetry}>
               Check again
             </Button>
           ) : undefined
@@ -49,17 +45,18 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "flex flex-wrap items-start gap-x-4 gap-y-2 rounded-sm border-l-2 border-fail bg-fail-wash px-4",
-        compact ? "py-2.5" : "py-4",
+        "swap-in flex flex-wrap items-start gap-x-3 gap-y-3 rounded-[14px] bg-fail-wash px-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_32%,transparent)]",
+        compact ? "py-3" : "py-4",
         className,
       )}
     >
+      <CircleAlertIcon className="mt-0.5 size-5 shrink-0 text-fail" strokeWidth={1.9} aria-hidden />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium text-ink">{copy.title}</p>
-        <p className="mt-0.5 text-sm text-ink-2">{copy.detail}</p>
+        <p className="text-[15px] leading-6 font-[600] text-ink">{copy.title}</p>
+        <p className="mt-0.5 text-[14px] leading-[22px] text-ink-2">{copy.detail}</p>
       </div>
       {onRetry ? (
-        <Button size="sm" variant="outline" onClick={onRetry} className="border-hairline-strong">
+        <Button size="sm" variant="outline" onClick={onRetry}>
           Try again
         </Button>
       ) : null}
@@ -81,11 +78,16 @@ export function EmptyState({
 }) {
   return (
     <div
-      className={cn("rounded-sm border border-dashed border-hairline-strong px-5 py-6", className)}
+      className={cn(
+        "rounded-[14px] border border-dashed border-hairline-strong px-5 py-6 sm:px-6",
+        className,
+      )}
     >
-      <p className="text-[15px] font-medium text-ink">{title}</p>
-      {children ? <div className="mt-1 max-w-[64ch] text-sm text-ink-2">{children}</div> : null}
-      {action ? <div className="mt-3">{action}</div> : null}
+      <p className="text-[16px] leading-6 font-[600] text-ink">{title}</p>
+      {children ? (
+        <div className="mt-1 max-w-[64ch] text-[14px] leading-[22px] text-ink-2">{children}</div>
+      ) : null}
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }
@@ -111,15 +113,19 @@ export function PendingState({
     <div
       role="status"
       className={cn(
-        "unexposed flex flex-wrap items-start gap-x-4 gap-y-2 rounded-sm border border-hairline-strong bg-die px-4",
-        compact ? "py-2.5" : "min-h-28 py-4",
+        "unexposed flex flex-wrap items-start gap-x-3.5 gap-y-3 rounded-[14px] bg-surface px-4 shadow-[inset_0_0_0_1px_var(--hairline-strong)]",
+        compact ? "py-3" : "min-h-28 py-4",
         className,
       )}
     >
       <PendingMark className="mt-0.5 shrink-0" />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] leading-6 font-medium text-ink">{title}</p>
-        {children ? <div className="mt-0.5 max-w-[60ch] text-sm text-ink-2">{children}</div> : null}
+        <p className="text-[15px] leading-6 font-[600] text-ink">{title}</p>
+        {children ? (
+          <div className="mt-0.5 max-w-[60ch] text-[14px] leading-[22px] text-ink-2">
+            {children}
+          </div>
+        ) : null}
       </div>
       {action}
     </div>
@@ -130,15 +136,15 @@ export function PendingState({
 export function PendingMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" className={cn("size-5", className)} aria-hidden="true">
-      <rect x="1.5" y="1.5" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
-      <rect x="11" y="1.5" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
-      <rect x="1.5" y="11" width="7.5" height="7.5" rx="1" fill="var(--hairline-strong)" />
+      <rect x="1.5" y="1.5" width="7.5" height="7.5" rx="2" fill="var(--hairline-strong)" />
+      <rect x="11" y="1.5" width="7.5" height="7.5" rx="2" fill="var(--hairline-strong)" />
+      <rect x="1.5" y="11" width="7.5" height="7.5" rx="2" fill="var(--hairline-strong)" />
       <rect
         x="11.5"
         y="11.5"
         width="6.5"
         height="6.5"
-        rx="0.75"
+        rx="1.5"
         fill="none"
         stroke="var(--ink-3)"
         strokeDasharray="2 1.6"
@@ -159,7 +165,7 @@ export function Placeholder({
     <div
       role="status"
       aria-label={label}
-      className={cn("animate-pulse rounded-sm bg-die-2 motion-reduce:animate-none", className)}
+      className={cn("shimmer rounded-[14px] bg-surface-2", className)}
     />
   );
 }
@@ -170,16 +176,24 @@ export function QueryView<T>({
   loading,
   children,
   compactError = false,
+  errorClassName,
 }: {
   query: Pick<UseQueryResult<T>, "data" | "error" | "isPending" | "isError" | "refetch">;
   loading?: ReactNode;
   children: (data: T) => ReactNode;
   compactError?: boolean;
+  /** Where the error sits, for a panel whose body runs edge to edge (a table's). */
+  errorClassName?: string;
 }) {
   if (query.isPending) return <>{loading ?? <Placeholder className="h-40" />}</>;
   if (query.isError || query.data === undefined) {
     return (
-      <ErrorState error={query.error} onRetry={() => void query.refetch()} compact={compactError} />
+      <ErrorState
+        error={query.error}
+        onRetry={() => void query.refetch()}
+        compact={compactError}
+        className={errorClassName}
+      />
     );
   }
   return <>{children(query.data)}</>;

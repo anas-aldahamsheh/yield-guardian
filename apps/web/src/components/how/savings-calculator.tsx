@@ -226,7 +226,7 @@ function Field({
   const id = useId();
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
-      <label htmlFor={id} className="text-[14px] leading-5 font-medium text-ink">
+      <label htmlFor={id} className="text-[14px] leading-5 font-[560] text-ink">
         {field.label}
       </label>
       <div className="flex min-w-0 items-center gap-2.5">
@@ -242,7 +242,7 @@ function Field({
           onBlur={onBlur}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : `${id}-unit`}
-          className="tnum h-10 w-full max-w-[12rem] min-w-0 rounded-md border border-input bg-die-2 px-3 text-[16px] text-ink aria-invalid:border-fail"
+          className="tnum h-10 w-full max-w-[12rem] min-w-0 rounded-md border border-input bg-surface-2 px-3 text-[16px] text-ink aria-invalid:border-fail"
         />
         <span id={`${id}-unit`} className="text-[13px] leading-5 text-ink-3">
           {field.unit}
@@ -336,7 +336,7 @@ function Results({
       ) : null}
       {groups.map((g) => (
         <section key={g.title} aria-label={g.title} className="min-w-0">
-          <h3 className="border-b border-hairline pb-1.5 text-[14px] leading-5 font-semibold text-ink">
+          <h3 className="border-b border-hairline pb-1.5 text-[14px] leading-5 font-[620] text-ink">
             {g.title}
           </h3>
           <ul className="grid grid-cols-[minmax(0,1fr)]">
@@ -455,8 +455,10 @@ function TermView({
   return (
     <span
       className={cn(
-        "rounded-[2px] px-1 py-px whitespace-nowrap",
-        missing ? "border border-dashed border-hairline-strong text-ink-3" : "bg-die-2 text-ink",
+        "rounded-[14px] px-1 py-px whitespace-nowrap",
+        missing
+          ? "border border-dashed border-hairline-strong text-ink-3"
+          : "bg-surface-2 text-ink",
         "rate" in term &&
           !missing &&
           "underline decoration-hairline-strong decoration-dotted underline-offset-4",

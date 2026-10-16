@@ -289,7 +289,7 @@ export function ControlChart({
               className="tnum fill-ink-2 text-[11px]"
               style={{
                 paintOrder: "stroke",
-                stroke: "var(--die)",
+                stroke: "var(--surface)",
                 strokeWidth: 3,
                 strokeLinejoin: "round",
               }}
@@ -305,7 +305,7 @@ export function ControlChart({
         <g
           style={{
             transform: `translateX(${shift.px}px)`,
-            transition: shift.animate ? "transform var(--dur-arrive) var(--ease-arrive)" : "none",
+            transition: shift.animate ? "transform var(--dur-4) var(--ease-spring)" : "none",
           }}
         >
           <path
@@ -325,7 +325,7 @@ export function ControlChart({
                   key={p.x}
                   d={`M${cx},${top - 1} l${s},${s * 1.6} h${-2 * s}z`}
                   fill={TONE_FILL[p.tone]}
-                  stroke="var(--die)"
+                  stroke="var(--surface)"
                   strokeWidth={1.5}
                 />
               );
@@ -338,7 +338,7 @@ export function ControlChart({
                 cy={y(p.y)}
                 r={flagged ? r + 0.9 : r}
                 fill={TONE_FILL[p.tone]}
-                stroke={flagged ? "var(--die)" : "none"}
+                stroke={flagged ? "var(--surface)" : "none"}
                 strokeWidth={flagged ? 1.5 : 0}
               />
             );
@@ -364,13 +364,13 @@ export function ControlChart({
                   <circle
                     r={r + 5}
                     fill="none"
-                    stroke="var(--safelight)"
+                    stroke="var(--signal)"
                     strokeWidth={1.5}
                     className="arrival"
                   />
                 </g>
               ) : null}
-              <circle r={r + 3} fill="none" stroke="var(--safelight)" strokeWidth={1.5} />
+              <circle r={r + 3} fill="none" stroke="var(--signal)" strokeWidth={1.5} />
             </g>
           ) : null}
 
@@ -436,7 +436,7 @@ export function ControlChart({
             x2={0}
             y1={top}
             y2={plotBottom + rugHeight}
-            stroke={pinned ? "var(--safelight)" : "var(--ink-2)"}
+            stroke={pinned ? "var(--signal)" : "var(--ink-2)"}
             strokeWidth={pinned ? 1.5 : 1}
             className={cn(!pinned && "opacity-70")}
           />
@@ -446,7 +446,7 @@ export function ControlChart({
               cy={y(Math.min(cursorPoint.y, yMax))}
               r={r + 3.5}
               fill="none"
-              stroke={pinned ? "var(--safelight)" : "var(--ink)"}
+              stroke={pinned ? "var(--signal)" : "var(--ink)"}
               strokeWidth={1.5}
               style={{ transition: glide && !reduced ? "cy 90ms linear" : "none" }}
             />

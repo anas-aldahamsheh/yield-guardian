@@ -1,19 +1,18 @@
 "use client";
 
 /**
- * The console's motion, in one place. Motion here is CSS keyframes (globals.css) plus a few
- * small hooks, so it costs almost nothing in the bundle and every piece respects
- * prefers-reduced-motion. docs/DESIGN.md explains when to use which.
+ * Motion hooks shared by the whole interface (docs/DESIGN.md, "Motion"). Springs live in
+ * `./springs`, the Motion provider in `./motion-provider`; keyframes and spring curves for CSS in
+ * globals.css. Every hook respects prefers-reduced-motion.
  *
- * - Page arrival: `PageFrame` carries `.page-enter`; nothing else fades in on load.
+ * - Page arrival: `app/template.tsx` settles each page in once (`.page-enter`).
  * - Lists: `.flash-new` / `.flash-alarm` on a row that just arrived (once, keyed by its id).
- * - Numbers: `<Ticker>` eases a reading from its old value to its new one.
- * - Charts: `.arrival` (safelight ring on the newest point), `.alarm-pulse` (fail rings).
+ * - Numbers: `<Ticker>` runs a reading from its old value to its new one when a result arrives.
+ * - Charts: `useFirstSeen` starts a chart's drawing the first time it is on screen.
  * - Swapped content: `.swap-in`, keyed so it replays when the content changes.
- * - Home only: `.rise-line` and `.stage-in` for the one orchestrated page-load sequence.
  */
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 
 function subscribeReducedMotion(callback: () => void) {
   const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -30,16 +29,17 @@ export function usePrefersReducedMotion(): boolean {
   );
 }
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+/** Expo-out: fast at first, settling exactly on the value. */
+const easeOutExpo = (t: number) => (t >= 1 ? 1 : 1 - 2 ** (-10 * t));
 
 /**
- * A number that eases from its previous value to `value` over `duration` ms. With `from`, the
- * first render starts there (the home page's counters start at 0). Jumps straight to the value
- * under reduced motion, and when the change is not a finite number.
+ * A number that runs from its previous value to `value` over `duration` ms. With `from`, the
+ * first render starts there (a count that arrives starts at 0). Jumps straight to the value under
+ * reduced motion, and when the change is not a finite number.
  */
 export function useTicker(
   value: number,
-  { duration = 600, from }: { duration?: number; from?: number } = {},
+  { duration = 900, from }: { duration?: number; from?: number } = {},
 ) {
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState(from ?? value);
@@ -56,7 +56,7 @@ export function useTicker(
     const t0 = performance.now();
     const step = (now: number) => {
       const t = Math.min(1, (now - t0) / duration);
-      const v = start + (value - start) * easeOutCubic(t);
+      const v = start + (value - start) * easeOutExpo(t);
       shownRef.current = v;
       setShown(v);
       if (t < 1) frame = requestAnimationFrame(step);
@@ -68,7 +68,7 @@ export function useTicker(
   return shown;
 }
 
-/** A reading that ticks to its new value. `format` turns the number into text. */
+/** A reading that runs to its new value. `format` turns the number into text. */
 export function Ticker({
   value,
   format,
@@ -88,7 +88,7 @@ export function Ticker({
 
 /**
  * Returns a key that changes each time `signal` changes after the first render, for remounting
- * an element that carries a one-shot CSS animation (`.flash-new`, `.arrival`, `.swap-in`).
+ * an element that carries a one-shot CSS animation (`.flash-new`, `.swap-in`, a sweep of light).
  * Returns null until the first change, so nothing animates on page load.
  */
 export function useChangeKey(signal: unknown): number | null {
@@ -123,4 +123,34 @@ export function useNewIds(ids: readonly string[]): ReadonlySet<string> {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joined]);
   return fresh;
+}
+
+/**
+ * False until the element has been on screen once, then true for good: a chart draws its real
+ * series the first time it is seen. True at once under reduced motion and where
+ * IntersectionObserver is missing.
+ */
+export function useFirstSeen(ref: RefObject<Element | null>, margin = "0px 0px -10% 0px"): boolean {
+  const reduced = usePrefersReducedMotion();
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (seen) return;
+    const el = ref.current;
+    if (reduced || !el || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: margin },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, reduced, seen, margin]);
+  return seen;
 }

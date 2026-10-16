@@ -113,7 +113,7 @@ export function ShapWaterfall({
           const hi = Math.max(r.start, r.end);
           const anchor = r.kind === "anchor";
           return (
-            <div role="row" key={r.key} className={cn("contents", anchor && "font-medium")}>
+            <div role="row" key={r.key} className={cn("contents", anchor && "font-[560]")}>
               <span
                 role="rowheader"
                 className={cn(
@@ -123,7 +123,7 @@ export function ShapWaterfall({
               >
                 {r.label}
                 {anchor && r.detail ? (
-                  <span className="ml-1.5 font-normal text-ink-3">{r.detail}</span>
+                  <span className="ml-1.5 font-[420] text-ink-3">{r.detail}</span>
                 ) : null}
               </span>
               <span
@@ -139,7 +139,7 @@ export function ShapWaterfall({
                 />
                 <span
                   className={cn(
-                    "absolute top-1/2 h-3 -translate-y-1/2 rounded-[2px]",
+                    "absolute top-1/2 h-3 -translate-y-1/2 rounded-[14px]",
                     anchor ? "bg-ink-2" : r.kind === "up" ? "bg-fail" : "bg-pass",
                   )}
                   style={{ left: pct(lo), width: `max(2px, calc(${pct(hi)} - ${pct(lo)}))` }}
@@ -176,11 +176,11 @@ export function ShapWaterfall({
       </div>
       <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[12px] leading-4 text-ink-2">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-2.5 w-4 rounded-[2px] bg-fail" /> Raises the failure
-          score
+          <span aria-hidden="true" className="h-2.5 w-4 rounded-[14px] bg-fail" /> Raises the
+          failure score
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-2.5 w-4 rounded-[2px] bg-pass" /> Lowers it
+          <span aria-hidden="true" className="h-2.5 w-4 rounded-[14px] bg-pass" /> Lowers it
         </span>
         <span className="text-ink-3">Log-odds; 0 is even odds. {explanation.method}.</span>
       </figcaption>

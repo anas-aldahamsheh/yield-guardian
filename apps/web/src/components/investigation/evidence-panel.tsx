@@ -2,7 +2,10 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import type { Evidence, NumberRef, VerificationIssue } from "@yield-guardian/contracts";
+import { LayoutGroup } from "framer-motion";
 import { type ReactNode, useEffect, useRef } from "react";
+
+import { Indicator } from "@/components/motion/indicator";
 
 import { readPointer } from "@/lib/investigation/events";
 import { TOOL_NAME } from "@/lib/labels";
@@ -45,34 +48,47 @@ export function EvidencePanel({
 
   return (
     <div className="min-w-0">
-      <div role="tablist" aria-label="Evidence" className="flex flex-wrap gap-1">
-        {evidence.map((e) => (
-          <button
-            key={e.evidence_id}
-            role="tab"
-            type="button"
-            aria-selected={e.evidence_id === current.evidence_id}
-            onClick={() => onSelect({ evidenceId: e.evidence_id })}
-            className={cn(
-              "tnum h-7 min-w-9 cursor-pointer rounded-sm border px-2 text-[13px]",
-              e.evidence_id === current.evidence_id
-                ? "lit border-transparent text-ink"
-                : "border-hairline-strong text-ink-2 hover:border-ink-3 hover:text-ink",
-            )}
-          >
-            {e.evidence_id}
-          </button>
-        ))}
-      </div>
+      <LayoutGroup id="evidence-tabs">
+        <div
+          role="tablist"
+          aria-label="Evidence"
+          className="flex w-fit max-w-full flex-wrap gap-0.5 rounded-[18px] bg-surface-2 p-1 shadow-[inset_0_0_0_1px_var(--hairline)]"
+        >
+          {evidence.map((e) => {
+            const on = e.evidence_id === current.evidence_id;
+            return (
+              <button
+                key={e.evidence_id}
+                role="tab"
+                type="button"
+                aria-selected={on}
+                onClick={() => onSelect({ evidenceId: e.evidence_id })}
+                className={cn(
+                  "press tnum relative h-8 min-w-10 cursor-pointer rounded-full px-2.5 text-[13px] leading-5 font-[580]",
+                  on ? "text-ink" : "text-ink-2 hover:text-ink",
+                )}
+              >
+                {on ? (
+                  <Indicator
+                    layoutId="evidence-tab"
+                    className="absolute inset-0 rounded-full bg-surface shadow-[inset_0_0_0_1px_var(--hairline),0_1px_2px_rgb(0_0_0/0.08)] dark:bg-surface-3"
+                  />
+                ) : null}
+                <span className="relative">{e.evidence_id}</span>
+              </button>
+            );
+          })}
+        </div>
+      </LayoutGroup>
 
       <div
         key={current.evidence_id}
         role="tabpanel"
         aria-label={`Evidence ${current.evidence_id}`}
-        className="swap-in mt-4"
+        className="swap-in mt-5"
       >
-        <p className="text-[15px] leading-6 text-ink">{current.summary}</p>
-        <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-[13px] leading-5">
+        <p className="text-[15.5px] leading-6 font-[520] text-ink">{current.summary}</p>
+        <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-1.5 text-[13px] leading-5">
           <dt className="text-ink-3">Tool</dt>
           <dd className="text-ink-2">{TOOL_NAME[current.tool] ?? current.tool}</dd>
           <dt className="text-ink-3">Arguments</dt>
@@ -94,11 +110,11 @@ export function EvidencePanel({
         </dl>
 
         {number && path ? (
-          <div className="lit mt-4 rounded-sm px-3 py-2.5 text-[13px] leading-5">
+          <div className="lit swap-in mt-4 rounded-[12px] px-3.5 py-3 text-[13px] leading-5">
             <p className="text-ink">
-              The report writes <span className="tnum font-medium">{number.as_written}</span>. The
+              The report writes <span className="tnum font-[560]">{number.as_written}</span>. The
               evidence holds{" "}
-              <span className="tnum font-medium">
+              <span className="tnum font-[560]">
                 {value === undefined ? "nothing" : formatValue(value)}
               </span>{" "}
               at <span className="tnum">{path}</span>.
@@ -128,7 +144,8 @@ function JsonScroll({ label, children }: { label: string; children: ReactNode })
     <div
       ref={ref}
       data-json-scroll
-      className="mt-4 max-h-[420px] overflow-auto rounded-sm border border-hairline bg-die-2 p-3"
+      data-theme="dark"
+      className="screen mt-4 max-h-[420px] overflow-auto p-4 text-ink"
     >
       {children}
     </div>
@@ -170,7 +187,10 @@ function JsonNode({
     return (
       <div
         ref={ref}
-        className={cn("tnum text-[12px] leading-5 break-words", hit && "lit -mx-1 rounded-sm px-1")}
+        className={cn(
+          "tnum text-[12px] leading-5 break-words",
+          hit && "lit -mx-1 rounded-[4px] px-1",
+        )}
       >
         {label}
         <span
@@ -187,7 +207,7 @@ function JsonNode({
     ? value.map((v, i) => [String(i), v])
     : Object.entries(value as Record<string, unknown>);
   return (
-    <div ref={ref} className={cn("text-[12px] leading-5", hit && "lit -mx-1 rounded-sm px-1")}>
+    <div ref={ref} className={cn("text-[12px] leading-5", hit && "lit -mx-1 rounded-[4px] px-1")}>
       {label}
       {name != null ? (
         <span className="text-ink-3">{Array.isArray(value) ? `[${entries.length}]` : ""}</span>

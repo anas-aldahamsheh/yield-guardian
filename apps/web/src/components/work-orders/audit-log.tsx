@@ -21,6 +21,7 @@ import { unwrap } from "@/lib/api/client";
 import { formatInt } from "@/lib/format";
 import { ACTOR_ROLE, AUDIT_ACTION } from "@/lib/labels";
 import { investigationHref, workOrderHref } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 type Action = AuditEntry["action"];
 const PAGE = 50;
@@ -40,7 +41,7 @@ function DetailValue({ value }: { value: unknown }) {
       return (
         <Link
           href={investigationHref(value)}
-          className="underline decoration-hairline-strong underline-offset-4"
+          className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
         >
           {value}
         </Link>
@@ -49,7 +50,7 @@ function DetailValue({ value }: { value: unknown }) {
       return (
         <Link
           href={workOrderHref(value)}
-          className="underline decoration-hairline-strong underline-offset-4"
+          className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
         >
           {value}
         </Link>
@@ -109,7 +110,7 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
       actions={
         targetId ? null : (
           <Select value={action} onValueChange={(v) => setAction(v as Action | "all")}>
-            <SelectTrigger size="sm" className="w-[220px]" aria-label="Action">
+            <SelectTrigger size="sm" className="w-[220px] rounded-full" aria-label="Action">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -128,39 +129,59 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
     >
       {query.isError ? (
         <ErrorState
-          className="mx-4 sm:mx-5"
+          className="mx-5 sm:mx-6"
           error={query.error}
           onRetry={() => void query.refetch()}
         />
       ) : !query.data ? (
-        <Placeholder className="mx-4 h-40 sm:mx-5" label="Loading the audit log" />
+        <Placeholder className="mx-5 h-40 sm:mx-6" label="Loading the audit log" />
       ) : entries.length === 0 ? (
-        <EmptyState className="mx-4 sm:mx-5" title="Nothing recorded">
+        <EmptyState
+          className="unexposed mx-5 border-solid bg-surface sm:mx-6"
+          title="Nothing recorded"
+        >
           {action === "all" ? "No action has been taken yet." : "No entry has this action."}
         </EmptyState>
       ) : (
         <>
-          <ol className="border-t border-hairline">
-            {entries.map((e) => {
+          <ol className="relative border-t border-hairline pt-2">
+            {entries.map((e, i) => {
               const href = targetHref(e.target_kind, e.target_id);
               const details = Object.entries(e.details ?? {});
+              const failed = e.action === "session.login_failed";
               return (
                 <li
                   key={e.audit_id}
-                  className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-0.5 border-b border-hairline px-4 py-2.5 last:border-b-0 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:px-5"
+                  className="relative grid grid-cols-[minmax(0,1fr)] gap-x-5 gap-y-1 py-3 pr-5 pl-11 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:pr-6 sm:pl-12"
                 >
-                  <LocalDateTime iso={e.at} className="tnum text-[12px] leading-5 text-ink-3" />
+                  {/* The rail runs from the first entry's dot to the last one's. First and last
+                      come from the index: :first-child and :last-child in a variant would make
+                      every node the parser adds restyle everything under the list. */}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute left-[23px] w-px bg-hairline sm:left-[27px]",
+                      i === 0 ? "top-[18px]" : "top-0",
+                      i === entries.length - 1 ? "bottom-[calc(100%-18px)]" : "bottom-0",
+                    )}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute top-[15px] left-[20px] size-[7px] rounded-full shadow-[0_0_0_3px_var(--surface)] sm:left-[24px]",
+                      failed ? "bg-fail" : i === 0 ? "bg-ink" : "bg-ink-3",
+                    )}
+                  />
+                  <LocalDateTime iso={e.at} className="tnum text-[12.5px] leading-5 text-ink-3" />
                   <div className="min-w-0 text-[14px] leading-5">
                     <p className="text-ink">
-                      <span
-                        className={e.action === "session.login_failed" ? "text-fail" : undefined}
-                      >
+                      <span className={cn("font-[560]", failed && "text-fail")}>
                         {AUDIT_ACTION[e.action] ?? e.action}
                       </span>{" "}
                       {href ? (
                         <Link
                           href={href}
-                          className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+                          className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:text-ink hover:decoration-ink"
                         >
                           {e.target_id}
                         </Link>
@@ -171,12 +192,12 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
                         <span className="ml-2 text-[12px] text-ink-3">Example</span>
                       ) : null}
                     </p>
-                    <p className="text-[12px] leading-4 text-ink-3">
+                    <p className="mt-0.5 text-[12.5px] leading-4 text-ink-3">
                       {e.actor_name ? `${e.actor_name}, ` : ""}
                       {ACTOR_ROLE[e.actor_role] ?? e.actor_role}
                     </p>
                     {details.length ? (
-                      <dl className="tnum mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[12px] leading-4">
+                      <dl className="tnum mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] leading-4">
                         {details.map(([k, v]) => (
                           <div key={k} className="flex min-w-0 gap-1">
                             <dt className="text-ink-3">{k.replaceAll("_", " ")}</dt>
@@ -193,7 +214,7 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
             })}
           </ol>
           {query.hasNextPage && !targetId ? (
-            <div className="px-4 pt-3 sm:px-5">
+            <div className="px-5 pt-4 sm:px-6">
               <Button
                 variant="outline"
                 size="sm"

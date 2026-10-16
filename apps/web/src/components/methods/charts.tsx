@@ -142,7 +142,7 @@ export function PrCurve({
               cx={x(p.recall.value)}
               cy={y(p.precision.value)}
               r={p.id === defaultId ? 5.5 : 4}
-              fill={p.id === defaultId ? "var(--safelight)" : "var(--die)"}
+              fill={p.id === defaultId ? "var(--signal)" : "var(--surface)"}
               stroke="var(--ink)"
               strokeWidth={1.5}
             />
@@ -276,7 +276,7 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
         </caption>
         <thead>
           <tr>
-            <th scope="col" className="p-1 text-left font-normal text-ink-3">
+            <th scope="col" className="p-1 text-left font-[520] text-ink-3">
               True ↓ Predicted →
             </th>
             {matrix.labels.map((l, j) => (
@@ -284,7 +284,7 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
                 key={l}
                 scope="col"
                 className={cn(
-                  "h-24 w-10 p-0 align-bottom font-normal",
+                  "h-24 w-10 p-0 align-bottom font-[420]",
                   hover?.[1] === j ? "text-ink" : "text-ink-3",
                 )}
               >
@@ -303,7 +303,7 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
                 <th
                   scope="row"
                   className={cn(
-                    "pr-2 text-right font-normal whitespace-nowrap",
+                    "pr-2 text-right font-[420] whitespace-nowrap",
                     hover?.[0] === i ? "text-ink" : "text-ink-2",
                   )}
                 >
@@ -317,15 +317,15 @@ export function ConfusionMatrix({ matrix }: { matrix: Confusion }) {
                       key={j}
                       onMouseEnter={() => setHover([i, j])}
                       title={`True ${patternName(matrix.labels[i] as PatternLabel)}, predicted ${patternName(matrix.labels[j] as PatternLabel)}: ${formatInt(c)} (${formatPercent(share)} of the row)`}
-                      className="tnum relative size-10 border border-die p-0 text-center"
+                      className="tnum relative size-10 border border-surface p-0 text-center"
                       style={{
                         // Cells with light text are pulled toward the ink so the count keeps 4.5:1.
                         background: c
                           ? share > 0.5
-                            ? `color-mix(in oklab, color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--die-2)), var(--ink) 25%)`
-                            : `color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--die-2))`
-                          : "var(--die-2)",
-                        color: share > 0.5 ? "var(--die)" : "var(--ink-2)",
+                            ? `color-mix(in oklab, color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--surface-2)), var(--ink) 25%)`
+                            : `color-mix(in oklab, ${diagonal ? "var(--pass)" : "var(--fail)"} ${Math.round(8 + share * 82)}%, var(--surface-2))`
+                          : "var(--surface-2)",
+                        color: share > 0.5 ? "var(--surface)" : "var(--ink-2)",
                       }}
                     >
                       {c ? formatInt(c) : ""}
@@ -355,11 +355,11 @@ export function BlocksBar({ blocks }: { blocks: BlockInfo[] }) {
   };
   return (
     <div>
-      <div className="flex h-3 overflow-hidden rounded-[2px]" aria-hidden="true">
+      <div className="flex h-3 overflow-hidden rounded-[14px]" aria-hidden="true">
         {blocks.map((b) => (
           <div
             key={b.block}
-            className={cn("h-full border-r-2 border-die last:border-r-0", tone[b.block])}
+            className={cn("h-full border-r-2 border-surface last:border-r-0", tone[b.block])}
             style={{ width: `${(b.units / total) * 100}%` }}
           />
         ))}
@@ -367,7 +367,7 @@ export function BlocksBar({ blocks }: { blocks: BlockInfo[] }) {
       <dl className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-2 sm:grid-cols-3">
         {blocks.map((b) => (
           <div key={b.block} className="min-w-0 text-[12px] leading-4">
-            <dt className="font-medium text-ink capitalize">{b.block}</dt>
+            <dt className="font-[560] text-ink capitalize">{b.block}</dt>
             <dd className="tnum text-ink-2">
               {formatInt(b.units)} units, {formatInt(b.failures)} failed (
               {formatPercent(b.failures / (b.units || 1))})

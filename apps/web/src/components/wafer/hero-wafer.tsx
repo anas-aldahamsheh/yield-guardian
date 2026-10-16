@@ -121,7 +121,7 @@ export function HeroWafer({
       <figure className="relative m-0 aspect-square w-full" aria-label={label} role="img">
         <div
           className={cn(
-            "absolute inset-[11%] [transform:perspective(1600px)_rotateX(44deg)_rotateZ(24deg)] transition-opacity duration-[var(--dur-panel)]",
+            "absolute inset-[11%] [transform:perspective(1600px)_rotateX(44deg)_rotateZ(24deg)] transition-opacity duration-(--dur-4)",
             ready && mount3d ? "opacity-0" : "opacity-100",
           )}
         >
@@ -130,7 +130,7 @@ export function HeroWafer({
         {mount3d ? (
           <div
             className={cn(
-              "absolute inset-0 transition-opacity duration-[var(--dur-panel)]",
+              "absolute inset-0 transition-opacity duration-(--dur-4)",
               ready ? "opacity-100" : "opacity-0",
               !running && "cursor-crosshair",
             )}
@@ -212,7 +212,7 @@ function DieTip({ hover }: { hover: DieHover }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed z-50 rounded-sm border border-hairline-strong bg-die-2 px-2.5 py-1.5 text-[12px] leading-4 text-ink"
+      className="pointer-events-none fixed z-50 rounded-sm border border-hairline-strong bg-surface-2 px-2.5 py-1.5 text-[12px] leading-4 text-ink"
       style={{ left: hover.clientX + 14, top: hover.clientY + 14 }}
     >
       <p className="tnum">

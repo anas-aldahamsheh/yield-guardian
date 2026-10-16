@@ -6,7 +6,7 @@ import type { DieGrid } from "@/lib/wafer/geometry";
  * The order the prober visits the dies of a map: row by row from the top, left to right on even
  * rows and right to left on odd rows (a serpentine, how a prober steps to keep moves short).
  * WM-811K records results, not the probe sequence, so this is the order drawn, and it is the
- * order of planExposure with one die per field, which the 3D wafer uses.
+ * order of planExposure with one die per field.
  */
 export function probeOrder(grid: DieGrid): Int32Array {
   const out: number[] = [];

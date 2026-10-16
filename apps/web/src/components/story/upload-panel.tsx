@@ -103,11 +103,11 @@ export function UploadPanel({ onStart, starting }: { onStart: StartRun; starting
           onDragLeave={() => setOver(false)}
           onDrop={onDrop}
           className={cn(
-            "flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[2px] border border-dashed border-hairline-strong px-4 py-6 text-center hover:bg-die-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
+            "flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[18px] border border-dashed border-hairline-strong px-4 py-6 text-center hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
             over && "lit",
           )}
         >
-          <span className="text-[15px] leading-6 font-medium text-ink">
+          <span className="text-[15px] leading-6 font-[560] text-ink">
             {upload.isPending ? "Reading the file" : "Choose a CSV or XLSX file, or drop it here"}
           </span>
           <span className="text-[13px] leading-5 text-ink-3">Up to 32 MB per file.</span>
@@ -125,7 +125,7 @@ export function UploadPanel({ onStart, starting }: { onStart: StartRun; starting
         {refused ? (
           <p
             role="alert"
-            className="mt-3 rounded-[2px] bg-fail-wash px-3 py-2 text-[14px] leading-5 text-ink"
+            className="mt-3 rounded-[14px] bg-fail-wash px-4 py-3 text-[14px] leading-5 text-ink"
           >
             {refused}
           </p>
@@ -133,7 +133,7 @@ export function UploadPanel({ onStart, starting }: { onStart: StartRun; starting
         {upload.isError ? (
           <p
             role="alert"
-            className="mt-3 rounded-[2px] bg-fail-wash px-3 py-2 text-[14px] leading-5 text-ink"
+            className="mt-3 rounded-[14px] bg-fail-wash px-4 py-3 text-[14px] leading-5 text-ink"
           >
             {`${describeError(upload.error).title}. ${describeError(upload.error).detail}`}
           </p>
@@ -166,7 +166,7 @@ function UploadResult({
       <p className="text-[14px] leading-5 text-ink-2">{view.read}</p>
       <p
         className={cn(
-          "mt-1 text-[15px] leading-6 font-medium",
+          "mt-1 text-[15px] leading-6 font-[560]",
           view.ready ? "text-ink" : "text-fail",
         )}
       >
@@ -188,7 +188,7 @@ function UploadResult({
                 {issue.severity === "error" ? "Error" : "Warning"}
               </span>
               <span className="min-w-0 text-ink">
-                <span className="tnum font-medium">{issueLine(issue).place}</span>
+                <span className="tnum font-[560]">{issueLine(issue).place}</span>
                 {issueLine(issue).rest}
               </span>
             </li>
@@ -204,7 +204,7 @@ function UploadResult({
             type="button"
             onClick={onRun}
             disabled={starting}
-            className="inline-flex h-10 items-center rounded-[4px] bg-ink px-4 text-[14px] font-semibold text-room hover:bg-ink/90 disabled:opacity-50"
+            className="press lift sheen-hover inline-flex h-10 items-center justify-center rounded-full bg-ink px-5 text-[14px] font-[600] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink/92 disabled:opacity-50"
           >
             {`Run ${summary.filename}`}
           </button>
@@ -220,13 +220,13 @@ function UploadResult({
 function Formats() {
   return (
     <section aria-labelledby="formats-title" className="min-w-0">
-      <h3 id="formats-title" className="text-[15px] leading-6 font-semibold text-ink">
+      <h3 id="formats-title" className="text-[15px] leading-6 font-[620] text-ink">
         What a file holds
       </h3>
       <dl className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-3">
         {KINDS.map((k) => (
           <div key={k.kind} className="border-t border-hairline pt-2">
-            <dt className="text-[14px] leading-5 font-medium text-ink">{k.name}</dt>
+            <dt className="text-[14px] leading-5 font-[560] text-ink">{k.name}</dt>
             <dd className="mt-0.5 text-[13px] leading-5 text-ink-2">{k.format}</dd>
             <dd className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] leading-5">
               <span className="text-ink-3">
@@ -237,7 +237,7 @@ function Formats() {
                     <a
                       href={templateUrl(k.kind, f)}
                       download
-                      className="text-ink underline underline-offset-2 hover:text-safelight"
+                      className="text-ink underline underline-offset-2 hover:text-signal"
                     >
                       {f.toUpperCase()}
                     </a>
@@ -252,7 +252,7 @@ function Formats() {
                     <a
                       href={exampleUrl(k.kind, f)}
                       download
-                      className="text-ink underline underline-offset-2 hover:text-safelight"
+                      className="text-ink underline underline-offset-2 hover:text-signal"
                     >
                       {f.toUpperCase()}
                     </a>

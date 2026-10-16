@@ -17,6 +17,8 @@ const OUT = process.env.GUIDE_SHOTS;
 const UPLOAD = process.env.GUIDE_UPLOAD;
 const BASE = `http://localhost:${process.env.E2E_PORT ?? 4300}`;
 const PAD = 16;
+/** The top bar's height (--bar-height): it floats over the top of the screen once scrolled. */
+const BAR = 64;
 
 test.skip(!OUT || !UPLOAD, "set GUIDE_SHOTS and GUIDE_UPLOAD to take the guide's screenshots");
 
@@ -40,21 +42,6 @@ async function boxOf(locator: Locator): Promise<Box> {
   });
 }
 
-/** Document coordinates of an element's text (narrower than a block that fills its row). */
-async function textBoxOf(locator: Locator): Promise<Box> {
-  return locator.evaluate((el) => {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const r = range.getBoundingClientRect();
-    return {
-      x: r.left + window.scrollX,
-      y: r.top + window.scrollY,
-      width: r.width,
-      height: r.height,
-    };
-  });
-}
-
 /** The smallest box around the boxes, with a margin, inside the page's width. */
 function around(boxes: Box[], pad = PAD): Box {
   const x = Math.max(0, Math.min(...boxes.map((b) => b.x)) - pad);
@@ -64,9 +51,34 @@ function around(boxes: Box[], pad = PAD): Box {
   return { x, y, width: Math.round(right - x), height: Math.round(bottom - y) };
 }
 
+/** The bottom of what stays at the top of the screen once scrolled: the bar, a section index. */
+async function stuckBottom(page: Page): Promise<number> {
+  return page.evaluate((bar) => {
+    const stuck = [...document.querySelectorAll("body *")].filter((el) => {
+      const position = getComputedStyle(el).position;
+      if (position !== "fixed" && position !== "sticky") return false;
+      const r = el.getBoundingClientRect();
+      return r.height > 0 && r.height < 160 && r.top >= 0 && r.top <= bar + 8;
+    });
+    return Math.max(bar, ...stuck.map((el) => el.getBoundingClientRect().bottom));
+  }, BAR);
+}
+
 async function capture(page: Page, name: string, clip: Box, settle?: Locator) {
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(300);
+  // A crop that fits under what stays at the top of the screen is taken where a reader sees it,
+  // scrolled into view: the alarms rail sizes itself to the room it has on screen, so from the
+  // top of the page it has none. A taller crop is taken from the top of the page.
+  const view = page.viewportSize()!;
+  // Clear of the bar's shadow too.
+  const fits = (top: number) => clip.height <= view.height - top - 24;
+  let top = BAR;
+  if (fits(top)) {
+    await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, clip.y - top - 24));
+    await page.waitForTimeout(300);
+    top = await stuckBottom(page);
+  }
+  await page.evaluate((y) => window.scrollTo(0, y), fits(top) ? Math.max(0, clip.y - top - 24) : 0);
+  await page.waitForTimeout(400);
   // Rows that are still sliding in would be caught half drawn.
   if (settle)
     await settle.evaluate((el) =>
@@ -75,7 +87,29 @@ async function capture(page: Page, name: string, clip: Box, settle?: Locator) {
         new Promise((done) => setTimeout(done, 3_000)),
       ]),
     );
-  await page.screenshot({ path: path.join(OUT!, `${name}.png`), fullPage: true, clip });
+  const scrolled = await page.evaluate(() => window.scrollY);
+  const file = path.join(OUT!, `${name}.png`);
+  if (fits(top) && clip.y - scrolled >= (await stuckBottom(page)) + 16) {
+    await page.screenshot({ path: file, clip: { ...clip, y: clip.y - scrolled } });
+  } else {
+    await page.screenshot({ path: file, fullPage: true, clip });
+  }
+}
+
+/** Waits until the page has stopped scrolling (a panel that brings itself into view). */
+async function still(page: Page) {
+  let last = -1;
+  await expect
+    .poll(
+      async () => {
+        const y = await page.evaluate(() => window.scrollY);
+        const same = y === last;
+        last = y;
+        return same;
+      },
+      { intervals: [150] },
+    )
+    .toBe(true);
 }
 
 /** The floating Ask button sits over whatever is at the bottom of the screen; the crops that are not about it leave it out. */
@@ -105,15 +139,17 @@ test("guide: navigation, input bar, drawing, upload check", async ({ page }) => 
   await page.screenshot({ path: path.join(OUT!, "guide-nav.png") });
 
   await hideAsk(page);
+  // The title, the introduction, the real sample's button with its note, and the three ways in.
   const title = page.getByRole("heading", { level: 1, name: "Run real fab data down the line" });
-  const note = page.getByText(/^A real sample is a run of consecutive SECOM units/);
-  const bar = around([await boxOf(title), await textBoxOf(note)], 24);
-  // Not as far down as the line's top rule under the note.
-  await capture(page, "guide-input-bar", { ...bar, height: bar.height - 12 });
+  const ways = page.getByRole("button", { name: "Upload a file" });
+  await capture(page, "guide-input-bar", around([await boxOf(title), await boxOf(ways)], 24));
 
   await page.getByRole("button", { name: "Draw a defect" }).click();
   const editor = page.getByRole("application", { name: /Wafer 1 of your drawing/ });
   await expect(editor).toBeVisible();
+  // The panel opens under the hero and scrolls itself into view: draw once the page is still.
+  await expect(editor).toBeInViewport({ ratio: 1 });
+  await still(page);
   const e = (await editor.boundingBox())!;
   // A scratch: one stroke across the wafer, as a reader would drag it.
   await page.mouse.move(e.x + e.width * 0.3, e.y + e.height * 0.22);
@@ -240,6 +276,8 @@ test("guide: a recorded investigation's steps, and the work orders tab", async (
 
 test("guide: the calculator with the reader's own example numbers", async ({ page }) => {
   test.setTimeout(120_000);
+  // A taller screen, so the two panels fit on it and are taken where a reader sees them.
+  await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto(`${BASE}/how#calculator`);
   await page.waitForLoadState("networkidle").catch(() => undefined);
   await hideAsk(page);

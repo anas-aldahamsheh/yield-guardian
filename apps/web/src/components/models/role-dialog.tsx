@@ -131,13 +131,13 @@ export function RoleDialog({
             ) : null}
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
-            <p className="text-sm leading-none font-medium">Fallbacks, tried in order</p>
+            <p className="text-[14px] leading-5 font-[560] text-ink">Fallbacks, tried in order</p>
             {fallbacks.length ? (
               <ol className="grid grid-cols-[minmax(0,1fr)] gap-1">
                 {fallbacks.map((f, i) => (
                   <li
                     key={f}
-                    className="flex items-center justify-between gap-2 rounded-sm border border-hairline px-2.5 py-1 text-[13px]"
+                    className="flex items-center justify-between gap-2 rounded-[12px] bg-surface-2 py-1 pr-1 pl-3 text-[13px] shadow-[inset_0_0_0_1px_var(--hairline)]"
                   >
                     <span className="tnum">
                       <span className="text-ink-3">{i + 1}.</span> {f}

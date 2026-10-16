@@ -1,7 +1,10 @@
 "use client";
 
+import { XIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
+import { Placeholder } from "@/components/states";
 import { formatInt, formatPercent, formatPlantTime, plural } from "@/lib/format";
 import { stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import { STATION_NAME } from "@/lib/live/stations";
@@ -9,8 +12,14 @@ import { stationAt, type Focus } from "@/lib/live/url-state";
 import { cn } from "@/lib/utils";
 
 import { DrawerSection, Fact, NotYet } from "./drawer-parts";
-import { UnitsDrawer } from "./drawer-units";
-import { WafersDrawer } from "./drawer-wafers";
+
+/** The monitoring and wafer-test drawers (tables, charts, maps) load when one first opens. */
+const UnitsDrawer = dynamic(() => import("./drawer-units").then((mod) => mod.UnitsDrawer), {
+  loading: () => <Placeholder className="h-80" label="Loading the monitoring details" />,
+});
+const WafersDrawer = dynamic(() => import("./drawer-wafers").then((mod) => mod.WafersDrawer), {
+  loading: () => <Placeholder className="h-80" label="Loading the wafer test details" />,
+});
 
 /**
  * Whether this page was opened anew at its address, not reloaded or reached with back and
@@ -82,22 +91,31 @@ export function StationDrawer({
     <section
       id="station-drawer"
       aria-labelledby="station-drawer-title"
-      className={cn("panel mt-6 px-4 pt-4 pb-6 sm:px-6", !quiet && "swap-in")}
+      className={cn(
+        "panel relative mt-8 px-5 pt-5 pb-7 sm:px-7 sm:pt-6 sm:pb-8",
+        !quiet && "grow-in",
+      )}
     >
-      <header className="mb-5 flex items-start justify-between gap-4 border-b border-hairline pb-3">
+      {/* The film's light along the top edge, as on the station that opened it */}
+      <span
+        aria-hidden="true"
+        className="film-light absolute inset-x-7 top-0 h-[2px] rounded-b-full opacity-80"
+      />
+      <header className="mb-7 flex items-start justify-between gap-4">
         <h2
           id="station-drawer-title"
           ref={heading}
           tabIndex={-1}
-          className="text-[20px] leading-7 font-semibold text-ink outline-none"
+          className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] outline-none sm:text-[30px] sm:leading-9"
         >
           <span className="tnum text-ink-3">{station}</span> {`${name} in detail`}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-[4px] border border-hairline-strong px-2.5 py-1 text-[13px] leading-5 text-ink hover:bg-die-2"
+          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
         >
+          <XIcon aria-hidden="true" className="size-4" strokeWidth={2} />
           Close
         </button>
       </header>
@@ -131,12 +149,12 @@ function IntakeDrawer({ state, shown }: { state: RunState; shown: boolean }) {
   const intake = shown ? stageResult(state, "intake") : null;
   if (!intake) return <NotYet stage={state.stages.intake} what="The intake" />;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-2">
       <DrawerSection
         title="What came in"
         description={state.origin ? `${state.origin.title}. ${state.origin.rule}` : undefined}
       >
-        <dl className="tnum grid grid-cols-2 gap-x-6 gap-y-3">
+        <dl className="tnum grid grid-cols-2 gap-x-6 gap-y-4 rounded-[16px] bg-surface-2 p-4 sm:p-5">
           <Fact label="Sensor units">{formatInt(intake.units)}</Fact>
           <Fact label="Sensors per unit">{formatInt(intake.sensors)}</Fact>
           <Fact label="Missing readings">{`${formatInt(intake.missing_readings)} (${formatPercent(intake.missing_share)})`}</Fact>
@@ -161,7 +179,7 @@ function IntakeDrawer({ state, shown }: { state: RunState; shown: boolean }) {
         title="Sensors the models do not use"
         description={`${plural(intake.unmonitored_sensors.length, "sensor")} were constant or empty in training, so no model reads them. Their lamps on the sensor bank stay dark.`}
       >
-        <p className="tnum text-[13px] leading-6 text-ink-2">
+        <p className="tnum rounded-[16px] bg-surface-2 p-4 text-[13px] leading-6 text-ink-2 sm:p-5">
           {intake.unmonitored_sensors.join(", ") || "None."}
         </p>
       </DrawerSection>

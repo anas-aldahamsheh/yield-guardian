@@ -26,22 +26,26 @@ export function Disclosure({
   return (
     <details
       id={id}
-      className={cn("group panel", className)}
+      className={cn("group/disclosure panel glow", className)}
       onToggle={(e) => e.currentTarget.open && setOpened(true)}
     >
-      <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-4 py-3.5 sm:px-5 [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-5 rounded-[inherit] px-5 py-4.5 sm:px-6 sm:py-5 [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">
-          <span className="block text-[15px] leading-6 font-semibold text-ink">{title}</span>
+          <span className="block text-[16px] leading-6 font-[630] tracking-[-0.01em] text-ink sm:text-[17px]">
+            {title}
+          </span>
           {summary ? (
-            <span className="block text-[13px] leading-5 text-ink-3">{summary}</span>
+            <span className="mt-0.5 block text-[13.5px] leading-5 text-ink-2">{summary}</span>
           ) : null}
         </span>
-        <ChevronDown
+        <span
           aria-hidden="true"
-          className="mt-1 size-4 shrink-0 text-ink-3 transition-transform group-open:rotate-180"
-        />
+          className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-2 text-ink-2 transition-[background-color,color,rotate] duration-(--dur-4) ease-spring group-open/disclosure:rotate-180 group-open/disclosure:bg-ink! group-open/disclosure:text-canvas! group-hover/disclosure:bg-surface-3"
+        >
+          <ChevronDown className="size-4" strokeWidth={2} />
+        </span>
       </summary>
-      <div className="border-t border-hairline bg-room p-0 pt-street">
+      <div className="grow-in rounded-b-[inherit] border-t border-hairline bg-canvas pt-street">
         {opened ? children : null}
       </div>
     </details>

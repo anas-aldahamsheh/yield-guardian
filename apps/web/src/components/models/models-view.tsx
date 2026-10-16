@@ -10,6 +10,7 @@ import type {
   Usage,
   UsageReport,
 } from "@yield-guardian/contracts";
+import dynamic from "next/dynamic";
 import { Fragment, useState } from "react";
 
 import { EstimateText, IntervalMark } from "@/components/charts/interval";
@@ -30,8 +31,10 @@ import {
 import { ROLE_JOBS, ROLE_NAMES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
-import { RoleDialog } from "./role-dialog";
 import { ScrollRegion } from "@/components/scroll-region";
+
+/** The role dialog (a form with a model picker) loads when an admin first opens it. */
+const RoleDialog = dynamic(() => import("./role-dialog").then((mod) => mod.RoleDialog));
 
 /**
  * The hidden admin page: which model does each job, how the candidates were evaluated, today's
@@ -58,7 +61,8 @@ export function AdminView() {
         >
           <QueryView
             query={roles}
-            loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}
+            errorClassName="mx-5 sm:mx-6"
+            loading={<Placeholder className="mx-5 h-56 sm:mx-6" label="Loading roles" />}
           >
             {(r) => (
               <RolesTable
@@ -78,7 +82,8 @@ export function AdminView() {
           >
             <QueryView
               query={evaluations}
-              loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}
+              errorClassName="mx-5 sm:mx-6"
+              loading={<Placeholder className="mx-5 h-56 sm:mx-6" label="Loading evaluations" />}
             >
               {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
             </QueryView>
@@ -102,7 +107,8 @@ export function AdminView() {
         >
           <QueryView
             query={catalog}
-            loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading the catalog" />}
+            errorClassName="mx-5 sm:mx-6"
+            loading={<Placeholder className="mx-5 h-56 sm:mx-6" label="Loading the catalog" />}
           >
             {(c) => <CatalogTable models={c} roles={roles.data ?? []} />}
           </QueryView>
@@ -130,7 +136,8 @@ export function AiRoles() {
       >
         <QueryView
           query={roles}
-          loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading roles" />}
+          errorClassName="mx-5 sm:mx-6"
+          loading={<Placeholder className="mx-5 h-56 sm:mx-6" label="Loading roles" />}
         >
           {(r) => (
             <RolesTable roles={r} catalog={catalog.data ?? []} evaluations={evaluations.data} />
@@ -144,7 +151,8 @@ export function AiRoles() {
       >
         <QueryView
           query={evaluations}
-          loading={<Placeholder className="mx-4 h-56 sm:mx-5" label="Loading evaluations" />}
+          errorClassName="mx-5 sm:mx-6"
+          loading={<Placeholder className="mx-5 h-56 sm:mx-6" label="Loading evaluations" />}
         >
           {(e) => <EvaluationsTable data={e} roles={roles.data ?? []} />}
         </QueryView>
@@ -171,7 +179,7 @@ function RolesTable({
   const current = roles.find((r) => r.role === editing);
   if (roles.length === 0)
     return (
-      <EmptyState className="mx-4 sm:mx-5" title="No roles">
+      <EmptyState className="mx-5 sm:mx-6" title="No roles">
         The API has no role assignments.
       </EmptyState>
     );
@@ -181,23 +189,23 @@ function RolesTable({
         <table className="w-full min-w-[760px] border-collapse text-left text-[14px] leading-5">
           <caption className="sr-only">Role assignments</caption>
           <thead>
-            <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+            <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+              <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                 Role
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 Model
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 Effort
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 Fallbacks
               </th>
-              <th scope="col" className="px-2 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 Evaluated success
               </th>
-              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+              <th scope="col" className="px-5 py-3 text-right font-[520] sm:px-6">
                 {isAdmin ? "" : "Changed"}
               </th>
             </tr>
@@ -209,35 +217,38 @@ function RolesTable({
               );
               const model = catalog.find((m) => m.model_id === r.model_id);
               return (
-                <tr key={r.role} className="border-b border-hairline last:border-b-0">
-                  <th scope="row" className="px-4 py-2.5 align-top font-normal sm:px-5">
-                    <span className="font-medium text-ink">{ROLE_NAMES[r.role] ?? r.role}</span>
+                <tr
+                  key={r.role}
+                  className="border-b border-hairline transition-colors duration-(--dur-1) last:border-b-0 hover:bg-surface-2/70"
+                >
+                  <th scope="row" className="px-5 py-3 align-top font-[420] sm:px-6">
+                    <span className="font-[560] text-ink">{ROLE_NAMES[r.role] ?? r.role}</span>
                     <span className="block text-[12px] text-ink-3">{ROLE_JOBS[r.role]}</span>
                   </th>
-                  <td className="tnum px-2 py-2.5 align-top text-ink">
+                  <td className="tnum px-3 py-3 align-top text-ink">
                     {r.model_id}
                     {model && !model.available ? (
                       <span className="block text-[12px] text-fail">Not in the live catalog</span>
                     ) : null}
                   </td>
-                  <td className="px-2 py-2.5 align-top text-ink-2">
+                  <td className="px-3 py-3 align-top text-ink-2">
                     {r.reasoning_effort ?? <span className="text-ink-3">default</span>}
                   </td>
-                  <td className="tnum px-2 py-2.5 align-top text-[13px] text-ink-2">
+                  <td className="tnum px-3 py-3 align-top text-[13px] text-ink-2">
                     {r.fallbacks.length ? (
                       r.fallbacks.join(", ")
                     ) : (
                       <span className="text-ink-3">None</span>
                     )}
                   </td>
-                  <td className="px-2 py-2.5 align-top text-[13px]">
+                  <td className="px-3 py-3 align-top text-[13px]">
                     {evaluation ? (
                       <EstimateText estimate={evaluation.success_rate} format="percent" />
                     ) : (
                       <span className="text-ink-3">Not evaluated</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-right align-top text-[12px] text-ink-3 sm:px-5">
+                  <td className="px-5 py-3 text-right align-top text-[12px] text-ink-3 sm:px-6">
                     {isAdmin ? (
                       <Button
                         size="sm"
@@ -263,7 +274,7 @@ function RolesTable({
         </table>
       </ScrollRegion>
       {editable && !isAdmin ? (
-        <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">
+        <p className="mx-5 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-6">
           Only an admin can change a role.
         </p>
       ) : null}
@@ -283,7 +294,7 @@ function RolesTable({
 function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssignment[] }) {
   if (data.results.length === 0) {
     return (
-      <EmptyState className="mx-4 sm:mx-5" title="Not measured yet">
+      <EmptyState className="mx-5 sm:mx-6" title="Not measured yet">
         No evaluation has been run. {data.note}
       </EmptyState>
     );
@@ -299,20 +310,20 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
         <table className="w-full min-w-[620px] border-collapse text-left text-[13px] leading-5">
           <caption className="sr-only">Model evaluations by role</caption>
           <thead>
-            <tr className="border-y border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+            <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+              <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                 Model
               </th>
-              <th scope="col" className="w-[26%] px-2 py-2 font-normal">
+              <th scope="col" className="w-[26%] px-3 py-3 font-[520]">
                 Success, 0 to 100%
               </th>
-              <th scope="col" className="px-2 py-2 text-right font-normal">
+              <th scope="col" className="px-3 py-3 text-right font-[520]">
                 Violations
               </th>
-              <th scope="col" className="px-2 py-2 text-right font-normal">
+              <th scope="col" className="px-3 py-3 text-right font-[520]">
                 Median latency
               </th>
-              <th scope="col" className="px-4 py-2 text-right font-normal sm:px-5">
+              <th scope="col" className="px-5 py-3 text-right font-[520] sm:px-6">
                 Points
               </th>
             </tr>
@@ -323,13 +334,13 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
               const assigned = roles.find((r) => r.role === head.role)?.model_id;
               return (
                 <Fragment key={`${head.role}-${head.task_set}`}>
-                  <tr className="border-b border-hairline bg-die-2">
+                  <tr className="border-b border-hairline bg-surface-2/70">
                     <th
                       scope="colgroup"
                       colSpan={5}
-                      className="px-4 py-1.5 text-[12px] font-normal text-ink-2 sm:px-5"
+                      className="px-5 py-2 text-[12px] font-[420] text-ink-2 sm:px-6"
                     >
-                      <span className="font-medium text-ink">
+                      <span className="font-[560] text-ink">
                         {ROLE_NAMES[head.role] ?? head.role}
                       </span>
                       , task set <span className="tnum">{head.task_set}</span> (
@@ -338,10 +349,10 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
                   </tr>
                   {rows.map((r) => (
                     <tr key={r.model_id} className="border-b border-hairline">
-                      <th scope="row" className="tnum px-4 py-2 align-top font-normal sm:px-5">
+                      <th scope="row" className="tnum px-5 py-2.5 align-top font-[420] sm:px-6">
                         <span
                           className={cn(
-                            r.model_id === assigned ? "font-medium text-ink" : "text-ink-2",
+                            r.model_id === assigned ? "font-[560] text-ink" : "text-ink-2",
                           )}
                         >
                           {r.model_id}
@@ -350,21 +361,21 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
                           <span className="block text-[12px] text-ink-3">Assigned</span>
                         ) : null}
                       </th>
-                      <td className="px-2 py-2 align-top">
+                      <td className="px-3 py-2.5 align-top">
                         <IntervalMark estimate={r.success_rate} />
                         <span className="mt-0.5 block text-[12px]">
                           <EstimateText estimate={r.success_rate} format="percent" />
                         </span>
                       </td>
-                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                      <td className="tnum px-3 py-2.5 text-right align-top text-ink-2">
                         {formatInt(r.violations)}
                       </td>
-                      <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                      <td className="tnum px-3 py-2.5 text-right align-top text-ink-2">
                         {r.latency_ms_p50 == null
                           ? "not reported"
                           : formatDuration(r.latency_ms_p50)}
                       </td>
-                      <td className="tnum px-4 py-2 text-right align-top text-ink-2 sm:px-5">
+                      <td className="tnum px-5 py-2.5 text-right align-top text-ink-2 sm:px-6">
                         {formatNumber(r.points, 4)}
                       </td>
                     </tr>
@@ -375,7 +386,7 @@ function EvaluationsTable({ data, roles }: { data: Evaluations; roles: RoleAssig
           </tbody>
         </table>
       </ScrollRegion>
-      <p className="mx-4 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-5">
+      <p className="mx-5 mt-3 text-[12px] leading-4 text-ink-3 sm:mx-6">
         {data.results[0]?.success_rate.method
           ? `Intervals: ${data.results[0].success_rate.method}. `
           : ""}
@@ -413,7 +424,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
         <Reading label="Points" value={formatNumber(t.points, 4)} />
       </dl>
       {t.requests_without_usage > 0 ? (
-        <p className="rounded-sm bg-die-2 px-3 py-2 text-[13px] leading-5 text-ink-2">
+        <p className="rounded-[12px] bg-surface-2 px-3.5 py-2.5 text-[13px] leading-5 text-ink-2">
           {formatInt(t.requests_without_usage)} {t.requests_without_usage === 1 ? "call" : "calls"}{" "}
           did not report usage, so the sums leave {t.requests_without_usage === 1 ? "it" : "them"}{" "}
           out.
@@ -421,12 +432,12 @@ function UsagePanel({ report }: { report: UsageReport }) {
       ) : null}
 
       <div>
-        <h3 className="text-[13px] leading-5 font-medium text-ink">Quota</h3>
+        <h3 className="text-[14px] leading-5 font-[620] text-ink">Quota</h3>
         {share != null ? (
           <div className="mt-1.5">
-            <div className="h-2 rounded-[2px] bg-hairline" aria-hidden="true">
+            <div className="h-2 overflow-hidden rounded-full bg-hairline" aria-hidden="true">
               <div
-                className="h-2 rounded-[2px] bg-ink-2"
+                className="h-2 rounded-full bg-ink"
                 style={{ width: `${Math.min(100, share * 100)}%` }}
               />
             </div>
@@ -449,7 +460,7 @@ function UsagePanel({ report }: { report: UsageReport }) {
       </div>
 
       <div>
-        <h3 className="text-[13px] leading-5 font-medium text-ink">Chat answers</h3>
+        <h3 className="text-[14px] leading-5 font-[620] text-ink">Chat answers</h3>
         <p className="tnum mt-0.5 text-[13px] leading-5 text-ink-2">
           {formatInt(report.deterministic_answers)} answered by rules without a model,{" "}
           {formatInt(report.model_answers)} by a model.
@@ -476,15 +487,15 @@ function UsagePanel({ report }: { report: UsageReport }) {
       </div>
 
       <div>
-        <h3 className="text-[13px] leading-5 font-medium text-ink">Recent calls</h3>
+        <h3 className="text-[14px] leading-5 font-[620] text-ink">Recent calls</h3>
         {report.recent.length === 0 ? (
           <p className="mt-1 text-[13px] text-ink-3">No model call today.</p>
         ) : (
-          <ol className="mt-1 divide-y divide-hairline border-y border-hairline">
+          <ol className="mt-1 border-y border-hairline">
             {report.recent.slice(0, 10).map((c, i) => (
               <li
                 key={i}
-                className="tnum grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 py-1.5 text-[12px] leading-4"
+                className="tnum grid grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 border-b border-hairline py-1.5 text-[12px] leading-4 last:border-b-0"
               >
                 <LocalDateTime iso={c.at} timeOnly className="text-ink-3" />
                 <span className="min-w-0">
@@ -532,7 +543,7 @@ function UsageList({
   const max = Math.max(1e-9, ...rows.map((r) => r.usage.points));
   return (
     <div className="min-w-0">
-      <h3 className="text-[13px] leading-5 font-medium text-ink">{title}</h3>
+      <h3 className="text-[14px] leading-5 font-[620] text-ink">{title}</h3>
       {rows.length === 0 ? (
         <p className="mt-1 text-[13px] text-ink-3">None today.</p>
       ) : (
@@ -543,9 +554,12 @@ function UsageList({
                 <span className="truncate text-ink">{r.label}</span>
                 <span className="tnum shrink-0 text-ink-2">{formatNumber(r.usage.points, 4)}</span>
               </div>
-              <div className="mt-0.5 h-1.5 rounded-[2px] bg-hairline" aria-hidden="true">
+              <div
+                className="mt-1 h-1.5 overflow-hidden rounded-full bg-hairline"
+                aria-hidden="true"
+              >
                 <div
-                  className="h-1.5 rounded-[2px] bg-ink-3"
+                  className="h-1.5 rounded-full bg-ink-2"
                   style={{ width: `${(r.usage.points / max) * 100}%` }}
                 />
               </div>
@@ -567,7 +581,7 @@ function UsageList({
 function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAssignment[] }) {
   if (models.length === 0)
     return (
-      <EmptyState className="mx-4 sm:mx-5" title="Empty catalog">
+      <EmptyState className="mx-5 sm:mx-6" title="Empty catalog">
         The API reports no models.
       </EmptyState>
     );
@@ -576,32 +590,32 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
       <table className="w-full min-w-[880px] border-collapse text-left text-[13px] leading-5">
         <caption className="sr-only">Model catalog</caption>
         <thead>
-          <tr className="border-y border-hairline text-[12px] text-ink-3">
-            <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+          <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+            <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
               Model
             </th>
-            <th scope="col" className="px-2 py-2 font-normal">
+            <th scope="col" className="px-3 py-3 font-[520]">
               Kind
             </th>
-            <th scope="col" className="px-2 py-2 text-right font-normal">
+            <th scope="col" className="px-3 py-3 text-right font-[520]">
               Context
             </th>
-            <th scope="col" className="px-2 py-2 font-normal">
+            <th scope="col" className="px-3 py-3 font-[520]">
               Inputs
             </th>
-            <th scope="col" className="px-2 py-2 font-normal">
+            <th scope="col" className="px-3 py-3 font-[520]">
               Reasoning
             </th>
-            <th scope="col" className="px-2 py-2 font-normal">
+            <th scope="col" className="px-3 py-3 font-[520]">
               JSON schema
             </th>
-            <th scope="col" className="px-2 py-2 font-normal">
+            <th scope="col" className="px-3 py-3 font-[520]">
               Tools
             </th>
-            <th scope="col" className="px-2 py-2 text-right font-normal">
+            <th scope="col" className="px-3 py-3 text-right font-[520]">
               Price in / out
             </th>
-            <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+            <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
               Used as
             </th>
           </tr>
@@ -619,7 +633,7 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
                   !m.available && "text-ink-3",
                 )}
               >
-                <th scope="row" className="tnum px-4 py-2 align-top font-normal sm:px-5">
+                <th scope="row" className="tnum px-5 py-2.5 align-top font-[420] sm:px-6">
                   <span className={m.available ? "text-ink" : undefined}>{m.model_id}</span>
                   {!m.available ? (
                     <span className="block text-[12px]">Not in the live catalog</span>
@@ -630,12 +644,12 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
                     </span>
                   ) : null}
                 </th>
-                <td className="px-2 py-2 align-top text-ink-2 uppercase">{m.kind}</td>
-                <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                <td className="px-3 py-2.5 align-top text-ink-2 uppercase">{m.kind}</td>
+                <td className="tnum px-3 py-2.5 text-right align-top text-ink-2">
                   {m.context_length == null ? "–" : formatCompact(m.context_length)}
                 </td>
-                <td className="px-2 py-2 align-top text-ink-2">{m.inputs.join(", ")}</td>
-                <td className="px-2 py-2 align-top text-ink-2">
+                <td className="px-3 py-2.5 align-top text-ink-2">{m.inputs.join(", ")}</td>
+                <td className="px-3 py-2.5 align-top text-ink-2">
                   {m.reasoning_efforts.length ? (
                     m.reasoning_efforts.join(", ")
                   ) : (
@@ -645,18 +659,18 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
                     <span className="block text-[12px] text-ink-3">thinks by default</span>
                   ) : null}
                 </td>
-                <td className="px-2 py-2 align-top text-ink-2">
+                <td className="px-3 py-2.5 align-top text-ink-2">
                   {m.json_schema ? "Strict" : "No"}
                 </td>
-                <td className="px-2 py-2 align-top text-ink-2">{m.tools ? "Yes" : "No"}</td>
-                <td className="tnum px-2 py-2 text-right align-top text-ink-2">
+                <td className="px-3 py-2.5 align-top text-ink-2">{m.tools ? "Yes" : "No"}</td>
+                <td className="tnum px-3 py-2.5 text-right align-top text-ink-2">
                   {m.pricing ? (
                     `${formatNumber(m.pricing.input, 3)} / ${formatNumber(m.pricing.output, 3)}`
                   ) : (
                     <span className="text-ink-3">not listed</span>
                   )}
                 </td>
-                <td className="px-4 py-2 align-top text-ink-2 sm:px-5">
+                <td className="px-5 py-2.5 align-top text-ink-2 sm:px-6">
                   {usedAs.length ? usedAs.join(", ") : <span className="text-ink-3">–</span>}
                 </td>
               </tr>

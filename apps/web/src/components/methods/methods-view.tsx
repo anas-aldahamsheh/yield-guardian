@@ -8,8 +8,9 @@ import type {
 } from "@yield-guardian/contracts";
 import { useState } from "react";
 
+import dynamic from "next/dynamic";
+
 import { EstimateText } from "@/components/charts/interval";
-import { Markdown } from "@/components/markdown";
 import { Panel } from "@/components/page";
 import { EmptyState, Placeholder, QueryView } from "@/components/states";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -17,8 +18,13 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatCompact, formatInt } from "@/lib/format";
 
-import { Limitations } from "./secom-methods";
+import { Limitations } from "./limitations";
 import { ScrollRegion } from "@/components/scroll-region";
+
+/** The model cards are Markdown; its renderer loads when the model cards first open. */
+const Markdown = dynamic(() => import("@/components/markdown").then((mod) => mod.Markdown), {
+  loading: () => <Placeholder className="h-40" label="Loading the model card" />,
+});
 
 /*
  * The expert sections of How it works (/how): every number the product reports, with its
@@ -89,14 +95,14 @@ function ResultsTable({ data }: { data: MeasuredResultsData }) {
         <table className="w-full min-w-[720px] border-collapse text-left text-[14px] leading-5">
           <caption className="sr-only">Measured results</caption>
           <thead>
-            <tr className="border-b border-hairline text-[12px] text-ink-3">
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+            <tr className="border-b border-hairline text-[12.5px] leading-4 text-ink-3">
+              <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                 Quantity
               </th>
-              <th scope="col" className="px-3 py-2 font-normal">
+              <th scope="col" className="px-3 py-3 font-[520]">
                 Value
               </th>
-              <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                 Measured on
               </th>
             </tr>
@@ -104,17 +110,17 @@ function ResultsTable({ data }: { data: MeasuredResultsData }) {
           <tbody>
             {data.results.map((r) => (
               <tr key={r.id} className="border-b border-hairline align-top last:border-b-0">
-                <th scope="row" className="px-4 py-2.5 font-normal text-ink sm:px-5">
+                <th scope="row" className="px-5 py-3 font-[420] text-ink sm:px-6">
                   {r.label}
                 </th>
-                <td className="px-3 py-2.5 text-[13px]">
+                <td className="px-3 py-3 text-[13px]">
                   {r.estimate ? (
                     <EstimateText estimate={r.estimate} format={r.format} showN />
                   ) : (
                     <span className="text-ink-3">Not measured yet</span>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-[13px] text-ink-2 sm:px-5">
+                <td className="px-5 py-3 text-[13px] text-ink-2 sm:px-6">
                   {r.data}
                   <span className="tnum block text-[12px] break-all text-ink-3">{r.source}</span>
                 </td>
@@ -191,20 +197,20 @@ function Provenance({ data }: { data: MethodsOverview }) {
           <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-5">
             <caption className="sr-only">Artifact bundles</caption>
             <thead>
-              <tr className="border-y border-hairline text-[12px] text-ink-3">
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+              <tr className="border-y border-hairline text-[12.5px] leading-4 text-ink-3">
+                <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                   Bundle
                 </th>
-                <th scope="col" className="px-3 py-2 font-normal">
+                <th scope="col" className="px-3 py-3 font-[520]">
                   Built
                 </th>
-                <th scope="col" className="px-3 py-2 font-normal">
+                <th scope="col" className="px-3 py-3 font-[520]">
                   Commit
                 </th>
-                <th scope="col" className="px-3 py-2 text-right font-normal">
+                <th scope="col" className="px-3 py-3 text-right font-[520]">
                   Files
                 </th>
-                <th scope="col" className="px-4 py-2 font-normal sm:px-5">
+                <th scope="col" className="px-5 py-3 font-[520] sm:px-6">
                   Checksums
                 </th>
               </tr>
@@ -212,14 +218,16 @@ function Provenance({ data }: { data: MethodsOverview }) {
             <tbody>
               {data.bundles.map((b) => (
                 <tr key={b.bundle.name} className="border-b border-hairline last:border-b-0">
-                  <th scope="row" className="tnum px-4 py-2 font-normal text-ink sm:px-5">
+                  <th scope="row" className="tnum px-5 py-2.5 font-[420] text-ink sm:px-6">
                     {b.bundle.name} {b.bundle.version}
                   </th>
-                  <td className="tnum px-3 py-2 text-ink-2">
+                  <td className="tnum px-3 py-2.5 text-ink-2">
                     <LocalDateTime iso={b.bundle.created_at} />
                   </td>
-                  <td className="tnum px-3 py-2 text-ink-2">{b.bundle.git_commit.slice(0, 10)}</td>
-                  <td className="tnum px-3 py-2 text-right text-ink-2">{formatInt(b.files)}</td>
+                  <td className="tnum px-3 py-2.5 text-ink-2">
+                    {b.bundle.git_commit.slice(0, 10)}
+                  </td>
+                  <td className="tnum px-3 py-2.5 text-right text-ink-2">{formatInt(b.files)}</td>
                   <td
                     className={
                       b.verified ? "px-4 py-2 text-ink sm:px-5" : "px-4 py-2 text-fail sm:px-5"

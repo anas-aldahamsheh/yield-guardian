@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatFixed, formatInt, formatNumber } from "./format";
+import { formatCompact, formatFixed, formatInt, formatNumber } from "./format";
 
 /** Values that exercise ties, carries, signs, -0 and exponent forms of the shortest decimal. */
 function samples(): number[] {
@@ -36,6 +36,17 @@ describe("formatFixed", () => {
   it("matches Intl's integer formatting for formatInt", () => {
     const intl = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
     for (const v of samples()) expect(formatInt(v), String(v)).toBe(intl.format(v));
+  });
+
+  it("matches Intl's compact notation for formatCompact", () => {
+    const intl = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+    const edges = [
+      999.95, 999.94, 999_950, 999_949, 999_999, 1050, 1250, 1e12, 999_999_999_999_999,
+    ];
+    for (const v of [...samples(), ...edges, ...edges.map((e) => -e)])
+      expect(formatCompact(v), String(v)).toBe(intl.format(v));
+    expect(formatCompact(48_364)).toBe("48.4K");
+    expect(formatCompact(undefined)).toBe("–");
   });
 
   it("keeps the dash for missing values", () => {

@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { WAFER_CELL } from "@yield-guardian/contracts";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   arrivedLive,
@@ -11,7 +11,6 @@ import {
   type WaferPatternView,
 } from "@/lib/live/run-state";
 import { countsAsUnknown, testedLots } from "@/lib/live/stations";
-import { FILM } from "@/lib/wafer/geometry";
 import { formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -19,129 +18,85 @@ import { failsAlong, gridOf, probeOrder } from "../probe-order";
 import { useScene, type SceneStore } from "../scene";
 import styles from "../story.module.css";
 
-const ChuckScene = dynamic(() => import("../chuck-scene"), { ssr: false, loading: () => null });
-
 /** The drawing's box (margins included), and places in it as percentages for the HTML over it. */
-const VIEW = { x: -16, w: 392, h: 318 } as const;
+const VIEW = { x: 0, w: 360, h: 250 } as const;
 const box = (x: number, y: number, w: number, h?: number) => ({
   left: `${((x - VIEW.x) / VIEW.w) * 100}%`,
   top: `${(y / VIEW.h) * 100}%`,
   width: `${(w / VIEW.w) * 100}%`,
   ...(h != null ? { height: `${(h / VIEW.h) * 100}%` } : {}),
 });
-const CHUCK = box(28, 86, 176, 176);
-const READOUT = box(16, 268, 200, 46);
+const CHUCK = box(10, 4, 200, 200);
+const READOUT = box(10, 208, 200, 38);
+/** The chuck's centre and radius in the drawing (the wafer sits on it). */
+const CHUCK_C = { x: 110, y: 104, r: 99 } as const;
+/** The wafer's radius as a share of the chuck window's side. */
+const WAFER_R = 0.465;
 
 /**
- * Station 3: the prober and the lot carrier. The prober steps over the real map die by die in
- * probe order and reveals each die's recorded result; each probed wafer goes back into its slot
- * of the 25-slot carrier, slot 1 at the bottom. With WebGL and motion the wafer on the chuck is
- * 3D (thin-film colours for an assumed oxide, said under the drawing); otherwise it is the flat
- * map. The carrier is drawn from the front either way, one bar per wafer.
+ * Station 3: the prober's screen and the lot carrier. The prober steps over the real map die by
+ * die in probe order and reveals each die's recorded result, failed dies in the fail colour; each
+ * probed wafer goes back into its slot of the 25-slot carrier, slot 1 at the bottom. The film's
+ * light lies faintly over the wafer and never covers a die.
  */
-export function ProberTool({
-  state,
-  store,
-  active,
-  use3d,
-}: {
-  state: RunState | null;
-  store: SceneStore;
-  active: boolean;
-  use3d: boolean;
-}) {
+export function ProberTool({ state, store }: { state: RunState | null; store: SceneStore }) {
   const shown = useScene(store, (s) => s.revealed.has("wafer_pattern"));
   const pattern = state && shown ? stageResult(state, "wafer_pattern") : null;
   const lotShown = useScene(store, (s) => s.revealed.has("lot"));
   const lots = state && lotShown ? stageResult(state, "lot") : null;
   const lotFlagged = Boolean(lots?.lots.some((l) => l.flagged));
   const tested = useMemo(() => testedLots(lots), [lots]);
-  const onChuck = useScene(store, (s) => s.wafer != null);
-  const [ready3d, setReady3d] = useState(false);
-  const markReady = useCallback(() => setReady3d(true), []);
-  const flat = !use3d || !ready3d;
   const wafers = pattern?.wafers ?? [];
+  const onChuck = useScene(store, (s) => s.wafer != null);
 
   return (
-    <div>
-      <div className="relative">
-        <svg
-          viewBox={`${VIEW.x} 0 ${VIEW.w} ${VIEW.h}`}
-          className="block h-auto w-full"
-          aria-hidden="true"
-        >
-          <ProberSilhouette active={active} />
-          <Carrier2D
-            store={store}
-            pattern={pattern}
-            tested={tested}
-            flagged={lotFlagged}
-            live={state != null && arrivedLive(state, { stage: "wafer_pattern" })}
-          />
-        </svg>
-        <div className="absolute aspect-square" style={CHUCK}>
-          {flat ? <Probed2D store={store} wafers={wafers} /> : null}
-          {use3d && pattern ? (
-            <div
-              className={cn(
-                "absolute inset-0 transition-opacity duration-[var(--dur-panel)]",
-                ready3d ? "opacity-100" : "opacity-0",
-              )}
-            >
-              <ChuckScene store={store} wafers={pattern.wafers} onReady={markReady} />
-            </div>
-          ) : null}
-        </div>
-        <div className="absolute flex items-center justify-center" style={READOUT}>
-          <ProbeReadout store={store} wafers={wafers} />
-        </div>
-      </div>
-      {/* Its line is there from the first paint, so the line does not move when the 3D wafer
-          loads after the page (a reload shows the stations where they were). */}
-      <p
-        className={cn(
-          "mt-1.5 px-4 text-[12px] leading-4 text-ink-3",
-          !(use3d && onChuck && ready3d) && "invisible",
-        )}
+    <div className="relative">
+      <svg
+        viewBox={`${VIEW.x} 0 ${VIEW.w} ${VIEW.h}`}
+        className="block h-auto w-full"
+        aria-hidden="true"
       >
-        {`Wafer colour: an assumed ${FILM.centreNm} nm oxide film.`}
-      </p>
+        {/* The chuck the wafer sits on */}
+        <circle
+          cx={CHUCK_C.x}
+          cy={CHUCK_C.y}
+          r={CHUCK_C.r}
+          fill="rgb(255 255 255 / 0.025)"
+          stroke="var(--hairline)"
+          vectorEffect="non-scaling-stroke"
+        />
+        <Carrier2D
+          store={store}
+          pattern={pattern}
+          tested={tested}
+          flagged={lotFlagged}
+          live={state != null && arrivedLive(state, { stage: "wafer_pattern" })}
+        />
+      </svg>
+      <div className="absolute aspect-square" style={CHUCK}>
+        <Probed2D store={store} wafers={wafers} />
+        {/* The film's light: faint, over the wafer only, lightening and never hiding a die. */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute rounded-full mix-blend-screen transition-opacity duration-(--dur-5)",
+            onChuck ? "opacity-[0.13]" : "opacity-0",
+          )}
+          style={{
+            inset: `${(0.5 - WAFER_R) * 100}%`,
+            backgroundImage:
+              "radial-gradient(60% 50% at 30% 22%, rgb(255 255 255 / 0.5), transparent 70%), linear-gradient(135deg, var(--film-1), var(--film-3) 45%, var(--film-5) 75%, var(--film-6))",
+          }}
+        />
+      </div>
+      <div className="absolute flex items-center justify-center" style={READOUT}>
+        <ProbeReadout store={store} wafers={wafers} />
+      </div>
     </div>
   );
 }
 
-function ProberSilhouette({ active }: { active: boolean }) {
-  return (
-    <g
-      fill="none"
-      stroke="var(--hairline-strong)"
-      strokeWidth={1}
-      vectorEffect="non-scaling-stroke"
-      strokeLinejoin="round"
-    >
-      {/* Head plate with the probe card and the microscope above the chuck */}
-      <path d="M 40 58 H 192 V 70 H 40 Z" fill="var(--die-2)" />
-      <rect x={100} y={16} width={32} height={42} rx={3} fill="var(--die)" />
-      <path d="M 108 16 V 8 H 124 V 16" />
-      <path d="M 116 70 V 80" stroke="var(--ink-3)" />
-      {/* Cabinet and its deck, with the readout panel */}
-      <path d="M 16 268 V 70 H 40 M 192 70 H 216 V 268" />
-      <path d="M 8 268 H 352" />
-      <rect x={16} y={268} width={200} height={46} fill="var(--die)" />
-      {/* Load port for the carrier */}
-      <rect x={228} y={262} width={116} height={8} fill="var(--die-2)" />
-      <circle
-        cx={204}
-        cy={84}
-        r={3}
-        fill={active ? "var(--safelight-lamp)" : "var(--hairline)"}
-        stroke="none"
-      />
-    </g>
-  );
-}
-
-/** The cabinet's readout: which wafer is on the chuck, dies probed so far and how many failed. */
+/** The readout under the chuck: which wafer is on it, dies probed so far and how many failed. */
 function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
@@ -152,7 +107,7 @@ function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: readonly W
   if (!wafer || !order || !fails) return null;
   const probed = Math.min(order.length, Math.floor(dies));
   return (
-    <p className="tnum px-1 text-center text-[11px] leading-[14px] text-ink-2">
+    <p className="tnum px-1 text-center text-[11.5px] leading-[15px] text-ink-2">
       <span className="block truncate">{`Wafer ${wafer.wafer}: ${formatInt(probed)} of ${formatInt(order.length)}`}</span>
       <span className="block truncate">
         {"dies probed, "}
@@ -164,7 +119,11 @@ function ProbeReadout({ store, wafers }: { store: SceneStore; wafers: readonly W
   );
 }
 
-/** The probed wafer as a flat map: dies probed so far show their result, the probe is a lit square. */
+/**
+ * The probed wafer, die by die, on device pixels so every die is crisp: dies probed so far show
+ * their recorded result (passed in a quiet grey, failed in the fail colour), the rest are dim,
+ * and the probe is a lit square with its crosshair.
+ */
 function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly WaferItem[] }) {
   const index = useScene(store, (s) => s.wafer);
   const dies = useScene(store, (s) => s.dies);
@@ -172,52 +131,122 @@ function Probed2D({ store, wafers }: { store: SceneStore; wafers: readonly Wafer
   const grid = useMemo(() => (wafer?.map ? gridOf(wafer.map) : null), [wafer]);
   const order = useMemo(() => (grid ? probeOrder(grid) : null), [grid]);
   const ref = useRef<HTMLCanvasElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setWidth(Math.round(entry.contentRect.width));
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const size = canvas.clientWidth;
+    const size = width || canvas.clientWidth;
     if (!size) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.round(size * dpr);
-    canvas.height = Math.round(size * dpr);
+    const side = Math.round(size * dpr);
+    canvas.width = side;
+    canvas.height = side;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, size, size);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, side, side);
     const css = getComputedStyle(canvas);
     const color = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
-    // The wafer disc, a little inside the chuck window, as the 3D wafer is.
-    const radius = size * 0.42;
-    ctx.fillStyle = color("--die-2", "#24221b");
+    const c = side / 2;
+    const radius = side * WAFER_R;
+
+    ctx.lineWidth = Math.max(1, dpr);
+    if (!grid || !order) {
+      // No wafer on the chuck yet: only the place where it will sit.
+      ctx.setLineDash([2 * dpr, 4 * dpr]);
+      ctx.strokeStyle = color("--hairline-strong", "#3d4453");
+      ctx.beginPath();
+      ctx.arc(c, c, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      return;
+    }
+    // The wafer: a disc with a lit rim and its notch at six o'clock.
+    ctx.fillStyle = color("--surface-2", "#1a2131");
     ctx.beginPath();
-    ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
+    ctx.arc(c, c, radius, 0, Math.PI * 2);
     ctx.fill();
-    if (!grid || !order) return;
+    ctx.strokeStyle = color("--hairline-strong", "#3d4453");
+    ctx.stroke();
+    ctx.fillStyle = color("--screen", "#060b18");
+    ctx.beginPath();
+    ctx.arc(c, c + radius, radius * 0.035, Math.PI, 0);
+    ctx.fill();
+
     const n = Math.max(grid.height, grid.width);
-    const pitch = (radius * 2 * 0.94) / n;
-    const ox = (size - grid.width * pitch) / 2;
-    const oy = (size - grid.height * pitch) / 2;
-    const gap = pitch >= 6 ? 1 : pitch >= 3 ? 0.5 : 0;
+    const pitch = (radius * 2 * 0.93) / n;
+    const ox = c - (grid.width * pitch) / 2;
+    const oy = c - (grid.height * pitch) / 2;
+    const gap = pitch >= 5 ? Math.max(1, Math.round(pitch * 0.14)) : pitch >= 3 ? 1 : 0;
     const probed = Math.min(order.length, Math.floor(dies));
-    const pass = color("--hairline-strong", "#4f4c43");
-    const fail = color("--fail", "#eb556e");
-    const unprobed = color("--hairline", "#37352e");
-    const place = (k: number) =>
-      [ox + (k % grid.width) * pitch, oy + Math.floor(k / grid.width) * pitch] as const;
-    for (let i = 0; i < order.length; i += 1) {
+    const pass = color("--ink-3", "#9ba0ac");
+    const fail = color("--fail", "#f95e62");
+    const unprobed = color("--hairline", "#282f3e");
+    const cell = (k: number) => {
+      const col = k % grid.width;
+      const row = Math.floor(k / grid.width);
+      const x0 = Math.round(ox + col * pitch);
+      const y0 = Math.round(oy + row * pitch);
+      return [
+        x0,
+        y0,
+        Math.max(1, Math.round(ox + (col + 1) * pitch) - gap - x0),
+        Math.max(1, Math.round(oy + (row + 1) * pitch) - gap - y0),
+      ] as const;
+    };
+
+    ctx.fillStyle = unprobed;
+    for (let i = probed; i < order.length; i += 1) {
+      const [x, y, w, h] = cell(order[i]!);
+      ctx.fillRect(x, y, w, h);
+    }
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = pass;
+    for (let i = 0; i < probed; i += 1) {
       const k = order[i]!;
-      const [x, y] = place(k);
-      ctx.fillStyle = i < probed ? (grid.cells[k] === 2 ? fail : pass) : unprobed;
-      ctx.fillRect(x + gap / 2, y + gap / 2, pitch - gap, pitch - gap);
+      if (grid.cells[k] === WAFER_CELL.fail) continue;
+      const [x, y, w, h] = cell(k);
+      ctx.fillRect(x, y, w, h);
     }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = fail;
+    for (let i = 0; i < probed; i += 1) {
+      const k = order[i]!;
+      if (grid.cells[k] !== WAFER_CELL.fail) continue;
+      const [x, y, w, h] = cell(k);
+      ctx.fillRect(x, y, w, h);
+    }
+
     if (probed < order.length) {
-      const [x, y] = place(order[probed]!);
-      ctx.strokeStyle = color("--safelight-lamp", "#f5d326");
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(x - 1, y - 1, pitch + 2, pitch + 2);
+      const [x, y, w, h] = cell(order[probed]!);
+      const signal = color("--signal", "#7cc2fe");
+      const line = Math.max(1, Math.round(dpr));
+      // The crosshair, inside the wafer.
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(c, c, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = signal;
+      ctx.fillRect(Math.round(x + w / 2), 0, line, side);
+      ctx.fillRect(0, Math.round(y + h / 2), side, line);
+      ctx.restore();
+      ctx.strokeStyle = signal;
+      ctx.lineWidth = 1.5 * dpr;
+      const pad = Math.max(1.5, pitch * 0.25);
+      ctx.strokeRect(x - pad, y - pad, w + pad * 2, h + pad * 2);
     }
-  }, [grid, order, dies]);
+  }, [grid, order, dies, width]);
 
   return <canvas ref={ref} className="block aspect-square w-full" aria-hidden="true" />;
 }
@@ -248,16 +277,20 @@ function Carrier2D({
   const current = useScene(store, (s) => s.wafer);
   const lot = wafers[0]?.lot;
   const inLot = wafers.filter((w) => w.lot === lot).slice(0, SLOTS);
-  const x0 = 244;
-  const x1 = 328;
-  const top = 100;
-  const bottom = 256;
+  const x0 = 252;
+  const x1 = 332;
+  const top = 22;
+  const bottom = 206;
   const pitch = (bottom - top) / SLOTS;
   return (
     <g>
-      <path
-        d={`M ${x0 - 6} ${top - 8} V ${bottom + 6} M ${x1 + 6} ${top - 8} V ${bottom + 6} M ${x0 - 6} ${top - 8} H ${x1 + 6}`}
-        fill="none"
+      <rect
+        x={x0 - 8}
+        y={top - 10}
+        width={x1 - x0 + 16}
+        height={bottom - top + 18}
+        rx={8}
+        fill="rgb(255 255 255 / 0.02)"
         stroke={flagged ? "var(--fail)" : "var(--hairline-strong)"}
         strokeWidth={1.2}
         vectorEffect="non-scaling-stroke"
@@ -306,11 +339,14 @@ function Carrier2D({
           </g>
         );
       })}
-      <text x={x1 + 11} y={bottom + 2} fontSize={10} fill="var(--ink-3)">
+      <text x={x1 + 13} y={bottom + 2} fontSize={10} fill="var(--ink-3)">
         1
       </text>
-      <text x={x1 + 11} y={top + 4} fontSize={10} fill="var(--ink-3)">
+      <text x={x1 + 13} y={top + 4} fontSize={10} fill="var(--ink-3)">
         25
+      </text>
+      <text x={(x0 + x1) / 2} y={bottom + 30} fontSize={10} textAnchor="middle" fill="var(--ink-3)">
+        {lot ? `Carrier, ${lot.length > 18 ? `${lot.slice(0, 17)}…` : lot}` : "Carrier"}
       </text>
     </g>
   );

@@ -88,7 +88,7 @@ export function SensorField({
       if (selectedIndex >= 0) {
         const x = (selectedIndex % FIELD_COLUMNS) * pitch;
         const y = Math.floor(selectedIndex / FIELD_COLUMNS) * pitch;
-        ctx.strokeStyle = token(canvas, "--safelight");
+        ctx.strokeStyle = token(canvas, "--signal");
         ctx.lineWidth = 2;
         ctx.strokeRect(x - 1, y - 1, pitch + 2, pitch + 2);
       }
@@ -148,7 +148,7 @@ export function SensorField({
         tabIndex={0}
         role="img"
         aria-label={`Health of ${sensors.length} sensors, ${FIELD_COLUMNS} to a row. Arrow keys move between sensors.`}
-        className="block w-full cursor-pointer rounded-[2px]"
+        className="block w-full cursor-pointer rounded-[6px]"
         onPointerMove={(e) => {
           const at = indexAt(e);
           setHover(at ? { index: at.i, x: at.x, y: at.y } : null);
@@ -163,7 +163,7 @@ export function SensorField({
       {hovered && hover ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-sm border border-hairline bg-die px-2 py-1 text-[12px] leading-4 whitespace-nowrap text-ink shadow-sm"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-sm border border-hairline bg-surface px-2 py-1 text-[12px] leading-4 whitespace-nowrap text-ink shadow-sm"
           style={{ left: hover.x, top: hover.y + 16 }}
         >
           <span className="tnum font-medium">{hovered.sensor}</span>{" "}

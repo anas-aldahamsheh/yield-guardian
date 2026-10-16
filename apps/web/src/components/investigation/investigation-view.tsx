@@ -3,10 +3,12 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useQuery } from "@tanstack/react-query";
 import type { Investigation } from "@yield-guardian/contracts";
+import { ChevronLeftIcon, CircleAlertIcon, CircleCheckIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PageFrame, PageHeader, Panel } from "@/components/page";
+import { NAV_BACK, Shared } from "@/components/page-transition";
 import { WorkOrderSection } from "@/components/work-orders/work-order-view";
 import { ErrorState, Placeholder } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -77,10 +79,16 @@ export function InvestigationView({ id }: { id: string }) {
     <PageFrame>
       <BackLink />
       <PageHeader
-        title={inv.title}
+        title={
+          <Shared name={`investigation-title-${id}`}>
+            <span className="inline-block">{inv.title}</span>
+          </Shared>
+        }
         meta={
           <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <StatusLabel status={inv.status} />
+            <Shared name={`investigation-status-${id}`}>
+              <StatusLabel status={inv.status} />
+            </Shared>
             <span>
               From {TRIGGER_KIND[inv.trigger.kind]?.toLowerCase()}{" "}
               <TriggerLink investigation={inv} />
@@ -118,7 +126,7 @@ export function InvestigationView({ id }: { id: string }) {
         <ErrorState className="mb-4" error={new ApiError(inv.error.status, inv.error)} />
       ) : null}
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-street xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_440px]">
         <Panel
           title="Report"
           description="Written by a language model from the evidence only. Numbers link to the value they came from."
@@ -147,14 +155,15 @@ export function InvestigationView({ id }: { id: string }) {
           )}
         </Panel>
 
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-street">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-5">
           <Panel
             live={running}
             title="Run"
             description={<RunDescription investigation={inv} />}
             actions={
               running ? (
-                <span className="text-[13px] text-ink-2">
+                <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-signal-wash px-2.5 text-[12.5px] leading-4 font-[560] text-ink">
+                  <span aria-hidden="true" className="live-dot size-1.5" />
                   {state === "reconnecting" ? "Reconnecting…" : "Running"}
                 </span>
               ) : null
@@ -184,7 +193,7 @@ export function InvestigationView({ id }: { id: string }) {
         <section
           id={WORK_ORDER_ANCHOR}
           aria-label={`Work order ${inv.work_order_id}`}
-          className="mt-10 border-t border-hairline-strong pt-8"
+          className="mt-14 scroll-mt-[calc(var(--bar-height)+24px)] border-t border-hairline pt-10"
         >
           <WorkOrderSection id={inv.work_order_id} hypotheses={readHypotheses(inv.report) ?? []} />
         </section>
@@ -232,8 +241,14 @@ function BackLink() {
   return (
     <Link
       href="/investigations"
-      className="mb-3 inline-block text-[13px] text-ink-2 underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+      transitionTypes={NAV_BACK}
+      className="group/back press mb-6 inline-flex h-8 items-center gap-1 rounded-full pr-3.5 pl-2 text-[13px] leading-5 font-[560] text-ink-2 no-underline shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
     >
+      <ChevronLeftIcon
+        aria-hidden="true"
+        className="size-4 transition-transform duration-(--dur-3) ease-out group-hover/back:-translate-x-0.5"
+        strokeWidth={2}
+      />
       All investigations
     </Link>
   );
@@ -271,7 +286,7 @@ function TriggerLink({ investigation }: { investigation: Investigation }) {
   return href ? (
     <Link
       href={href}
-      className="tnum text-ink underline decoration-hairline-strong underline-offset-4 hover:decoration-ink"
+      className="tnum text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
     >
       {ref}
     </Link>
@@ -299,15 +314,15 @@ function RunDescription({ investigation }: { investigation: Investigation }) {
   );
 }
 
-/** One result of the checks as a readout: "3/4". The sentence below states it in words. */
+/** One result of the checks as a readout: "3/4". The sentence beside it states it in words. */
 function CheckFigure({ label, value, of }: { label: string; value: number; of: number }) {
   return (
-    <span className="flex items-baseline gap-2">
-      <span className="readout text-[28px] leading-8">
+    <span className="flex items-end gap-2.5">
+      <span className="readout text-[34px] leading-[36px]">
         {formatInt(value)}
         <span className="text-ink-3">/{formatInt(of)}</span>
       </span>
-      <span className="max-w-[11ch] text-[12px] leading-4 text-ink-2">{label}</span>
+      <span className="max-w-[10ch] pb-0.5 text-[12px] leading-4 text-ink-2">{label}</span>
     </span>
   );
 }
@@ -319,17 +334,44 @@ function VerificationSummary({ investigation }: { investigation: Investigation }
   return (
     <div
       className={cn(
-        "mb-7 rounded-sm border-l-2 px-4 py-3.5",
-        remaining ? "border-fail bg-fail-wash" : "border-pass bg-pass-wash",
+        "mb-9 overflow-hidden rounded-[16px]",
+        remaining
+          ? "bg-fail-wash shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_28%,transparent)]"
+          : "bg-pass-wash shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--pass)_28%,transparent)]",
       )}
     >
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
-        <p className="text-[15px] leading-6 font-medium text-ink">
-          {remaining
-            ? `${plural(remaining, "issue")} left after the checks, flagged where ${remaining === 1 ? "it applies" : "they apply"}`
-            : "Every check passed"}
-        </p>
-        <div aria-hidden="true" className="tnum flex gap-x-6 text-ink">
+      <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 px-4 py-4 sm:px-5">
+        <div className="flex max-w-[52ch] min-w-0 items-start gap-3">
+          {remaining ? (
+            <CircleAlertIcon
+              aria-hidden="true"
+              className="mt-0.5 size-5 shrink-0 text-fail"
+              strokeWidth={1.9}
+            />
+          ) : (
+            <CircleCheckIcon
+              aria-hidden="true"
+              className="mt-0.5 size-5 shrink-0 text-pass"
+              strokeWidth={1.9}
+            />
+          )}
+          <div className="min-w-0">
+            <p className="text-[15.5px] leading-6 font-[620] text-ink">
+              {remaining
+                ? `${plural(remaining, "issue")} left after the checks, flagged where ${remaining === 1 ? "it applies" : "they apply"}`
+                : "Every check passed"}
+            </p>
+            <p className="tnum mt-1 text-[13px] leading-5 text-ink-2">
+              {formatInt(v.numbers_matched)} of {formatInt(v.numbers_checked)} numbers match their
+              evidence. {plural(v.claims.length, "finding")} checked by{" "}
+              {v.verifier_model ?? "no verifier model"}.{" "}
+              {v.rounds === 0
+                ? "No revision was needed."
+                : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}
+            </p>
+          </div>
+        </div>
+        <div aria-hidden="true" className="tnum flex gap-x-7 pl-8 text-ink">
           <CheckFigure
             label="numbers match evidence"
             value={v.numbers_matched}
@@ -338,19 +380,14 @@ function VerificationSummary({ investigation }: { investigation: Investigation }
           <CheckFigure label="findings supported" value={supported} of={v.claims.length} />
         </div>
       </div>
-      <p className="tnum mt-1.5 text-[13px] leading-5 text-ink-2">
-        {formatInt(v.numbers_matched)} of {formatInt(v.numbers_checked)} numbers match their
-        evidence. {plural(v.claims.length, "finding")} checked by{" "}
-        {v.verifier_model ?? "no verifier model"}.{" "}
-        {v.rounds === 0
-          ? "No revision was needed."
-          : `The writer revised the report ${v.rounds === 1 ? "once" : "twice"}.`}
-      </p>
       {remaining ? (
-        <ul className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1 text-[13px] leading-5">
+        <ul className="grid grid-cols-[minmax(0,1fr)] border-t border-[color-mix(in_oklab,var(--fail)_22%,transparent)] text-[13px] leading-5">
           {v.issues.map((issue, i) => (
-            <li key={i} className="text-ink">
-              <span className="font-medium">{ISSUE_CODE[issue.code] ?? issue.code}</span>
+            <li
+              key={i}
+              className="border-b border-[color-mix(in_oklab,var(--fail)_14%,transparent)] py-2.5 pr-4 pl-12 text-ink last:border-b-0 sm:pr-5 sm:pl-[52px]"
+            >
+              <span className="font-[600]">{ISSUE_CODE[issue.code] ?? issue.code}</span>
               <span className="text-ink-2">
                 {" "}
                 at {issue.location}

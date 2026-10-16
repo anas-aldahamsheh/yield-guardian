@@ -2,161 +2,196 @@
 @import "tw-animate-css";
 
 /*
- * Yellow Room tokens (work item U2). docs/DESIGN.md explains every role.
+ * Oxide tokens. docs/DESIGN.md explains every role and value.
  *
- * Two palettes: inspection light (light) and the yellow room (dark). next-themes sets
- * data-theme on <html>; any subtree can opt into the yellow room with data-theme="dark" (the
- * home hero always does, because it depicts the bay). The palettes are written as plain blocks,
- * not light-dark(), because the CSS compiler polyfills light-dark() at :root, which would stop
- * a subtree from switching. The yellow room is written twice (explicit and system preference);
- * src/lib/design-tokens.test.ts checks the two copies are identical and meet contrast targets.
- * Hex values are computed from OKLCH in docs/DESIGN.md; the safelight is computed in
- * src/lib/optics/safelight.ts and pinned by a unit test.
+ * Two palettes: the cleanroom (light) and silicon (dark). next-themes sets data-theme on <html>;
+ * any subtree can opt into the dark palette with data-theme="dark" (the line's instrument screens
+ * always do: they are dark glass in both themes). The palettes are plain blocks, not
+ * light-dark(), so that a subtree can switch. The dark palette is written twice (explicit and
+ * system preference); src/lib/design-tokens.test.ts checks the copies are identical and meet
+ * their contrast targets, and src/lib/optics/oxide.test.ts pins the film and signal colours to
+ * the thin-film physics.
  */
 
-/* Inspection light. */
+/* The cleanroom. */
 :root,
 [data-theme="light"] {
   color-scheme: light;
 
-  /* Surfaces: the room, its panels (dies) and raised panels. */
-  --room: #eef0f2;
-  --die: #fcfdfe;
-  --die-2: #ffffff;
-  --hairline: #d6d9dc;
-  --hairline-strong: #b9bdc2;
+  /* Silicon surfaces: the page, its panels, raised and pressed planes, and instrument glass. */
+  --canvas: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #eff1f5;
+  --surface-3: #e5e7ec;
+  --screen: #060b18;
+  --hairline: #e0e2e7;
+  --hairline-strong: #cbced4;
+  /* Edges that identify a control: 3:1 against every surface. */
+  --edge: #7c8089;
 
-  /* Ink: readings and text. */
-  --ink: #1a1e24;
-  --ink-2: #4e5359;
-  --ink-3: #686c72;
+  /* Ink. */
+  --ink: #111620;
+  --ink-2: #444954;
+  --ink-3: #5e636e;
 
-  /* Light. Marks attention only: focus, selection, the active step, the exposure field. */
-  --safelight: #a27900;
-  --safelight-wash: color-mix(in oklab, #f5d326 30%, transparent);
-  --safelight-wash-strong: color-mix(in oklab, #f5d326 48%, transparent);
+  /* The signal: focus, selection, live. The oxide film's 310 nm hue (oxide.ts). */
+  --signal: #0871b3;
 
-  /* Results. Validated as a colour-blind-safe pair in both themes (docs/DESIGN.md). */
-  --pass: #0f76a2;
-  --fail: #c62b44;
-  --pass-wash: color-mix(in oklab, #0f76a2 12%, transparent);
-  --fail-wash: color-mix(in oklab, #c62b44 11%, transparent);
-  /* Elevated risk, a quieter step of the fail hue. Always shown with its label, never alone. */
-  --concern: #cb6d7a;
+  /* Status of data. Always with a word or an icon. */
+  --pass: #0b867f;
+  --concern: #c2790c;
+  --fail: #d01a34;
+  --mark-muted: #7c808a;
 
-  /* Context marks in charts (baselines, reference periods), always direct-labelled. */
-  --mark-muted: #84888c;
-  /* Edges that identify a control (inputs, switches, radios): 3:1 against every surface. */
-  --edge: #84888c;
-  /* Hover fill for menu items and ghost buttons. */
-  --accent: #eef0f2;
+  /* The oxide film, 280 to 362 nm (oxide.ts). Light only: never data, never a panel fill. */
+  --film-1: #9333ec;
+  --film-2: #4f61ec;
+  --film-3: #287ab8;
+  --film-4: #297f9c;
+  --film-5: #2a8386;
+  --film-6: #2a8953;
+
+  /* Depth: floating layers only. */
+  --elev-float:
+    0 1px 1px rgb(17 22 32 / 0.04), 0 6px 14px -6px rgb(17 22 32 / 0.1),
+    0 20px 40px -18px rgb(17 22 32 / 0.16);
+  --elev-overlay:
+    0 2px 4px rgb(17 22 32 / 0.05), 0 18px 36px -12px rgb(17 22 32 / 0.18),
+    0 48px 96px -32px rgb(17 22 32 / 0.26);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --shimmer: rgb(255 255 255 / 0.75);
+  --scrim: rgb(17 22 32 / 0.32);
 }
 
-/* The yellow room, chosen explicitly. */
+/* Silicon, chosen explicitly. */
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --room: #13120c;
-  --die: #1b1913;
-  --die-2: #24221b;
-  --hairline: #37352e;
-  --hairline-strong: #4f4c43;
+  --canvas: #0c1220;
+  --surface: #121928;
+  --surface-2: #1a2131;
+  --surface-3: #242b3c;
+  --screen: #060b18;
+  --hairline: #282f3e;
+  --hairline-strong: #3d4453;
+  --edge: #7a808e;
 
-  --ink: #eceade;
-  --ink-2: #bdbbaf;
-  --ink-3: #96948a;
+  --ink: #f2f4f9;
+  --ink-2: #bec2cc;
+  --ink-3: #9ba0ac;
 
-  --safelight: #f5d326;
-  --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
-  --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+  --signal: #7cc2fe;
 
-  --pass: #3fa0c9;
-  --fail: #eb556e;
-  --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
-  --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
-  --concern: #ab505f;
+  --pass: #31d2be;
+  --concern: #f7bc57;
+  --fail: #f95e62;
+  --mark-muted: #7b808d;
 
-  --mark-muted: #6f6d66;
-  --edge: #6f6d66;
-  --accent: #2c2a22;
+  --film-1: #c09df4;
+  --film-2: #9aadf4;
+  --film-3: #71b8f4;
+  --film-4: #43c1eb;
+  --film-5: #44c6ca;
+  --film-6: #44cf80;
+
+  --elev-float: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 18px 40px -16px rgb(0 0 0 / 0.7);
+  --elev-overlay: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 40px 80px -24px rgb(0 0 0 / 0.8);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --shimmer: rgb(255 255 255 / 0.045);
+  --scrim: rgb(3 6 14 / 0.6);
 }
 
-/* The yellow room, from the system preference before a theme is chosen. Same values. */
+/* Silicon, from the system preference before a theme is chosen. Same values. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --room: #13120c;
-    --die: #1b1913;
-    --die-2: #24221b;
-    --hairline: #37352e;
-    --hairline-strong: #4f4c43;
+    --canvas: #0c1220;
+    --surface: #121928;
+    --surface-2: #1a2131;
+    --surface-3: #242b3c;
+    --screen: #060b18;
+    --hairline: #282f3e;
+    --hairline-strong: #3d4453;
+    --edge: #7a808e;
 
-    --ink: #eceade;
-    --ink-2: #bdbbaf;
-    --ink-3: #96948a;
+    --ink: #f2f4f9;
+    --ink-2: #bec2cc;
+    --ink-3: #9ba0ac;
 
-    --safelight: #f5d326;
-    --safelight-wash: color-mix(in oklab, #f5d326 13%, transparent);
-    --safelight-wash-strong: color-mix(in oklab, #f5d326 22%, transparent);
+    --signal: #7cc2fe;
 
-    --pass: #3fa0c9;
-    --fail: #eb556e;
-    --pass-wash: color-mix(in oklab, #3fa0c9 16%, transparent);
-    --fail-wash: color-mix(in oklab, #eb556e 16%, transparent);
-    --concern: #ab505f;
+    --pass: #31d2be;
+    --concern: #f7bc57;
+    --fail: #f95e62;
+    --mark-muted: #7b808d;
 
-    --mark-muted: #6f6d66;
-    --edge: #6f6d66;
-    --accent: #2c2a22;
+    --film-1: #c09df4;
+    --film-2: #9aadf4;
+    --film-3: #71b8f4;
+    --film-4: #43c1eb;
+    --film-5: #44c6ca;
+    --film-6: #44cf80;
+
+    --elev-float: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 18px 40px -16px rgb(0 0 0 / 0.7);
+    --elev-overlay: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 40px 80px -24px rgb(0 0 0 / 0.8);
+    --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+    --shimmer: rgb(255 255 255 / 0.045);
+    --scrim: rgb(3 6 14 / 0.6);
   }
 }
 
-/*
- * Theme-independent tokens. Roles derived from the palettes follow in the next rule, declared
- * on every themed element so a data-theme subtree recomputes them from its own palette.
- */
+/* Theme-independent tokens. */
 :root {
-  /* The lamp itself: the same physical light in both themes. */
-  --safelight-lamp: #f5d326;
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --dur-4: 520ms;
+  --dur-5: 900ms;
 
-  /* Motion. */
-  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
-  --dur-micro: 120ms;
-  --dur-component: 220ms;
-  --dur-panel: 420ms;
-  /* The line's cadence: how long a new unit takes to slide in. Shorter than a unit's interval. */
-  --dur-arrive: 700ms;
-
-  /* Layout. Panels are dies; the gap between them is a street. */
-  --street: 8px;
-  --gutter: clamp(16px, 3.2vw, 32px);
-  --bar-height: 56px;
-  --radius: 4px;
+  /* Layout. */
+  --gutter: clamp(16px, 4vw, 40px);
+  --bar-height: 64px;
+  --radius: 10px;
 }
 
 :root,
 [data-theme] {
+  /* The film as one gradient, recomputed in every themed subtree. */
+  --film: linear-gradient(
+    90deg,
+    var(--film-1),
+    var(--film-2),
+    var(--film-3),
+    var(--film-4),
+    var(--film-5),
+    var(--film-6)
+  );
+  --signal-wash: color-mix(in oklab, var(--signal) 14%, transparent);
+  --signal-wash-strong: color-mix(in oklab, var(--signal) 24%, transparent);
+  --pass-wash: color-mix(in oklab, var(--pass) 15%, transparent);
+  --fail-wash: color-mix(in oklab, var(--fail) 14%, transparent);
+  --concern-wash: color-mix(in oklab, var(--concern) 16%, transparent);
+
   /* shadcn/ui roles mapped onto the tokens above. */
-  --background: var(--room);
+  --background: var(--canvas);
   --foreground: var(--ink);
-  --card: var(--die);
+  --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--die-2);
+  --popover: var(--surface);
   --popover-foreground: var(--ink);
   --primary: var(--ink);
-  --primary-foreground: var(--room);
-  --secondary: var(--die-2);
+  --primary-foreground: var(--canvas);
+  --secondary: var(--surface-2);
   --secondary-foreground: var(--ink);
-  --muted: var(--die-2);
+  --muted: var(--surface-2);
   --muted-foreground: var(--ink-2);
+  --accent: var(--surface-2);
   --accent-foreground: var(--ink);
   --destructive: var(--fail);
   --border: var(--hairline);
   --input: var(--edge);
-  --ring: var(--safelight);
+  --ring: var(--signal);
 }
 
 /* A themed subtree paints its own ink, so text inherits the right palette. */
@@ -166,30 +201,139 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-@theme inline {
-  --font-sans: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-written), ui-serif, Georgia, serif;
-  --font-mono: var(--font-reading), ui-monospace, monospace;
+/* Easing curves are theme values, so ease-* utilities and var(--ease-*) are the same curve. */
+@theme {
+  /* Springs written as linear() curves (stiffness / damping / overshoot in DESIGN.md). */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  /* 400 / 26: 6.7% overshoot, settles in 540 ms. Pops: menus, chips, dialogs. */
+  --ease-spring: linear(
+    0,
+    0.0021 0.5%,
+    0.0159 1.7%,
+    0.0541 3.2%,
+    0.1204 5%,
+    0.2158 7.2%,
+    0.3366 9.6%,
+    0.4747 12.3%,
+    0.6188 15.2%,
+    0.7527 18.3%,
+    0.8698 21.7%,
+    0.9579 25.3%,
+    1.0198 29%,
+    1.0545 33%,
+    1.0667 37.1%,
+    1.0628 41.5%,
+    1.0502 46%,
+    1.034 50.7%,
+    1.0188 55.5%,
+    1.0073 60.5%,
+    0.9999 65.7%,
+    0.9964 71.1%,
+    0.9955 76.5%,
+    0.9962 82.2%,
+    0.9976 88%,
+    0.9988 93.9%,
+    1
+  );
+  /* 230 / 22: 3.6% overshoot, settles in 560 ms. Panels and sheets. */
+  --ease-spring-soft: linear(
+    0,
+    0.0012 0.5%,
+    0.0083 1.5%,
+    0.027 2.8%,
+    0.061 4.4%,
+    0.1128 6.4%,
+    0.1833 8.5%,
+    0.2713 10.9%,
+    0.3698 13.5%,
+    0.474 16.3%,
+    0.5817 19.3%,
+    0.6815 22.4%,
+    0.7723 25.8%,
+    0.8527 29.3%,
+    0.9167 33%,
+    0.9657 36.8%,
+    1.0003 40.8%,
+    1.0216 45%,
+    1.0326 49.3%,
+    1.0358 53.8%,
+    1.0336 58.4%,
+    1.0283 63.1%,
+    1.0217 68%,
+    1.0152 73%,
+    1.0096 78.1%,
+    1.0051 83.4%,
+    1.002 88.8%,
+    1.0001 94.3%,
+    1
+  );
+  /* 420 / 32: 1.9% overshoot, settles in 435 ms. Presses and lifts. */
+  --ease-spring-firm: linear(
+    0,
+    0.0015 0.5%,
+    0.0117 1.7%,
+    0.0368 3.2%,
+    0.0823 5%,
+    0.1509 7.2%,
+    0.2378 9.6%,
+    0.3387 12.3%,
+    0.4476 15.2%,
+    0.562 18.3%,
+    0.6673 21.7%,
+    0.7623 25.3%,
+    0.8431 29%,
+    0.906 33%,
+    0.9533 37.1%,
+    0.9859 41.5%,
+    1.0055 46%,
+    1.0156 50.7%,
+    1.0189 55.5%,
+    1.0179 60.5%,
+    1.0147 65.7%,
+    1.0109 71.1%,
+    1.0073 76.5%,
+    1.0043 82.2%,
+    1.0022 88%,
+    1.0008 93.9%,
+    1
+  );
+}
 
-  --color-room: var(--room);
-  --color-die: var(--die);
-  --color-die-2: var(--die-2);
+@theme inline {
+  --font-sans: var(--font-yg-sans), var(--font-readex), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-arabic: var(--font-readex), var(--font-yg-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-yg-sans), ui-monospace, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-screen: var(--screen);
   --color-hairline: var(--hairline);
   --color-hairline-strong: var(--hairline-strong);
+  --color-edge: var(--edge);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
-  --color-safelight: var(--safelight);
-  --color-safelight-lamp: var(--safelight-lamp);
-  --color-safelight-wash: var(--safelight-wash);
-  --color-safelight-wash-strong: var(--safelight-wash-strong);
+  --color-signal: var(--signal);
+  --color-signal-wash: var(--signal-wash);
+  --color-signal-wash-strong: var(--signal-wash-strong);
   --color-pass: var(--pass);
+  --color-concern: var(--concern);
   --color-fail: var(--fail);
   --color-pass-wash: var(--pass-wash);
   --color-fail-wash: var(--fail-wash);
-  --color-concern: var(--concern);
+  --color-concern-wash: var(--concern-wash);
   --color-mark-muted: var(--mark-muted);
-  --color-edge: var(--edge);
+  --color-film-1: var(--film-1);
+  --color-film-2: var(--film-2);
+  --color-film-3: var(--film-3);
+  --color-film-4: var(--film-4);
+  --color-film-5: var(--film-5);
+  --color-film-6: var(--film-6);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -210,47 +354,49 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
-  --radius-panel: 2px;
-  --radius-control: 4px;
+  /* Radius by hierarchy. */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-panel: 20px;
+  --radius-bay: 28px;
 
-  /* Type scale: Bringhurst's classic sizes. Size / line height. */
+  --shadow-float: var(--elev-float);
+  --shadow-overlay: var(--elev-overlay);
+
+  /* Type scale. Size / line height (docs/DESIGN.md). */
   --text-micro: 12px;
   --text-micro--line-height: 16px;
   --text-ui: 14px;
   --text-ui--line-height: 20px;
   --text-body: 16px;
-  --text-body--line-height: 24px;
+  --text-body--line-height: 26px;
+  --text-lede: 19px;
+  --text-lede--line-height: 30px;
   --text-written: 18px;
-  --text-written--line-height: 29px;
-  --text-h4: 18px;
+  --text-written--line-height: 30px;
+  --text-h4: 16px;
   --text-h4--line-height: 24px;
-  --text-h3: 21px;
-  --text-h3--line-height: 28px;
+  --text-h3: 18px;
+  --text-h3--line-height: 26px;
   --text-h2: 24px;
   --text-h2--line-height: 30px;
-  /* Page titles in the console. */
-  --text-title: 30px;
-  --text-title--line-height: 36px;
-  --text-title--letter-spacing: -0.02em;
-  --text-h1: 36px;
-  --text-h1--line-height: 40px;
-  --text-h1--letter-spacing: -0.02em;
-  --text-display: 52px;
-  --text-display--line-height: 54px;
-  --text-display--letter-spacing: -0.025em;
-  --text-display-lg: 72px;
-  --text-display-lg--line-height: 72px;
-  --text-display-lg--letter-spacing: -0.03em;
+  --text-title: clamp(30px, 2.4vw + 18px, 40px);
+  --text-title--line-height: 1.08;
+  --text-page: clamp(36px, 3.2vw + 16px, 60px);
+  --text-page--line-height: 1.02;
+  --text-display: clamp(40px, 4.6vw + 16px, 72px);
+  --text-display--line-height: 1;
+  --text-hero: clamp(40px, 8.6vw, 104px);
+  --text-hero--line-height: 0.94;
 
-  --ease-arrive: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-stage: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
-
-  --spacing-street: var(--street);
+  /* The gap between panels. */
+  --spacing-street: 16px;
   --spacing-gutter: var(--gutter);
   --spacing-bar: var(--bar-height);
 }
@@ -261,9 +407,9 @@
   }
 
   html {
-    background: var(--room);
+    background: var(--canvas);
     color: var(--ink);
-    font-family: var(--font-reading), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-yg-sans), var(--font-readex), ui-sans-serif, system-ui, sans-serif;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
@@ -272,33 +418,55 @@
 
   body {
     min-height: 100dvh;
-    background: var(--room);
+    background: var(--canvas);
     color: var(--ink);
     font-size: 16px;
-    line-height: 24px;
-    font-weight: 400;
+    line-height: 26px;
+    font-weight: 420;
     font-kerning: normal;
+    font-feature-settings: "kern";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  [data-theme="dark"] body,
+  [data-theme="dark"]:is(body) {
+    font-weight: 400;
+  }
+
   ::selection {
-    background: var(--safelight-wash-strong);
+    background: var(--signal-wash-strong);
     color: var(--ink);
   }
 
-  /* Focus is light: a solid 2px safelight outline, at least 3:1 against both themes' panels. */
+  /* Focus is the signal: a solid 2px ring with a gap, at least 3:1 against every surface. */
   :focus-visible {
-    outline: 2px solid var(--safelight);
-    outline-offset: 2px;
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+    transition: outline-offset var(--dur-2) var(--ease-out);
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-weight: 600;
+    font-weight: 630;
     text-wrap: balance;
+  }
+
+  h1 {
+    font-stretch: 112%;
+    letter-spacing: -0.035em;
+  }
+
+  h2 {
+    font-stretch: 106%;
+    letter-spacing: -0.02em;
+  }
+
+  h3,
+  h4 {
+    letter-spacing: -0.01em;
   }
 
   p {
@@ -306,12 +474,27 @@
   }
 
   a {
-    text-underline-offset: 3px;
+    text-underline-offset: 4px;
     text-decoration-thickness: 1px;
   }
 
   table {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Arabic sections: Readex Pro, a taller line for the script's ascenders and dots. */
+  :lang(ar) {
+    font-family: var(--font-readex), var(--font-yg-sans), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+  }
+  :lang(ar) :is(h1, h2, h3, h4) {
+    font-stretch: 100%;
+    letter-spacing: 0;
+    line-height: 1.35;
+  }
+  :lang(ar) p,
+  :lang(ar) li {
+    line-height: 1.85;
   }
 
   [hidden] {
@@ -320,96 +503,193 @@
 }
 
 @layer components {
-  /* A panel is a die: flat, square-cornered, no shadow. Streets separate panels. */
+  /* A panel: a flat plane of silicon. Hairline in light, a lit top edge in dark. */
   .panel {
-    background: var(--die);
+    background: var(--surface);
     border-radius: var(--radius-panel);
+    box-shadow:
+      inset 0 0 0 1px var(--hairline),
+      var(--highlight);
   }
 
-  /* Readings: tabular figures so columns align. Atkinson's zero is slashed by design. */
+  /* Columns of figures. The tabular zero is slashed: 0 and O differ in IDs. */
   .tnum {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Italic reading text takes the italic family, which is not preloaded (see layout.tsx). */
-  :is(em, i, .italic) {
-    font-family:
-      var(--font-reading-italic), var(--font-reading), ui-sans-serif, system-ui, sans-serif;
-  }
-  :is(.font-serif, .written) :is(em, i, .italic) {
-    font-family: inherit;
-  }
-
   /* Text a language model wrote. Serif means: check its evidence links. */
   .written {
-    font-family: var(--font-written), ui-serif, Georgia, serif;
-    font-optical-sizing: auto;
+    font-family: var(--font-newsreader), ui-serif, Georgia, serif;
     font-size: 18px;
-    line-height: 29px;
-    letter-spacing: 0.002em;
-    font-variant-numeric: proportional-nums oldstyle-nums;
+    line-height: 30px;
+    font-weight: 420;
+    letter-spacing: 0.003em;
+    font-variant-numeric: proportional-nums lining-nums;
   }
 
-  /* Lit state: something is selected or running. The safelight falls on it. */
+  /* Selected: the signal falls on it. */
   .lit {
-    background: var(--safelight-wash);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--safelight) 55%, transparent);
+    background: var(--signal-wash);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal) 60%, transparent);
   }
 
-  /* A unit that just came off the line: one ring of light that widens and fades. */
-  .arrival {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: arrival 1.1s var(--ease-arrive) both;
-  }
-
-  /* A unit that crossed a limit as it arrived: two rings in the fail colour. */
-  .alarm-pulse {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: alarm-pulse 0.9s var(--ease-arrive) 2 both;
-  }
-
-  /* Instrument readings at display size: light weight, tabular, tight. */
+  /* Instrument readings and counts: lining, proportional, a little wide. */
   .readout {
-    font-variant-numeric: tabular-nums;
-    font-weight: 300;
-    letter-spacing: -0.02em;
+    font-variant-numeric: lining-nums proportional-nums;
+    font-weight: 560;
+    font-stretch: 108%;
+    letter-spacing: -0.03em;
+  }
+
+  /* Instrument glass: dark in both themes. Pair with data-theme="dark". */
+  .screen {
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 0.035), transparent 60%), var(--screen);
+    border-radius: var(--radius-card);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.06),
+      inset 0 1px 0 rgb(255 255 255 / 0.05);
+  }
+
+  /* The film as a thin light (the track, the mark, the navigation indicator). */
+  .film-light {
+    background-image: var(--film);
   }
 
   /*
-   * Fiducials: the alignment marks at the corners of a reticle. Only on what is live or being
-   * exposed (the running line, the hero's exposure field), never as decoration.
+   * A sweep of light across an instrument screen: once when a station's result arrives
+   * (data-once, remounted for the next result), or again and again while it computes
+   * (data-working, a state that is really ongoing). An overlay of its own, so the screen under it
+   * never remounts; the band is a transformed pseudo-element, nothing repaints.
    */
-  .fiducials {
-    position: relative;
+  .sweep {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
   }
-  .fiducials::before {
-    --fid-len: 10px;
-    --fid-w: 1.5px;
-    --fid-c: var(--safelight);
+  .sweep::after {
+    content: "";
+    position: absolute;
+    inset: -20% auto -20% 0;
+    width: 45%;
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      color-mix(in oklab, var(--film-2) 10%, transparent) 20%,
+      color-mix(in oklab, var(--film-3) 26%, transparent) 45%,
+      color-mix(in oklab, var(--film-5) 20%, transparent) 62%,
+      transparent 100%
+    );
+    transform: translateX(-120%) skewX(-12deg);
+    opacity: 0;
+  }
+  .sweep[data-once]::after {
+    animation: sweep 1.1s var(--ease-in-out) both;
+  }
+  .sweep[data-working]::after {
+    animation: sweep 1.8s var(--ease-in-out) infinite;
+  }
+
+  /*
+   * How it works: the film's light runs along the line of stations as the reader scrolls past it,
+   * a scroll-driven animation on the compositor (plain-arabic.tsx). The Arabic line runs from
+   * right to left. Without scroll-driven animations, or under reduced motion, the line is lit.
+   */
+  .how-fill-x {
+    transform-origin: 100% 50%;
+  }
+  .how-fill-y {
+    transform-origin: 50% 0;
+  }
+  @supports (animation-timeline: view()) {
+    .how-line {
+      view-timeline: --how-line block;
+    }
+    .how-fill-x,
+    .how-fill-y,
+    .how-node {
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --how-line;
+    }
+    .how-fill-x {
+      animation-name: track-draw;
+      animation-range: cover calc(22% + var(--i, 0) * 9%) cover calc(30% + var(--i, 0) * 9%);
+    }
+    .how-fill-y {
+      animation-name: track-draw-y;
+      animation-range: cover calc(22% + var(--i, 0) * 9%) cover calc(30% + var(--i, 0) * 9%);
+    }
+    .how-node {
+      animation-name: node-in;
+      animation-range: cover calc(19% + var(--i, 0) * 9%) cover calc(23% + var(--i, 0) * 9%);
+    }
+  }
+
+  /*
+   * A light that follows the pointer over a card or an instrument screen (the pointer's place
+   * comes from pointer-light.tsx as --mx and --my). Behind the content, on the surface itself.
+   */
+  .glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow::after {
     content: "";
     position: absolute;
     inset: 0;
+    z-index: -1;
+    border-radius: inherit;
     pointer-events: none;
-    background:
-      linear-gradient(var(--fid-c), var(--fid-c)) top left / var(--fid-len) var(--fid-w) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) top left / var(--fid-w) var(--fid-len) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-len) var(--fid-w) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) top right / var(--fid-w) var(--fid-len) no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-len) var(--fid-w)
-        no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom left / var(--fid-w) var(--fid-len)
-        no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-len) var(--fid-w)
-        no-repeat,
-      linear-gradient(var(--fid-c), var(--fid-c)) bottom right / var(--fid-w) var(--fid-len)
-        no-repeat;
+    background: radial-gradient(
+      var(--glow-size, 320px) circle at var(--mx, 50%) var(--my, 50%),
+      var(--glow, color-mix(in oklab, var(--signal) 10%, transparent)),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .glow:hover::after {
+      opacity: 1;
+    }
+  }
+
+  /* The primary action catches the film's light when the pointer comes onto it. */
+  .sheen-hover {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .sheen-hover::after {
+    content: "";
+    position: absolute;
+    inset: -40% auto -40% 0;
+    width: 70%;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent 8%,
+      color-mix(in oklab, var(--film-1) 34%, transparent) 32%,
+      color-mix(in oklab, var(--film-3) 42%, transparent) 50%,
+      color-mix(in oklab, var(--film-5) 34%, transparent) 68%,
+      transparent 92%
+    );
+    transform: translateX(-150%) skewX(-16deg);
+    opacity: 0;
+  }
+  @media (hover: hover) {
+    .sheen-hover:hover::after {
+      animation: sweep 900ms var(--ease-in-out) both;
+    }
   }
 
   /*
-   * Not measured yet, or not ready: an unexposed field of dies. A faint die grid that fades out,
-   * so an empty state reads as a place waiting for data rather than a failure.
+   * Not measured yet, or not ready: an unexposed field of dies that fades out, so an empty
+   * state reads as a place waiting for data rather than a failure.
    */
   .unexposed {
     position: relative;
@@ -421,101 +701,246 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    border-radius: inherit;
     background-image:
       linear-gradient(var(--hairline) 1px, transparent 1px),
       linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
-    background-size: 12px 12px;
+    background-size: 14px 14px;
     background-position: -1px -1px;
-    mask-image: radial-gradient(120% 140% at 0% 0%, #000 0%, transparent 70%);
-    opacity: 0.85;
+    mask-image: radial-gradient(120% 140% at 0% 0%, #000 0%, transparent 72%);
   }
 
-  /* A live indicator: a dot of safelight with one slow ring. */
+  /* Loading: a soft band of light crosses the placeholder while what it stands for loads. */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 25%, var(--shimmer) 50%, transparent 75%);
+    transform: translateX(-100%);
+    animation: shimmer 1.7s var(--ease-in-out) infinite;
+  }
+
+  /* Live: a signal dot with one slow ring. */
   .live-dot {
     position: relative;
     display: inline-block;
     border-radius: 9999px;
-    background: var(--safelight);
+    background: var(--signal);
   }
   .live-dot::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    box-shadow: 0 0 0 1.5px var(--safelight);
-    animation: live-ring 2.4s var(--ease-arrive) infinite;
+    box-shadow: 0 0 0 1.5px var(--signal);
+    animation: live-ring 2.2s var(--ease-out) infinite;
   }
 
-  /* Something new in a list: its row is lit once, then the light fades. */
+  /* A panel whose content is updating right now: the film's light runs along its top edge. */
+  .live-edge {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .live-edge::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    background-image: var(--film);
+    transform: translateX(-100%);
+    animation: live-edge 1.8s var(--ease-in-out) infinite;
+  }
+
+  /* The upright form of .live-edge: the film's light runs down a rail while the stage it leads
+     from is live (the investigations' lifecycle). */
+  .live-rail {
+    position: absolute;
+    overflow: hidden;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+  .live-rail::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    height: 45%;
+    background-image: linear-gradient(
+      180deg,
+      transparent,
+      var(--film-2) 30%,
+      var(--film-4) 70%,
+      transparent
+    );
+    transform: translateY(-100%);
+    animation: live-rail 1.8s var(--ease-in-out) infinite;
+  }
+
+  /* Something new in a list: lit once, then the light fades. */
   .flash-new {
-    animation: flash-new 2.4s var(--ease-arrive) both;
+    animation: flash-new 2.4s var(--ease-out) both;
   }
   .flash-alarm {
-    animation: flash-alarm 2.4s var(--ease-arrive) both;
+    animation: flash-alarm 2.4s var(--ease-out) both;
   }
 
-  /* A page arriving after navigation: one short settle, not a fade-up per section. */
+  /* A page arriving: one settle of the whole page. */
   .page-enter {
-    animation: page-enter var(--dur-panel) var(--ease-arrive) both;
+    animation: page-enter var(--dur-4) var(--ease-out) both;
   }
 
-  /* Swapped content (an evidence record, a tab): a quick crossfade. */
+  /* Swapped content (an evidence record, a tab): a quick crossfade with a small rise. */
   .swap-in {
-    animation: swap-in var(--dur-component) var(--ease-arrive) both;
+    animation: swap-in var(--dur-3) var(--ease-out) both;
   }
 
-  /* Lines of a display headline rising out of a mask, staggered by --i. */
-  .rise-line {
+  /* A panel opening: it grows from a slightly smaller, transparent state with a soft spring. */
+  .grow-in {
+    animation: grow-in var(--dur-4) var(--ease-spring-soft) both;
+    transform-origin: 50% 0;
+  }
+
+  /* Lines of a display headline rising out of their masks, staggered by --i. */
+  .hero-line {
     display: block;
     overflow: clip;
-    padding-bottom: 0.08em;
-    margin-bottom: -0.08em;
+    overflow-clip-margin: 0.12em;
+    padding-bottom: 0.06em;
+    margin-bottom: -0.06em;
   }
-  .rise-line > span {
+  .hero-line > span {
     display: block;
-    animation: rise 0.9s var(--ease-arrive) both;
-    animation-delay: calc(var(--i, 0) * 90ms + 80ms);
+    animation: hero-rise var(--dur-5) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 80ms);
   }
-  .stage-in {
-    animation: stage-in 0.7s var(--ease-arrive) both;
-    animation-delay: calc(var(--i, 0) * 90ms + 380ms);
+
+  /* Choreographed entrances of the first paint, staggered by --i after a --d delay. */
+  .rise-in {
+    animation: rise-in 700ms var(--ease-out) both;
+    animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 70ms);
+  }
+
+  /* Pressable: goes down under a press with a firm spring, comes back with it. */
+  .press {
+    transition:
+      transform var(--dur-4) var(--ease-spring-firm),
+      background-color var(--dur-1) linear,
+      color var(--dur-1) linear,
+      box-shadow var(--dur-2) var(--ease-out),
+      opacity var(--dur-2) linear;
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+    transition-duration: 90ms, var(--dur-1), var(--dur-1), var(--dur-2), var(--dur-2);
+  }
+  @media (hover: hover) {
+    .lift:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+    .lift:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
+  }
+
+  /* Leans toward the pointer (pointer-light.tsx sets --tx and --ty) and springs back. The lean is
+     the translate property, so it composes with the press and the lift. */
+  .magnetic {
+    translate: var(--tx, 0px) var(--ty, 0px);
+    transition:
+      translate 520ms var(--ease-spring-soft),
+      transform var(--dur-4) var(--ease-spring-firm),
+      background-color var(--dur-1) linear,
+      color var(--dur-1) linear,
+      box-shadow var(--dur-2) var(--ease-out),
+      opacity var(--dur-2) linear;
   }
 
   .skip-link {
     position: absolute;
     left: 12px;
-    top: -48px;
+    top: -56px;
     z-index: 100;
-    padding: 8px 12px;
-    background: var(--die-2);
-    color: var(--ink);
-    border-radius: var(--radius-control);
+    padding: 10px 14px;
+    background: var(--ink);
+    color: var(--canvas);
+    border-radius: 9999px;
+    font-weight: 560;
   }
 
   .skip-link:focus-visible {
-    top: 8px;
+    top: 10px;
   }
 }
 
-@keyframes arrival {
-  from {
+@keyframes sweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  15% {
     opacity: 1;
-    transform: scale(0.4);
   }
-  to {
+  85% {
+    opacity: 1;
+  }
+  100% {
     opacity: 0;
-    transform: scale(1.6);
+    transform: translateX(330%) skewX(-12deg);
   }
 }
 
-@keyframes alarm-pulse {
+@keyframes track-draw {
   from {
-    opacity: 0.95;
-    transform: scale(0.6);
+    transform: scaleX(0);
   }
   to {
+    transform: none;
+  }
+}
+
+@keyframes track-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes node-in {
+  from {
     opacity: 0;
-    transform: scale(2.4);
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes live-edge {
+  to {
+    transform: translateX(230%);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes live-rail {
+  to {
+    transform: translateY(230%);
   }
 }
 
@@ -527,13 +952,13 @@
   70%,
   100% {
     opacity: 0;
-    transform: scale(2.6);
+    transform: scale(2.8);
   }
 }
 
 @keyframes flash-new {
   from {
-    background-color: var(--safelight-wash-strong);
+    background-color: var(--signal-wash-strong);
   }
   to {
     background-color: transparent;
@@ -543,18 +968,18 @@
 @keyframes flash-alarm {
   from {
     background-color: var(--fail-wash);
-    box-shadow: inset 2px 0 0 var(--fail);
+    box-shadow: inset 3px 0 0 var(--fail);
   }
   to {
     background-color: transparent;
-    box-shadow: inset 2px 0 0 transparent;
+    box-shadow: inset 3px 0 0 transparent;
   }
 }
 
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -565,44 +990,173 @@
 @keyframes swap-in {
   from {
     opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: none;
   }
 }
 
-@keyframes rise {
+@keyframes grow-in {
   from {
-    transform: translateY(104%);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    transform: translateY(105%);
   }
   to {
     transform: none;
   }
 }
 
-@keyframes stage-in {
+@keyframes rise-in {
   from {
     opacity: 0;
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
+    transform: none;
   }
 }
 
+/* ---------------------------------------------------------------------------------------------
+   Between a list and one of its items (page-transition.tsx, the browser's view transitions).
+   Forward, the list leaves to the left while the item arrives from the right; back, the reverse.
+   What both pages show (a title, a status) travels from its place on one to its place on the
+   other, softening mid-flight. Clicks pass through to the new page while it plays.
+   ------------------------------------------------------------------------------------------- */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back) {
+  animation:
+    var(--dur-2) var(--ease-in) both vt-fade reverse,
+    var(--dur-4) var(--ease-in-out) both vt-slide reverse;
+}
+
+::view-transition-new(.nav-forward),
+::view-transition-new(.nav-back) {
+  animation:
+    var(--dur-3) var(--ease-out) var(--dur-1) both vt-fade,
+    var(--dur-4) var(--ease-out) both vt-slide;
+}
+
+::view-transition-old(.nav-forward),
+::view-transition-new(.nav-back) {
+  --vt-slide: -56px;
+}
+
+::view-transition-new(.nav-forward),
+::view-transition-old(.nav-back) {
+  --vt-slide: 56px;
+}
+
+/* A page that enters is painted after everything the old page held, so its panels would cover
+   what travels: what travels stays on top. */
+::view-transition-group(.morph) {
+  z-index: 1;
+  animation-duration: var(--dur-4);
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: vt-via-blur;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes vt-slide {
+  from {
+    transform: translateX(var(--vt-slide));
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes vt-via-blur {
+  40% {
+    filter: blur(2px);
+  }
+}
+
+/* A theme switch changes every colour in one step: no control fades on its own clock
+   (theme-menu-full.tsx sets the class for the frames the switch takes). */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .arrival,
-  .alarm-pulse,
-  .live-dot::after {
+  .live-dot::after,
+  .sweep::after,
+  .sheen-hover::after,
+  .shimmer::after {
     display: none;
+  }
+
+  .magnetic {
+    translate: none;
+  }
+
+  .how-fill-x,
+  .how-fill-y,
+  .how-node {
+    animation: none !important;
+  }
+
+  /* Still live, without the run: the whole edge carries the film. */
+  .live-edge::before {
+    width: 100%;
+    transform: none;
+    animation: none !important;
+  }
+  .live-rail::before {
+    height: 100%;
+    transform: none;
+    animation: none !important;
   }
 
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Pages swap at once: nothing slides or travels between them. */
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }
 
@@ -613,16 +1167,25 @@
   .lit {
     outline: 2px solid Highlight;
   }
-  .fiducials::before,
-  .unexposed::before {
+  .unexposed::before,
+  .sweep::after,
+  .sheen-hover::after,
+  .glow::after {
     display: none;
   }
 }
 
-/* Tertiary text loses contrast on the safelight wash and on a new row's flash: lift it. Unlayered,
-   so it wins over the text-ink-3 utility. */
+/* Muted text loses contrast on the signal wash and on a new row's flash: lift it. Unlayered, so it
+   wins over the text-ink-3 utility. */
 .lit .text-ink-3,
-.bg-safelight-wash .text-ink-3,
+.bg-signal-wash .text-ink-3,
 .flash-new .text-ink-3 {
   color: var(--ink-2);
+}
+
+/* Small fail text on the signal wash (a chosen wafer's pattern) is a step deeper: 5.3:1 in both
+   themes instead of 4.4. */
+.lit .text-fail,
+.bg-signal-wash .text-fail {
+  color: color-mix(in oklab, var(--fail) 88%, var(--ink));
 }

@@ -1,12 +1,4 @@
-import { globalsCss, paletteHex } from "@/test/palettes";
-
-import { contrastRatio, deltaEOk } from "./oklab";
-import {
-  SAFELIGHT_SPECTRUM,
-  safelightChromaticity,
-  safelightHue,
-  safelightTokenHex,
-} from "./safelight";
+import { SAFELIGHT_SPECTRUM, safelightChromaticity, safelightHue } from "./safelight";
 
 describe("safelight", () => {
   it("has no power below the 500 nm cut-off", () => {
@@ -27,19 +19,5 @@ describe("safelight", () => {
     const hue = safelightHue();
     expect(hue).toBeGreaterThan(90);
     expect(hue).toBeLessThan(105);
-  });
-
-  it("is the value of --safelight-lamp and of the dark --safelight token", () => {
-    const token = safelightTokenHex();
-    expect(globalsCss).toContain(`--safelight-lamp: ${token};`);
-    expect(paletteHex("safelight", "dark")).toBe(token);
-  });
-
-  it("reads as light on the dark room (well above 3:1)", () => {
-    expect(contrastRatio(safelightTokenHex(), paletteHex("room", "dark"))).toBeGreaterThan(10);
-  });
-
-  it("stays distinct from the fail colour, so light never reads as an error", () => {
-    expect(deltaEOk(safelightTokenHex(), "#eb556e")).toBeGreaterThan(30);
   });
 });

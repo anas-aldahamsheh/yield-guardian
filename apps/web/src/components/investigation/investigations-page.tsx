@@ -1,8 +1,6 @@
-import Link from "next/link";
-
 import { PageFrame, PageHeader } from "@/components/page";
+import { ViewTabs } from "@/components/view-tabs";
 import { WorkOrdersTab } from "@/components/work-orders/work-orders-view";
-import { cn } from "@/lib/utils";
 
 import { InvestigationsIndex } from "./investigations-list";
 
@@ -29,31 +27,14 @@ export function InvestigationsPage({
       <PageHeader
         title="Investigations"
         description="Each one gathers evidence with data tools, writes a report whose numbers are checked, and waits for an engineer's decision. Approving opens a work order."
+        className="mb-8 sm:mb-10"
       />
-      <nav aria-label="Investigations views" className="mb-6 border-b border-hairline">
-        <ul className="-mb-px flex gap-1">
-          {TABS.map((t) => {
-            const active = t.id === tab;
-            return (
-              <li key={t.id}>
-                <Link
-                  href={t.href}
-                  scroll={false}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "inline-flex min-h-10 items-center border-b-2 px-3 text-[14px] no-underline transition-colors duration-[var(--dur-micro)]",
-                    active
-                      ? "border-safelight font-medium text-ink"
-                      : "border-transparent text-ink-2 hover:text-ink",
-                  )}
-                >
-                  {t.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <ViewTabs
+        label="Investigations views"
+        items={TABS}
+        current={tab}
+        className="mb-10 sm:mb-12"
+      />
       {tab === "work-orders" ? <WorkOrdersTab order={order} /> : <InvestigationsIndex />}
     </PageFrame>
   );

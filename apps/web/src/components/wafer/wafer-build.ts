@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { safelightTokenHex } from "@/lib/optics/safelight";
+import { signalTokenHex } from "@/lib/optics/oxide";
 import { FILM, type ExposurePlan, type DieLayout } from "@/lib/wafer/geometry";
 
 import {
@@ -68,7 +68,7 @@ export interface WaferObjects {
 export function buildWafer(
   layout: DieLayout,
   plan: ExposurePlan,
-  options: { failColor: string; roomGain?: number; inspectGain?: number },
+  options: { failColor: string; lampColor?: string; roomGain?: number; inspectGain?: number },
 ): WaferObjects {
   const shared = {
     uFilmCentre: { value: FILM.centreNm },
@@ -80,7 +80,8 @@ export function buildWafer(
   };
   const field = new THREE.Vector4(0, 0, 0, 0);
   const hover = new THREE.Vector3(0, 0, 0);
-  const lamp = hexToLinear(safelightTokenHex());
+  // The probe light is the signal of the instrument screens (dark glass in both themes).
+  const lamp = hexToLinear(options.lampColor ?? signalTokenHex("dark"));
 
   const dieMaterial = new THREE.ShaderMaterial({
     vertexShader: dieVertexShader,

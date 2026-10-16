@@ -12,51 +12,62 @@ import { metaState } from "@/lib/api/server";
 import "./globals.css";
 
 /*
- * Both families are bundled from @fontsource-variable and self-hosted by next/font/local, so the
- * build needs no network and the page loads no font from another origin.
+ * Every face is bundled from @fontsource-variable and self-hosted by next/font/local, so the build
+ * needs no network and the page loads no font from another origin (docs/DESIGN.md, "Type").
  */
-/** Readings, data and interface. Glyphs that are easy to confuse (0 O, 1 l I, 5 S) differ. */
-const reading = localFont({
-  src: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2",
-  style: "normal",
-  weight: "200 800",
-  variable: "--font-reading",
-  display: "swap",
-  adjustFontFallback: "Arial",
-});
-
 /**
- * Its italic, as a family of its own so that only the upright face is preloaded: no screen sets
- * interface text in italic, and emphasis in Markdown (below the fold) fetches it when it appears.
+ * YG Sans, our cut of Mona Sans: display, headings, interface and data, with the width axis for
+ * the display voice. It is on every first paint, so it holds only the widths, weights and
+ * characters the app sets (scripts/cut-ui-font.py).
  */
-const readingItalic = localFont({
-  src: "../../node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-italic.woff2",
-  style: "italic",
-  weight: "200 800",
-  variable: "--font-reading-italic",
+const ygSans = localFont({
+  src: "../fonts/yg-sans-latin.woff2",
+  style: "normal",
+  weight: "400 700",
+  variable: "--font-yg-sans",
   display: "swap",
-  preload: false,
   adjustFontFallback: "Arial",
+  declarations: [{ prop: "font-stretch", value: "100% 112.5%" }],
 });
 
-/** Text a language model wrote. Optical sizes keep it crisp at report sizes. */
-const written = localFont({
+/** Newsreader: text a language model wrote. Reports and answers sit below the fold or later. */
+const newsreader = localFont({
   src: [
     {
-      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2",
+      path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2",
       style: "normal",
     },
     {
-      path: "../../node_modules/@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-italic.woff2",
+      path: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2",
       style: "italic",
     },
   ],
-  weight: "200 900",
-  variable: "--font-written",
+  weight: "200 800",
+  variable: "--font-newsreader",
   display: "swap",
-  // Report text sits below the fold or on later screens: not worth 250 KB of preload.
   preload: false,
   adjustFontFallback: "Times New Roman",
+});
+
+/**
+ * Readex Pro: the Arabic sections. Its unicode range is the Arabic block, so a page without
+ * Arabic text never fetches it.
+ */
+const readex = localFont({
+  src: "../../node_modules/@fontsource-variable/readex-pro/files/readex-pro-arabic-wght-normal.woff2",
+  style: "normal",
+  weight: "160 700",
+  variable: "--font-readex",
+  display: "swap",
+  preload: false,
+  adjustFontFallback: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC",
+    },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -71,8 +82,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef0f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#13120c" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f6f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1220" },
   ],
   colorScheme: "light dark",
 };
@@ -89,7 +100,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${reading.variable} ${readingItalic.variable} ${written.variable}`}
+      className={`${ygSans.variable} ${newsreader.variable} ${readex.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
         <Providers nonce={nonce} state={meta}>

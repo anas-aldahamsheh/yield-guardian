@@ -75,7 +75,7 @@ export function IntervalBar({
         cy="8"
         r="4"
         fill="var(--ink)"
-        stroke="var(--die)"
+        stroke="var(--surface)"
         strokeWidth="2"
       />
     </svg>

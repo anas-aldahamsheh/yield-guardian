@@ -30,7 +30,7 @@ function buildStack(wafers: StackWafer[]) {
   const disc = new THREE.CylinderGeometry(1, 1, 0.012, 96);
   const die = new THREE.BoxGeometry(1, 0.004, 1);
   const discMaterial = new THREE.MeshBasicMaterial({
-    color: readColour("--die-2", "#24221b"),
+    color: readColour("--surface-2", "#24221b"),
     transparent: true,
     opacity: 0.92,
   });

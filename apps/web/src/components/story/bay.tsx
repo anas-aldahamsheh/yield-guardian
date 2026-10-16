@@ -1,10 +1,13 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { formatDuration } from "@/lib/format";
-import type { RunState } from "@/lib/live/run-state";
-import type { StationSummary, StationTone } from "@/lib/live/stations";
+import { useChangeKey, useTicker } from "@/components/motion";
+import { useEntrance } from "@/components/motion/entrance";
+import { formatDuration, formatInt } from "@/lib/format";
+import type { RunState, StageId } from "@/lib/live/run-state";
+import { STATION_STAGES, type StationSummary, type StationTone } from "@/lib/live/stations";
 import { cn } from "@/lib/utils";
 
 import { useScene, type LineStation, type SceneStore } from "./scene";
@@ -24,9 +27,10 @@ export type StationClock = { kind: "waiting" | "computing" | "computed"; ms: num
 export type ClockStation = LineStation | "final_test";
 
 /**
- * The bay: the line in the yellow room, always dark because it depicts the room. Four tools on
- * one amber rail: the process chamber (1), the monitoring console (2), the prober with its lot
- * carrier (3) and the final-test stamp. Each station's result sits under its tool.
+ * The bay: one machine body with four stations on one track. Each station is an instrument
+ * screen (dark glass in both themes) that draws only computed values: the sensor bank (1), the
+ * monitoring dials (2), the prober's wafer and the lot carrier (3) and the final-test seal. The
+ * track's film light reaches a station when its first result is on screen, and only then.
  */
 export function Bay({
   state,
@@ -34,7 +38,6 @@ export function Bay({
   summaries,
   finalTest,
   clocks,
-  use3d,
   onOpen,
   openStation,
 }: {
@@ -43,7 +46,6 @@ export function Bay({
   summaries: StationSummary[];
   finalTest: { tone: StationTone; sentence: string };
   clocks: Record<ClockStation, StationClock>;
-  use3d: boolean;
   onOpen: (station: number) => void;
   openStation: number | null;
 }) {
@@ -52,152 +54,227 @@ export function Bay({
     StationSummary,
     StationSummary,
   ];
-  const lit = state != null;
+  const revealed = useScene(store, (s) => s.revealed);
+  // Results arriving now (the line is playing them): they spring, tick and sweep. A run at rest
+  // (restored, finished, or reduced motion) shows everything at once.
+  const live = useScene(store, (s) => s.playing);
+  const reached = (station: ClockStation, tone: StationTone) =>
+    tone === "ok" ||
+    tone === "alarm" ||
+    tone === "failed" ||
+    (station === "final_test"
+      ? revealed.has("final_test")
+      : STATION_STAGES[station].some((s) => revealed.has(s)));
+
   return (
     <section
-      data-theme="dark"
       aria-labelledby="bay-title"
-      className="bay relative min-w-0 overflow-hidden rounded-[2px] bg-room text-ink"
+      className="relative min-w-0 rounded-[28px] bg-surface p-1.5 shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] sm:p-2"
     >
       <h2 id="bay-title" className="sr-only">
         The line
       </h2>
-      {/* Columns in proportion to the drawings' widths, so every tool is drawn at one scale and
-          the captions start on one line. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-2 xl:grid-cols-[minmax(0,292fr)_minmax(0,392fr)_minmax(0,392fr)_minmax(0,272fr)]">
+      {/* Columns in proportion to the screens' drawings (214, 360, 360 and 200 wide, all 250
+          high) plus each tile's fixed padding (64 px), so every instrument is drawn at one scale.
+          Each tile spans three rows of the bay (heading, screen, what it computed) as a subgrid,
+          so names, screens and sentences line up across the stations. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-2 xl:grid-cols-[calc((100%_-_256px)*0.189_+_64px)_calc((100%_-_256px)*0.31735_+_64px)_calc((100%_-_256px)*0.31735_+_64px)_calc((100%_-_256px)*0.1763_+_64px)]">
         <StationTile
           n={1}
+          index={0}
           summary={manufacturing}
-          lit={lit}
           clock={clocks.manufacturing}
           store={store}
+          live={live}
+          reached={reached("manufacturing", manufacturing.tone)}
           open={openStation === 1}
           onOpen={onOpen}
-          toolWidth={TOOL_WIDTH.manufacturing}
-          tool={
-            <ChamberTool state={state} store={store} active={manufacturing.tone === "working"} />
-          }
+          stages={STATION_STAGES.manufacturing}
+          tool={<ChamberTool state={state} store={store} />}
         />
         <StationTile
           n={2}
+          index={1}
           summary={monitoring}
-          lit={lit}
           clock={clocks.monitoring}
           store={store}
+          live={live}
+          reached={reached("monitoring", monitoring.tone)}
           open={openStation === 2}
           onOpen={onOpen}
-          toolWidth={TOOL_WIDTH.monitoring}
-          tool={<ConsoleTool state={state} store={store} active={monitoring.tone === "working"} />}
+          stages={STATION_STAGES.monitoring}
+          tool={<ConsoleTool state={state} store={store} />}
         />
         <StationTile
           n={3}
+          index={2}
           summary={waferTest}
-          lit={lit}
           clock={clocks.wafer_test}
           store={store}
+          live={live}
+          reached={reached("wafer_test", waferTest.tone)}
           open={openStation === 3}
           onOpen={onOpen}
-          toolWidth={TOOL_WIDTH.wafer_test}
-          tool={
-            <ProberTool
-              state={state}
-              store={store}
-              active={waferTest.tone === "working"}
-              use3d={use3d}
-            />
-          }
+          stages={STATION_STAGES.wafer_test}
+          tool={<ProberTool state={state} store={store} />}
         />
         <Tile
-          lit={lit}
-          toolWidth={TOOL_WIDTH.final_test}
-          tool={<StampTool state={state} store={store} active={finalTest.tone === "working"} />}
+          index={3}
+          tone={finalTest.tone}
+          reached={reached("final_test", finalTest.tone)}
+          live={live}
+          stagesShown={revealed.has("final_test") ? 1 : 0}
           labelledBy="final-test"
+          heading={
+            <>
+              <h3 id="final-test" className="text-[16px] leading-6 font-[630] tracking-[-0.01em]">
+                Final test
+              </h3>
+              <ToneChip tone={finalTest.tone} clock={clocks.final_test} live={live} />
+            </>
+          }
+          tool={<StampTool state={state} store={store} />}
         >
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 id="final-test" className="text-[15px] leading-6 font-semibold">
-              Final test
-            </h3>
-            <ToneChip tone={finalTest.tone} clock={clocks.final_test} />
-          </div>
-          <p className="text-[14px] leading-5 text-ink-2">{finalTest.sentence}</p>
+          <Finding sentence={finalTest.sentence} />
         </Tile>
       </div>
     </section>
   );
 }
 
-/** Width of each tool's drawing in its own units (the viewBox, margins included). */
-const TOOL_WIDTH: Record<ClockStation, number> = {
-  manufacturing: 292,
-  monitoring: 392,
-  wafer_test: 392,
-  final_test: 272,
-};
+/** The film's colour where each station's stretch of track begins and ends. */
+const SEGMENT: [string, string][] = [
+  ["var(--film-1)", "var(--film-2)"],
+  ["var(--film-2)", "var(--film-4)"],
+  ["var(--film-4)", "var(--film-5)"],
+  ["var(--film-5)", "var(--film-6)"],
+];
 
 /**
- * One tool on the line and its caption. From two columns up, the tile is a subgrid of two rows,
- * so the captions of tiles side by side start on one line; the drawings stand on the caption.
+ * A station's stretch of the track and its node. When data reaches the station its stretch
+ * fills with the film (growing from the station before it while results arrive, at once when
+ * the line is at rest). Along the top from two columns up, down the left edge in one column.
  */
-function Tile({
-  lit,
-  tool,
-  toolWidth,
-  tone,
-  overlay,
-  labelledBy,
-  children,
+function Track({
+  index,
+  reached,
+  working,
+  live,
 }: {
-  lit: boolean;
-  tool: ReactNode;
-  toolWidth: number;
-  tone?: StationTone;
-  overlay?: ReactNode;
-  labelledBy?: string;
-  children: ReactNode;
+  index: number;
+  reached: boolean;
+  working: boolean;
+  live: boolean;
 }) {
+  const [from, to] = SEGMENT[index]!;
+  const style = { "--seg-a": from, "--seg-b": to } as CSSProperties;
   return (
-    <div
-      className={cn(
-        "relative flex min-w-0 flex-col border-t border-hairline first:border-t-0 md:row-span-2 md:grid md:grid-rows-subgrid xl:border-t-0 md:[&:nth-child(-n+2)]:border-t-0",
-        // Column rules drawn over the tile, so they take no width from the drawing.
-        "before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:hidden before:w-px before:bg-hairline xl:[&:not(:first-child)]:before:block md:[&:nth-child(2n)]:before:block",
-        tone === "alarm" && "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)]",
-      )}
-      role={labelledBy ? "group" : undefined}
-      aria-labelledby={labelledBy}
-    >
-      <Rail lit={lit} />
-      {overlay}
-      <div className="flex items-end justify-center pt-5">
-        <div
-          className="w-full max-w-(--tool-w) xl:max-w-none"
-          style={{ "--tool-w": `${Math.round(toolWidth * 0.9)}px` } as CSSProperties}
-        >
-          {tool}
-        </div>
-      </div>
-      <div className="flex min-w-0 flex-col gap-1 px-4 pt-3 pb-5">{children}</div>
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={style}>
+      {/* The bare track */}
+      <span className="absolute top-0 bottom-0 left-[27px] w-[2px] rounded-full bg-hairline-strong md:hidden" />
+      <span className="absolute inset-x-0 top-[25px] hidden h-[2px] bg-hairline-strong md:block" />
+      {/* The film where data has reached */}
+      <span
+        className={cn(
+          "absolute top-0 bottom-0 left-[27px] w-[2px] origin-top rounded-full bg-[linear-gradient(180deg,var(--seg-a),var(--seg-b))] md:hidden",
+          live && "transition-transform duration-[900ms] ease-in-out",
+          reached ? "scale-y-100" : "scale-y-0",
+        )}
+      />
+      <span
+        className={cn(
+          "absolute inset-x-0 top-[25px] hidden h-[2px] origin-left bg-[linear-gradient(90deg,var(--seg-a),var(--seg-b))] md:block",
+          live && "transition-transform duration-[900ms] ease-in-out",
+          reached ? "scale-x-100" : "scale-x-0",
+        )}
+      />
+      {/* The node */}
+      <span
+        className={cn(
+          "absolute top-[23px] left-[21px] size-[14px] rounded-full transition-[background-color,box-shadow] duration-(--dur-4) md:top-[19px]",
+          reached
+            ? "bg-(--seg-a) shadow-[0_0_0_4px_color-mix(in_oklab,var(--seg-a)_22%,transparent)]"
+            : "bg-surface shadow-[inset_0_0_0_2px_var(--hairline-strong)]",
+        )}
+      >
+        {working ? <span className="live-dot absolute inset-[3px] bg-signal" /> : null}
+      </span>
     </div>
   );
 }
 
-function Rail({ lit }: { lit: boolean }) {
+/**
+ * One station: its node on the track, its name and state, its instrument screen and what it
+ * computed. A station whose alarm turns it red is tinted and rings once.
+ */
+function Tile({
+  index,
+  tone,
+  reached,
+  live,
+  stagesShown,
+  heading,
+  tool,
+  overlay,
+  labelledBy,
+  open = false,
+  children,
+}: {
+  index: number;
+  tone: StationTone;
+  reached: boolean;
+  live: boolean;
+  /** How many of the station's results are on screen: each new one sweeps the screen once. */
+  stagesShown: number;
+  heading: ReactNode;
+  tool: ReactNode;
+  overlay?: ReactNode;
+  labelledBy: string;
+  open?: boolean;
+  children: ReactNode;
+}) {
+  const sweep = useChangeKey(stagesShown);
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[3px]">
+    <div
+      role="group"
+      aria-labelledby={labelledBy}
+      data-open={open || undefined}
+      className={cn(
+        "group/tile glow relative row-span-3 grid min-w-0 grid-rows-subgrid rounded-[22px] pt-4 pr-4 pb-5 pl-14 transition-[background-color,box-shadow] duration-(--dur-4) sm:pr-5 md:pt-12 md:pl-5",
+        // Column rules between stations, inset so they never touch the rounded corners.
+        "before:pointer-events-none before:absolute before:top-12 before:bottom-6 before:left-0 before:hidden before:w-px before:bg-hairline md:[&:nth-child(2n)]:before:block xl:[&:nth-child(n+2)]:before:block",
+        tone === "alarm" && "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)] before:opacity-0",
+        open && "shadow-[inset_0_0_0_1.5px_var(--signal)] before:opacity-0",
+      )}
+    >
+      <Track index={index} reached={reached} working={tone === "working"} live={live} />
+      {overlay}
+      <div className="flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-1 self-start">
+        {heading}
+      </div>
       <div
-        className={cn(
-          "absolute inset-x-0 top-0 h-px bg-hairline-strong transition-opacity duration-[var(--dur-panel)]",
-          lit && "opacity-0",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute inset-x-0 top-0 h-[2px] bg-safelight-lamp opacity-0 shadow-[0_0_10px_1px_color-mix(in_oklab,var(--safelight-lamp)_45%,transparent)] transition-opacity duration-[var(--dur-panel)]",
-          lit && "opacity-100",
-        )}
-      />
+        data-theme="dark"
+        className="screen glow relative mt-3 flex flex-col justify-center overflow-hidden p-2.5 transition-[translate,box-shadow] duration-(--dur-4) ease-spring [--glow-size:260px] [--glow:rgb(255_255_255/0.07)] group-hover/tile:-translate-y-0.5 group-hover/tile:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.12),inset_0_1px_0_rgb(255_255_255/0.08),0_18px_32px_-22px_rgb(0_0_0/0.6)] sm:p-3"
+      >
+        <div>{tool}</div>
+        {tone === "working" ? <WorkingSweep /> : null}
+        {live && sweep != null && tone !== "working" ? (
+          <span key={sweep} aria-hidden className="sweep" data-once="" />
+        ) : null}
+      </div>
+      <div className="mt-4 flex min-w-0 flex-col gap-1.5">{children}</div>
     </div>
   );
+}
+
+/**
+ * Light crossing a station's screen while it computes, from when the station started computing
+ * on this page. A station that was computing when the page arrived (a reload) is drawn at rest;
+ * its dot says it is at work.
+ */
+function WorkingSweep() {
+  const entrance = useEntrance();
+  return entrance ? <span aria-hidden className="sweep" data-working="" /> : null;
 }
 
 const TONE_TEXT: Record<StationTone, string> = {
@@ -209,25 +286,39 @@ const TONE_TEXT: Record<StationTone, string> = {
   failed: "Stopped",
 };
 
-export function ToneChip({ tone, clock }: { tone: StationTone; clock: StationClock }) {
+/** A station's state in a word, with its clock while it works. Springs in when it changes live. */
+export function ToneChip({
+  tone,
+  clock,
+  live = false,
+}: {
+  tone: StationTone;
+  clock: StationClock;
+  live?: boolean;
+}) {
+  const change = useChangeKey(tone);
   if (tone === "idle") return null;
   const kind = tone === "working" ? (clock?.kind ?? "computing") : null;
+  const springs = change != null && (live || tone === "working");
   return (
     <span
+      key={springs ? `${tone}-${change}` : tone}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[2px] px-1.5 text-[12px] leading-5",
-        tone === "needs" && "bg-die-2 text-ink-3",
-        tone === "working" && "bg-safelight-wash text-ink",
-        tone === "ok" && "text-ink-2",
-        tone === "alarm" && "bg-fail-wash text-ink",
-        tone === "failed" && "bg-fail-wash text-ink",
+        "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560] whitespace-nowrap",
+        springs && "animate-in duration-[520ms] ease-spring fade-in-0 zoom-in-75",
+        tone === "needs" && "bg-surface-2 text-ink-2",
+        tone === "working" && "bg-signal-wash text-ink",
+        tone === "ok" && "bg-pass-wash text-ink",
+        (tone === "alarm" || tone === "failed") && "bg-fail-wash text-ink",
       )}
     >
-      {tone === "working" ? (
-        <span className="size-1.5 rounded-full bg-safelight-lamp" aria-hidden="true" />
-      ) : null}
-      {tone === "alarm" ? (
+      {tone === "working" ? <span className="live-dot size-1.5" aria-hidden="true" /> : null}
+      {tone === "ok" ? <span className="size-1.5 rounded-full bg-pass" aria-hidden="true" /> : null}
+      {tone === "alarm" || tone === "failed" ? (
         <span className="size-1.5 rounded-full bg-fail" aria-hidden="true" />
+      ) : null}
+      {tone === "needs" ? (
+        <span className="size-1.5 rounded-full border border-ink-3" aria-hidden="true" />
       ) : null}
       {kind === "computed" ? "Computed in" : kind === "waiting" ? "Waiting" : TONE_TEXT[tone]}
       {kind && kind !== "waiting" && clock ? (
@@ -239,75 +330,130 @@ export function ToneChip({ tone, clock }: { tone: StationTone; clock: StationClo
   );
 }
 
+/**
+ * A station's sentence cut to its first finding: the station shows one finding beside its number,
+ * and its drawer has the rest. The whole sentence stays for screen readers (and is announced as
+ * it settles).
+ */
+function Finding({ sentence }: { sentence: string }) {
+  const first = sentence.split("; ")[0]!.split(/(?<=[.!?])\s+/)[0]!;
+  const shown = /[.!?]$/.test(first) ? first : `${first}.`;
+  const rest = sentence.slice(first.length).replace(/^[;.]?\s*/, "");
+  return (
+    <p className="text-[14px] leading-5 text-ink-2">
+      {shown}
+      {rest ? <span className="sr-only">{` ${upperFirst(rest)}`}</span> : null}
+    </p>
+  );
+}
+
+function upperFirst(s: string): string {
+  return s ? s[0]!.toUpperCase() + s.slice(1) : s;
+}
+
+/** A station's count. It runs up from zero when its result arrives live; at rest it is simply there. */
+function Count({ value, live, alarm }: { value: string; live: boolean; alarm: boolean }) {
+  const n = /^[\d,]+$/.test(value) ? Number(value.replace(/,/g, "")) : null;
+  const shown = useTicker(n ?? 0, { from: live && n != null ? 0 : undefined, duration: 1100 });
+  return (
+    <span
+      className={cn(
+        "readout text-[40px] leading-[44px] sm:text-[44px] sm:leading-[48px]",
+        alarm ? "text-fail" : "text-ink",
+      )}
+    >
+      {n == null ? value : formatInt(Math.round(shown))}
+    </span>
+  );
+}
+
 function StationTile({
   n,
+  index,
   summary,
-  lit,
   clock,
   store,
+  live,
+  reached,
   tool,
-  toolWidth,
   open,
   onOpen,
+  stages,
 }: {
   n: number;
+  index: number;
   summary: StationSummary;
-  lit: boolean;
   clock: StationClock;
   store: SceneStore;
+  live: boolean;
+  reached: boolean;
   tool: ReactNode;
-  toolWidth: number;
   open: boolean;
   onOpen: (station: number) => void;
+  stages: readonly StageId[];
 }) {
   const station = summary.station as LineStation;
   const pulse = useScene(store, (s) => s.pulses[station]);
+  const shownCount = useScene(store, (s) => stages.filter((st) => s.revealed.has(st)).length);
   const id = `station-${n}`;
   const canOpen = summary.tone !== "idle" && summary.tone !== "needs";
   return (
     <Tile
-      lit={lit}
-      tool={tool}
-      toolWidth={toolWidth}
+      index={index}
       tone={summary.tone}
+      reached={reached}
+      live={live}
+      stagesShown={shownCount}
       labelledBy={id}
+      open={open}
       overlay={pulse > 0 ? <span key={pulse} aria-hidden="true" className={styles.pulse} /> : null}
+      heading={
+        <>
+          <h3 id={id} className="text-[16px] leading-6 font-[630] tracking-[-0.01em]">
+            <span className="tnum text-ink-3">{n}</span> {summary.name}
+          </h3>
+          <ToneChip tone={summary.tone} clock={clock} live={live} />
+        </>
+      }
+      tool={tool}
     >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <h3 id={id} className="text-[15px] leading-6 font-semibold">
-          <span className="tnum text-ink-3">{n}</span> {summary.name}
-        </h3>
-        <ToneChip tone={summary.tone} clock={clock} />
-      </div>
-      <p className="text-[14px] leading-5 text-ink-2">{summary.sentence}</p>
       {summary.number ? (
-        <p className="mt-1 flex items-baseline gap-2">
-          <span
-            className={cn(
-              "readout text-[30px] leading-9",
-              summary.tone === "alarm" ? "text-fail" : "text-ink",
-            )}
-          >
-            {summary.number.value}
+        <p className="flex flex-wrap items-baseline gap-x-2.5">
+          <Count value={summary.number.value} live={live} alarm={summary.tone === "alarm"} />
+          <span className="text-[13px] leading-5 font-[520] text-ink-2">
+            {summary.number.label}
           </span>
-          <span className="text-[13px] leading-5 text-ink-3">{summary.number.label}</span>
         </p>
       ) : null}
+      <Finding sentence={summary.sentence} />
       {canOpen ? (
-        <button
-          type="button"
-          onClick={() => onOpen(n)}
-          aria-expanded={open}
-          aria-controls="station-drawer"
-          className={cn(
-            "mt-2 self-start rounded-[4px] border border-hairline-strong px-2.5 py-1 text-[13px] leading-5 text-ink hover:bg-accent",
-            open && "lit",
-          )}
-        >
-          {open
-            ? `Showing ${summary.name.toLowerCase()} details`
-            : `Open ${summary.name.toLowerCase()} details`}
-        </button>
+        <div className="mt-auto pt-2.5">
+          <button
+            type="button"
+            onClick={() => onOpen(n)}
+            aria-expanded={open}
+            aria-controls="station-drawer"
+            className={cn(
+              "press group/open inline-flex h-8 items-center gap-1.5 rounded-full pr-2.5 pl-3.5 text-[13px] leading-5 font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]",
+              open && "lit",
+            )}
+          >
+            {/* The name says which station; the tile already shows it, so the label is short. */}
+            <span className="sr-only">
+              {open
+                ? `Showing ${summary.name.toLowerCase()} `
+                : `Open ${summary.name.toLowerCase()} `}
+            </span>
+            Details
+            <ChevronDown
+              aria-hidden="true"
+              className={cn(
+                "size-3.5 text-ink-3 transition-[rotate,translate] duration-(--dur-3) ease-spring",
+                open ? "rotate-180" : "group-hover/open:translate-y-0.5",
+              )}
+            />
+          </button>
+        </div>
       ) : null}
     </Tile>
   );

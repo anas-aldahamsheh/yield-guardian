@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, type ReactNode, useMemo, useState } from "react";
 
 import { stageResult, type RunState, type UnitChartView } from "@/lib/live/run-state";
 import { useUnitChart } from "@/lib/live/use-unit-chart";
@@ -10,19 +10,22 @@ import { Z_FULL, lampLevel } from "../scales";
 import { useScene, type SceneStore } from "../scene";
 
 /**
- * Station 1: a process chamber with its sensor bank. The bank has one lamp per SECOM sensor
- * (S001 to S590, row by row). A lamp's brightness is the absolute standardised reading |z| of the
- * unit in the chamber, 0 to 4 or more; a ring is a missing reading; sensors the models do not
- * monitor have no lamp. The sensors that contributed most to a T² or SPE alarm are ringed in
- * the fail colour.
+ * Station 1: the chamber's sensor bank on its screen. One lamp per SECOM sensor (S001 to S590,
+ * row by row). A lamp's brightness is the absolute standardised reading |z| of the unit in the
+ * chamber, 0 to 4 or more, in the film's 324 nm cyan (one hue for magnitude); a ring is a missing
+ * reading; sensors the models do not monitor stay a dark point. The sensors that contributed most
+ * to a T² or SPE alarm are ringed in the fail colour. The lamps power up row by row after intake.
  */
 
-export const BANK_COLS = 30;
-export const BANK_ROWS = 20;
+export const BANK_COLS = 24;
+export const BANK_ROWS = 25;
 const N_SENSORS = 590;
-const PITCH = 7;
-const BANK_X = 25;
-const BANK_Y = 170;
+const PITCH = 7.6;
+const BANK_X = 16;
+const BANK_Y = 14;
+/** The screen's drawing: the bank with a margin (bay.tsx sizes the columns by these widths). */
+const VIEW_W = Math.round((BANK_COLS * PITCH + 2 * BANK_X) * 100) / 100;
+const VIEW_H = 250;
 
 export interface BankLamp {
   sensor: string;
@@ -71,59 +74,65 @@ export function bankLamps(
   });
 }
 
+/** A coordinate of the bank, to two decimals (7.6 steps add float noise to every one). */
+const at = (v: number) => Math.round(v * 100) / 100;
+
 const Bank = memo(function Bank({ lamps, power }: { lamps: BankLamp[]; power: number }) {
   const on = Math.round(power * N_SENSORS);
+  // The dark points (not monitored, or not powered yet) are one path of round dots, a zero-length
+  // segment with a round cap each: as 590 circles they were 590 nodes to parse, style, lay out
+  // and hydrate before the line's first paint. Lit and missing lamps stay circles.
+  let dark = "";
+  const shown: ReactNode[] = [];
+  lamps.forEach((lamp, i) => {
+    const cx = at(BANK_X + (i % BANK_COLS) * PITCH + PITCH / 2);
+    const cy = at(BANK_Y + Math.floor(i / BANK_COLS) * PITCH + PITCH / 2);
+    if (!lamp.monitored || i >= on) {
+      dark += `M${cx} ${cy}h0`;
+      return;
+    }
+    if (lamp.missing) {
+      shown.push(
+        <circle
+          key={lamp.sensor}
+          cx={cx}
+          cy={cy}
+          r={2}
+          fill="none"
+          stroke="var(--ink-3)"
+          strokeWidth={0.7}
+        />,
+      );
+      return;
+    }
+    // Powered with no reading shown yet (intake only): a dim pilot light.
+    const level = lamp.z === undefined ? 0 : lampLevel(lamp.z);
+    shown.push(
+      <g key={lamp.sensor}>
+        <circle cx={cx} cy={cy} r={2.45} fill="var(--film-4)" opacity={0.14 + 0.86 * level} />
+        {lamp.flagged ? (
+          <circle cx={cx} cy={cy} r={3.4} fill="none" stroke="var(--fail)" strokeWidth={1.1} />
+        ) : null}
+      </g>,
+    );
+  });
   return (
     <g>
-      {lamps.map((lamp, i) => {
-        const cx = BANK_X + (i % BANK_COLS) * PITCH + PITCH / 2;
-        const cy = BANK_Y + Math.floor(i / BANK_COLS) * PITCH + PITCH / 2;
-        if (!lamp.monitored || i >= on) {
-          return <circle key={lamp.sensor} cx={cx} cy={cy} r={1.1} fill="var(--hairline)" />;
-        }
-        if (lamp.missing) {
-          return (
-            <circle
-              key={lamp.sensor}
-              cx={cx}
-              cy={cy}
-              r={2.1}
-              fill="none"
-              stroke="var(--ink-3)"
-              strokeWidth={0.7}
-            />
-          );
-        }
-        // Powered with no reading shown yet (intake only): a dim pilot light.
-        const level = lamp.z === undefined ? 0 : lampLevel(lamp.z);
-        return (
-          <g key={lamp.sensor}>
-            <circle
-              cx={cx}
-              cy={cy}
-              r={2.4}
-              fill="var(--safelight-lamp)"
-              opacity={0.16 + 0.84 * level}
-            />
-            {lamp.flagged ? (
-              <circle cx={cx} cy={cy} r={3.3} fill="none" stroke="var(--fail)" strokeWidth={1} />
-            ) : null}
-          </g>
-        );
-      })}
+      {dark ? (
+        <path
+          d={dark}
+          fill="none"
+          stroke="var(--hairline-strong)"
+          strokeWidth={2.1}
+          strokeLinecap="round"
+        />
+      ) : null}
+      {shown}
     </g>
   );
 });
 
-export function ChamberTool({
-  state,
-  store,
-  active,
-}: {
-  state: RunState | null;
-  store: SceneStore;
-  active: boolean;
-}) {
+export function ChamberTool({ state, store }: { state: RunState | null; store: SceneStore }) {
   const unit = useScene(store, (s) => s.unit);
   const power = useScene(store, (s) => s.bank);
   const showReadings = useScene(store, (s) => s.revealed.has("control_charts"));
@@ -132,22 +141,34 @@ export function ChamberTool({
   const [hover, setHover] = useState<number | null>(null);
   const lamp = hover != null ? lamps[hover] : null;
 
+  const monitored = lamps.filter((l) => l.monitored).length;
   return (
     <div className="relative">
-      <svg viewBox="-16 0 292 318" className="block h-auto w-full" aria-hidden="true">
-        <ChamberSilhouette active={active} />
-        {/* Bank panel */}
-        <rect
-          x={BANK_X - 7}
-          y={BANK_Y - 9}
-          width={BANK_COLS * PITCH + 14}
-          height={BANK_ROWS * PITCH + 18}
-          rx={2}
-          fill="var(--room)"
-          stroke="var(--hairline-strong)"
-          vectorEffect="non-scaling-stroke"
-        />
+      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className="block h-auto w-full" aria-hidden="true">
         <Bank lamps={lamps} power={power} />
+        {/* The bank's scale: what a lamp is, under it */}
+        <g fontSize={10} fill="var(--ink-3)">
+          <text x={BANK_X} y={BANK_Y + BANK_ROWS * PITCH + 18}>
+            {state && monitored
+              ? `${monitored} of ${N_SENSORS} sensors monitored`
+              : `${N_SENSORS} sensors`}
+          </text>
+          <g transform={`translate(${BANK_X + 3} ${BANK_Y + BANK_ROWS * PITCH + 31})`}>
+            {[0, 0.33, 0.66, 1].map((level, i) => (
+              <circle
+                key={level}
+                cx={i * 9}
+                cy={0}
+                r={2.45}
+                fill="var(--film-4)"
+                opacity={0.14 + 0.86 * level}
+              />
+            ))}
+            <text x={36} y={3.5}>
+              {`|z| from 0 to ${Z_FULL} or more`}
+            </text>
+          </g>
+        </g>
         <rect
           x={BANK_X}
           y={BANK_Y}
@@ -165,7 +186,7 @@ export function ChamberTool({
         />
       </svg>
       {lamp ? (
-        <div className="tnum pointer-events-none absolute top-1 right-1 rounded-[2px] border border-hairline bg-die-2 px-2 py-1 text-[12px] leading-4 text-ink-2">
+        <div className="tnum pointer-events-none absolute top-1 right-1 rounded-[8px] bg-surface-2/90 px-2 py-1 text-[12px] leading-4 text-ink-2 shadow-float backdrop-blur-sm">
           <span className="text-ink">{lamp.sensor}</span>{" "}
           {!lamp.monitored
             ? "not monitored"
@@ -177,66 +198,6 @@ export function ChamberTool({
         </div>
       ) : null}
     </div>
-  );
-}
-
-/** The chamber: gas lines and valves, a domed lid, a viewport onto the pedestal, the pump below. */
-function ChamberSilhouette({ active }: { active: boolean }) {
-  const stroke = "var(--hairline-strong)";
-  const detail = "var(--ink-3)";
-  return (
-    <g
-      fill="none"
-      stroke={stroke}
-      strokeWidth={1}
-      vectorEffect="non-scaling-stroke"
-      strokeLinejoin="round"
-    >
-      {/* Gas lines into the lid, each with a valve */}
-      <path d="M 52 14 H 104 V 34" />
-      <path d="M 208 14 H 156 V 34" />
-      <path d="M 130 6 V 30" />
-      {[78, 182].map((x) => (
-        <g key={x}>
-          <path d={`M ${x - 6} 8 L ${x + 6} 20 M ${x - 6} 20 L ${x + 6} 8`} stroke={detail} />
-          <rect x={x - 6} y={8} width={12} height={12} fill="var(--die)" />
-        </g>
-      ))}
-      {/* Lid */}
-      <path d="M 70 52 Q 70 32 130 30 Q 190 32 190 52 Z" fill="var(--die-2)" />
-      <rect x={58} y={52} width={144} height={8} fill="var(--die-2)" />
-      {/* Body */}
-      <rect x={64} y={60} width={132} height={70} rx={4} fill="var(--die)" />
-      {/* Viewport: the pedestal and a wafer on it, lit by the process when the chamber works */}
-      <ellipse cx={130} cy={95} rx={40} ry={20} fill="var(--room)" stroke={detail} />
-      <ellipse
-        cx={130}
-        cy={98}
-        rx={26}
-        ry={6}
-        fill={active ? "var(--safelight-lamp)" : "var(--hairline)"}
-        opacity={active ? 0.55 : 1}
-        stroke="none"
-        className="transition-[opacity,fill] duration-[var(--dur-panel)]"
-      />
-      <path d="M 112 104 H 148" stroke={detail} />
-      {/* Clamps and ports on the body */}
-      <path d="M 64 76 H 56 V 112 H 64" />
-      <path d="M 196 76 H 204 V 112 H 196" />
-      {/* Pump */}
-      <path d="M 116 130 V 138 H 144 V 130" />
-      <rect x={110} y={138} width={40} height={14} rx={3} fill="var(--die-2)" />
-      {/* Status lamp */}
-      <circle
-        cx={186}
-        cy={70}
-        r={3}
-        fill={active ? "var(--safelight-lamp)" : "var(--hairline)"}
-        stroke="none"
-      />
-      {/* Cable down to the sensor bank */}
-      <path d="M 186 130 V 161" strokeDasharray="2 2" stroke={detail} />
-    </g>
   );
 }
 

@@ -1,5 +1,5 @@
 import { CIE_START_NM, CIE_STEP_NM, CMF_1931_2DEG, ILLUMINANT_FL11 } from "./cie";
-import { linearSrgbToOklab, maxChroma, oklabToOklch, oklchToHex } from "./oklab";
+import { linearSrgbToOklab, oklabToOklch } from "./oklab";
 import { xyzToLinearSrgb } from "./thinfilm";
 
 /**
@@ -38,19 +38,4 @@ export function safelightChromaticity(): [number, number] {
 /** OKLCH hue of the safelight in degrees. */
 export function safelightHue(): number {
   return oklabToOklch(linearSrgbToOklab(xyzToLinearSrgb(safelightXyz())))[2];
-}
-
-/** Lightness of the safelight token in the dark theme (a light source, so near the top). */
-export const SAFELIGHT_TOKEN_LIGHTNESS = 0.87;
-/** Share of the largest in-gamut chroma the token uses (stays clear of clipping at the edge). */
-export const SAFELIGHT_TOKEN_CHROMA_SHARE = 0.96;
-
-/**
- * The design token: the safelight's hue at the token lightness, with chroma mapped into sRGB.
- * `--safelight-lamp` in globals.css must equal this value (a unit test checks it).
- */
-export function safelightTokenHex(): string {
-  const h = safelightHue();
-  const c = maxChroma(SAFELIGHT_TOKEN_LIGHTNESS, h) * SAFELIGHT_TOKEN_CHROMA_SHARE;
-  return oklchToHex(SAFELIGHT_TOKEN_LIGHTNESS, c, h);
 }

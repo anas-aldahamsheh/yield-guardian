@@ -3,12 +3,13 @@ import { thinFilmGlsl } from "@/lib/optics/glsl";
 /**
  * Shaders of the 3D wafer. Every die's colour is the reflectance of its oxide film (Airy
  * summation over 16 wavelengths, s and p averaged) for the actual viewing angle of that
- * fragment, under the yellow-room lamp before the exposure field passes and under white
- * inspection light after it. The physics chunk is generated from the unit-tested TypeScript.
+ * fragment, under dim white cleanroom light before the probe reaches it and under full white
+ * inspection light after. The physics chunk is generated from the unit-tested TypeScript.
  *
  * Lighting: a diffuse room term, plus the reflection of one long overhead lamp (a polished wafer
  * is a mirror, so the lamp shows as a bright band that moves as the wafer tilts). The reflected
- * band is the film's own reflectance colour, so it is physically the same colour family.
+ * band is the film's own reflectance colour, so it is physically the same colour family. The
+ * probe's light (uLampColour, the interface's signal colour) marks where the prober is.
  */
 
 const THIN_FILM = thinFilmGlsl();
@@ -16,7 +17,7 @@ const THIN_FILM = thinFilmGlsl();
 const SHARED_UNIFORMS = /* glsl */ `
 uniform float uFilmCentre;   // oxide thickness at the wafer centre, nm
 uniform float uEdgeDrop;     // fractional thinning at the edge
-uniform float uRoomGain;     // brightness of the yellow-room lamp
+uniform float uRoomGain;     // brightness of the cleanroom light before inspection
 uniform float uInspectGain;  // brightness of the inspection light
 uniform vec3 uKeyDir;        // direction to the overhead lamp (world)
 uniform vec3 uKeyAxis;       // long axis of the overhead lamp (world)
@@ -28,8 +29,8 @@ vec3 shadeFilm(float thickness, vec3 N, vec3 V, float revealed, out vec3 lamp) {
   vec3 white;
   vec3 safe;
   thinFilm(thickness, cosI, white, safe);
-  lamp = safe;
-  vec3 room = safe * uRoomGain;
+  lamp = white;
+  vec3 room = white * uRoomGain;
   vec3 inspected = white * uInspectGain;
   vec3 colour = mix(room, inspected, revealed);
 
@@ -40,7 +41,7 @@ vec3 shadeFilm(float thickness, vec3 N, vec3 V, float revealed, out vec3 lamp) {
   float across = dot(R, side);
   float facing = smoothstep(0.55, 0.8, dot(R, uKeyDir));
   float band = (1.0 - smoothstep(0.015, 0.075, abs(across))) * (1.0 - smoothstep(0.22, 0.5, abs(along))) * facing;
-  vec3 tint = mix(safe * 1.1, white, revealed);
+  vec3 tint = white * mix(0.7, 1.0, revealed);
   colour += band * tint * 1.1;
 
   // A broad sheen keeps the surface reading as polished away from the band.
@@ -78,7 +79,7 @@ uniform vec4 uField;          // exposure field: centre x, centre y, size, flash
 uniform float uFieldOn;
 uniform float uScan;          // position of the scanner slit down the current field, 0 to 1
 uniform vec3 uFail;           // ink colour of a failed die (linear)
-uniform vec3 uLampColour;     // the safelight itself (linear)
+uniform vec3 uLampColour;     // the probe light: the signal colour (linear)
 uniform vec3 uHover;          // centre of the die under the pointer (x, y) and whether one is
 varying vec2 vUv;
 varying vec2 vDie;
@@ -127,7 +128,7 @@ void main() {
     colour = mix(colour, uFail * (0.8 + 0.3 * revealed), ink * revealed);
   }
 
-  // The die under the pointer: outlined in safelight.
+  // The die under the pointer: outlined in the probe light.
   float hovered = uHover.z * (1.0 - step(1e-4, distance(vCentre, uHover.xy)));
   float outline = 1.0 - smoothstep(0.05, 0.11, min(e.x, e.y));
   colour = mix(colour, uLampColour * 1.4, outline * hovered);
@@ -230,7 +231,7 @@ void main() {
   float groove = smoothstep(0.93, 0.985, abs(fract(r * 9.0) - 0.5) * 2.0);
   float dist = length(vLocal - uField.xy);
   float spill = exp(-dist * dist * 3.0) * uFieldOn;
-  vec3 base = vec3(0.012, 0.011, 0.007);
+  vec3 base = vec3(0.004, 0.007, 0.014);
   vec3 colour = base * (1.0 + 0.6 * groove) + uLamp * spill * 0.05 + uLamp * 0.015 * (1.0 - uReveal) * exp(-r * r * 2.0);
   float alpha = 1.0 - smoothstep(1.0, 1.22, r);
   gl_FragColor = vec4(colour, alpha);

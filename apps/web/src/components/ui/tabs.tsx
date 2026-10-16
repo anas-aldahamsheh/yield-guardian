@@ -2,32 +2,51 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Tabs as TabsPrimitive } from "radix-ui";
+
+import { Indicator } from "@/components/motion/indicator";
+
+/*
+ * Tabs are a segmented control: ink-2 words, the chosen one ink on a pill that slides to it
+ * (shared layout). The "line" variant slides an ink underline instead. The slide needs the value,
+ * so it runs on controlled Tabs; uncontrolled ones mark the chosen tab without the slide.
+ */
+const TabsValue = React.createContext<string | undefined>(undefined);
+const TabsVariant = React.createContext<"default" | "line">("default");
 
 function Tabs({
   className,
   orientation = "horizontal",
+  value,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const id = React.useId();
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn("group/tabs flex gap-2 data-[orientation=horizontal]:flex-col", className)}
-      {...props}
-    />
+    <TabsValue.Provider value={value}>
+      <LayoutGroup id={id}>
+        <TabsPrimitive.Root
+          data-slot="tabs"
+          data-orientation={orientation}
+          orientation={orientation}
+          value={value}
+          className={cn("group/tabs flex gap-3 data-[orientation=horizontal]:flex-col", className)}
+          {...props}
+        />
+      </LayoutGroup>
+    </TabsValue.Provider>
   );
 }
 
 const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none",
+  "group/tabs-list inline-flex w-fit items-center text-ink-2 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
   {
     variants: {
       variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
+        default:
+          "gap-0.5 rounded-full bg-surface-2 p-1 shadow-[inset_0_0_0_1px_var(--hairline)] group-data-[orientation=horizontal]/tabs:h-10",
+        line: "gap-5 rounded-none bg-transparent shadow-[inset_0_-1px_0_var(--hairline)] group-data-[orientation=horizontal]/tabs:h-10",
       },
     },
     defaultVariants: {
@@ -42,28 +61,54 @@ function TabsList({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>) {
   return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      data-variant={variant}
-      className={cn(tabsListVariants({ variant }), className)}
-      {...props}
-    />
+    <TabsVariant.Provider value={variant ?? "default"}>
+      <TabsPrimitive.List
+        data-slot="tabs-list"
+        data-variant={variant}
+        className={cn(tabsListVariants({ variant }), className)}
+        {...props}
+      />
+    </TabsVariant.Provider>
   );
 }
 
-function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+function TabsTrigger({
+  className,
+  value,
+  children,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  const current = React.useContext(TabsValue);
+  const variant = React.useContext(TabsVariant);
+  const sliding = current !== undefined;
+  const active = sliding && current === value;
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
+      value={value}
       className={cn(
-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-foreground focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent",
-        "data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground",
-        "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100",
+        "relative inline-flex h-full flex-1 items-center justify-center gap-1.5 text-[14px] leading-5 font-[560] whitespace-nowrap text-ink-2 outline-offset-2 transition-colors duration-(--dur-1) group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-ink disabled:pointer-events-none disabled:opacity-45 data-[state=active]:text-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        variant === "default" ? "rounded-full px-3.5" : "px-0",
+        !sliding &&
+          (variant === "default"
+            ? "data-[state=active]:bg-surface data-[state=active]:shadow-[0_1px_2px_rgb(0_0_0/0.08),inset_0_0_0_1px_var(--hairline)] dark:data-[state=active]:bg-surface-3"
+            : "data-[state=active]:shadow-[inset_0_-2px_0_var(--ink)]"),
         className,
       )}
       {...props}
-    />
+    >
+      {active ? (
+        <Indicator
+          layoutId="tab-indicator"
+          className={
+            variant === "default"
+              ? "absolute inset-0 rounded-full bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.08),inset_0_0_0_1px_var(--hairline)] dark:bg-surface-3"
+              : "absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-ink"
+          }
+        />
+      ) : null}
+      <span className="relative inline-flex items-center gap-1.5">{children}</span>
+    </TabsPrimitive.Trigger>
   );
 }
 
@@ -71,7 +116,7 @@ function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPr
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
+      className={cn("swap-in flex-1 outline-none", className)}
       {...props}
     />
   );

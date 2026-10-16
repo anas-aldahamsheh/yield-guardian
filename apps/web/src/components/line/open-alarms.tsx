@@ -45,7 +45,7 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
       ) : (
         <>
           {!canAct ? (
-            <div className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-die-2 px-3 py-2 sm:mx-5">
+            <div className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-surface-2 px-3 py-2 sm:mx-5">
               <p className="text-[13px] leading-5 text-ink-2">
                 Investigating an alarm needs an engineer session.
               </p>
@@ -59,12 +59,12 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
               </Button>
             </div>
           ) : null}
-          <ol className="divide-y divide-hairline border-t border-hairline">
+          <ol className="border-t border-hairline">
             {shown.map((alarm) => (
               <li
                 key={alarm.alarm_id}
                 className={cn(
-                  "px-4 py-3 sm:px-5",
+                  "border-b border-hairline px-4 py-3 last:border-b-0 sm:px-5",
                   fresh.has(alarm.alarm_id) &&
                     (alarm.severity === "alarm" ? "flash-alarm" : "flash-new"),
                 )}

@@ -119,7 +119,7 @@ function LotContent({ detail }: { detail: LotDetail }) {
         >
           <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,1fr)_9.5rem]">
             <div
-              className="relative aspect-[4/3] min-w-0 overflow-hidden rounded-sm bg-room"
+              className="relative aspect-[4/3] min-w-0 overflow-hidden rounded-sm bg-canvas"
               data-theme="dark"
             >
               {canRender3d ? (
@@ -150,7 +150,7 @@ function LotContent({ detail }: { detail: LotDetail }) {
                     aria-pressed={selected === w.wafer_index}
                     onClick={() => setSelected((s) => (s === w.wafer_index ? null : w.wafer_index))}
                     className={cn(
-                      "tnum flex w-full cursor-pointer items-baseline justify-between gap-2 rounded-sm px-2 py-1 text-left text-[12px] leading-4 hover:bg-die-2",
+                      "tnum flex w-full cursor-pointer items-baseline justify-between gap-2 rounded-sm px-2 py-1 text-left text-[12px] leading-4 hover:bg-surface-2",
                       selected === w.wafer_index && "lit",
                     )}
                   >

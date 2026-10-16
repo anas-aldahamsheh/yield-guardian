@@ -15,13 +15,13 @@ import { ScrollRegion } from "./scroll-region";
  */
 const components: Components = {
   h1: ({ node: _n, ...p }) => (
-    <h2 className="mt-6 text-[20px] leading-7 font-semibold text-ink first:mt-0" {...p} />
+    <h2 className="mt-6 text-[20px] leading-7 font-[620] text-ink first:mt-0" {...p} />
   ),
   h2: ({ node: _n, ...p }) => (
-    <h3 className="mt-6 text-[16px] leading-6 font-semibold text-ink first:mt-0" {...p} />
+    <h3 className="mt-6 text-[16px] leading-6 font-[620] text-ink first:mt-0" {...p} />
   ),
   h3: ({ node: _n, ...p }) => (
-    <h4 className="mt-5 text-[14px] leading-5 font-semibold text-ink first:mt-0" {...p} />
+    <h4 className="mt-5 text-[14px] leading-5 font-[620] text-ink first:mt-0" {...p} />
   ),
   p: ({ node: _n, ...p }) => (
     <p className="mt-3 text-[15px] leading-6 text-ink-2 first:mt-0" {...p} />
@@ -50,7 +50,7 @@ const components: Components = {
   code: ({ node: _n, className, ...p }) => (
     <code
       className={cn(
-        "tnum rounded-[2px] bg-die-2 px-1 text-[13px] [overflow-wrap:anywhere]",
+        "tnum rounded-[14px] bg-surface-2 px-1 text-[13px] [overflow-wrap:anywhere]",
         className,
       )}
       {...p}
@@ -66,7 +66,7 @@ const components: Components = {
     </ScrollRegion>
   ),
   th: ({ node: _n, ...p }) => (
-    <th className="border-b border-hairline-strong px-2 py-1.5 font-normal text-ink-3" {...p} />
+    <th className="border-b border-hairline-strong px-2 py-1.5 font-[420] text-ink-3" {...p} />
   ),
   td: ({ node: _n, ...p }) => (
     <td className="tnum border-b border-hairline px-2 py-1.5 text-ink" {...p} />
@@ -94,7 +94,7 @@ function ScrollPre(props: ComponentProps<"pre">) {
   return (
     <pre
       ref={ref}
-      className="mt-3 overflow-x-auto rounded-sm bg-die-2 p-3 text-[13px] leading-5"
+      className="mt-3 overflow-x-auto rounded-sm bg-surface-2 p-3 text-[13px] leading-5"
       {...props}
     />
   );

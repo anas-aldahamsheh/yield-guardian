@@ -10,6 +10,8 @@ import {
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 
+import { MotionProvider } from "@/components/motion/motion-provider";
+import { PointerLight } from "@/components/motion/pointer-light";
 import { LazyToaster } from "@/components/ui/lazy-toaster";
 import { WorkspaceOpener } from "@/components/workspace/workspace-opener";
 import { ApiProvider } from "@/lib/api/context";
@@ -58,22 +60,19 @@ export function Providers({
 }) {
   const client = getQueryClient();
   return (
-    <ThemeProvider
-      attribute="data-theme"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      nonce={nonce}
-    >
-      <ApiProvider>
-        <QueryClientProvider client={client}>
-          <HydrationBoundary state={state}>
-            <WorkspaceOpener />
-            {children}
-            <LazyToaster />
-          </HydrationBoundary>
-        </QueryClientProvider>
-      </ApiProvider>
+    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem nonce={nonce}>
+      <MotionProvider nonce={nonce}>
+        <ApiProvider>
+          <QueryClientProvider client={client}>
+            <HydrationBoundary state={state}>
+              <WorkspaceOpener />
+              {children}
+              <LazyToaster />
+              <PointerLight />
+            </HydrationBoundary>
+          </QueryClientProvider>
+        </ApiProvider>
+      </MotionProvider>
     </ThemeProvider>
   );
 }

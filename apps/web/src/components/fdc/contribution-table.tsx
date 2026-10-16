@@ -17,16 +17,16 @@ export function ContributionTable({ data }: { data: FdcContributions }) {
         <caption className="sr-only">Contributions by sensor</caption>
         <thead>
           <tr className="text-[12px] text-ink-3">
-            <th scope="col" className="py-1.5 pr-3 font-normal">
+            <th scope="col" className="py-2.5 pr-3 font-[520]">
               Sensor
             </th>
-            <th scope="col" className="w-[40%] py-1.5 pr-3 font-normal">
+            <th scope="col" className="w-[40%] py-2.5 pr-3 font-[520]">
               Share
             </th>
-            <th scope="col" className="py-1.5 pr-3 text-right font-normal">
+            <th scope="col" className="py-2.5 pr-3 text-right font-[520]">
               Reading
             </th>
-            <th scope="col" className="py-1.5 text-right font-normal">
+            <th scope="col" className="py-2.5 text-right font-[520]">
               Reference median
             </th>
           </tr>
@@ -34,7 +34,7 @@ export function ContributionTable({ data }: { data: FdcContributions }) {
         <tbody>
           {data.contributions.map((c) => (
             <tr key={c.sensor} className="border-t border-hairline">
-              <th scope="row" className="tnum py-1.5 pr-3 font-normal">
+              <th scope="row" className="tnum py-1.5 pr-3 font-[420]">
                 <Link
                   href={sensorHref(c.sensor)}
                   className="text-ink underline decoration-hairline-strong underline-offset-4"
@@ -45,7 +45,7 @@ export function ContributionTable({ data }: { data: FdcContributions }) {
               <td className="py-1.5 pr-3">
                 <span className="flex items-center gap-2">
                   <span
-                    className="h-2.5 rounded-[2px] bg-ink-2"
+                    className="h-2.5 rounded-[14px] bg-ink-2"
                     style={{ width: `${(c.share / max) * 100}%`, minWidth: 2 }}
                     aria-hidden="true"
                   />
@@ -65,13 +65,13 @@ export function ContributionTable({ data }: { data: FdcContributions }) {
             </tr>
           ))}
           <tr className="border-t border-hairline">
-            <th scope="row" className="py-1.5 pr-3 font-normal text-ink-3">
+            <th scope="row" className="py-1.5 pr-3 font-[420] text-ink-3">
               Others
             </th>
             <td className="py-1.5 pr-3">
               <span className="flex items-center gap-2">
                 <span
-                  className="h-2.5 rounded-[2px] bg-mark-muted"
+                  className="h-2.5 rounded-[14px] bg-mark-muted"
                   style={{ width: `${(data.other_share / max) * 100}%`, minWidth: 2 }}
                   aria-hidden="true"
                 />

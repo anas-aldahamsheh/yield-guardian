@@ -1,9 +1,19 @@
 "use client";
 
 import type { RunCreate } from "@yield-guardian/contracts";
+import { CircleAlertIcon, FileUpIcon, ListChecksIcon, PaintbrushIcon, XIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import {
+  type CSSProperties,
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+} from "react";
 
+import { useEntrance } from "@/components/motion/entrance";
+import { Indicator } from "@/components/motion/indicator";
 import { Placeholder } from "@/components/states";
 import { cn } from "@/lib/utils";
 
@@ -22,19 +32,59 @@ export type Way = "case" | "draw" | "upload";
 
 export type StartRun = (body: RunCreate) => Promise<void>;
 
-const WAYS: { way: Way; label: string }[] = [
-  { way: "case", label: "Pick a case" },
-  { way: "draw", label: "Draw a defect" },
-  { way: "upload", label: "Upload a file" },
+const WAYS: {
+  way: Way;
+  label: string;
+  hint: string;
+  Icon: ComponentType<{ className?: string; strokeWidth?: number }>;
+}[] = [
+  {
+    way: "case",
+    label: "Pick a case",
+    hint: "Real situations, or units, wafers and lots by hand",
+    Icon: ListChecksIcon,
+  },
+  {
+    way: "draw",
+    label: "Draw a defect",
+    hint: "Paint failing dies on a real wafer layout",
+    Icon: PaintbrushIcon,
+  },
+  {
+    way: "upload",
+    label: "Upload a file",
+    hint: "CSV or XLSX: sensor units or wafer maps",
+    Icon: FileUpIcon,
+  },
 ];
 
 function PanelLoading() {
   return <Placeholder className="h-48" label="Loading" />;
 }
 
+/** A note under or over the bar: it fades in when it appears while the person is here. */
+function Note({
+  role,
+  className,
+  children,
+}: {
+  role?: "alert";
+  className: string;
+  children: ReactNode;
+}) {
+  const entrance = useEntrance();
+  return (
+    <p role={role} className={cn(entrance && "swap-in", className)}>
+      {children}
+    </p>
+  );
+}
+
 /**
  * The four ways in. A real sample runs at once; the other three open a panel under the bar to
- * choose, draw or upload the input first. Only one panel is open at a time.
+ * choose, draw or upload the input first. Only one panel is open at a time. The bar and the
+ * panel are two items of the hero's grid: the bar sits beside the introduction, the panel spans
+ * the whole width under both.
  */
 export function InputBar({
   open,
@@ -44,6 +94,7 @@ export function InputBar({
   error,
   waitingFor = null,
   kept = false,
+  arrive = false,
 }: {
   open: Way | null;
   onOpen: (way: Way | null) => void;
@@ -54,97 +105,207 @@ export function InputBar({
   waitingFor?: string | null;
   /** The open panel was open before a reload: it is back as it was, without fading in. */
   kept?: boolean;
+  /** The page opened on the line alone: the bar rises in with the headline. */
+  arrive?: boolean;
 }) {
+  const noteId = useId();
+  const current = WAYS.find((w) => w.way === open) ?? null;
   return (
-    <div className={cn(waitingFor && "lit -mx-3 rounded-[4px] px-3 py-3")}>
-      {waitingFor ? (
-        <p className="mb-3 text-[14px] leading-5 text-ink">
-          {`Choose an input to start a run; the ${waitingFor.toLowerCase()} details open with its results.`}
-        </p>
-      ) : null}
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5">
-        <button
-          type="button"
-          onClick={() => void onStart({ source: "sample", seed: null })}
-          disabled={starting}
-          className="col-span-2 inline-flex h-11 items-center justify-center gap-2.5 rounded-[4px] bg-ink px-5 text-[15px] font-semibold text-room transition-[background-color,transform] duration-[var(--dur-micro)] hover:bg-ink/90 active:translate-y-px disabled:opacity-60 sm:col-span-1"
-        >
-          <span aria-hidden="true" className="size-2 rounded-full bg-safelight-lamp" />
-          {starting ? "Starting the run" : "Try a real sample"}
-        </button>
-        {WAYS.map(({ way, label }) => (
+    <>
+      <div
+        className={cn(arrive && "rise-in", "min-w-0")}
+        style={{ "--d": "380ms" } as CSSProperties}
+      >
+        {waitingFor ? (
+          <Note className="lit mb-4 flex items-start gap-2.5 rounded-[14px] px-4 py-3 text-[14px] leading-5 text-ink">
+            <span aria-hidden="true" className="live-dot mt-[7px] size-1.5 shrink-0" />
+            {`Choose an input to start a run; the ${waitingFor.toLowerCase()} details open with its results.`}
+          </Note>
+        ) : null}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
           <button
-            key={way}
             type="button"
-            aria-expanded={open === way}
-            aria-controls={`way-${way}`}
-            onClick={() => onOpen(open === way ? null : way)}
-            className={cn(
-              "inline-flex h-11 items-center justify-center rounded-[4px] border border-hairline-strong px-4 text-[15px] text-ink transition-colors duration-[var(--dur-micro)] last:col-span-2 hover:bg-die-2 sm:last:col-span-1",
-              open === way && "lit border-transparent",
-            )}
+            onClick={() => void onStart({ source: "sample", seed: null })}
+            disabled={starting}
+            aria-describedby={noteId}
+            className="group press lift sheen-hover magnetic inline-flex h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-ink pr-7 pl-5 text-[16px] font-[600] tracking-[-0.005em] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),0_14px_30px_-14px_rgb(17_22_32/0.55),inset_0_1px_0_rgb(255_255_255/0.14)] disabled:opacity-70"
           >
-            {label}
+            <SampleGlyph working={starting} />
+            {starting ? "Starting the run" : "Try a real sample"}
           </button>
-        ))}
+          <p id={noteId} className="max-w-[52ch] text-[13.5px] leading-5 text-ink-2">
+            A real sample is a run of consecutive SECOM units and one{" "}
+            <span className="whitespace-nowrap">WM-811K</span> lot, picked at random. The rule and
+            its seed are shown with the run, so the same sample can be run again.
+          </p>
+        </div>
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-[18px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline-strong),var(--highlight)] sm:grid-cols-3">
+          {WAYS.map(({ way, label, hint, Icon }, i) => {
+            const isOpen = open === way;
+            return (
+              <button
+                key={way}
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={`way-${way}`}
+                aria-labelledby={`${noteId}-${way}`}
+                aria-describedby={`${noteId}-${way}-hint`}
+                onClick={() => onOpen(isOpen ? null : way)}
+                className={cn(
+                  "group/way glow relative flex min-w-0 items-start gap-3 px-4 py-3.5 text-left transition-colors duration-(--dur-1) outline-none hover:bg-surface-2 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-signal sm:flex-col sm:gap-2.5 sm:px-5 sm:py-4",
+                  i > 0 &&
+                    "shadow-[inset_0_1px_0_var(--hairline)] sm:shadow-[inset_1px_0_0_var(--hairline)]",
+                )}
+              >
+                {isOpen ? (
+                  <Indicator layoutId="way-open" className="lit absolute inset-1 rounded-[14px]" />
+                ) : null}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "relative flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-surface-2 text-ink-2 transition-[color,background-color,scale] duration-(--dur-3) ease-spring group-hover/way:scale-[1.06] group-hover/way:text-ink group-active/way:scale-95",
+                    isOpen && "bg-surface text-signal",
+                  )}
+                >
+                  <Icon className="size-[18px]" strokeWidth={1.75} />
+                </span>
+                <span className="relative min-w-0">
+                  <span
+                    id={`${noteId}-${way}`}
+                    className="block text-[15px] leading-6 font-[600] text-ink"
+                  >
+                    {label}
+                  </span>
+                  <span
+                    id={`${noteId}-${way}-hint`}
+                    className="block text-[13px] leading-[18px] text-ink-2"
+                  >
+                    {hint}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {error ? (
+          <Note
+            role="alert"
+            className="mt-4 flex max-w-[72ch] items-start gap-2.5 rounded-[14px] bg-fail-wash px-4 py-3 text-[14px] leading-5 text-ink shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--fail)_30%,transparent)]"
+          >
+            <CircleAlertIcon aria-hidden="true" className="mt-px size-4 shrink-0 text-fail" />
+            {error}
+          </Note>
+        ) : null}
       </div>
-      <p className="mt-2.5 text-[13px] leading-5 text-ink-3">
-        A real sample is a run of consecutive SECOM units and one WM-811K lot, picked at random. The
-        rule and its seed are shown with the run, so the same sample can be run again.
-      </p>
-      {error ? (
-        <p
-          role="alert"
-          className="mt-3 max-w-[72ch] rounded-[2px] bg-fail-wash px-3 py-2 text-[14px] leading-5 text-ink"
-        >
-          {error}
-        </p>
-      ) : null}
-      {open ? (
+      {current ? (
         <WayPanel
-          id={`way-${open}`}
-          label={WAYS.find((w) => w.way === open)!.label}
+          key={current.way}
+          id={`way-${current.way}`}
+          label={current.label}
+          hint={current.hint}
           onClose={() => onOpen(null)}
           kept={kept}
         >
-          {open === "case" ? <CasePicker onStart={onStart} starting={starting} /> : null}
-          {open === "draw" ? <DrawTool onStart={onStart} starting={starting} /> : null}
-          {open === "upload" ? <UploadPanel onStart={onStart} starting={starting} /> : null}
+          {current.way === "case" ? <CasePicker onStart={onStart} starting={starting} /> : null}
+          {current.way === "draw" ? <DrawTool onStart={onStart} starting={starting} /> : null}
+          {current.way === "upload" ? <UploadPanel onStart={onStart} starting={starting} /> : null}
         </WayPanel>
       ) : null}
-    </div>
+    </>
+  );
+}
+
+/** A wafer in the film's light: the mark of a real sample. Turns while a run is starting. */
+function SampleGlyph({ working }: { working: boolean }) {
+  const id = useId();
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      className={cn(
+        "size-5 shrink-0 transition-transform duration-[900ms] ease-spring-soft group-hover:rotate-90",
+        working && "animate-spin [animation-duration:1.6s]",
+      )}
+    >
+      <defs>
+        <linearGradient id={`${id}-film`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="var(--film-1)" />
+          <stop offset="0.5" stopColor="var(--film-3)" />
+          <stop offset="1" stopColor="var(--film-6)" />
+        </linearGradient>
+      </defs>
+      <circle cx="10" cy="10" r="8.5" fill={`url(#${id}-film)`} />
+      <path d="M8.6 1.62h2.8l-.55 1.5h-1.7Z" fill="var(--ink)" />
+      <g fill="rgb(255 255 255 / 0.55)">
+        <rect x="6.2" y="6.2" width="2.4" height="2.4" rx="0.5" />
+        <rect x="11.4" y="6.2" width="2.4" height="2.4" rx="0.5" />
+        <rect x="6.2" y="11.4" width="2.4" height="2.4" rx="0.5" />
+        <rect x="11.4" y="11.4" width="2.4" height="2.4" rx="0.5" />
+      </g>
+    </svg>
   );
 }
 
 function WayPanel({
   id,
   label,
+  hint,
   onClose,
   kept,
   children,
 }: {
   id: string;
   label: string;
+  hint: string;
   onClose: () => void;
   kept: boolean;
   children: ReactNode;
 }) {
+  // The panel opens under the hero, often below the fold: bring it into view, its start first
+  // when it is taller than the screen, clear of the bar above and the Ask button below. Its tool
+  // loads after it opens and makes it taller, so it is brought into view again as it grows, for
+  // the first moments only. A panel kept open across a reload stays where the page puts it.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (kept || !el || typeof ResizeObserver === "undefined") return;
+    const until = performance.now() + 3000;
+    let frame = 0;
+    const bring = () => {
+      frame = 0;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ block: "nearest", behavior: still ? "auto" : "smooth" });
+    };
+    const grown = new ResizeObserver(() => {
+      if (performance.now() > until) grown.disconnect();
+      else if (!frame) frame = requestAnimationFrame(bring);
+    });
+    grown.observe(el);
+    return () => {
+      grown.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [kept]);
   return (
     <section
+      ref={ref}
       id={id}
       aria-label={label}
-      className={cn(
-        !kept && "swap-in",
-        "mt-4 rounded-[2px] border border-hairline bg-die p-4 sm:p-5",
-      )}
+      className={cn(!kept && "grow-in", "panel col-span-full min-w-0 scroll-mb-24 p-5 sm:p-7")}
     >
-      <div className="mb-3 flex items-start justify-between gap-4">
-        <h2 className="text-[17px] leading-6 font-semibold text-ink">{label}</h2>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-[22px] leading-7 font-[640] tracking-[-0.018em] text-ink [font-stretch:106%]">
+            {label}
+          </h2>
+          <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{hint}</p>
+        </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-[4px] px-2 py-0.5 text-[13px] leading-5 text-ink-2 hover:bg-die-2 hover:text-ink"
+          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
         >
+          <XIcon aria-hidden="true" className="size-4" strokeWidth={2} />
           Close
         </button>
       </div>

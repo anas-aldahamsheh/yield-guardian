@@ -82,7 +82,7 @@ export function LotsList() {
                 {query.data.items.map((l) => (
                   <tr
                     key={l.lot}
-                    className="border-b border-hairline last:border-b-0 hover:bg-die-2"
+                    className="border-b border-hairline last:border-b-0 hover:bg-surface-2"
                   >
                     <th scope="row" className="tnum px-4 py-2.5 font-normal sm:px-5">
                       <Link

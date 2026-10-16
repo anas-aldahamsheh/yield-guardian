@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Investigation, RunAlarm } from "@yield-guardian/contracts";
+import { ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
@@ -32,6 +33,9 @@ import { useViewportRoom } from "./use-viewport-room";
 
 /** An investigation was started from an alarm (the line records it with the run). */
 export type OnLinked = (alarmId: string, investigation: Investigation) => void;
+/** The rail's small actions: a pill with a hairline edge. */
+const ACTION =
+  "press inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-50";
 
 /** Warnings of one kind are folded into one row from this many on. */
 const FOLD = 4;
@@ -162,15 +166,15 @@ export function AlarmsRail({
       aria-labelledby="alarms-title"
       className={cn("flex min-h-0 min-w-0 flex-col", className)}
     >
-      <header className="flex items-baseline justify-between gap-3 border-b border-hairline px-4 pt-4 pb-2.5">
+      <header className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3 shadow-[0_1px_0_var(--hairline)]">
         <h2
           id="alarms-title"
           tabIndex={-1}
-          className="text-[15px] leading-6 font-semibold text-ink outline-none"
+          className="text-[18px] leading-6 font-[640] tracking-[-0.015em] text-ink outline-none [font-stretch:106%]"
         >
           Alarms
         </h2>
-        <p className="tnum text-[13px] leading-5 text-ink-3" aria-live="polite">
+        <p className="tnum text-[13px] leading-5 text-ink-2" aria-live="polite">
           {!state
             ? ""
             : alarms.length
@@ -182,30 +186,39 @@ export function AlarmsRail({
                 : "none yet"}
         </p>
       </header>
-      {/* Room at the end so the last alarm scrolls clear of the floating Ask button. */}
-      <div ref={scroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24">
+      {/* Under the line, room at the end so the last alarm scrolls clear of the floating Ask
+          button; beside it the rail already ends above the button. */}
+      <div
+        ref={scroll}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-b-[inherit] [mask-image:linear-gradient(to_bottom,#000_calc(100%-48px),transparent)] px-2 pt-2 pb-24 xl:pb-4"
+      >
         {!state ? (
-          <p className="px-4 py-4 text-[14px] leading-5 text-ink-3">
-            {reading
-              ? "Reading this run's alarms."
-              : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
-          </p>
+          <div className="unexposed flex gap-3 rounded-[18px] px-3.5 py-4">
+            <span
+              aria-hidden="true"
+              className="mt-[5px] size-2.5 shrink-0 rounded-full shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]"
+            />
+            <p className="text-[14px] leading-[21px] text-ink-2">
+              {reading
+                ? "Reading this run's alarms."
+                : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
+            </p>
+          </div>
         ) : !alarms.length ? (
-          <p className="px-4 py-4 text-[14px] leading-5 text-ink-3">
+          <p className="swap-in px-3.5 py-4 text-[14px] leading-5 text-ink-2">
             {finished ? "No station raised an alarm on this input." : "No alarm so far."}
           </p>
         ) : (
-          <ul className="grid grid-cols-[minmax(0,1fr)]">
+          <ul className="flex flex-col gap-1">
             {rows(alarms).map((row) =>
               row.kind === "one" ? (
                 <li
                   key={row.alarm.alarm_id}
-                  className={cn(
-                    "border-b border-hairline",
-                    // Only an alarm that reached this page on the stream slides in; one read
-                    // with the run's stored state (a reload, a link) is already there.
-                    arrivedLive(state, { alarmId: row.alarm.alarm_id }) && styles.slideIn,
-                  )}
+                  // Only an alarm that reached this page on the stream slides in; one read
+                  // with the run's stored state (a reload, a link) is already there.
+                  className={
+                    arrivedLive(state, { alarmId: row.alarm.alarm_id }) ? styles.slideIn : undefined
+                  }
                 >
                   <AlarmItem
                     state={state}
@@ -218,11 +231,11 @@ export function AlarmsRail({
               ) : (
                 <li
                   key={`fold-${row.key}`}
-                  className={cn(
-                    "border-b border-hairline",
-                    row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id })) &&
-                      styles.slideIn,
-                  )}
+                  className={
+                    row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id }))
+                      ? styles.slideIn
+                      : undefined
+                  }
                 >
                   <Fold
                     state={state}
@@ -237,7 +250,7 @@ export function AlarmsRail({
           </ul>
         )}
         {notListed > 0 ? (
-          <p className="tnum px-4 py-3 text-[13px] leading-5 text-ink-3">{`and ${formatInt(notListed)} more, see the station`}</p>
+          <p className="tnum px-3.5 py-3 text-[13px] leading-5 text-ink-2">{`and ${formatInt(notListed)} more, see the station`}</p>
         ) : null}
       </div>
     </section>
@@ -246,11 +259,14 @@ export function AlarmsRail({
 
 function Mark({ alarm }: { alarm: RunAlarm }) {
   return turnsRed(alarm) ? (
-    <span aria-hidden="true" className="mt-[7px] size-2 shrink-0 rounded-full bg-fail" />
+    <span
+      aria-hidden="true"
+      className="mt-[5px] size-2.5 shrink-0 rounded-full bg-fail shadow-[0_0_0_3px_var(--fail-wash)]"
+    />
   ) : (
     <span
       aria-hidden="true"
-      className="mt-[7px] size-2 shrink-0 rounded-full border border-ink-2"
+      className="mt-[5px] size-2.5 shrink-0 rounded-full shadow-[inset_0_0_0_1.75px_var(--concern)]"
     />
   );
 }
@@ -275,30 +291,30 @@ function AlarmItem({
     <article
       aria-current={selected || undefined}
       className={cn(
-        "flex gap-2.5 px-4",
-        compact ? "py-2" : "py-3",
-        turnsRed(alarm) && !compact && "bg-fail-wash/40",
-        selected && "lit",
+        "flex gap-3 rounded-[16px] px-3.5 transition-colors duration-(--dur-2)",
+        compact ? "py-2.5" : "py-3.5",
+        turnsRed(alarm) && !compact
+          ? "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)] hover:bg-[color-mix(in_oklab,var(--fail)_11%,transparent)]"
+          : "hover:bg-surface-2",
+        selected && "lit hover:bg-signal-wash",
       )}
     >
       <Mark alarm={alarm} />
       <div className="min-w-0 flex-1">
-        <h3 className="text-[14px] leading-5 font-medium text-ink">
+        <h3 className="text-[14.5px] leading-5 font-[600] tracking-[-0.005em] text-ink">
           <span className="sr-only">{turnsRed(alarm) ? "Alarm: " : "Warning: "}</span>
           {compact ? alarmPlace(state, alarm) : alarm.title}
         </h3>
-        {!compact ? <p className="text-[13px] leading-5 text-ink-2">{alarm.meaning}</p> : null}
-        <p className="tnum mt-0.5 text-[12px] leading-4 text-ink-3">
+        {!compact ? (
+          <p className="mt-0.5 text-[13px] leading-[19px] text-ink-2">{alarm.meaning}</p>
+        ) : null}
+        <p className="tnum mt-1.5 text-[12px] leading-4 text-ink-3">
           {[compact ? null : alarmPlace(state, alarm), reading, alarm.alarm_id]
             .filter(Boolean)
             .join(". ")}
         </p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onShow(alarm)}
-            className="rounded-[4px] border border-hairline-strong px-2 py-0.5 text-[13px] leading-5 text-ink hover:bg-die-2"
-          >
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <button type="button" onClick={() => onShow(alarm)} className={ACTION}>
             {`Show ${alarmPlace(state, alarm)
               .replace(/^The run$/, "it")
               .replace(/^(\w)/, (m) => m.toLowerCase())}`}
@@ -334,29 +350,37 @@ function Fold({
   const id = `fold-${first.kind}`;
   return (
     <div>
-      <div className="flex gap-2.5 px-4 py-3">
+      <div className="flex gap-3 rounded-[16px] px-3.5 py-3.5 transition-colors duration-(--dur-2) hover:bg-surface-2">
         <Mark alarm={first} />
         <div className="min-w-0 flex-1">
-          <h3 className="text-[14px] leading-5 font-medium text-ink">
+          <h3 className="text-[14.5px] leading-5 font-[600] tracking-[-0.005em] text-ink">
             <span className="sr-only">Warnings: </span>
             {title}
           </h3>
-          <p className="text-[13px] leading-5 text-ink-2">{first.meaning}</p>
+          <p className="mt-0.5 text-[13px] leading-[19px] text-ink-2">{first.meaning}</p>
           <button
             type="button"
             aria-expanded={open}
             aria-controls={id}
             onClick={() => setChoice(!open)}
-            className="mt-1.5 rounded-[4px] border border-hairline-strong px-2 py-0.5 text-[13px] leading-5 text-ink hover:bg-die-2"
+            className={cn(ACTION, "group/fold mt-2.5")}
           >
             {open ? "Hide the list" : `List all ${formatInt(alarms.length)}`}
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="size-3.5 transition-transform duration-(--dur-3) ease-spring group-aria-expanded/fold:rotate-180"
+              strokeWidth={2}
+            />
           </button>
         </div>
       </div>
       {open ? (
-        <ul id={id} className="border-t border-hairline pl-4">
+        <ul
+          id={id}
+          className="grow-in relative ml-[19px] flex flex-col gap-0.5 pl-3 before:absolute before:inset-y-1 before:left-0 before:w-px before:bg-hairline-strong"
+        >
           {alarms.map((a) => (
-            <li key={a.alarm_id} className="border-b border-hairline last:border-b-0">
+            <li key={a.alarm_id}>
               <AlarmItem
                 state={state}
                 alarm={a}
@@ -422,7 +446,7 @@ function Investigate({
               },
             })
           }
-          className="rounded-[4px] bg-ink px-2 py-0.5 text-[13px] font-medium text-room hover:bg-ink/90 disabled:opacity-50"
+          className="press inline-flex h-7 items-center rounded-full bg-ink px-3 text-[12.5px] leading-none font-[600] text-canvas hover:bg-ink/90 disabled:opacity-60"
         >
           {guest.isPending ? "Signing in" : "Sign in as engineer and investigate"}
         </button>
@@ -435,7 +459,7 @@ function Investigate({
         type="button"
         disabled={start.isPending}
         onClick={() => (canAct ? start.mutate(csrf) : setAsking(true))}
-        className="rounded-[4px] border border-hairline-strong px-2 py-0.5 text-[13px] leading-5 text-ink hover:bg-die-2 disabled:opacity-50"
+        className={ACTION}
       >
         {start.isPending ? "Starting" : "Investigate"}
       </button>
@@ -473,7 +497,7 @@ function Progress({ id, stored }: { id: string; stored: Investigation["status"] 
         {inv ? <span className="tnum text-ink-3">{plural(inv.steps.length, "step")}</span> : null}
         <Link
           href={investigationHref(id)}
-          className="text-ink underline underline-offset-2 hover:text-safelight"
+          className="font-[560] text-ink underline decoration-hairline-strong underline-offset-4 transition-colors hover:decoration-signal"
         >
           Open the investigation
         </Link>

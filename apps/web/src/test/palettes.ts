@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
- * Reads the two colour palettes from globals.css for tests. The light palette sits on
- * `:root, [data-theme="light"]`; the yellow room on `[data-theme="dark"]` and again inside the
- * prefers-color-scheme media query. Throws if the two dark copies differ.
+ * Reads the two colour palettes from globals.css for tests. The cleanroom (light) sits on
+ * `:root, [data-theme="light"]`; silicon (dark) on `[data-theme="dark"]` and again inside the
+ * prefers-color-scheme media query.
  */
 export const globalsCss = readFileSync(
   path.join(import.meta.dirname, "../app/globals.css"),
