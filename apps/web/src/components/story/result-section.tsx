@@ -67,7 +67,7 @@ export function ResultSection({
   const [tab, setTab] = useState<"problems" | "units" | "wafers">("problems");
   const tabs = [
     { id: "problems" as const, label: "Problems" },
-    ...(hasUnits ? [{ id: "units" as const, label: "Units (SECOM)" }] : []),
+    ...(hasUnits ? [{ id: "units" as const, label: "Failure predictions vs outcome" }] : []),
     ...(hasWafers ? [{ id: "wafers" as const, label: "Wafers (WM-811K)" }] : []),
   ];
 
