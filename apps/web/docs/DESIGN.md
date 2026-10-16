@@ -191,10 +191,11 @@ finish in under 400 ms, a page's entrance in under 700 ms.
 
 **Choreography.**
 
-1. _First paint of the Line page_ (CSS, before hydration, about 1.2 s): the headline's lines rise
-   out of their masks 80 ms apart; the lede and the four ways settle in; the track draws from the
-   first station to the last; the stations rise in order as the track reaches them. It plays once
-   per page load and never hides content from the first frame for long.
+1. _First paint of the Line page_ (CSS, before hydration, about 1 s), only when it opens with no
+   run: the headline's lines rise out of their masks 80 ms apart; the lede and the four ways
+   settle in. A page opened, reloaded or linked to with a run arrives at rest: nothing on the line
+   (instruments, counts, dials, rail) moves until a result arrives or the reader acts, and an
+   entrance plays only for what appears while the reader is on the page (`useEntrance`).
 2. _A run arrives_ (driven by results only): the track's film light advances to each station when
    that station's first result is shown; its node lights; its screen gets one sweep of light; its
    chip springs to the new state; its count ticks from zero to the value. Lamps power up row by
@@ -226,20 +227,20 @@ or static; the live rail and live edge show their light still, full length.
 
 ## Component states
 
-| Component               | Rest                                                 | Hover                          | Press      | Focus                         | Selected / on                                                                                                 | Disabled |
-| ----------------------- | ---------------------------------------------------- | ------------------------------ | ---------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
-| Primary button (ink)    | ink fill, canvas text, pill                          | lifts 1 px, film sheen crosses | scale 0.97 | 2 px signal ring, offset 3 px | n/a                                                                                                           | 45%      |
-| Secondary button        | surface-2, hairline-strong edge                      | surface-3, lifts 1 px          | scale 0.97 | signal ring                   | n/a                                                                                                           | 45%      |
-| Ghost button, menu item | transparent                                          | hover pill (surface-2)         | surface-3  | signal ring or inset          | `lit`: signal wash and inset edge                                                                             | 45%      |
-| Input, select           | surface, edge, radius 10, 16 px text on phones       | edge darkens                   | n/a        | signal ring                   | n/a                                                                                                           | 45%      |
-| Tab, segmented control  | ink-2 text                                           | ink text                       | n/a        | signal ring                   | ink text on a sliding pill (layout)                                                                           | 45%      |
-| Table row, list row     | transparent                                          | surface-2                      | n/a        | signal ring on the row's link | `aria-current`: signal edge at the start                                                                      |          |
-| Station                 | ghost instruments, grey node                         | screen lifts its glow          | n/a        | on its open button            | open: signal edge; working: sheen and node ring; done: calm; alarm: fail tint and one ring; failed: fail text |          |
-| Status chip             | idle hidden; needs grey                              |                                |            |                               | working: signal dot pulsing; done: pass dot; alarm and failed: fail dot                                       |          |
-| New row, new alarm      | lit once in signal (new) or fail (alarm), then fades |                                |            |                               |                                                                                                               |          |
-| Not measured yet        | unexposed die field, plain words, "Check again"      |                                |            |                               |                                                                                                               |          |
-| Loading                 | a surface-2 plane with a slow sheen crossing it      |                                |            |                               |                                                                                                               |          |
-| Lifecycle stage         | grey ring on the rail; empty stage says so           |                                |            |                               | holds items: ink node; running: live dot and the film's light running down the rail                           |          |
+| Component               | Rest                                                 | Hover                          | Press      | Focus                         | Selected / on                                                                                                           | Disabled |
+| ----------------------- | ---------------------------------------------------- | ------------------------------ | ---------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| Primary button (ink)    | ink fill, canvas text, pill                          | lifts 1 px, film sheen crosses | scale 0.97 | 2 px signal ring, offset 3 px | n/a                                                                                                                     | 45%      |
+| Secondary button        | surface-2, hairline-strong edge                      | surface-3, lifts 1 px          | scale 0.97 | signal ring                   | n/a                                                                                                                     | 45%      |
+| Ghost button, menu item | transparent                                          | hover pill (surface-2)         | surface-3  | signal ring or inset          | `lit`: signal wash and inset edge                                                                                       | 45%      |
+| Input, select           | surface, edge, radius 10, 16 px text on phones       | edge darkens                   | n/a        | signal ring                   | n/a                                                                                                                     | 45%      |
+| Tab, segmented control  | ink-2 text                                           | ink text                       | n/a        | signal ring                   | ink text on a sliding pill (layout)                                                                                     | 45%      |
+| Table row, list row     | transparent                                          | surface-2                      | n/a        | signal ring on the row's link | `aria-current`: signal edge at the start                                                                                |          |
+| Station                 | ghost instruments, grey node                         | screen lifts its glow          | n/a        | on its open button            | open: signal edge; working: signal node, one sheen, clock; done: calm; alarm: fail tint and one ring; failed: fail text |          |
+| Status chip             | idle hidden; needs grey                              |                                |            |                               | working: signal dot pulsing; done: pass dot; alarm and failed: fail dot                                                 |          |
+| New row, new alarm      | lit once in signal (new) or fail (alarm), then fades |                                |            |                               |                                                                                                                         |          |
+| Not measured yet        | unexposed die field, plain words, "Check again"      |                                |            |                               |                                                                                                                         |          |
+| Loading                 | a surface-2 plane with a slow sheen crossing it      |                                |            |                               |                                                                                                                         |          |
+| Lifecycle stage         | grey ring on the rail; empty stage says so           |                                |            |                               | holds items: ink node; running: live dot and the film's light running down the rail                                     |          |
 
 ## Pages
 

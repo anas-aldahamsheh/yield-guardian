@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { useChangeKey, useTicker } from "@/components/motion";
 import { useEntrance } from "@/components/motion/entrance";
@@ -197,7 +197,7 @@ function Track({
             : "bg-surface shadow-[inset_0_0_0_2px_var(--hairline-strong)]",
         )}
       >
-        {working ? <span className="live-dot absolute inset-[3px] bg-signal" /> : null}
+        {working ? <span className="absolute inset-[3px] rounded-full bg-signal" /> : null}
       </span>
     </div>
   );
@@ -258,9 +258,7 @@ function Tile({
       >
         <div>{tool}</div>
         {tone === "working" ? <WorkingSweep /> : null}
-        {live && sweep != null && tone !== "working" ? (
-          <span key={sweep} aria-hidden className="sweep" data-once="" />
-        ) : null}
+        {live && sweep != null && tone !== "working" ? <Sweep key={sweep} /> : null}
       </div>
       <div className="mt-4 flex min-w-0 flex-col gap-1.5">{children}</div>
     </div>
@@ -268,13 +266,23 @@ function Tile({
 }
 
 /**
- * Light crossing a station's screen while it computes, from when the station started computing
- * on this page. A station that was computing when the page arrived (a reload) is drawn at rest;
- * its dot says it is at work.
+ * Light crossing a station's screen once as it starts computing on this page; its clock then
+ * counts the time. A station that was computing when the page arrived (a reload) is drawn at
+ * rest. Nothing loops while a station waits on the server: the line moves for what arrives.
  */
 function WorkingSweep() {
   const entrance = useEntrance();
-  return entrance ? <span aria-hidden className="sweep" data-working="" /> : null;
+  return entrance ? <Sweep /> : null;
+}
+
+/**
+ * One sweep of light across a screen. It leaves once played: an overlay kept over the screen,
+ * clipped to its rounded corners, would cost the compositor a pass on every later frame.
+ */
+function Sweep() {
+  const [played, setPlayed] = useState(false);
+  if (played) return null;
+  return <span aria-hidden className="sweep" data-once="" onAnimationEnd={() => setPlayed(true)} />;
 }
 
 const TONE_TEXT: Record<StationTone, string> = {
@@ -307,12 +315,16 @@ export function ToneChip({
         "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] leading-4 font-[560] whitespace-nowrap",
         springs && "animate-in duration-[520ms] ease-spring fade-in-0 zoom-in-75",
         tone === "needs" && "bg-surface-2 text-ink-2",
-        tone === "working" && "bg-signal-wash text-ink",
+        // Its clock ticks ten times a second: on a layer of its own, a tick redraws the chip and
+        // not the instruments around it.
+        tone === "working" && "bg-signal-wash text-ink will-change-transform",
         tone === "ok" && "bg-pass-wash text-ink",
         (tone === "alarm" || tone === "failed") && "bg-fail-wash text-ink",
       )}
     >
-      {tone === "working" ? <span className="live-dot size-1.5" aria-hidden="true" /> : null}
+      {tone === "working" ? (
+        <span className="size-1.5 rounded-full bg-signal" aria-hidden="true" />
+      ) : null}
       {tone === "ok" ? <span className="size-1.5 rounded-full bg-pass" aria-hidden="true" /> : null}
       {tone === "alarm" || tone === "failed" ? (
         <span className="size-1.5 rounded-full bg-fail" aria-hidden="true" />

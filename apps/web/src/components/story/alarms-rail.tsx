@@ -177,90 +177,102 @@ export function AlarmsRail({
       aria-labelledby="alarms-title"
       className={cn("flex min-h-0 min-w-0 flex-col", className)}
     >
-      <header className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3 shadow-[0_1px_0_var(--hairline)]">
-        <h2
-          id="alarms-title"
-          tabIndex={-1}
-          className="text-[18px] leading-6 font-[640] tracking-[-0.015em] text-ink [font-stretch:106%] outline-none"
+      {/* A rectangular clip, inside the rounded card: beside the line the rail can be shorter
+          than what it holds, and a rounded clip would cost the compositor a pass every frame. */}
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <header className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3 shadow-[0_1px_0_var(--hairline)]">
+          <h2
+            id="alarms-title"
+            tabIndex={-1}
+            className="text-[18px] leading-6 font-[640] tracking-[-0.015em] text-ink [font-stretch:106%] outline-none"
+          >
+            Alarms
+          </h2>
+          <p className="tnum text-[13px] leading-5 text-ink-2" aria-live="polite">
+            {!state
+              ? ""
+              : alarms.length
+                ? [red ? plural(red, "alarm") : null, warnings ? plural(warnings, "warning") : null]
+                    .filter(Boolean)
+                    .join(", ")
+                : finished
+                  ? "none raised"
+                  : "none yet"}
+          </p>
+        </header>
+        {/* Under the line, room at the end so the last alarm scrolls clear of the floating Ask
+          button; beside it the rail already ends above the button. The list is a plain rectangle
+          held clear of the rounded corners, and its end fades under a gradient laid over it: a
+          rounded or masked scroller would cost the compositor a pass on every frame. */}
+        <div
+          ref={scroll}
+          className="mb-2.5 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pt-2 pb-24 xl:pb-4"
         >
-          Alarms
-        </h2>
-        <p className="tnum text-[13px] leading-5 text-ink-2" aria-live="polite">
-          {!state
-            ? ""
-            : alarms.length
-              ? [red ? plural(red, "alarm") : null, warnings ? plural(warnings, "warning") : null]
-                  .filter(Boolean)
-                  .join(", ")
-              : finished
-                ? "none raised"
-                : "none yet"}
-        </p>
-      </header>
-      {/* Under the line, room at the end so the last alarm scrolls clear of the floating Ask
-          button; beside it the rail already ends above the button. */}
-      <div
-        ref={scroll}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-b-[inherit] [mask-image:linear-gradient(to_bottom,#000_calc(100%-48px),transparent)] px-2 pt-2 pb-24 xl:pb-4"
-      >
-        {!state ? (
-          <div className="unexposed flex gap-3 rounded-[18px] px-3.5 py-4">
-            <span
-              aria-hidden="true"
-              className="mt-[5px] size-2.5 shrink-0 rounded-full shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]"
-            />
-            <p className="text-[14px] leading-[21px] text-ink-2">
-              {reading
-                ? "Reading this run's alarms."
-                : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
-            </p>
-          </div>
-        ) : !alarms.length ? (
-          <NoAlarm key={finished ? "finished" : "so-far"} finished={finished} />
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {rows(alarms).map((row) =>
-              row.kind === "one" ? (
-                <li
-                  key={row.alarm.alarm_id}
-                  // Only an alarm that reached this page on the stream slides in; one read
-                  // with the run's stored state (a reload, a link) is already there.
-                  className={
-                    arrivedLive(state, { alarmId: row.alarm.alarm_id }) ? styles.slideIn : undefined
-                  }
-                >
-                  <AlarmItem
-                    state={state}
-                    alarm={row.alarm}
-                    onShow={onShow}
-                    onLinked={onLinked}
-                    selected={row.alarm.alarm_id === selected}
-                  />
-                </li>
-              ) : (
-                <li
-                  key={`fold-${row.key}`}
-                  className={
-                    row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id }))
-                      ? styles.slideIn
-                      : undefined
-                  }
-                >
-                  <Fold
-                    state={state}
-                    alarms={row.alarms}
-                    onShow={onShow}
-                    onLinked={onLinked}
-                    selected={selected}
-                  />
-                </li>
-              ),
-            )}
-          </ul>
-        )}
-        {notListed > 0 ? (
-          <p className="tnum px-3.5 py-3 text-[13px] leading-5 text-ink-2">{`and ${formatInt(notListed)} more, see the station`}</p>
-        ) : null}
+          {!state ? (
+            <div className="unexposed flex gap-3 rounded-[18px] px-3.5 py-4">
+              <span
+                aria-hidden="true"
+                className="mt-[5px] size-2.5 shrink-0 rounded-full shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]"
+              />
+              <p className="text-[14px] leading-[21px] text-ink-2">
+                {reading
+                  ? "Reading this run's alarms."
+                  : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
+              </p>
+            </div>
+          ) : !alarms.length ? (
+            <NoAlarm key={finished ? "finished" : "so-far"} finished={finished} />
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {rows(alarms).map((row) =>
+                row.kind === "one" ? (
+                  <li
+                    key={row.alarm.alarm_id}
+                    // Only an alarm that reached this page on the stream slides in; one read
+                    // with the run's stored state (a reload, a link) is already there.
+                    className={
+                      arrivedLive(state, { alarmId: row.alarm.alarm_id })
+                        ? styles.slideIn
+                        : undefined
+                    }
+                  >
+                    <AlarmItem
+                      state={state}
+                      alarm={row.alarm}
+                      onShow={onShow}
+                      onLinked={onLinked}
+                      selected={row.alarm.alarm_id === selected}
+                    />
+                  </li>
+                ) : (
+                  <li
+                    key={`fold-${row.key}`}
+                    className={
+                      row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id }))
+                        ? styles.slideIn
+                        : undefined
+                    }
+                  >
+                    <Fold
+                      state={state}
+                      alarms={row.alarms}
+                      onShow={onShow}
+                      onLinked={onLinked}
+                      selected={selected}
+                    />
+                  </li>
+                ),
+              )}
+            </ul>
+          )}
+          {notListed > 0 ? (
+            <p className="tnum px-3.5 py-3 text-[13px] leading-5 text-ink-2">{`and ${formatInt(notListed)} more, see the station`}</p>
+          ) : null}
+        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-px bottom-px h-14 rounded-b-[27px] bg-[linear-gradient(to_bottom,transparent,var(--surface))]"
+        />
       </div>
     </section>
   );
