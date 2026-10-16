@@ -31,6 +31,10 @@ class Settings(BaseSettings):
         None, description="TokenHarbor key; when set, its model is tried first on text roles."
     )
     tokenharbor_base_url: str = "https://tokenharbor.ai/v1"
+    openrouter_api_key: SecretStr | None = Field(
+        None, description="OpenRouter key; when set, openai/gpt-4o is tried first on every role."
+    )
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     session_secret: SecretStr | None = Field(None, description="At least 32 random bytes, base64.")
     session_ttl_minutes: int = Field(

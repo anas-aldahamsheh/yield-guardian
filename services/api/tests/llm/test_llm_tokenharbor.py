@@ -222,3 +222,53 @@ async def test_malformed_tool_arguments_in_history_are_sent_as_a_json_object(
         await stack.aclose()
     calls = body(factory)["messages"][1]["tool_calls"]
     assert [c["function"]["arguments"] for c in calls] == ["{}", '{"run_id": "x"}']
+
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+
+async def test_openrouter_answers_first_and_a_402_falls_back_to_the_next_provider(
+    respx_mock: respx.Router,
+) -> None:
+    # The live shape of a busy free model: HTTP 429, then TokenHarbor answers.
+    router = respx_mock.post(OPENROUTER_URL).mock(
+        return_value=httpx.Response(
+            429, json={"error": {"message": "temporarily rate-limited upstream"}}
+        )
+    )
+    harbor = respx_mock.post(HARBOR_URL).mock(return_value=completion("deepseek-v4.1-flash", "Hi."))
+    stack = assemble_llm_stack(
+        settings(harbor_key=HARBOR_KEY).model_copy(
+            update={"openrouter_api_key": SecretStr("or-placeholder-not-a-key")}
+        )
+    )
+    try:
+        assert (
+            stack.registry.resolve(Role.CHAT).usable[0].choice.model == "google/gemma-4-31b-it:free"
+        )
+        result = await stack.gateway.complete(Role.CHAT, request())
+    finally:
+        await stack.aclose()
+    assert router.call_count == 1
+    assert harbor.call_count == 1
+    assert result.model == TOKENHARBOR_MODEL
+    assert router.calls.last.request.headers["authorization"] == "Bearer or-placeholder-not-a-key"
+    assert body(router)["model"] == "google/gemma-4-31b-it:free"
+    assert "reasoning_effort" not in body(router)
+
+
+async def test_openrouter_answers_when_it_works(respx_mock: respx.Router) -> None:
+    router = respx_mock.post(OPENROUTER_URL).mock(
+        return_value=completion("google/gemma-4-31b-it:free", "Hello from OpenRouter.")
+    )
+    stack = assemble_llm_stack(
+        settings(harbor_key=None).model_copy(
+            update={"openrouter_api_key": SecretStr("or-placeholder-not-a-key")}
+        )
+    )
+    try:
+        result = await stack.gateway.complete(Role.INVESTIGATOR, request())
+    finally:
+        await stack.aclose()
+    assert result.model == "google/gemma-4-31b-it:free"
+    assert router.call_count == 1

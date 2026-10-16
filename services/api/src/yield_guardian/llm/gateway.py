@@ -198,7 +198,10 @@ ROLE_TIMEOUT_S: dict[Role, float] = {
 }
 """Seconds one call of the role may take, retries included, before the next model is tried."""
 
-PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {Provider.TOKENHARBOR: 90.0}
+PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {
+    Provider.TOKENHARBOR: 90.0,
+    Provider.OPENROUTER: 120.0,
+}
 HARBOR_MIN_MAX_TOKENS = 8192
 """Output budget TokenHarbor gets at least: its model thinks before answering, and 2,048 tokens
 were spent on thinking alone live on 2026-10-16."""

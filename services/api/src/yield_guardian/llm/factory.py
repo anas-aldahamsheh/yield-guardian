@@ -35,6 +35,9 @@ TOKENHARBOR_TIMEOUT = httpx.Timeout(90.0, connect=10.0)
 """TokenHarbor is tried ahead of Token Factory, so it gets short timeouts and no retries: a busy,
 slow or failing TokenHarbor gives way to the Token Factory chain at once."""
 TOKENHARBOR_RETRY = RetryPolicy(max_retries=0)
+OPENROUTER_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
+"""OpenRouter is tried ahead of everything else: short timeouts and no retries, so a failing
+call (no credits, a rate limit) gives way to the next model at once."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,11 +54,15 @@ class LlmStack:
     admin: TokenFactoryAdmin
     harbor_client: TokenFactoryClient | None = None
     """The TokenHarbor client, when ``TOKENHARBOR_API_KEY`` is set."""
+    openrouter_client: TokenFactoryClient | None = None
+    """The OpenRouter client, when ``OPENROUTER_API_KEY`` is set."""
 
     async def aclose(self) -> None:
         await self.client.aclose()
         if self.harbor_client is not None:
             await self.harbor_client.aclose()
+        if self.openrouter_client is not None:
+            await self.openrouter_client.aclose()
 
 
 def key_configured(settings: Settings) -> bool:
@@ -65,6 +72,11 @@ def key_configured(settings: Settings) -> bool:
 
 def harbor_key_configured(settings: Settings) -> bool:
     key = settings.tokenharbor_api_key
+    return key is not None and bool(key.get_secret_value().strip())
+
+
+def openrouter_key_configured(settings: Settings) -> bool:
+    key = settings.openrouter_api_key
     return key is not None and bool(key.get_secret_value().strip())
 
 
@@ -97,9 +109,30 @@ def assemble_llm_stack(
         if harbor_key_configured(settings)
         else None
     )
+    openrouter_client = (
+        TokenFactoryClient(
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url,
+            http=http,
+            retry=TOKENHARBOR_RETRY,
+            timeout=OPENROUTER_TIMEOUT,
+        )
+        if openrouter_key_configured(settings)
+        else None
+    )
     providers = [Provider.TOKEN_FACTORY]
     if harbor_client is not None:
         providers.append(Provider.TOKENHARBOR)
+    if openrouter_client is not None:
+        providers.append(Provider.OPENROUTER)
+    extra_clients = {
+        provider: client
+        for provider, client in (
+            (Provider.TOKENHARBOR, harbor_client),
+            (Provider.OPENROUTER, openrouter_client),
+        )
+        if client is not None
+    }
     catalog = ProfileCatalog()
     registry = ModelRegistry(
         catalog, assignments or InMemoryRoleAssignmentStore(), providers=providers
@@ -115,7 +148,7 @@ def assemble_llm_stack(
         cache=stack_cache,
         call_log=stack_log,
         quota=quota,
-        providers={Provider.TOKENHARBOR: harbor_client} if harbor_client is not None else None,
+        providers=extra_clients or None,
     )
     admin = TokenFactoryAdmin(
         registry=registry,
@@ -138,6 +171,7 @@ def assemble_llm_stack(
         gateway=gateway,
         admin=admin,
         harbor_client=harbor_client,
+        openrouter_client=openrouter_client,
     )
 
 

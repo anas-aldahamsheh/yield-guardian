@@ -33,6 +33,7 @@ from yield_guardian.llm.errors import LlmError
 from yield_guardian.llm.messages import ReasoningEffort
 from yield_guardian.llm.profiles import (
     EFFORT_ORDER,
+    OPENROUTER_MODEL,
     TOKENHARBOR_MODEL,
     Availability,
     ModelKind,
@@ -96,11 +97,18 @@ def _harbor(mode: ResponseMode) -> ModelChoice:
     return ModelChoice(model=TOKENHARBOR_MODEL, response_mode=mode, provider=Provider.TOKENHARBOR)
 
 
+def _router_first(mode: ResponseMode) -> ModelChoice:
+    """google/gemma-4-31b-it:free on OpenRouter, first on every role (owner's choice); skipped silently when
+    ``OPENROUTER_API_KEY`` is not set, and any failure moves to the next entry."""
+    return ModelChoice(model=OPENROUTER_MODEL, response_mode=mode, provider=Provider.OPENROUTER)
+
+
 _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
     Role.INVESTIGATOR: (
-        # TokenHarbor first (owner's choice). Its thinking model gets HARBOR_MIN_MAX_TOKENS of
+        _router_first(_T),
+        # TokenHarbor next (owner's choice). Its thinking model gets HARBOR_MIN_MAX_TOKENS of
         # output, and an empty or cut-off answer falls back to Token Factory.
         _harbor(_T),
         _c("DeepSeek-V4.1-Flash", "low", _T),
@@ -116,26 +124,31 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
         # one MiMo effort the docs name. Not TokenHarbor (owner's choice): live on 2026-10-16 it
         # spent all 16,384 output tokens reasoning twice and returned no report (87 and 89 s).
+        _router_first(_O),
         _c("Qwen3.8-Flash-Next", "none", _O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),
     ),
     Role.VERIFIER: (
+        _router_first(_O),
         _harbor(_O),
         _c("GLM-5.3-Flash", "low", _O),
         _c("DeepSeek-V4-Flash", "low", _O),
     ),
     Role.CHAT: (
+        _router_first(_T),
         _harbor(_T),
         _c("Qwen3.8-Flash-Next", "none", _T),
         _c("DeepSeek-V4-Flash", "none", _T),
     ),
     Role.ROUTER: (
+        _router_first(_O),
         _harbor(_O),
         _c("MiniCPM5-2B", None, _O),
         _c("DeepSeek-V4-Flash", "none", _O),
     ),
     Role.VISION: (
+        _router_first(_O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("Qwen3.8-Flash-Next", "low", _O),
     ),
