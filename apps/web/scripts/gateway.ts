@@ -12,6 +12,7 @@
  */
 import { spawn } from "node:child_process";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import https from "node:https";
 import net from "node:net";
 import { Readable } from "node:stream";
 import { parseArgs } from "node:util";
@@ -19,6 +20,15 @@ import { parseArgs } from "node:util";
 import { getResponse } from "msw";
 
 import { createHandlers } from "../src/mocks/handlers";
+
+// Load local env files if present so API_INTERNAL_URL is respected
+for (const envPath of [".env.local", ".env", "../../.env"]) {
+  try {
+    process.loadEnvFile(envPath);
+  } catch {
+    // ignore missing files
+  }
+}
 
 const { values } = parseArgs({
   options: {
@@ -42,6 +52,7 @@ const next = spawn(
   ["exec", "next", values.mode === "start" ? "start" : "dev", "--port", String(nextPort)],
   {
     stdio: "inherit",
+    shell: process.platform === "win32",
     env: {
       ...process.env,
       API_INTERNAL_URL: values.mock ? `http://127.0.0.1:${port}` : api.origin,
@@ -95,23 +106,44 @@ async function answerFromFixtures(req: IncomingMessage, res: ServerResponse) {
 }
 
 function forward(req: IncomingMessage, res: ServerResponse, target: URL) {
-  const upstream = http.request(
+  const isHttps = target.protocol === "https:";
+  const client = isHttps ? https : http;
+  const defaultPort = isHttps ? 443 : 80;
+  const targetPort = target.port ? Number(target.port) : defaultPort;
+  const headers = {
+    ...req.headers,
+    host: target.host,
+    "x-forwarded-host": req.headers.host ?? "",
+    "x-forwarded-proto": req.headers["x-forwarded-proto"] ?? (isHttps ? "https" : "http"),
+  };
+
+  const upstream = client.request(
     {
-      host: target.hostname,
-      port: target.port || 80,
+      protocol: target.protocol,
+      hostname: target.hostname,
+      port: targetPort,
       method: req.method,
       path: req.url,
-      headers: { ...req.headers, "x-forwarded-host": req.headers.host ?? "" },
+      headers,
     },
     (upstreamRes) => {
-      res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
+      const resHeaders = { ...upstreamRes.headers };
+      if (resHeaders["set-cookie"]) {
+        const rawCookies = resHeaders["set-cookie"];
+        resHeaders["set-cookie"] = (Array.isArray(rawCookies) ? rawCookies : [rawCookies]).map(
+          (c) => c.replace(/;\s*Secure/gi, ""),
+        );
+      }
+      res.writeHead(upstreamRes.statusCode ?? 502, resHeaders);
       upstreamRes.pipe(res);
     },
   );
-  upstream.on("error", () => {
+  upstream.on("error", (err) => {
     if (!res.headersSent) res.writeHead(502, { "Content-Type": "text/plain" });
     res.end(
-      isApiPath(req.url) ? `The API at ${target.origin} did not answer.` : "Next.js is starting…",
+      isApiPath(req.url)
+        ? `The API at ${target.origin} did not answer: ${err.message}`
+        : "Next.js is starting…",
     );
   });
   req.pipe(upstream);
