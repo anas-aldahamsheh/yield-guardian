@@ -419,6 +419,7 @@ If time runs short, the last slices are cut and listed as cut in STATUS. Quality
 | D-010 | 2026-10-15 | Each visitor is a separate user with no login for now (login comes later): no visitor sees another's checks, files or investigations (owner's decision, R2). The one shared item is the recorded example investigation, which is no one's data: every visitor sees it, read-only (lead's default, told to the owner) |
 | D-011 | 2026-10-15 | Nothing goes live until all open work is finished, merged and checked; then the final version is deployed once (owner's rule) |
 | D-012 | 2026-10-15 | When the usage quota runs out, every worker it cut off resumes as soon as the quota renews, without waiting to be asked (owner's rule) |
+| D-013 | 2026-10-16 | Finish fast (owner's request, 11:37 UTC): the redesign is frozen as it is and only what is broken gets fixed; before the deploy only the essential checks run (code, build, browser tests on desktop and mobile with accessibility, and the refresh, workspace and opening tests against the real API); Lighthouse tuning, the guide screenshot retake and the full screenshot review come after the deploy |
 
 ## 17. References
 
