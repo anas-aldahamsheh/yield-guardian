@@ -113,58 +113,13 @@ def _router_first(mode: ResponseMode) -> ModelChoice:
 _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
-    Role.INVESTIGATOR: (
-        _anthropic(_T),
-        _router_first(_T),
-        # TokenHarbor next (owner's choice). Its thinking model gets HARBOR_MIN_MAX_TOKENS of
-        # output, and an empty or cut-off answer falls back to Token Factory.
-        _harbor(_T),
-        _c("DeepSeek-V4.1-Flash", "low", _T),
-        _c("GLM-5.3-Flash", "low", _T),
-        _c("Qwen3.8-Flash-Next", "low", _T),
-    ),
-    Role.WRITER: (
-        # Measured live on 2026-10-14: Qwen3.8-Flash-Next is the one model that reliably
-        # returned long outputs (chat: 1,175 to 1,348 tokens in 43 to 62 s, 4 of 4 calls OK).
-        # DeepSeek-V4.1-Flash answered HTTP 500 (upstream 504 call_upstream_timeout) when
-        # writing, and MiMo-V2.6-Flash (about 5 tokens/s) and Qwen3.8-27B ran past the writer
-        # deadline. All answer in json_object (MiMo refuses strict json_schema) and the report
-        # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
-        # one MiMo effort the docs name. Not TokenHarbor (owner's choice): live on 2026-10-16 it
-        # spent all 16,384 output tokens reasoning twice and returned no report (87 and 89 s).
-        _anthropic(ResponseMode.JSON_SCHEMA),
-        _router_first(_O),
-        _c("Qwen3.8-Flash-Next", "none", _O),
-        _c("DeepSeek-V4.1-Flash", "low", _O),
-        _c("MiMo-V2.6-Flash", "none", _O),
-    ),
-    Role.VERIFIER: (
-        _anthropic(ResponseMode.JSON_SCHEMA),
-        _router_first(_O),
-        _harbor(_O),
-        _c("GLM-5.3-Flash", "low", _O),
-        _c("DeepSeek-V4-Flash", "low", _O),
-    ),
-    Role.CHAT: (
-        _anthropic(_T),
-        _router_first(_T),
-        _harbor(_T),
-        _c("Qwen3.8-Flash-Next", "none", _T),
-        _c("DeepSeek-V4-Flash", "none", _T),
-    ),
-    Role.ROUTER: (
-        _anthropic(ResponseMode.JSON_SCHEMA),
-        _router_first(_O),
-        _harbor(_O),
-        _c("MiniCPM5-2B", None, _O),
-        _c("DeepSeek-V4-Flash", "none", _O),
-    ),
-    Role.VISION: (
-        _anthropic(ResponseMode.JSON_SCHEMA),
-        _router_first(_O),
-        _c("DeepSeek-V4.1-Flash", "low", _O),
-        _c("Qwen3.8-Flash-Next", "low", _O),
-    ),
+    # Claude Haiku 5.5 only, no fallback (owner's choice, 2026-10-16).
+    Role.INVESTIGATOR: (_anthropic(_T),),
+    Role.WRITER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+    Role.VERIFIER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+    Role.CHAT: (_anthropic(_T),),
+    Role.ROUTER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+    Role.VISION: (_anthropic(ResponseMode.JSON_SCHEMA),),
     Role.OCR: (_c("MinerU2.5-Pro", None, _T),),
 }
 
@@ -305,7 +260,10 @@ def family_problems(
     verifier_chain: Sequence[ModelChoice],
     catalog: ProfileCatalog,
 ) -> list[str]:
-    """For each writer model, the verifier chain must offer a model of another family."""
+    """For each writer model, the verifier chain must offer a model of another family.
+
+    Off (owner's choice, 2026-10-16): the report is written once and no verifier model runs."""
+    return []
 
     def family(choice: ModelChoice) -> str | None:
         profile = catalog.get(choice.model)

@@ -64,6 +64,7 @@ from yield_guardian.agent.verifier import ReportVerifier
 from yield_guardian.agent.writer import WRITER_MAX_TOKENS, ReportWriter, WriterInput
 from yield_guardian.contracts.base import Problem
 from yield_guardian.contracts.investigation import (
+    ClaimVerdict,
     Decision,
     Evidence,
     GraphNode,
@@ -72,6 +73,7 @@ from yield_guardian.contracts.investigation import (
     Report,
     StepStatus,
     ToolName,
+    Verification,
     VerificationIssue,
 )
 from yield_guardian.contracts.services import InvestigationSink, ScienceServices, ServiceError
@@ -511,27 +513,28 @@ async def write(state: InvestigationState, runtime: Runtime[GraphContext]) -> di
 async def verify(state: InvestigationState, runtime: Runtime[GraphContext]) -> dict[str, Any]:
     ctx = runtime.context
     revision = state["round"]
-    last = revision >= ctx.limits.max_revisions
-    title = "Check numbers, citations, wording and claims"
+    title = "Send the report (not checked)"
     step = _Step(ctx, state["investigation_id"], state["next_step"], "verify", title)
     await step.start()
     report = Report.model_validate(state["report"])
-    sources = await knowledge_source_ids(ctx.services) if report.hypotheses else None
-    result = await ctx.verifier.verify(
-        report,
-        _evidence(state),
-        trigger=InvestigationTrigger.model_validate(state["trigger"]),
-        revision_round=revision,
-        last_round=last,
-        writer_model=state["writer_model"],
-        options=step.options(),
-        known_sources=sources,
+    # Single pass (owner's choice, 2026-10-16): no code checks, no verifier model, no
+    # revisions. The report goes to the engineer as the writer wrote it.
+    verification = Verification(
+        passed=True,
+        rounds=0,
+        numbers_checked=0,
+        numbers_matched=0,
+        issues=[],
+        claims=[
+            ClaimVerdict(finding_index=i, verdict="not_checked", note=None)
+            for i in range(len(report.findings))
+        ],
+        verifier_model=None,
     )
     await step.end("completed")
-    verification = result.verification
-    await ctx.sink.report(result.shown, round=revision)
+    await ctx.sink.report(report, round=revision)
     await ctx.sink.verification(verification, round=revision)
-    revise = not verification.passed and not last
+    revise = False
     update: dict[str, Any] = {
         "next_step": state["next_step"] + 1,
         "verification": verification.model_dump(mode="json"),
