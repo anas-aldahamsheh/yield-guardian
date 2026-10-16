@@ -6638,6 +6638,20 @@
             ],
             "title": "Run Alarm",
             "description": "An alarm of the run."
+          },
+          "page_content": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12000,
+                "description": "Structured text of what is currently visible on the screen."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Content",
+            "description": "Structured text of what is currently visible on the screen."
           }
         },
         "additionalProperties": false,

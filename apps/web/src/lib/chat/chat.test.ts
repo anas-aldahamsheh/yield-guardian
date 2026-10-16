@@ -8,6 +8,7 @@ import {
   contextFromLocation,
   describeContext,
   emptyAnswer,
+  extractVisiblePageContent,
   lineChatContext,
   parseLineLocation,
   parseSse,
@@ -185,5 +186,30 @@ describe("contextFromLocation", () => {
     });
     expect(contextFromLocation("/", new URLSearchParams())).toBeNull();
     expect(contextFromLocation("/how", new URLSearchParams("pick=unit:1062"))).toBeNull();
+  });
+});
+
+describe("extractVisiblePageContent", () => {
+  it("extracts text from headings and tables while skipping hidden elements", () => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <h1>Line Overview</h1>
+      <p>Current yield: 99.2%</p>
+      <table>
+        <tr><th>Sensor</th><th>Status</th></tr>
+        <tr><td>S060</td><td>Normal</td></tr>
+      </table>
+      <script>console.log("secret");</script>
+      <div aria-hidden="true">Hidden text</div>
+      <div role="dialog">Modal text</div>
+    `;
+    const text = extractVisiblePageContent(div);
+    expect(text).toContain("### Line Overview");
+    expect(text).toContain("Current yield: 99.2%");
+    expect(text).toContain("Sensor | Status");
+    expect(text).toContain("S060 | Normal");
+    expect(text).not.toContain("secret");
+    expect(text).not.toContain("Hidden text");
+    expect(text).not.toContain("Modal text");
   });
 });

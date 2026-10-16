@@ -328,3 +328,33 @@ def test_a_non_integer_sum_is_not_accepted() -> None:
     gate = _gate(0.4, 0.3)
     "".join(gate.feed("The total is 0.7 [E1].\n") + gate.flush())
     assert gate.unverified == ["0.7"]
+
+
+def test_page_content_numbers_and_identifiers_are_allowed() -> None:
+    page = "### Savings Calculator\nEstimated savings: $42,500 annually across 15 production runs with sensor S042."
+    context = ChatContext(page_content=page)
+    facts = question_facts([], "Explain the savings on this page", context)
+    gate = SentenceGate(facts)
+    shown = "".join(gate.feed("The page estimates 42500 in savings across 15 runs for S042.\n") + gate.flush())
+    assert "42500" in shown
+    assert "15" in shown
+    assert "S042" in shown
+    assert gate.unverified == []
+
+
+async def test_page_content_reaches_the_model_payload(respx_mock: respx.Router) -> None:
+    model = ScriptedModel().mount(respx_mock)
+    model.add(
+        "chat",
+        text_reply("no lookup"),
+        stream_reply("The page shows 98.5% yield and 3 active stages."),
+    )
+    chat, _ = answerer()
+    page = "### Plant Status\nOverall yield is 98.5% with 3 active stages."
+    context = ChatContext(page_content=page)
+    events = await collect(chat, ask("What is on this page?", context=context))
+    assert text(events) == "The page shows 98.5% yield and 3 active stages."
+    assert last(events).numbers_unverified == []
+    bodies = model.bodies("chat")
+    assert "page_content" in bodies[0]["messages"][1]["content"]
+    assert "Overall yield is 98.5%" in bodies[0]["messages"][1]["content"]

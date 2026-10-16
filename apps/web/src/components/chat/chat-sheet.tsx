@@ -29,6 +29,7 @@ import {
   contextFromLocation,
   describeContext,
   emptyAnswer,
+  extractVisiblePageContent,
   segmentAnswer,
   streamChat,
   type TextPart,
@@ -67,9 +68,9 @@ function suggestions(context: ChatContext | null): string[] {
     ];
   if (context?.lot) return [`Which patterns are over-represented in lot ${context.lot}?`];
   return [
+    "What is shown on this page?",
     "Which units are high risk right now?",
     "Which sensors need maintenance?",
-    "What does an Edge-Ring pattern usually point to?",
   ];
 }
 
@@ -88,7 +89,6 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const guest = useStartGuestSession();
   const { chat: chatServed } = useFeatures();
   const streaming = turns.some((t) => t.streaming);
-  const context = useContext ? pageContext : null;
 
   const update = (id: number, fn: (t: Turn) => Turn) =>
     setTurns((all) => all.map((t) => (t.id === id ? fn(t) : t)));
@@ -100,6 +100,15 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     if (!q || streaming) return;
     nextId.current += 1;
     const id = nextId.current;
+
+    const visibleContent = useContext ? extractVisiblePageContent() : null;
+    const effectiveContext: ChatContext | null = useContext
+      ? {
+          ...(pageContext ?? {}),
+          ...(visibleContent ? { page_content: visibleContent } : {}),
+        }
+      : null;
+
     const history: ChatMessage[] = turns
       .filter((t) => !t.failed && t.answer.text)
       .flatMap((t) => [
@@ -108,7 +117,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
       ]);
     setTurns((all) => [
       ...all,
-      { id, question: q, context, answer: emptyAnswer(), failed: null, streaming: true },
+      { id, question: q, context: effectiveContext, answer: emptyAnswer(), failed: null, streaming: true },
     ]);
     setDraft("");
     follow();
@@ -117,7 +126,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     try {
       await streamChat({
         messages: [...history, { role: "user", content: q.slice(0, 4000) }],
-        context,
+        context: effectiveContext,
         headers: csrf,
         signal: controller.signal,
         onEvent: (event) => {
@@ -245,17 +254,15 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
             </div>
           ) : (
             <form onSubmit={onSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
-              {pageContext ? (
-                <label className="flex w-fit cursor-pointer items-center gap-2 text-[12.5px] leading-4 text-ink-2">
-                  <input
-                    type="checkbox"
-                    checked={useContext}
-                    onChange={(e) => setUseContext(e.target.checked)}
-                    className="size-4 accent-[var(--signal)]"
-                  />
-                  About {describeContext(pageContext)}
-                </label>
-              ) : null}
+              <label className="flex w-fit cursor-pointer items-center gap-2 text-[12.5px] leading-4 text-ink-2">
+                <input
+                  type="checkbox"
+                  checked={useContext}
+                  onChange={(e) => setUseContext(e.target.checked)}
+                  className="size-4 accent-[var(--signal)]"
+                />
+                About {describeContext(pageContext ?? {})}
+              </label>
               {/* One field: the question and its button share a rounded plane that takes the focus ring. */}
               <div className="flex items-end gap-1.5 rounded-[22px] bg-surface p-1.5 shadow-[inset_0_0_0_1px_var(--edge)] transition-shadow duration-(--dur-2) hover:shadow-[inset_0_0_0_1px_var(--ink-3)] has-[textarea:focus-visible]:shadow-[inset_0_0_0_1.5px_var(--signal),0_0_0_4px_color-mix(in_oklab,var(--signal)_16%,transparent)]">
                 <Textarea

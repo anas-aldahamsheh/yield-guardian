@@ -206,7 +206,7 @@ def question_facts(
     evidence: Sequence[Evidence], question: str, context: ChatContext | None
 ) -> EvidenceFacts:
     """What an answer may mention: the evidence, plus what the engineer wrote or is looking at
-    (an answer may repeat the question's own numbers and identifiers)."""
+    (an answer may repeat the question's own numbers and identifiers, or numbers from the visible page)."""
     strings: list[str] = []
     units: list[int] = []
     found = scan(question)
@@ -216,6 +216,7 @@ def question_facts(
         else:
             strings.extend(identifier.values)
     names: list[str] = []
+    page_numbers: list[float] = []
     if context is not None:
         strings.extend(v for v in (context.sensor, context.wafer_id, context.lot) if v)
         strings.extend(v for v in (context.run_id, context.run_alarm) if v)
@@ -223,12 +224,25 @@ def question_facts(
             strings.append(context.run_lot)
             names.append(context.run_lot)
         units.extend(v for v in (context.unit_id, context.run_unit) if v is not None)
+        if context.page_content:
+            page_found = scan(context.page_content)
+            for identifier in page_found.identifiers:
+                if identifier.kind == "unit":
+                    units.extend(int(v) for v in identifier.values)
+                else:
+                    strings.extend(identifier.values)
+            for mention in page_found.numbers:
+                if mention.percent:
+                    page_numbers.extend((mention.value / 100, mention.value))
+                else:
+                    page_numbers.append(mention.value)
     strings.extend(PRODUCT_NAMES)
     facts = EvidenceFacts.build(evidence, strings=strings, units=units)
     if context is not None and context.run_wafer is not None:
         facts.ints.setdefault("wafer_index", set()).add(context.run_wafer)
     for mention in found.numbers:
         facts.numbers.append(mention.value / 100 if mention.percent else mention.value)
+    facts.numbers.extend(page_numbers)
     facts.known_identifiers.update(s for s in strings if "-" in s or s.startswith("lot"))
     facts.known_identifiers.update(n for n in names if is_literal_name(n))
     facts.known_identifiers.update(PRODUCT_NAMES)
@@ -279,6 +293,8 @@ def _payload(
         payload["conversation"] = list(history)
     if context is not None:
         payload["looking_at"] = context.model_dump(mode="json", exclude_none=True)
+        if context.page_content:
+            payload["page_content"] = context.page_content
     payload["evidence"] = [model_view(e) for e in evidence]
     if failed:
         payload["failed_lookups"] = list(failed)

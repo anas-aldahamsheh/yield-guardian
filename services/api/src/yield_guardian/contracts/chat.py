@@ -41,6 +41,11 @@ class ChatContext(Contract):
     run_wafer: Count | None = Field(None, description="Position of a wafer in the run input.")
     run_lot: UserLabel | None = Field(None, description="A lot of the run, as named in its input.")
     run_alarm: RunAlarmId | None = Field(None, description="An alarm of the run.")
+    page_content: str | None = Field(
+        None,
+        max_length=12000,
+        description="Structured text of what is currently visible on the screen.",
+    )
 
     @model_validator(mode="after")
     def _run_fields_need_a_run(self) -> "ChatContext":

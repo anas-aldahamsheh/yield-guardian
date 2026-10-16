@@ -319,3 +319,74 @@ export function describeContext(c: ChatContext): string {
   if (c.investigation_id) return `Investigation ${c.investigation_id}`;
   return "This page";
 }
+
+/**
+ * Extracts a clean, structured text snapshot of what is currently visible on the screen.
+ * It reads the main page container, cleanly formatting headings, tables, metrics, and text,
+ * while omitting hidden elements, scripts, styles, SVGs, and the chat dialog itself.
+ */
+export function extractVisiblePageContent(root?: Element | null): string {
+  if (typeof document === "undefined") return "";
+  const container =
+    root ??
+    document.querySelector("main#main") ??
+    document.querySelector("main") ??
+    document.body;
+  if (!container) return "";
+
+  const lines: string[] = [];
+
+  function processElement(el: Element) {
+    const tag = el.tagName.toLowerCase();
+    if (
+      tag === "script" ||
+      tag === "style" ||
+      tag === "noscript" ||
+      tag === "svg" ||
+      tag === "path" ||
+      el.getAttribute("aria-hidden") === "true" ||
+      el.getAttribute("role") === "dialog" ||
+      el.classList?.contains("print:hidden")
+    ) {
+      return;
+    }
+
+    if (/^h[1-6]$/.test(tag)) {
+      const heading = (el as HTMLElement).innerText?.trim();
+      if (heading) lines.push(`\n### ${heading}\n`);
+      return;
+    }
+
+    if (tag === "table") {
+      const rows = Array.from(el.querySelectorAll("tr"));
+      for (const row of rows) {
+        const cells = Array.from(row.querySelectorAll("th, td"))
+          .map((c) => (c as HTMLElement).innerText?.trim())
+          .filter(Boolean);
+        if (cells.length > 0) {
+          lines.push(cells.join(" | "));
+        }
+      }
+      lines.push("");
+      return;
+    }
+
+    for (const child of Array.from(el.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const text = (child.textContent ?? "").replace(/\s+/g, " ").trim();
+        if (text) lines.push(text);
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        processElement(child as Element);
+      }
+    }
+  }
+
+  processElement(container);
+
+  const result = lines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return result.length > 6000 ? result.slice(0, 6000) + "\n[... content truncated]" : result;
+}

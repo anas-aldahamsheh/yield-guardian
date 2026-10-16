@@ -1923,6 +1923,11 @@ export interface components {
       unit_id?: number | null;
       /** Wafer Id */
       wafer_id?: string | null;
+      /**
+       * Page Content
+       * @description Structured text or summary of what is currently visible on the screen.
+       */
+      page_content?: string | null;
     };
     /** ChatDoneEvent */
     ChatDoneEvent: {
