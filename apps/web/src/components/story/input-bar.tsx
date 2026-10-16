@@ -143,9 +143,11 @@ export function InputBar({
             </button>
           </div>
           <p id={noteId} className="max-w-[52ch] text-[13.5px] leading-5 text-ink-2">
-            A real sample is a run of consecutive SECOM units and one{" "}
-            <span className="whitespace-nowrap">WM-811K</span> lot, picked at random. The rule and
-            its seed are shown with the run, so the same sample can be run again.
+            A real sample is a run of consecutive SECOM units, drawn at random among windows with
+            at least one recorded failure, and one{" "}
+            <span className="whitespace-nowrap">WM-811K</span> lot, drawn at random among lots with
+            at least two labelled wafers. The rule and its seed are shown with the run, so the same
+            sample can be run again.
           </p>
         </div>
         <div className="mt-5 grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-[18px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline-strong),var(--highlight)] sm:grid-cols-3">

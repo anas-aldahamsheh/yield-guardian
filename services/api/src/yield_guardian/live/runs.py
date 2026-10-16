@@ -266,8 +266,9 @@ class Materialiser:
         return origin, data
 
     async def _sample(self, payload: SampleRunCreate) -> tuple[RunOrigin, RunInput]:
-        """Real SECOM units, then a real WM-811K lot, from one Random seeded with the run's
-        seed (the units first, so a seed picks the same units whether or not the wafer engine
+        """Real SECOM units (a window with at least one recorded final-test fail), then a real
+        WM-811K lot (at least two wafers with a recorded failure type), from one Random seeded
+        with the run's seed (the units first, so a seed picks the same units whether or not the wafer engine
         is loaded). A track whose engine is not loaded is left out and the rule says so."""
         sensors, wafers = self.engines.sensors, self.engines.wafers
         if sensors is None and wafers is None:

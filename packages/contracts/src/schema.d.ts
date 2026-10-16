@@ -4528,7 +4528,9 @@ export interface components {
     };
     /**
      * SampleRunCreate
-     * @description One click: the server picks real SECOM units and a real WM-811K lot at random.
+     * @description One click: the server picks, at random, a window of real SECOM units among the windows
+     *     with at least one recorded failure, and a real WM-811K lot among the lots with at least two
+     *     labelled wafers.
      */
     SampleRunCreate: {
       /**

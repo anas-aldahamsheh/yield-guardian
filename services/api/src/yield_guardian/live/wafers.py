@@ -399,17 +399,33 @@ class LiveWafers:
         return [self._input(i) for i in rows]
 
     def sample(self, rng: Random) -> Picked[WaferInput]:
-        eligible = [n for n in self.lot_names if len(self.lot_rows[n]) >= MIN_LOT_WAFERS]
-        lot = rng.choice(eligible)
-        flagged = sum(record.flagged for record in self.bundle.lots.values())
+        """A whole demo lot with at least MIN_LOT_WAFERS wafers carrying a recorded failure-type
+        label (not none, not unlabelled), drawn with `rng` among the lots that have them."""
+        labelled = {n: sum(self._labelled(i) for i in rows) for n, rows in self.lot_rows.items()}
+        eligible = [n for n in self.lot_names if labelled[n] >= MIN_LOT_WAFERS]
+        if eligible:
+            lot = rng.choice(eligible)
+            among = (
+                f"among the {len(eligible)} of {len(self.lot_names)} demo lots with at least "
+                f"{MIN_LOT_WAFERS} labelled wafers."
+            )
+        else:
+            eligible = [n for n in self.lot_names if len(self.lot_rows[n]) >= MIN_LOT_WAFERS]
+            lot = rng.choice(eligible)
+            among = (
+                f"among the {len(eligible)} demo lots with at least {MIN_LOT_WAFERS} wafers "
+                f"(no lot has {MIN_LOT_WAFERS} labelled wafers)."
+            )
         rule = (
-            f"Every demo wafer of real WM-811K lot {lot} ({len(self.lot_rows[lot])} wafers), "
-            f"drawn uniformly at random from the {len(eligible)} demo lots with at least two "
-            f"wafers. The demo set keeps the {flagged} lots the bundle's lot test flagged and "
-            f"{len(self.lot_rows) - flagged} others drawn at random, so most lots carry a "
-            "repeating pattern."
+            f"Every demo wafer of real WM-811K lot {lot} ({len(self.lot_rows[lot])} wafers, "
+            f"{labelled[lot]} with a recorded failure-type label): drawn at random {among}"
         )
         return Picked(items=self.from_demo(lot=lot), rule=rule)
+
+    def _labelled(self, i: int) -> bool:
+        """Whether demo wafer `i` has a recorded failure type (a label other than none)."""
+        label = self.demo.label[i]
+        return label is not None and label != "none"
 
     def _layouts(self) -> list[DrawLayout]:
         demo = self.demo

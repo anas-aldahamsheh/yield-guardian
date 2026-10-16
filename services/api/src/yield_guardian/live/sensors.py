@@ -608,21 +608,32 @@ class SecomSensorEngine:
         return out
 
     def sample(self, rng: Random) -> Picked[SensorUnitInput]:
+        """A window of consecutive test-block units holding at least one recorded final-test
+        fail, its start drawn with `rng` among the windows that do (counted from the data)."""
         block = self._test_positions
         length = min(SAMPLE_UNITS, int(block.size))
         windows = int(block.size) - length + 1
-        start = rng.randrange(windows)
+        failed = np.asarray(self.bundle.source.failed, dtype=bool)[self._time_order[block]]
+        fails_from = np.concatenate([[0], np.cumsum(failed, dtype=np.int64)])
+        fails_in = fails_from[length:] - fails_from[:windows]
+        eligible = np.flatnonzero(fails_in > 0)
+        starts = eligible if eligible.size else np.arange(windows)
+        start = int(starts[rng.randrange(int(starts.size))])
         positions = block[start : start + length]
         units = self.from_secom(self._time_order[positions].tolist())
         stamps = self.bundle.timeline.timestamp
-        first, last = stamps[int(block[0])], stamps[int(block[-1])]
+        among = (
+            f"among the {eligible.size} of {windows} windows with at least one recorded failure"
+            if eligible.size
+            else f"among all {windows} windows (none has a recorded failure)"
+        )
         rule = (
-            f"{length} consecutive real SECOM units from the test block, the {block.size} units "
-            f"from {first:%Y-%m-%d %H:%M} to {last:%Y-%m-%d %H:%M} that the risk model never "
-            f"saw: units {start + 1} to {start + length} of that block in time order "
+            f"{length} consecutive real SECOM units, {start + 1} to {start + length} "
             f"({stamps[int(positions[0])]:%Y-%m-%d %H:%M} to "
-            f"{stamps[int(positions[-1])]:%Y-%m-%d %H:%M}). The first unit was drawn uniformly "
-            f"at random, with the run's seed, from the {windows} possible windows."
+            f"{stamps[int(positions[-1])]:%Y-%m-%d %H:%M}) of the {block.size} units in the "
+            f"test block the risk model never saw, {int(fails_in[start])} with a recorded "
+            "final-test fail: "
+            f"drawn at random {among}."
         )
         return Picked(items=units, rule=rule)
 

@@ -86,8 +86,9 @@ def test_sample_is_a_seeded_window_of_the_block_the_model_never_saw(
     assert last is not None
     assert f"{first:%Y-%m-%d %H:%M}" in picked.rule
     assert f"{last:%Y-%m-%d %H:%M}" in picked.rule
-    assert "313 units from 2008-10-02 21:32 to 2008-10-17 06:07" in picked.rule
-    assert "274 possible windows" in picked.rule
+    assert "of the 313 units in the test block the risk model never saw" in picked.rule
+    assert "of 274 windows with at least one recorded failure" in picked.rule
+    assert any(u.result == "fail" for u in picked.items)
     assert len(picked.rule) <= 600
     starts = {engine.sample(Random(seed)).items[0].source_unit for seed in range(30)}
     assert len(starts) > 20
