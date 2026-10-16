@@ -1,10 +1,8 @@
 "use client";
 
 import { XIcon } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
-import { Placeholder } from "@/components/states";
 import { formatInt, formatPercent, formatPlantTime, plural } from "@/lib/format";
 import { stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import { STATION_NAME } from "@/lib/live/stations";
@@ -12,14 +10,11 @@ import { stationAt, type Focus } from "@/lib/live/url-state";
 import { cn } from "@/lib/utils";
 
 import { DrawerSection, Fact, NotYet } from "./drawer-parts";
-
-/** The monitoring and wafer-test drawers (tables, charts, maps) load when one first opens. */
-const UnitsDrawer = dynamic(() => import("./drawer-units").then((mod) => mod.UnitsDrawer), {
-  loading: () => <Placeholder className="h-80" label="Loading the monitoring details" />,
-});
-const WafersDrawer = dynamic(() => import("./drawer-wafers").then((mod) => mod.WafersDrawer), {
-  loading: () => <Placeholder className="h-80" label="Loading the wafer test details" />,
-});
+// Imported with the page, not when a drawer first opens: a drawer the page arrives with (a
+// reload, a link) is in the server's HTML and on screen at once. Loaded on demand, it would be
+// streamed behind a loading state and swapped in a frame after the page arrived.
+import { UnitsDrawer } from "./drawer-units";
+import { WafersDrawer } from "./drawer-wafers";
 
 /**
  * Whether this page was opened anew at its address, not reloaded or reached with back and

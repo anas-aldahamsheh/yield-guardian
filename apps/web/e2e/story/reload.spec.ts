@@ -183,7 +183,9 @@ async function drawnWafers(page: Page): Promise<boolean[]> {
         "#station-drawer ul[aria-label=Wafers] canvas",
       ),
     ].map((canvas) => {
-      const ctx = canvas.getContext("2d");
+      // Asked for as the page asks for it (die-map.tsx): on a canvas the page has not drawn yet,
+      // a plain context would be the first, GPU-backed, and the map then drawn on it die by die.
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx || !canvas.width) return false;
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
       for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
