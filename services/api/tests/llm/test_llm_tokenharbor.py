@@ -160,10 +160,11 @@ async def test_without_a_tokenharbor_key_the_chain_starts_at_token_factory(
     assert factory.call_count == 1
 
 
-def test_tokenharbor_goes_first_on_every_text_role() -> None:
+def test_tokenharbor_goes_first_on_every_text_role_but_the_writer() -> None:
     stack = stack_with(HARBOR_KEY)
-    for role in (Role.INVESTIGATOR, Role.WRITER, Role.VERIFIER, Role.CHAT, Role.ROUTER):
+    for role in (Role.INVESTIGATOR, Role.VERIFIER, Role.CHAT, Role.ROUTER):
         assert stack.registry.resolve(role).usable[0].choice.model == TOKENHARBOR_MODEL
+    assert stack.registry.resolve(Role.WRITER).usable[0].choice.model == "Qwen3.8-Flash-Next"
     models = [r.choice.model for r in stack.registry.resolve(Role.VERIFIER).usable]
     assert models == [TOKENHARBOR_MODEL, "GLM-5.3-Flash", "DeepSeek-V4-Flash"]
 

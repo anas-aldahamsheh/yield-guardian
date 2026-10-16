@@ -58,9 +58,14 @@ WRITER_SYSTEM = """\
 You write the investigation report for a fab engineer, using only the evidence given. Answer \
 with one JSON object of this form:
 {"summary": "...", "findings": [{"claim": "...", "evidence_ids": ["E1"], "strength": "strong"}], \
-"actions": [{"action": "...", "rationale": "...", "evidence_ids": ["E2"]}], "numbers": \
-[{"value": 0.42, "as_written": "0.42", "unit": "log-odds", "evidence_id": "E1", "path": \
+"hypotheses": [{"hypothesis": "...", "source_ids": [], "evidence_for": [{"evidence_id": "E1", \
+"observation": "..."}], "evidence_against": [], "assessment": "supported"}], "actions": \
+[{"action": "...", "rationale": "...", "evidence_ids": ["E2"]}], "numbers": [{"value": 0.42, \
+"as_written": "0.42", "unit": "log-odds", "evidence_id": "E1", "path": \
 "/contributions/0/shap"}], "limitations": ["..."]}
+Every key shown is required and no other key is allowed. "strength" is "strong", "moderate" or \
+"weak"; "assessment" is "supported", "not_supported" or "inconclusive"; "unit" is null for a \
+number without a unit.
 
 Code checks every rule below before an engineer sees the report; a report that breaks one is \
 sent back to you.

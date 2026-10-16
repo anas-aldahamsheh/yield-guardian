@@ -49,9 +49,9 @@ def test_first_draft_request_carries_trigger_and_evidence_as_data() -> None:
     request = writer_request(WriterInput(TRIGGER, [E1]))
     system = request.messages[0].text()
     assert system.startswith(WRITER_SYSTEM)
-    # json_object mode does not pass the schema to the model, so the prompt carries it.
-    schema = json.loads(system.rsplit("\n", 1)[1])
-    assert schema == strict_json_schema(Report)
+    # The schema is not sent: the example names every key and code validates the report.
+    assert '"hypotheses"' in system
+    assert json.dumps(strict_json_schema(Report), separators=(",", ":")) not in system
     data = payload(request.messages[1].text())
     assert data["trigger"]["question"] == "Why is it risky?"
     assert [e["evidence_id"] for e in data["evidence"]] == ["E1"]
@@ -94,7 +94,7 @@ async def test_qwen_flash_next_writes_in_json_object_with_the_schema_in_the_prom
     assert (body["model"], body["reasoning_effort"]) == ("Qwen3.8-Flash-Next", "none")
     assert [m["role"] for m in body["messages"]] == ["system", "user"]  # its one-system rule
     assert body["response_format"] == {"type": "json_object"}
-    assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
+    assert REPORT_SCHEMA_TEXT not in body["messages"][0]["content"]
     assert REPORT_SCHEMA_NAME == "investigation_report"
 
 
@@ -110,7 +110,7 @@ async def test_mimo_as_fallback_answers_in_json_object_with_effort_none(
     assert (body["model"], body["reasoning_effort"]) == ("MiMo-V2.6-Flash", "none")
     # MiMo refused strict json_schema live (HTTP 400, 2026-10-14).
     assert body["response_format"] == {"type": "json_object"}
-    assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
+    assert REPORT_SCHEMA_TEXT not in body["messages"][0]["content"]
 
 
 async def test_an_invalid_report_falls_back_to_json_object_with_validation(
@@ -133,3 +133,16 @@ async def test_an_invalid_report_falls_back_to_json_object_with_validation(
         "json_object",
     ]
     assert [str(r.status) for r in records] == ["invalid_output", "ok"]
+
+
+def test_evidence_with_nothing_notable_reaches_the_writer_as_one_line() -> None:
+    from tests.agent.helpers import evidence
+    from yield_guardian.agent.writer import QUIET_NOTE, writer_view
+
+    healthy = {"sensors": [{"sensor": "S001", "status": "ok"}]}
+    watched = {
+        "sensors": [{"sensor": "S001", "status": "ok"}, {"sensor": "S002", "status": "watch"}]
+    }
+    assert writer_view(evidence("E4", {"hits": []}, tool="search_knowledge"))["data"] == QUIET_NOTE
+    assert writer_view(evidence("E5", healthy, tool="get_sensor_health"))["data"] == QUIET_NOTE
+    assert writer_view(evidence("E6", watched, tool="get_sensor_health"))["data"] != QUIET_NOTE

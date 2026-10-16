@@ -114,9 +114,8 @@ DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
         # writing, and MiMo-V2.6-Flash (about 5 tokens/s) and Qwen3.8-27B ran past the writer
         # deadline. All answer in json_object (MiMo refuses strict json_schema) and the report
         # is validated in code. "none" keeps Qwen fast (it is what chat runs live) and is the
-        # one MiMo effort the docs name. TokenHarbor first (owner's choice); live on 2026-10-16
-        # it once spent all 16,384 output tokens reasoning (empty report, 89 s), which falls back.
-        _harbor(_O),
+        # one MiMo effort the docs name. Not TokenHarbor (owner's choice): live on 2026-10-16 it
+        # spent all 16,384 output tokens reasoning twice and returned no report (87 and 89 s).
         _c("Qwen3.8-Flash-Next", "none", _O),
         _c("DeepSeek-V4.1-Flash", "low", _O),
         _c("MiMo-V2.6-Flash", "none", _O),

@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from yield_guardian.agent.prompts import REVISION_NOTE, WRITER_SYSTEM, data_message
 from yield_guardian.agent.tools import model_view
@@ -42,12 +43,49 @@ TEXT_NUMBER_NOTE = (
 )
 """Kept here, not in prompts.py, while the chat prompts there are being rewritten. Each case
 matches a rule of the verifier (text leaves, ``/arguments/`` paths, list lengths, levels)."""
-WRITER_INSTRUCTIONS = (
-    f"{WRITER_SYSTEM}\n\n{TEXT_NUMBER_NOTE}\n\nThe JSON object must match this JSON Schema exactly (every key "
-    f"required, no other keys; use null for a number without a unit):\n{REPORT_SCHEMA_TEXT}"
-)
-"""The writer's system message: the rules, then the exact schema, because json_object mode
-does not pass the schema to the model."""
+WRITER_INSTRUCTIONS = f"{WRITER_SYSTEM}\n\n{TEXT_NUMBER_NOTE}"
+"""The writer's system message: the rules and an example with every key. The JSON Schema is not
+sent (about 800 tokens); code validates the report against it and sends a broken one back."""
+QUIET_NOTE = "Nothing notable in this evidence; its data is left out. Do not cite numbers from it."
+
+
+def _quiet(evidence: Evidence) -> bool:
+    """Evidence with nothing notable: every sensor healthy, a control-chart window without a
+    warning or alarm, a search or similarity lookup that found nothing. Anything else, or
+    anything not sure, is sent in full."""
+    data: Any = evidence.model_dump(mode="json")["data"]
+    if not isinstance(data, dict):
+        return False
+    if evidence.tool == "get_sensor_health":
+        sensors = data.get("sensors") or []
+        return bool(sensors) and all(s.get("status") == "ok" for s in sensors)
+    if evidence.tool == "get_fdc_window":
+        points = data.get("points") or []
+        return bool(points) and not any(
+            p.get("fdc_alarm") in ("warning", "alarm")
+            or p.get("ewma_alarm")
+            or p.get("cusum_alarm")
+            for p in points
+        )
+    if evidence.tool == "search_knowledge":
+        return not data.get("hits")
+    if evidence.tool == "get_similar_wafers":
+        return not data.get("results")
+    return False
+
+
+def writer_view(evidence: Evidence) -> dict[str, Any]:
+    """What the writer is shown of one piece of evidence: :func:`model_view`, or for evidence
+    with nothing notable only its ID, tool, arguments and one-line summary."""
+    if not _quiet(evidence):
+        return model_view(evidence)
+    return {
+        "evidence_id": evidence.evidence_id,
+        "tool": evidence.tool,
+        "arguments": evidence.arguments,
+        "summary": evidence.summary,
+        "data": QUIET_NOTE,
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,7 +99,7 @@ class WriterInput:
 def writer_request(data: WriterInput, *, max_tokens: int = WRITER_MAX_TOKENS) -> ChatRequest:
     payload: dict[str, object] = {
         "trigger": data.trigger.model_dump(mode="json"),
-        "evidence": [model_view(item) for item in data.evidence],
+        "evidence": [writer_view(item) for item in data.evidence],
     }
     if data.previous is not None:
         payload["task"] = REVISION_NOTE

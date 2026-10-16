@@ -200,7 +200,7 @@ async def test_each_writer_model_gets_a_request_inside_the_known_constraints(
         assert fmt == {"type": "json_object"}
         assert "JSON" in body["messages"][0]["content"]  # json_object needs "JSON" in the prompt
         # The model never sees the schema through response_format, so the prompt carries it.
-        assert REPORT_SCHEMA_TEXT in body["messages"][0]["content"]
+        assert REPORT_SCHEMA_TEXT not in body["messages"][0]["content"]
 
 
 def test_no_writer_default_asks_for_strict_json_schema() -> None:
