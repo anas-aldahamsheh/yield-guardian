@@ -178,6 +178,16 @@ export function LinePage({
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  /** A scroll to the bay asked for when a run comes onto the line, made after it renders. */
+  const bayScroll = useRef<"smooth" | "auto" | null>(null);
+  useEffect(() => {
+    const how = bayScroll.current;
+    if (!how || !url.runId) return;
+    bayScroll.current = null;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    bayRef.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : how });
+  }, [url.runId]);
+
   const created = useCallback(
     (run: RunCreated, mode: "push" | "replace") => {
       setFreshId(run.run_id);
@@ -190,10 +200,9 @@ export function LinePage({
         { runId: run.run_id, station: url.runId ? null : url.station, focus: null, alarm: null },
         mode,
       );
-      bayRef.current?.scrollIntoView({
-        block: "start",
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
+      // Scrolled once the run is on the line: Your work then moves below the bay, so a scroll
+      // made now would land where Your work comes to be.
+      bayScroll.current = "smooth";
     },
     [go, setWay, url.runId, url.station],
   );
@@ -358,7 +367,7 @@ export function LinePage({
         // A station saved with the run opens as if chosen here: its drawer comes into view.
         if (next.station != null) setStationBy("person");
         go(next, "push");
-        bayRef.current?.scrollIntoView({ block: "start" });
+        bayScroll.current = "auto";
       }}
     />
   );
