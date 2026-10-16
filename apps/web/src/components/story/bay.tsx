@@ -245,7 +245,7 @@ function Tile({
       aria-labelledby={labelledBy}
       data-open={open || undefined}
       className={cn(
-        "group/tile glow relative row-span-3 grid min-w-0 grid-rows-subgrid rounded-[22px] pt-4 pr-4 pb-5 pl-14 transition-[background-color,box-shadow] duration-(--dur-4) sm:pr-5 md:pt-12 md:pl-5",
+        "group/tile glow relative row-span-3 grid min-w-0 grid-rows-subgrid rounded-[22px] border-[3px] border-transparent bg-clip-padding pt-4 pr-4 pb-5 pl-14 transition-[background-color,box-shadow] duration-(--dur-4) sm:pr-5 md:pt-12 md:pl-5",
         // Column rules between stations, inset so they never touch the rounded corners.
         "before:pointer-events-none before:absolute before:top-12 before:bottom-6 before:left-0 before:hidden before:w-px before:bg-hairline md:[&:nth-child(2n)]:before:block xl:[&:nth-child(n+2)]:before:block",
         tone === "alarm" && "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)] before:opacity-0",
