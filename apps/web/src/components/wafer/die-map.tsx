@@ -53,7 +53,7 @@ export function dieEdges(count: number, span: number, offset = 0): number[] {
 
 /** Whole device pixels left between dies, from the smaller of the two die steps. */
 export function dieGap(step: number, dpr: number): number {
-  return step >= 6 * dpr ? Math.max(1, Math.round(dpr)) : step >= 3 * dpr ? 1 : 0;
+  return step >= 6 * dpr ? Math.max(1, Math.round(dpr)) : step >= 2 ? 1 : 0;
 }
 
 export function DieMap({
