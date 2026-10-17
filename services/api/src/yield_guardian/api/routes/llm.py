@@ -1,10 +1,12 @@
 from fastapi import APIRouter
 
-from yield_guardian.api.deps import AdminSession, Llm
+from yield_guardian.api.deps import AdminSession, Llm, WorkspaceSession
 from yield_guardian.api.problems import problem_responses
 from yield_guardian.contracts.models import (
     CatalogModel,
     Evaluations,
+    LlmProviderState,
+    LlmProviderUpdate,
     RoleAssignment,
     RoleAssignmentUpdate,
     RoleName,
@@ -12,6 +14,24 @@ from yield_guardian.contracts.models import (
 )
 
 router = APIRouter(tags=["language models"])
+
+
+@router.get("/llm/provider", operation_id="get_llm_provider", responses=problem_responses(503))
+async def get_llm_provider(llm: Llm) -> LlmProviderState:
+    """The provider every role uses, for every user: Claude or AMD."""
+    return await llm.provider()
+
+
+@router.put(
+    "/llm/provider",
+    operation_id="update_llm_provider",
+    responses=problem_responses(401, 403, 503),
+)
+async def update_llm_provider(
+    session: WorkspaceSession, body: LlmProviderUpdate, llm: Llm
+) -> LlmProviderState:
+    """Switch every role to one provider, site-wide. Takes effect on the next call."""
+    return await llm.set_provider(body.provider, actor=session.display_name or "visitor")
 
 
 @router.get("/llm/catalog", operation_id="get_model_catalog", responses=problem_responses(503))

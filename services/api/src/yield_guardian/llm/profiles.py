@@ -45,12 +45,6 @@ class Provider(StrEnum):
     ANTHROPIC = "anthropic"
     """Anthropic's OpenAI-compatible endpoint (``ANTHROPIC_BASE_URL``), tried first on every
     role when ``ANTHROPIC_API_KEY`` is set; usage and points are not reported (unknown)."""
-    OPENROUTER = "openrouter"
-    """OpenRouter (``OPENROUTER_BASE_URL``), tried first on every role when
-    ``OPENROUTER_API_KEY`` is set; usage and points are not reported (unknown)."""
-    TOKENHARBOR = "tokenharbor"
-    """TokenHarbor (``TOKENHARBOR_BASE_URL``), tried first on the text roles when
-    ``TOKENHARBOR_API_KEY`` is set; usage and points are not reported (unknown)."""
 
 
 class ModelKind(StrEnum):
@@ -188,8 +182,7 @@ def _deepseek(model_id: str, modalities: frozenset[Modality]) -> ModelProfile:
 
 
 _TEXT: frozenset[Modality] = frozenset({"text"})
-TOKENHARBOR_MODEL = "deepseek-v4.1-flash:free"
-OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
+AMD_MODEL = "DeepSeek-V4.1-Flash"
 ANTHROPIC_MODEL = "claude-haiku-5-5"
 _TEXT_IMAGE: frozenset[Modality] = frozenset({"text", "image"})
 
@@ -340,60 +333,6 @@ DOCUMENTED_PROFILES: Mapping[str, ModelProfile] = {
             notes=(
                 "Thinking is on or off only; the value that switches it on is not documented, "
                 "so only 'none' (off) is sent.",
-            ),
-        ),
-        ModelProfile(
-            id=TOKENHARBOR_MODEL,
-            family="deepseek",
-            kind=ModelKind.CHAT,
-            context_length=None,
-            input_modalities=_TEXT,
-            thinks_by_default=None,
-            reasoning_control=ReasoningControl.NOT_APPLICABLE,
-            reasoning_efforts=frozenset(),
-            system_rule=SystemRule.ANY,
-            developer_role=DeveloperRole.MAP_TO_SYSTEM,
-            supports_tools=True,
-            supports_json_object=True,
-            supports_json_schema=False,
-            supports_streaming=True,
-            reports_reasoning_tokens=False,
-            pricing=None,
-            source="documented",
-            provider=Provider.TOKENHARBOR,
-            notes=(
-                "Served by TokenHarbor, not Token Factory: not in the Token Factory catalog, "
-                "and its usage carries no points (pricing unknown).",
-                "No reasoning_effort or other extra parameter is sent; json_object only.",
-                "Any failure (rate limit, authentication, timeout) moves to the next model.",
-            ),
-        ),
-        ModelProfile(
-            id=OPENROUTER_MODEL,
-            family="google",
-            kind=ModelKind.CHAT,
-            context_length=None,
-            input_modalities=_TEXT_IMAGE,
-            thinks_by_default=None,
-            reasoning_control=ReasoningControl.NOT_APPLICABLE,
-            reasoning_efforts=frozenset(),
-            system_rule=SystemRule.ANY,
-            developer_role=DeveloperRole.MAP_TO_SYSTEM,
-            supports_tools=True,
-            supports_json_object=True,
-            supports_json_schema=False,
-            supports_streaming=True,
-            reports_reasoning_tokens=False,
-            pricing=None,
-            source="documented",
-            provider=Provider.OPENROUTER,
-            notes=(
-                "Served by OpenRouter, not Token Factory: not in the Token Factory catalog, "
-                "and its usage carries no points (pricing unknown).",
-                "Free tier of a shared pool: it answers HTTP 429 when busy, which falls back.",
-                "No reasoning_effort or other extra parameter is sent; json_object only.",
-                "Any failure (rate limit, authentication, credits, timeout) moves to the next "
-                "model.",
             ),
         ),
         ModelProfile(

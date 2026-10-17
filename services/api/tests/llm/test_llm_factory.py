@@ -17,7 +17,7 @@ def settings(key: str | None) -> Settings:
         environment="test",
         log_json=False,
         token_factory_api_key=SecretStr(key) if key is not None else None,
-        tokenharbor_api_key=None,
+        anthropic_api_key=None,
     )
 
 
@@ -32,9 +32,7 @@ async def test_without_a_key_the_stack_makes_no_request(respx_mock: respx.Router
     try:
         assert not await stack.admin.live_calls_available()
         assert stack.catalog.availability("GLM-5.3-Flash") is Availability.NOT_SYNCED
-        # TokenHarbor heads the chain but, without its key, is skipped: Token Factory first.
-        assert stack.harbor_client is None
-        assert stack.registry.resolve(Role.WRITER).usable[0].choice.model == "Qwen3.8-Flash-Next"
+        assert stack.anthropic_client is None
         assert (await stack.admin.usage()).quota.source == "unknown"
         assert not respx_mock.calls
     finally:

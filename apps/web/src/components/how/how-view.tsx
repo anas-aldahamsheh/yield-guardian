@@ -88,7 +88,7 @@ export function HowView() {
               <Section
                 id="models"
                 title="Models"
-                lede="The trained models, as their model cards describe them, and the language-model roles that write and explain, all on Claude Haiku 5.5 (Anthropic), with their measured latency and points."
+                lede="The trained models, as their model cards describe them, and the language-model roles that write and explain: Claude Haiku 5.5 (Anthropic) on every role but document reading (OCR). The evaluations listed under them are earlier measurements of candidate models."
               >
                 <Disclosure
                   title="Model cards"

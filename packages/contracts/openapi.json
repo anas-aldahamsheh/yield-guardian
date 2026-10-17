@@ -551,7 +551,7 @@
           "runs"
         ],
         "summary": "Get Run Results",
-        "description": "The run's computed results as CSV: risk, T², SPE and chart level per unit, pattern and\nunknown flag per wafer, and every listed alarm.",
+        "description": "The run's computed results as CSV: risk, T\u00b2, SPE and chart level per unit, pattern and\nunknown flag per wafer, and every listed alarm.",
         "operationId": "get_run_results",
         "parameters": [
           {
@@ -1493,7 +1493,7 @@
           "secom"
         ],
         "summary": "Get Unit Contributions",
-        "description": "Per-sensor contributions to the unit's T² or SPE.",
+        "description": "Per-sensor contributions to the unit's T\u00b2 or SPE.",
         "operationId": "get_unit_contributions",
         "parameters": [
           {
@@ -1585,7 +1585,7 @@
           "secom"
         ],
         "summary": "Get Fdc Series",
-        "description": "T² and SPE with control limits, in time order.",
+        "description": "T\u00b2 and SPE with control limits, in time order.",
         "operationId": "get_fdc_series",
         "parameters": [
           {
@@ -3931,6 +3931,126 @@
               }
             },
             "description": "Gone"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/llm/provider": {
+      "get": {
+        "tags": [
+          "language models"
+        ],
+        "summary": "Get Llm Provider",
+        "description": "The provider every role uses, for every user: Claude or AMD.",
+        "operationId": "get_llm_provider",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LlmProviderState"
+                }
+              }
+            }
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "language models"
+        ],
+        "summary": "Update Llm Provider",
+        "description": "Switch every role to one provider, site-wide. Takes effect on the next call.",
+        "operationId": "update_llm_provider",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LlmProviderUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LlmProviderState"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
           },
           "503": {
             "content": {
@@ -10222,6 +10342,73 @@
         ],
         "title": "LlmCall"
       },
+      "LlmProviderState": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "claude",
+              "amd"
+            ],
+            "title": "Provider",
+            "description": "claude: Claude Haiku 5.5 on Anthropic; amd: DeepSeek-V4.1-Flash on AMD Token Factory."
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id",
+            "description": "The model every role but OCR uses."
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "provider",
+          "model_id"
+        ],
+        "title": "LlmProviderState",
+        "description": "The one language-model provider every role uses, for every user."
+      },
+      "LlmProviderUpdate": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "claude",
+              "amd"
+            ],
+            "title": "Provider"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "provider"
+        ],
+        "title": "LlmProviderUpdate"
+      },
       "LoginRequest": {
         "properties": {
           "username": {
@@ -10785,7 +10972,7 @@
           "provider": {
             "type": "string",
             "title": "Provider",
-            "description": "token_factory or tokenharbor (inferred from the model id)."
+            "description": "token_factory (AMD) or anthropic (inferred from the model id)."
           },
           "status": {
             "type": "string",
@@ -13079,7 +13266,7 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Units Chart Alarm",
-            "description": "Units whose T² or SPE is at the alarm level."
+            "description": "Units whose T\u00b2 or SPE is at the alarm level."
           },
           "units_chart_warning": {
             "type": "integer",
@@ -15126,7 +15313,7 @@
             "type": "number",
             "minimum": 0.0,
             "title": "T2",
-            "description": "Hotelling T² of the unit."
+            "description": "Hotelling T\u00b2 of the unit."
           },
           "spe": {
             "type": "number",
@@ -15542,7 +15729,7 @@
             "type": "number",
             "minimum": 0.0,
             "title": "T2",
-            "description": "Hotelling T² of the unit."
+            "description": "Hotelling T\u00b2 of the unit."
           },
           "spe": {
             "type": "number",

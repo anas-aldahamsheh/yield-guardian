@@ -268,15 +268,5 @@ class BundleMethods:
                     wafer_metrics,
                 ),
             ]
-        rows.append(
-            _row(
-                "points_per_investigation",
-                "Points per full investigation (Token Factory)",
-                None,
-                "number",
-                "Recorded investigations",
-                "investigations",
-            )
-        )
         created = [b.bundle.created_at for b in self.bundles]
         return MeasuredResults(results=rows, updated_at=max(created) if created else None)

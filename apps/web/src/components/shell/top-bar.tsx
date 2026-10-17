@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
+import { ProviderSwitch } from "./provider-switch";
 import { ThemeToggle } from "./theme-toggle";
 import { Wordmark } from "./wordmark";
 
@@ -115,6 +116,7 @@ export function TopBar() {
           </div>
 
           <div className="flex items-center justify-end gap-2.5 shrink-0">
+            <ProviderSwitch className="hidden sm:inline-flex" />
             <button
               type="button"
               onClick={() => setHistoryOpen(true)}

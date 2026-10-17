@@ -31,13 +31,8 @@ from yield_guardian.llm.registry import (
 from yield_guardian.llm.retry import RetryPolicy
 from yield_guardian.llm.usage import QuotaMonitor
 
-TOKENHARBOR_TIMEOUT = httpx.Timeout(90.0, connect=10.0)
-"""TokenHarbor is tried ahead of Token Factory, so it gets short timeouts and no retries: a busy,
-slow or failing TokenHarbor gives way to the Token Factory chain at once."""
-TOKENHARBOR_RETRY = RetryPolicy(max_retries=0)
-OPENROUTER_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
-"""OpenRouter is tried ahead of everything else: short timeouts and no retries, so a failing
-call (no credits, a rate limit) gives way to the next model at once."""
+ANTHROPIC_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
+ANTHROPIC_RETRY = RetryPolicy(max_retries=0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,19 +47,11 @@ class LlmStack:
     evaluations: EvaluationStore
     gateway: LlmGateway
     admin: TokenFactoryAdmin
-    harbor_client: TokenFactoryClient | None = None
-    """The TokenHarbor client, when ``TOKENHARBOR_API_KEY`` is set."""
-    openrouter_client: TokenFactoryClient | None = None
-    """The OpenRouter client, when ``OPENROUTER_API_KEY`` is set."""
     anthropic_client: TokenFactoryClient | None = None
     """The Anthropic client, when ``ANTHROPIC_API_KEY`` is set."""
 
     async def aclose(self) -> None:
         await self.client.aclose()
-        if self.harbor_client is not None:
-            await self.harbor_client.aclose()
-        if self.openrouter_client is not None:
-            await self.openrouter_client.aclose()
         if self.anthropic_client is not None:
             await self.anthropic_client.aclose()
 
@@ -74,18 +61,8 @@ def key_configured(settings: Settings) -> bool:
     return key is not None and bool(key.get_secret_value().strip())
 
 
-def harbor_key_configured(settings: Settings) -> bool:
-    key = settings.tokenharbor_api_key
-    return key is not None and bool(key.get_secret_value().strip())
-
-
 def anthropic_key_configured(settings: Settings) -> bool:
     key = settings.anthropic_api_key
-    return key is not None and bool(key.get_secret_value().strip())
-
-
-def openrouter_key_configured(settings: Settings) -> bool:
-    key = settings.openrouter_api_key
     return key is not None and bool(key.get_secret_value().strip())
 
 
@@ -107,35 +84,13 @@ def assemble_llm_stack(
         base_url=settings.token_factory_base_url,
         http=http,
     )
-    harbor_client = (
-        TokenFactoryClient(
-            api_key=settings.tokenharbor_api_key,
-            base_url=settings.tokenharbor_base_url,
-            http=http,
-            retry=TOKENHARBOR_RETRY,
-            timeout=TOKENHARBOR_TIMEOUT,
-        )
-        if harbor_key_configured(settings)
-        else None
-    )
-    openrouter_client = (
-        TokenFactoryClient(
-            api_key=settings.openrouter_api_key,
-            base_url=settings.openrouter_base_url,
-            http=http,
-            retry=TOKENHARBOR_RETRY,
-            timeout=OPENROUTER_TIMEOUT,
-        )
-        if openrouter_key_configured(settings)
-        else None
-    )
     anthropic_client = (
         TokenFactoryClient(
             api_key=settings.anthropic_api_key,
             base_url=settings.anthropic_base_url,
             http=http,
-            retry=TOKENHARBOR_RETRY,
-            timeout=OPENROUTER_TIMEOUT,
+            retry=ANTHROPIC_RETRY,
+            timeout=ANTHROPIC_TIMEOUT,
         )
         if anthropic_key_configured(settings)
         else None
@@ -143,15 +98,9 @@ def assemble_llm_stack(
     providers = [Provider.TOKEN_FACTORY]
     if anthropic_client is not None:
         providers.append(Provider.ANTHROPIC)
-    if harbor_client is not None:
-        providers.append(Provider.TOKENHARBOR)
-    if openrouter_client is not None:
-        providers.append(Provider.OPENROUTER)
     extra_clients = {
         provider: client
         for provider, client in (
-            (Provider.TOKENHARBOR, harbor_client),
-            (Provider.OPENROUTER, openrouter_client),
             (Provider.ANTHROPIC, anthropic_client),
         )
         if client is not None
@@ -193,8 +142,6 @@ def assemble_llm_stack(
         evaluations=stack_evaluations,
         gateway=gateway,
         admin=admin,
-        harbor_client=harbor_client,
-        openrouter_client=openrouter_client,
         anthropic_client=anthropic_client,
     )
 

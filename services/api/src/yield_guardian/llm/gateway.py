@@ -199,15 +199,9 @@ ROLE_TIMEOUT_S: dict[Role, float] = {
 """Seconds one call of the role may take, retries included, before the next model is tried."""
 
 PROVIDER_TIMEOUT_CAP_S: dict[Provider, float] = {
-    Provider.TOKENHARBOR: 90.0,
-    Provider.OPENROUTER: 120.0,
     Provider.ANTHROPIC: 120.0,
 }
-HARBOR_MIN_MAX_TOKENS = 8192
-"""Output budget TokenHarbor gets at least: its model thinks before answering, and 2,048 tokens
-were spent on thinking alone live on 2026-10-16."""
-"""A tighter deadline for a provider tried ahead of Token Factory: a slow or stuck TokenHarbor
-call gives way to the Token Factory chain after this long, whatever the role allows."""
+"""A tighter deadline for a provider other than Token Factory, whatever the role allows."""
 
 
 class LlmGateway:
@@ -319,9 +313,6 @@ class LlmGateway:
         if request.reasoning_effort is not None:
             raise ValueError("reasoning_effort is set per role by the registry, not by callers")
         update: dict[str, Any] = {"reasoning_effort": resolved.choice.reasoning_effort}
-        if resolved.choice.provider is Provider.TOKENHARBOR:
-            # Its model always thinks first: a small budget is spent before any answer.
-            update["max_tokens"] = max(request.max_tokens or 0, HARBOR_MIN_MAX_TOKENS)
         if spec is not None:
             mode = mode_override or resolved.choice.response_mode
             if mode is ResponseMode.JSON_SCHEMA:

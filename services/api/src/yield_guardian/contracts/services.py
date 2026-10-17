@@ -27,6 +27,8 @@ from yield_guardian.contracts.line import RiskBand
 from yield_guardian.contracts.models import (
     CatalogModel,
     Evaluations,
+    LlmProviderName,
+    LlmProviderState,
     RoleAssignment,
     RoleAssignmentUpdate,
     RoleName,
@@ -273,6 +275,10 @@ class LlmAdmin(Protocol):
     async def set_role(
         self, role: RoleName, update: RoleAssignmentUpdate, *, actor: str
     ) -> RoleAssignment: ...
+
+    async def provider(self) -> LlmProviderState: ...
+
+    async def set_provider(self, provider: LlmProviderName, *, actor: str) -> LlmProviderState: ...
 
     async def usage(self) -> UsageReport: ...
 

@@ -51,7 +51,7 @@ export function AdminView() {
     <PageFrame>
       <PageHeader
         title="Model roles"
-        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. Every role runs on Claude Haiku 5.5 (Anthropic). Only an admin can change a role."
+        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. By default every role but document reading (OCR) runs on Claude Haiku 5.5 (Anthropic). Only an admin can change a role."
       />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
         <Panel
@@ -131,7 +131,7 @@ export function AiRoles() {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
       <Panel
         title="Language-model roles"
-        description="The model behind each job. Every role runs on Claude Haiku 5.5 (Anthropic)."
+        description="The model behind each job: Claude Haiku 5.5 (Anthropic) on every role but document reading (OCR). The verifier role is kept but no longer called: reports are written in one pass."
         bodyClassName="px-0 sm:px-0"
       >
         <QueryView
@@ -145,8 +145,8 @@ export function AiRoles() {
         </QueryView>
       </Panel>
       <Panel
-        title="Evaluations"
-        description="Each candidate on the same task set for its role: success rate with its interval, contract violations, median latency and points, as measured."
+        title="Earlier evaluations"
+        description="Historical: candidate models measured on each role's task set before the roles moved to Claude Haiku 5.5, with success rate and its interval, contract violations, median latency and Token Factory points. A model in use is marked Assigned; the others are no longer used."
         bodyClassName="px-0 sm:px-0"
       >
         <QueryView
@@ -227,9 +227,6 @@ function RolesTable({
                   </th>
                   <td className="tnum px-3 py-3 align-top text-ink">
                     {r.model_id}
-                    {model && !model.available ? (
-                      <span className="block text-[12px] text-fail">Not in the live catalog</span>
-                    ) : null}
                   </td>
                   <td className="px-3 py-3 align-top text-ink-2">
                     {r.reasoning_effort ?? <span className="text-ink-3">default</span>}
@@ -635,9 +632,6 @@ function CatalogTable({ models, roles }: { models: CatalogModel[]; roles: RoleAs
               >
                 <th scope="row" className="tnum px-5 py-2.5 align-top font-[420] sm:px-6">
                   <span className={m.available ? "text-ink" : undefined}>{m.model_id}</span>
-                  {!m.available ? (
-                    <span className="block text-[12px]">Not in the live catalog</span>
-                  ) : null}
                   {m.profile === "catalog_only" ? (
                     <span className="block text-[12px] text-ink-3">
                       Profile from the catalog only

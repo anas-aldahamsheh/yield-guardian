@@ -175,8 +175,6 @@ def provider_of(model: str) -> str:
     """The provider that serves ``model``, from its id."""
     if model.startswith("claude-"):
         return "anthropic"
-    if model.endswith(":free"):
-        return "tokenharbor" if model.startswith("deepseek-") else "openrouter"
     return "token_factory"
 
 

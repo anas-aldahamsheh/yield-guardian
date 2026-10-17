@@ -1,7 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { RoleAssignment, RoleAssignmentUpdate } from "@yield-guardian/contracts";
+import type {
+  LlmProviderState,
+  RoleAssignment,
+  RoleAssignmentUpdate,
+} from "@yield-guardian/contracts";
 import { toast } from "@/lib/toast";
 
 import { unwrap } from "./client";
@@ -29,6 +33,28 @@ export function useAssignRole() {
       void client.invalidateQueries({ queryKey: ["audit"] });
       toast.success("Role updated", {
         description: `${assignment.model_id} answers from the next call.`,
+      });
+    },
+    onError: (error) => {
+      const copy = describeError(error);
+      toast.error(copy.title, { description: copy.detail });
+    },
+  });
+}
+
+/** Switches every role to Claude or AMD, for every user. The API applies it from the next call. */
+export function useSetProvider() {
+  const api = useApi();
+  const client = useQueryClient();
+  const { csrf } = useSession();
+  return useMutation({
+    mutationFn: (provider: LlmProviderState["provider"]) =>
+      unwrap(api.PUT("/api/v1/llm/provider", { body: { provider }, headers: csrf })),
+    onSuccess: (state) => {
+      client.setQueryData<LlmProviderState>(["llm", "provider"], state);
+      void client.invalidateQueries({ queryKey: ["llm", "roles"] });
+      toast.success(state.provider === "amd" ? "Switched to AMD" : "Switched to Claude", {
+        description: `Every model call now uses ${state.model_id}.`,
       });
     },
     onError: (error) => {

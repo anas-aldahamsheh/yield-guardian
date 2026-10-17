@@ -119,14 +119,6 @@
       "format": "percent",
       "data": "WM-811K test split",
       "source": "artifacts/wafermap/v1/metrics.json"
-    },
-    {
-      "id": "points_per_investigation",
-      "label": "Points per full investigation (Token Factory)",
-      "estimate": null,
-      "format": "number",
-      "data": "Recorded investigations",
-      "source": "database: llm_calls"
     }
   ],
   "updated_at": "2026-10-14T11:17:24Z"

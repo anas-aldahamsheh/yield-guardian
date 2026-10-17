@@ -327,6 +327,13 @@ export const q = {
       staleTime: 5 * MINUTE,
     }),
 
+  llmProvider: (api: Api) =>
+    queryOptions({
+      queryKey: ["llm", "provider"],
+      queryFn: ({ signal }) => unwrap(api.GET("/api/v1/llm/provider", { signal })),
+      staleTime: 30_000,
+    }),
+
   llmRoles: (api: Api) =>
     queryOptions({
       queryKey: ["llm", "roles"],

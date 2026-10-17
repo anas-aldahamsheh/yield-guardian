@@ -94,7 +94,6 @@ export function RoleDialog({
                 {choices.map((m) => (
                   <SelectItem key={m.model_id} value={m.model_id} disabled={!m.available}>
                     {m.model_id}
-                    {!m.available ? " (not in the live catalog)" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>

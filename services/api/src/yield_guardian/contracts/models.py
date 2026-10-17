@@ -54,6 +54,22 @@ class RoleAssignment(Contract):
     updated_by: str | None
 
 
+LlmProviderName = Literal["claude", "amd"]
+
+
+class LlmProviderState(Contract):
+    """The one language-model provider every role uses, for every user."""
+
+    provider: LlmProviderName = Field(description="claude: Claude Haiku 5.5 on Anthropic; amd: DeepSeek-V4.1-Flash on AMD Token Factory.")
+    model_id: str = Field(description="The model every role but OCR uses.")
+    updated_at: datetime | None = None
+    updated_by: str | None = None
+
+
+class LlmProviderUpdate(Contract):
+    provider: LlmProviderName
+
+
 class RoleAssignmentUpdate(Contract):
     model_id: str
     reasoning_effort: ReasoningEffort | None = None

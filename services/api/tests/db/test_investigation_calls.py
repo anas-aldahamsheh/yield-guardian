@@ -73,7 +73,7 @@ async def test_calls_are_listed_in_order_and_scoped_to_the_workspace(stack: Stac
     rows = listed.json()
     assert [(r["role"], r["status"], r["provider"]) for r in rows] == [
         ("investigator", "ok", "token_factory"),
-        ("writer", "empty", "tokenharbor"),
+        ("writer", "empty", "anthropic"),
         ("writer", "ok", "token_factory"),
     ]
     assert (rows[0]["sent"], rows[0]["returned"], rows[0]["latency_ms"]) == (

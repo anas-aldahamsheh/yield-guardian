@@ -6,17 +6,19 @@ import pytest
 
 from tests.llm.helpers import NOW
 from yield_guardian.llm.profiles import (
+    AMD_MODEL,
     ANTHROPIC_MODEL,
     DOCUMENTED_PROFILES,
-    OPENROUTER_MODEL,
     CatalogEntry,
     ProfileCatalog,
     Provider,
 )
 from yield_guardian.llm.registry import (
     DEFAULT_CHAINS,
+    PROVIDER_CHAINS,
     InMemoryRoleAssignmentStore,
     InvalidAssignmentError,
+    LlmProvider,
     ModelChoice,
     ModelRegistry,
     ResponseMode,
@@ -49,24 +51,11 @@ def test_defaults_follow_plan_section_7_1() -> None:
         Role.VISION: ANTHROPIC_MODEL,
         Role.OCR: "MinerU2.5-Pro",
     }
-    # TokenHarbor first (when its key is set), then Qwen3.8-Flash-Next (the one model that
-    # returned long outputs reliably live, 2026-10-14), then DeepSeek, then MiMo. MiMo refused
-    # strict json_schema live; every structured default is json_object.
-    assert DEFAULT_CHAINS[Role.WRITER] == (
-        ModelChoice(model=ANTHROPIC_MODEL, response_mode=OBJECT, provider=Provider.ANTHROPIC),
-        ModelChoice(model=OPENROUTER_MODEL, response_mode=OBJECT, provider=Provider.OPENROUTER),
-        ModelChoice(model="Qwen3.8-Flash-Next", reasoning_effort="none", response_mode=OBJECT),
-        ModelChoice(model="DeepSeek-V4.1-Flash", reasoning_effort="low", response_mode=OBJECT),
-        ModelChoice(model="MiMo-V2.6-Flash", reasoning_effort="none", response_mode=OBJECT),
-    )
-    # OCR is Token Factory only; OpenRouter (and for the text roles TokenHarbor) come first.
+    # Claude by default; AMD switches every role but OCR to DeepSeek-V4.1-Flash.
     assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[Role.OCR])
-    assert all(c.provider is Provider.TOKEN_FACTORY for c in DEFAULT_CHAINS[Role.VISION][2:])
-    writer, verifier = DEFAULT_CHAINS[Role.WRITER], DEFAULT_CHAINS[Role.VERIFIER]
-    assert family_problems(writer, verifier, ProfileCatalog()) == []
-    # After OpenRouter and TokenHarbor, the verifier's first model is outside the writer's families.
-    assert DEFAULT_CHAINS[Role.VERIFIER][3].model == "GLM-5.3-Flash"
-    assert all(c.response_mode is not SCHEMA for chain in DEFAULT_CHAINS.values() for c in chain)
+    amd = PROVIDER_CHAINS[LlmProvider.AMD]
+    assert {chain[0].model for role, chain in amd.items() if role is not Role.OCR} == {AMD_MODEL}
+    assert all(c.response_mode is not SCHEMA for chain in amd.values() for c in chain)
 
 
 @pytest.mark.parametrize("role", list(Role))

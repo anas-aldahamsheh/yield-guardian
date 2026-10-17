@@ -187,7 +187,7 @@ class ModelCallTrace(Contract):
     at: datetime
     role: RoleName
     model_id: str
-    provider: str = Field(description="token_factory or tokenharbor (inferred from the model id).")
+    provider: str = Field(description="token_factory (AMD) or anthropic (inferred from the model id).")
     status: ModelCallStatus
     cache_hit: bool
     http_status: int | None

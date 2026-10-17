@@ -397,6 +397,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/llm/provider": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Llm Provider
+     * @description The provider every role uses, for every user: Claude or AMD.
+     */
+    get: operations["get_llm_provider"];
+    /**
+     * Update Llm Provider
+     * @description Switch every role to one provider, site-wide. Takes effect on the next call.
+     */
+    put: operations["update_llm_provider"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/llm/roles": {
     parameters: {
       query?: never;
@@ -3445,6 +3469,35 @@ export interface components {
       /** Tokens Reasoning */
       tokens_reasoning: number | null;
     };
+    /**
+     * LlmProviderState
+     * @description The one language-model provider every role uses, for every user.
+     */
+    LlmProviderState: {
+      /**
+       * Model Id
+       * @description The model every role but OCR uses.
+       */
+      model_id: string;
+      /**
+       * Provider
+       * @description claude: Claude Haiku 5.5 on Anthropic; amd: DeepSeek-V4.1-Flash on AMD Token Factory.
+       * @enum {string}
+       */
+      provider: "claude" | "amd";
+      /** Updated At */
+      updated_at?: string | null;
+      /** Updated By */
+      updated_by?: string | null;
+    };
+    /** LlmProviderUpdate */
+    LlmProviderUpdate: {
+      /**
+       * Provider
+       * @enum {string}
+       */
+      provider: "claude" | "amd";
+    };
     /** LoginRequest */
     LoginRequest: {
       /**
@@ -3654,7 +3707,7 @@ export interface components {
       points: number | null;
       /**
        * Provider
-       * @description token_factory or tokenharbor (inferred from the model id).
+       * @description token_factory (AMD) or anthropic (inferred from the model id).
        */
       provider: string;
       /**
@@ -6775,6 +6828,8 @@ export type KnowledgeSearchResult =
 export type KnowledgeSource = components["schemas"]["KnowledgeSource"];
 export type LeaveOneClassOut = components["schemas"]["LeaveOneClassOut"];
 export type LlmCall = components["schemas"]["LlmCall"];
+export type LlmProviderState = components["schemas"]["LlmProviderState"];
+export type LlmProviderUpdate = components["schemas"]["LlmProviderUpdate"];
 export type LoginRequest = components["schemas"]["LoginRequest"];
 export type LotDetail = components["schemas"]["LotDetail"];
 export type LotItem = components["schemas"]["LotItem"];
@@ -7960,6 +8015,97 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Evaluations"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  get_llm_provider: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LlmProviderState"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  update_llm_provider: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LlmProviderUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LlmProviderState"];
+        };
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
         };
       };
       /** @description Not ready */

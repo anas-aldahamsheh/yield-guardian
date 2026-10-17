@@ -54,7 +54,8 @@ async def test_results_come_from_the_loaded_bundles(
     for measured in ("secom_pr_auc_no_skill", "wafer_macro_f1_lot_grouped", "unknown_auroc_loco"):
         assert rows[measured]["estimate"] is not None, measured
     # Not measured yet: no number is shown.
-    assert rows["points_per_investigation"]["estimate"] is None
+    assert rows["secom_sensors_to_inspect"]["estimate"] is None
+    assert "points_per_investigation" not in rows  # Anthropic reports no points
     assert response.json()["updated_at"] is not None
 
 

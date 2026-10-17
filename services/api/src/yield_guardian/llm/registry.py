@@ -34,8 +34,7 @@ from yield_guardian.llm.messages import ReasoningEffort
 from yield_guardian.llm.profiles import (
     ANTHROPIC_MODEL,
     EFFORT_ORDER,
-    OPENROUTER_MODEL,
-    TOKENHARBOR_MODEL,
+    AMD_MODEL,
     Availability,
     ModelKind,
     ModelProfile,
@@ -91,37 +90,70 @@ def _c(model: str, effort: ReasoningEffort | None, mode: ResponseMode) -> ModelC
     return ModelChoice(model=model, reasoning_effort=effort, response_mode=mode)
 
 
-def _harbor(mode: ResponseMode) -> ModelChoice:
-    """The TokenHarbor model, first on every text role; skipped (silently) when
-    ``TOKENHARBOR_API_KEY`` is not set, and any failure moves to the next entry. It takes no
-    ``reasoning_effort``."""
-    return ModelChoice(model=TOKENHARBOR_MODEL, response_mode=mode, provider=Provider.TOKENHARBOR)
-
-
 def _anthropic(mode: ResponseMode) -> ModelChoice:
     """Claude Haiku 5.5 on Anthropic, first on every role but OCR (owner's choice); skipped
     silently when ``ANTHROPIC_API_KEY`` is not set, and any failure moves to the next entry."""
     return ModelChoice(model=ANTHROPIC_MODEL, response_mode=mode, provider=Provider.ANTHROPIC)
 
 
-def _router_first(mode: ResponseMode) -> ModelChoice:
-    """google/gemma-4-31b-it:free on OpenRouter, first on every role (owner's choice); skipped silently when
-    ``OPENROUTER_API_KEY`` is not set, and any failure moves to the next entry."""
-    return ModelChoice(model=OPENROUTER_MODEL, response_mode=mode, provider=Provider.OPENROUTER)
-
-
 _T, _O = ResponseMode.TEXT, ResponseMode.JSON_OBJECT
 
-DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = {
-    # Claude Haiku 5.5 only, no fallback (owner's choice, 2026-10-16).
-    Role.INVESTIGATOR: (_anthropic(_T),),
-    Role.WRITER: (_anthropic(ResponseMode.JSON_SCHEMA),),
-    Role.VERIFIER: (_anthropic(ResponseMode.JSON_SCHEMA),),
-    Role.CHAT: (_anthropic(_T),),
-    Role.ROUTER: (_anthropic(ResponseMode.JSON_SCHEMA),),
-    Role.VISION: (_anthropic(ResponseMode.JSON_SCHEMA),),
-    Role.OCR: (_c("MinerU2.5-Pro", None, _T),),
+def _amd(role: Role, mode: ResponseMode) -> ModelChoice:
+    """DeepSeek-V4.1-Flash on AMD Token Factory, with the role's reasoning effort."""
+    return ModelChoice(
+        model=AMD_MODEL,
+        reasoning_effort=ROLE_EFFORT_POLICY_AMD[role],
+        response_mode=mode,
+        provider=Provider.TOKEN_FACTORY,
+    )
+
+
+_OCR = _c("MinerU2.5-Pro", None, _T)
+"""OCR stays on AMD whichever provider is chosen."""
+
+
+class LlmProvider(StrEnum):
+    """The one language-model provider every role uses, chosen site-wide (owner's choice)."""
+
+    CLAUDE = "claude"
+    AMD = "amd"
+
+
+ROLE_EFFORT_POLICY_AMD: dict[Role, ReasoningEffort | None] = {
+    Role.INVESTIGATOR: "low",
+    Role.WRITER: "low",
+    Role.VERIFIER: "low",
+    Role.CHAT: "none",
+    Role.ROUTER: "none",
+    Role.VISION: "low",
+    Role.OCR: None,
 }
+
+PROVIDER_CHAINS: dict[LlmProvider, dict[Role, tuple[ModelChoice, ...]]] = {
+    # Claude Haiku 5.5 on every role but OCR, no fallback.
+    LlmProvider.CLAUDE: {
+        Role.INVESTIGATOR: (_anthropic(_T),),
+        Role.WRITER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+        Role.VERIFIER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+        Role.CHAT: (_anthropic(_T),),
+        Role.ROUTER: (_anthropic(ResponseMode.JSON_SCHEMA),),
+        Role.VISION: (_anthropic(ResponseMode.JSON_SCHEMA),),
+        Role.OCR: (_OCR,),
+    },
+    # DeepSeek-V4.1-Flash on AMD Token Factory on every role but OCR, no fallback.
+    LlmProvider.AMD: {
+        Role.INVESTIGATOR: (_amd(Role.INVESTIGATOR, _T),),
+        Role.WRITER: (_amd(Role.WRITER, _O),),
+        Role.VERIFIER: (_amd(Role.VERIFIER, _O),),
+        Role.CHAT: (_amd(Role.CHAT, _T),),
+        Role.ROUTER: (_amd(Role.ROUTER, _O),),
+        Role.VISION: (_amd(Role.VISION, _O),),
+        Role.OCR: (_OCR,),
+    },
+}
+
+DEFAULT_PROVIDER = LlmProvider.CLAUDE
+DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = PROVIDER_CHAINS[DEFAULT_PROVIDER]
 
 _STRUCTURED_ROLES = frozenset({Role.WRITER, Role.VERIFIER, Role.ROUTER})
 
@@ -331,7 +363,7 @@ class ModelRegistry:
         self.catalog = catalog
         self.providers = frozenset(providers)
         """Providers with a key configured; entries of any other provider are skipped silently
-        (TokenHarbor without ``TOKENHARBOR_API_KEY``)."""
+        (Anthropic without ``ANTHROPIC_API_KEY``)."""
         self._store = store
         self._wall_clock = wall_clock
         self._assignments: dict[Role, RoleAssignment] = {
@@ -415,6 +447,18 @@ class ModelRegistry:
         await self._store.save(assignment)
         self._assignments[role] = assignment
         return assignment
+
+    @property
+    def provider(self) -> LlmProvider:
+        """The provider of the investigator's first model: the site-wide choice."""
+        first = self._assignments[Role.INVESTIGATOR].primary
+        return LlmProvider.CLAUDE if first.provider is Provider.ANTHROPIC else LlmProvider.AMD
+
+    async def set_provider(self, provider: LlmProvider, *, actor: str) -> LlmProvider:
+        """Every role on ``provider``'s model, stored, for every user from the next call."""
+        for role, chain in PROVIDER_CHAINS[provider].items():
+            await self.assign(role, chain, actor=actor)
+        return self.provider
 
     async def reset(self, role: Role, *, actor: str) -> RoleAssignment:
         return await self.assign(role, DEFAULT_CHAINS[role], actor=actor)

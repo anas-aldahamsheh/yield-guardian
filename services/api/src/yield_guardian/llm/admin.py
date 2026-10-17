@@ -24,6 +24,8 @@ from yield_guardian.contracts.models import (
     EvaluationResult,
     Evaluations,
     InputType,
+    LlmProviderName,
+    LlmProviderState,
     ModelUsage,
     Quota,
     RoleAssignment,
@@ -49,6 +51,7 @@ from yield_guardian.llm.profiles import (
 )
 from yield_guardian.llm.registry import (
     InvalidAssignmentError,
+    LlmProvider,
     ModelChoice,
     ModelRegistry,
     Role,
@@ -261,6 +264,19 @@ class TokenFactoryAdmin:
             chain.append(choice_for(target, fallback_profile, existing=by_model.get(model_id)))
         await self.registry.assign(target, chain, actor=actor)
         return to_contract_assignment(self.registry, target)
+
+    async def provider(self) -> LlmProviderState:
+        assignment = self.registry.assignment(Role.INVESTIGATOR)
+        return LlmProviderState(
+            provider=self.registry.provider.value,
+            model_id=assignment.primary.model,
+            updated_at=assignment.updated_at,
+            updated_by=assignment.updated_by,
+        )
+
+    async def set_provider(self, provider: LlmProviderName, *, actor: str) -> LlmProviderState:
+        await self.registry.set_provider(LlmProvider(provider), actor=actor)
+        return await self.provider()
 
     async def usage(self) -> UsageReport:
         now = self._wall_clock()

@@ -3,9 +3,11 @@
  * they appear on screen.
  *
  * It holds no measured number: those are read from the API in the expert section above it. A
- * `shot` block is a screenshot of the real product under public/guide/, taken from the real API
- * behind the production gateway by e2e/guide-screenshots.shot.ts (never from the development
- * fixtures), at 1440 px in the light theme and cropped to what its entry describes.
+ * `shot` block is a screenshot of the real product under public/guide/, at 1440 px in the light
+ * theme and cropped to what its entry describes. A screen that shows data is taken from the real
+ * API, never from the development fixtures; the idle Line page (guide-nav, guide-input-bar) shows
+ * none, so it may be taken behind the development gateway. A screen that cannot be taken from
+ * real data has no picture rather than an out-of-date one.
  */
 
 export type Block =
@@ -42,7 +44,7 @@ export interface Entry {
 }
 
 export const CATEGORIES: readonly Category[] = [
-  { id: "pages", label: "The three pages", lede: "Three pages and a chat button." },
+  { id: "pages", label: "The pages", lede: "Five pages in the top bar, and a chat button." },
   {
     id: "start",
     label: "Four ways to start",
@@ -51,7 +53,7 @@ export const CATEGORIES: readonly Category[] = [
   {
     id: "stations",
     label: "The five stations",
-    lede: "What each station computes, and what its colours mean.",
+    lede: "What each station computes, and what its states mean.",
   },
   { id: "alarms", label: "Alarms", lede: "When an alarm is raised, and who raises it." },
   {
@@ -74,27 +76,30 @@ export const CATEGORIES: readonly Category[] = [
 ];
 
 export const ENTRIES: readonly Entry[] = [
-  // ───────────────────────── The three pages ─────────────────────────
+  // ───────────────────────── The pages ─────────────────────────
   {
     id: "guide-pages",
     category: "pages",
-    title: "Line, Investigations and How it works",
+    title: "Line, Investigations, Work orders, Workspace and How it works",
     blocks: [
       {
         type: "list",
         items: [
           "«Line»: give the production line an input and watch each station's result as it is computed.",
-          "«Investigations»: investigations running, awaiting a decision and decided, plus the «Work orders» tab with the audit log.",
+          "«Investigations»: investigations running, awaiting a decision and decided.",
+          "«Work orders»: every work order opened by an approved report, with the audit log.",
+          "«Workspace»: the runs kept on this device, to reopen, rename, compare, run again, download, archive or delete.",
           "«How it works»: this page, with the plain introduction, «For experts» and this guide.",
-          "The floating «Ask» button at the bottom of every page opens the chat; the theme menu in the top bar switches light, dark or system.",
+          "«History» in the top bar opens the same runs in a side panel; the theme button switches light and dark.",
+          "The floating «Ask» button at the bottom of every page opens the chat.",
           "On a phone the pages sit behind the menu button.",
         ],
       },
       {
         type: "shot",
         id: "guide-nav",
-        caption: "The top bar with its three pages, and the Ask button at the bottom",
-        alt: "The Line page before any input: the top bar holds the Line, Investigations and How it works links, the theme button and Try as engineer; below are the title and the four input buttons, the idle stations, an empty Alarms column and the floating Ask button.",
+        caption: "The top bar with its five pages, and the Ask button at the bottom",
+        alt: "The Line page before any input: the top bar holds the Line, Investigations, Work orders, Workspace and How it works links, the History button and the theme button; below are the title Live Semiconductor Production Line, the Run Random Real Sample button and the three other ways in, a link to the workspace, the idle stations and the floating Ask button.",
         src: "/guide/guide-nav.webp",
         width: 1440,
         height: 900,
@@ -111,9 +116,25 @@ export const ENTRIES: readonly Entry[] = [
         items: [
           "Every version 1 address still works and redirects to its new place, so saved links keep working.",
           "/wafers, /lots and /sensors open the matching station on «Line»; /units/…, /wafers/… and /lots/… open that item there.",
-          "/work-orders opens the «Work orders» tab; /work-orders/… opens the investigation that opened the order.",
+          "/work-orders/… opens that work order under the report of the investigation that opened it, or on «Work orders» when the investigation cannot be looked up.",
           "/models, /methods and /guide open their sections of «How it works».",
           "The language-model role settings live on a hidden admin page: anyone can read it, only the admin changes roles.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "guide-workspace",
+    category: "pages",
+    title: "Workspace",
+    blocks: [
+      {
+        type: "list",
+        items: [
+          "Every run you start is kept in this device's workspace with its live status.",
+          "Each run's menu opens it on the line, investigates its alarms, renames it, runs the same input again, compares it with another run, downloads its results or report, archives it or deletes it.",
+          "Deleting the run that is open on the line, or starting a fresh workspace, clears the line at once.",
+          "«Continue on another device» gives a code; «Join another workspace with a code» uses one.",
         ],
       },
     ],
@@ -126,9 +147,9 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "Running the line needs no sign-in: any visitor can try a sample, draw a defect or upload a file.",
-          "Investigating, approving or rejecting, updating a work order and chatting need an engineer session: press «Try as engineer» for an instant guest session.",
-          "Changing the model behind a role needs the admin account («Sign in»).",
+          "No sign-in is needed: the first visit opens a session and a workspace for this device.",
+          "«Investigate» and «Ask» start an engineer guest session on their own when there is none, so you can investigate, approve or reject, update a work order and chat.",
+          "Changing the model behind a role needs the admin account.",
         ],
       },
     ],
@@ -143,10 +164,10 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "«Try a real sample»: one click; the server draws, with a recorded seed, consecutive real SECOM test units the risk model never saw, and every demo wafer of one real WM-811K lot. The rule and seed are shown.",
-          "«Pick a case»: choose a real case from the list, or browse the real units, wafers and lots yourself.",
-          "«Draw a defect»: draw failed dies on a real WM-811K wafer layout.",
-          "«Upload a file»: an Excel (.xlsx) or CSV file from your fab, checked before it runs.",
+          "«Run Random Real Sample»: one click; the server draws, with a recorded seed, real SECOM test units the risk model never saw and real WM-811K wafer maps. The rule and seed are shown with the run.",
+          "«Pick a case»: choose a real case from the list, or browse the real units and wafers yourself.",
+          "«Draw a defect»: paint failing dies on a real WM-811K wafer layout.",
+          "«Upload fab data»: a CSV or Excel (.xlsx) file from your fab, checked before it runs.",
           "Every input goes through the same code, so a sample is processed exactly like your file.",
         ],
       },
@@ -154,10 +175,10 @@ export const ENTRIES: readonly Entry[] = [
         type: "shot",
         id: "guide-input-bar",
         caption: "The input bar with its four buttons on the idle Line page",
-        alt: "The page title Run real fab data down the line, with a sentence saying each station computes its result in front of you; beside it the Try a real sample button and a line saying the sample is drawn at random with its rule and seed shown; below, Pick a case, Draw a defect and Upload a file, each with what it does.",
+        alt: "The page title Live Semiconductor Production Line with a sentence on what the line does; beside it the Run Random Real Sample button with an information button and the note SECOM (590 sensors) and WM-811K (wafer maps); below, Pick a case, Draw a defect and Upload fab data, each with what it does.",
         src: "/guide/guide-input-bar.webp",
         width: 1408,
-        height: 502,
+        height: 498,
       },
     ],
   },
@@ -183,33 +204,25 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "Pick a wafer layout: each is the die arrangement of a real WM-811K wafer.",
-          "All dies start as pass; draw over the ones you want as fail.",
-          "Draw two or more wafers to get a lot test, then run: your drawing goes through the same model as real wafers.",
+          "Pick a die layout: each is the die arrangement of a real WM-811K wafer.",
+          "All dies start as pass; paint the ones you want as failing.",
+          "Add more wafers to get a lot test, then run: your drawing goes through the same model as real wafers.",
           "A shape unlike the maps the model learned from keeps its nearest pattern, with a prompt to check it by eye.",
         ],
-      },
-      {
-        type: "shot",
-        id: "guide-draw",
-        caption: "A line of failed dies drawn by hand on a real WM-811K wafer layout",
-        alt: "The Draw a defect panel: the six layout size buttons, a wafer layout with a diagonal line of red failed dies, the failed die count and the Run your drawing button, and a note that an unfamiliar shape gets the nearest pattern with a prompt to check it by eye.",
-        src: "/guide/guide-draw.webp",
-        width: 1376,
-        height: 790,
       },
     ],
   },
   {
     id: "guide-upload",
     category: "start",
-    title: "Upload a file",
+    title: "Upload fab data",
     blocks: [
       {
         type: "list",
         items: [
-          "The server checks the file before any run; an error names the column, the row and the problem, and the run waits until you fix it.",
-          "Download an empty template (headers only) or an example file with real data in the same format.",
+          "Upload a sensor file, a wafer file, or one of each to run both streams together.",
+          "The server checks the file before any run; an error names the row and the problem, and the run waits until you fix it.",
+          "Download an empty template (headers only) or a real example file in the same format, as CSV or Excel.",
         ],
       },
       {
@@ -229,16 +242,6 @@ export const ENTRIES: readonly Entry[] = [
           "Wafers: x is the column and y the row, counted from 0 at the top left; a position not listed has no die. Several wafers of one lot enable the lot test.",
         ],
       },
-      {
-        type: "shot",
-        id: "guide-upload-check",
-        caption:
-          "The check on an uploaded wafer file: the real example file from the app, with one cell changed by hand to «faild». The app names the row and the problem, and does not start the run.",
-        alt: 'The Upload a file panel after uploading wafers-example.csv: a line saying the file is wafer maps, a red sentence saying it will not run until the error is fixed, and the error: Row 14: the result "faild" is not pass or fail. On the right, the columns of both files and links to the empty templates and real examples.',
-        src: "/guide/guide-upload-check.webp",
-        width: 1376,
-        height: 396,
-      },
     ],
   },
 
@@ -253,36 +256,26 @@ export const ENTRIES: readonly Entry[] = [
         items: [
           "① «Manufacturing» reads and checks the input: counts, missing readings, unmonitored sensors, time order, and whether the run mixes two sources.",
           "② «Monitoring», for units: failure risk with its measured skill, the most influential sensors (SHAP), T² and SPE control charts with contributing sensors, EWMA and CUSUM drift, and sensor health.",
-          "③ «Wafer test», for wafers: defect pattern and confidence, auto-accept or «for review», failure clustering, the most similar real wafers and causes named in the literature; for two or more wafers of a lot, whether a pattern repeats beyond chance, with the stacked map.",
-          "«Actual outcome»: the recorded real results (the result column, or wafer results) compared with our predictions, per unit and per wafer.",
-          "④ «Investigation» and ⑤ «Decision» start on request from the Alarms column.",
+          "③ «Wafer test», for wafers: defect pattern and confidence, classified automatically or «for review», failure clustering, the most similar real wafers and causes named in the literature; for two or more wafers of a lot, whether a pattern repeats beyond chance, with the stacked map.",
+          "«Actual outcome»: the recorded real results (the result column, or wafer labels) compared with our predictions, per unit and per wafer.",
+          "④ «Investigation» and ⑤ «Decision» start on request, from an alarm.",
           "Each result appears in its station the moment it is computed.",
           "SECOM sensors and WM-811K wafer maps are separate real sources; when both run together a bar says so.",
         ],
-      },
-      {
-        type: "shot",
-        id: "guide-line-run",
-        caption:
-          "The line running a real sample, with the first alarm in the Alarms column. Taken on a server without live investigations, so a line says so in place of the Investigate button.",
-        alt: "The line running a real sample: the sample description (40 SECOM units and 13 WM-811K wafer maps) with the Where this input comes from button, a bar noting the two sources are separate, then the stations: Manufacturing done, Monitoring red with an alarm, Wafer test and Actual outcome computed. The Alarms column shows a T² alarm on a unit with Show unit, and a wafer pattern warning below it.",
-        src: "/guide/guide-line-run.webp",
-        width: 1392,
-        height: 790,
       },
     ],
   },
   {
     id: "guide-station-states",
     category: "stations",
-    title: "Station colours",
+    title: "Station states",
     blocks: [
       {
         type: "list",
         items: [
-          "Grey, «Needs data»: it needs an input you have not given, such as wafers for «Wafer test»; a line says what is missing.",
-          "Blue, «Computing»: computing now, with the real elapsed time.",
-          "Green, «Done»: finished, no alarm. Red, «Alarm»: an alarm was raised.",
+          "«Bypassed»: the station needs an input you have not given, such as wafers for «Wafer test»; a line says what is missing.",
+          "«Computing»: computing now, with the real elapsed time.",
+          "«Done»: finished, no alarm. «Alarm»: an alarm was raised. «Stopped»: the station could not finish.",
           "Under each station, one sentence and one number sum up its result.",
         ],
       },
@@ -296,22 +289,13 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "Click a station tile to open its details in a drawer under the line.",
+          "Click a station tile to inspect it: the station stays on the left with its diagnostics and its details open beside it. Tabs switch station, and «Back to full pipeline» returns to the whole line.",
           "Units: risk with its skill, SHAP bars, sensor groups, T² and SPE with their limits and contributing sensors, EWMA and CUSUM, and the sensor health table.",
           "Wafer: the map, pattern probabilities, the unknown and energy scores, the clustering test, similar wafers, and causes from the literature with their sources.",
           "Lot: the stacked map and the tests.",
-          "The result section under the line has three tabs: «Predicted problems», «Failure predictions vs outcome» and «Pattern predictions vs outcome».",
+          "The result section under the line has the tabs «Predicted problems», «In-Line Alarms», «Failure predictions vs outcome» and «Pattern predictions vs outcome».",
           "Pattern names: WM-811K's «none» is shown as «Light scatter» and «Random» as «Heavy scatter».",
         ],
-      },
-      {
-        type: "shot",
-        id: "guide-drawer-wafer",
-        caption: "A real wafer's details: the map, the pattern and similar wafers",
-        alt: "Details of a real WM-811K wafer: its map with failed dies in red, the predicted pattern Edge-Ring auto-accepted and matching its original label, the pattern probability bars, the unknown score below its threshold and the energy score, the clustering test, and the ten most similar real wafers with each one's recorded or predicted pattern.",
-        src: "/guide/guide-drawer-wafer.webp",
-        width: 1316,
-        height: 863,
       },
     ],
   },
@@ -325,7 +309,7 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "Alarms appear in a column beside the line, each with a title, a plain meaning, a level (warning or alarm) and an «Investigate» button.",
+          "Alarms are listed in the «In-Line Alarms» tab of the result section, each with a title, a plain meaning, a level (warning or alarm) and an «Investigate» button.",
           "Code raises every alarm with a fixed rule and writes its meaning; AI never raises an alarm.",
         ],
       },
@@ -355,21 +339,13 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "Press «Investigate» on any alarm (needs «Try as engineer»).",
-          "The investigator starts at once; each tool it calls and how long it took appear live, on the line and on the investigation page.",
-          "The writer model writes the report once, and the investigation moves to «Awaiting decision».",
-          "The time shown is the real elapsed time.",
+          "Press «Investigate» on any alarm; it starts an engineer guest session first if you have none.",
+          "The investigator starts at once; the alarm then shows its status and «Open investigation».",
+          "The investigation page opens on the «Agent Run» tab of the right panel (tabs «Evidence», «Agent Run» and «Trace»): each tool the investigator called and how long it took, as it happens.",
+          "While it runs, the left side shows the current step and the time so far in place of the report.",
+          "The writer model writes the report once, in a single pass, and the investigation moves to «Awaiting decision».",
+          "By default every language-model role but document reading runs on Claude Haiku (Anthropic), named with its version under «For experts». The time shown is the real elapsed time.",
         ],
-      },
-      {
-        type: "shot",
-        id: "guide-investigation-live",
-        caption:
-          "The steps of a real recorded investigation, in order: each tool the investigator called, how long it took and the evidence it produced. The same steps appear one by one during an investigation.",
-        alt: "The Run panel of a recorded investigation of a failure risk alarm on unit 1303: the models used and their call counts, then the completed steps in order: reading the unit's record, choosing the next evidence, SHAP, SPE and T² contributions, sensor groups, sensor health and the control chart window. Each step has its duration, each piece of evidence its number from E1 to E7.",
-        src: "/guide/guide-investigation-live.webp",
-        width: 440,
-        height: 1040,
       },
     ],
   },
@@ -381,7 +357,8 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "The summary, findings and proposed actions are written by a language model, so they appear in a serif font; check their evidence links.",
+          "The summary, findings and proposed actions are written by a language model, so they appear in a serif font.",
+          "The report is not checked by a second model or by code: check its evidence links yourself before you approve.",
           "Numbers link to their evidence (such as E3): click one to see where it came from.",
           "The wording is «associated with», not «caused by»: the data is historical.",
         ],
@@ -441,8 +418,9 @@ export const ENTRIES: readonly Entry[] = [
         type: "list",
         items: [
           "Read the report and check its evidence.",
-          "Select the actions you agree with and press «Approve»: a work order opens with them.",
-          "Or press «Reject report»; the report stays on file, marked rejected.",
+          "Select the actions you agree with and press «Approve»: a work order opens with them, and a card says «Approved · Work order WO-… opened» with «Open work order».",
+          "Or press «Reject report»: the report stays on file, marked rejected, and the card says «Rejected · no work order» with «Back to the line».",
+          "The recorded example investigation every visitor sees cannot be decided.",
           "Nothing happens in the fab without a person's approval.",
         ],
       },
@@ -456,20 +434,11 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "A work order appears inside the investigation that opened it, under the report.",
-          "Status: open, in progress, done, or cancelled. The engineer updates it with a note and the outcome.",
-          "The «Work orders» tab on «Investigations» lists every order with the audit log: who did what, and when.",
+          "«Work orders» in the top bar lists every order, newest first, with the audit log beside it: who did what, and when.",
+          "Change an order's status straight from the list with its status menu, or delete it with its «×» (its investigation and report stay). The example order can be neither changed nor deleted.",
+          "Each order is also shown under the report of the investigation that opened it.",
+          "Its «Update» form sets the status (Open, In progress, Done or Cancelled), a note and the outcome, with «I confirm this outcome»; every change goes to the audit log with your name.",
         ],
-      },
-      {
-        type: "shot",
-        id: "guide-work-orders",
-        caption:
-          "The Work orders tab and audit log as they were on the server the picture was taken from: no orders yet, since no report had been approved, and two engineer trial sessions in the log.",
-        alt: "The Work orders tab on the Investigations page: the Work orders panel says No work orders yet and explains that an order opens when an engineer approves a report's actions; the Audit log panel has an action filter and two entries titled Started an engineer trial, each with its time and session.",
-        src: "/guide/guide-work-orders.webp",
-        width: 1392,
-        height: 443,
       },
     ],
   },
@@ -481,8 +450,8 @@ export const ENTRIES: readonly Entry[] = [
       {
         type: "list",
         items: [
-          "When closing a work order, the engineer can record the cause actually found and the hypothesis it confirms.",
-          "It shows on the work order as the fab's own record, collected for the fab to learn from later.",
+          "When setting a work order to Done, the engineer can record the cause actually found and the hypothesis it confirms.",
+          "It shows on the work order as the fab's own record, collected for the fab to learn from later. Reopening the order withdraws it.",
         ],
       },
     ],
@@ -498,8 +467,9 @@ export const ENTRIES: readonly Entry[] = [
         type: "list",
         items: [
           "«Ask» floats at the bottom of every page and is reachable with Tab.",
-          "It can read what is visible on the current page: the run, station and item on «Line», or the open investigation, shown in the «About …» box above the input. Clear it to ask a general question.",
-          "Type and press Enter or the arrow button, or pick a suggested question.",
+          "It always reads what is visible on the page: the run, station and item on «Line», or the open investigation.",
+          "Type and press Enter or the arrow button, or pick a suggested question. Write in English or Arabic: each message takes its direction from its own text.",
+          "Attach a Markdown (.md) or text file to ask about it, and export the conversation as Markdown.",
           "It explains results, answers «why», cites causes from the literature, compares with similar wafers, summarises the run and helps with uploads.",
           "It may suggest an investigation; you press the button.",
         ],
@@ -546,7 +516,7 @@ export const ENTRIES: readonly Entry[] = [
         type: "table",
         head: ["Term", "Meaning"],
         rows: [
-          ["Unit", "One SECOM product, with its sensor readings and final test result."],
+          ["Unit", "One SECOM product, with its sensor readings and its recorded test result."],
           ["Wafer", "The silicon disc the dies are made on."],
           ["Die", "A small square on the wafer; on the map it is pass or fail."],
           ["Lot", "A group of wafers made together."],

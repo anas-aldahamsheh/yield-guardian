@@ -2381,14 +2381,6 @@ results_rows: list[tuple[str, str, Estimate | None, str, str, str]] = [
         "WM-811K test split",
         "artifacts/wafermap/v1/metrics.json",
     ),
-    (
-        "points_per_investigation",
-        "Points per full investigation (Token Factory)",
-        None,
-        "number",
-        "Recorded investigations",
-        "database: llm_calls",
-    ),
 ]
 write(
     "get_measured_results",

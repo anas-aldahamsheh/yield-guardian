@@ -31,7 +31,7 @@ export const ROLE_NAMES: Record<string, string> = {
 export const ROLE_JOBS: Record<string, string> = {
   investigator: "Plans the investigation and calls the data tools",
   writer: "Drafts the report from the evidence",
-  verifier: "Checks every claim against the evidence",
+  verifier: "Not called: reports are written in one pass, without a check",
   chat: "Answers engineers' questions that need a model",
   router: "Decides whether a question can be answered by rules",
   ocr: "Reads documents",
