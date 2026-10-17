@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApi } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
+import { useStartInvestigation } from "@/lib/api/investigations";
+import { reportModelFailure } from "@/lib/model-failure";
 import { q } from "@/lib/api/queries";
 import { LIVE_STATUSES, issuesByTarget, triggerUnit } from "@/lib/investigation/events";
 import { readHypotheses } from "@/lib/investigation/hypotheses";
@@ -103,6 +105,7 @@ export function InvestigationView({ id }: { id: string }) {
 
   return (
     <PageFrame>
+      <FailureWatch investigation={stored} />
       <BackLink />
       <PageHeader
         title={
@@ -341,6 +344,28 @@ function BackLink() {
       </Link>
     </div>
   );
+}
+
+/**
+ * When a run watched live ends failed (not stopped by the user), offer the switch to Claude and
+ * a fresh run on the same trigger.
+ */
+function FailureWatch({ investigation }: { investigation: Investigation }) {
+  const start = useStartInvestigation();
+  const wasLive = useRef(false);
+  const { status, recorded, trigger, error } = investigation;
+  useEffect(() => {
+    if (LIVE_STATUSES.has(status)) {
+      wasLive.current = true;
+      return;
+    }
+    if (status !== "failed" || recorded || !wasLive.current) return;
+    wasLive.current = false;
+    const reason = [error?.title, error?.detail].filter(Boolean).join(": ") || "the run failed";
+    if (/stopped by the user/i.test(reason)) return;
+    reportModelFailure({ reason, retry: () => start.mutate(trigger) });
+  }, [status, recorded, trigger, error, start]);
+  return null;
 }
 
 /**

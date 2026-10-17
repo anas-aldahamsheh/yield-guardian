@@ -46,6 +46,7 @@ import {
 } from "@/lib/chat/chat";
 import { formatDuration, formatNumber, formatReported } from "@/lib/format";
 import { TOOL_NAME } from "@/lib/labels";
+import { reportModelFailure } from "@/lib/model-failure";
 import { cn } from "@/lib/utils";
 
 import { AskButton } from "./ask-button";
@@ -231,6 +232,8 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
       }
     }
 
+    let latest = emptyAnswer();
+    let reason: string | null = null;
     try {
       await streamChat({
         messages: [...history, { role: "user", content: fullQuestion.slice(0, 8000) }],
@@ -238,6 +241,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
         headers,
         signal: controller.signal,
         onEvent: (event) => {
+          latest = applyChatEvent(latest, event);
           update(id, (t) => ({ ...t, answer: applyChatEvent(t.answer, event) }));
           follow();
         },
@@ -245,11 +249,17 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     } catch (error) {
       if (!controller.signal.aborted) {
         const copy = describeError(error);
-        update(id, (t) => ({ ...t, failed: [copy.title, copy.detail].filter(Boolean).join(". ") }));
+        reason = [copy.title, copy.detail].filter(Boolean).join(". ");
+        update(id, (t) => ({ ...t, failed: reason }));
       }
     } finally {
       update(id, (t) => ({ ...t, streaming: false }));
       abort.current = null;
+    }
+    if (!controller.signal.aborted) {
+      if (!reason && latest.error) reason = latest.error.detail ?? latest.error.title;
+      if (!reason && !latest.text.trim()) reason = "an empty answer";
+      if (reason) reportModelFailure({ reason, retry: () => void ask(q) });
     }
   };
 

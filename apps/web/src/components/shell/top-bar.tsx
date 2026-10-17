@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
+import { ModelFailureDialog } from "./model-failure-dialog";
 import { ProviderSwitch } from "./provider-switch";
 import { ThemeToggle } from "./theme-toggle";
 import { Wordmark } from "./wordmark";
@@ -132,6 +133,7 @@ export function TopBar() {
         </div>
       </header>
       <HistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
+      <ModelFailureDialog />
     </>
   );
 }

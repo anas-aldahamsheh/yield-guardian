@@ -152,7 +152,7 @@ PROVIDER_CHAINS: dict[LlmProvider, dict[Role, tuple[ModelChoice, ...]]] = {
     },
 }
 
-DEFAULT_PROVIDER = LlmProvider.CLAUDE
+DEFAULT_PROVIDER = LlmProvider.AMD
 DEFAULT_CHAINS: dict[Role, tuple[ModelChoice, ...]] = PROVIDER_CHAINS[DEFAULT_PROVIDER]
 
 _STRUCTURED_ROLES = frozenset({Role.WRITER, Role.VERIFIER, Role.ROUTER})
