@@ -22,8 +22,8 @@ import { cn } from "@/lib/utils";
 type Provider = LlmProviderState["provider"];
 
 const OPTIONS: { value: Provider; label: string; model: string }[] = [
-  { value: "amd", label: "AMD Infra", model: "DeepSeek-V4.1-Flash" },
-  { value: "claude", label: "Claude", model: "Claude Haiku" },
+  { value: "amd", label: "AMD", model: "DeepSeek-V4.1-Flash on AMD Token Factory" },
+  { value: "claude", label: "Claude", model: "Claude Haiku 5.5" },
 ];
 
 /** Which provider runs every model call, for every visitor. Switching asks first. */
