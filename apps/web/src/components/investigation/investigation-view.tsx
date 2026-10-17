@@ -159,13 +159,13 @@ export function InvestigationView({ id }: { id: string }) {
       {/* Main Two-Column Investigation Workspace */}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,1fr)_460px]">
         {/* Left Column: Report & Operational Outcomes */}
-        <div className="space-y-8 min-w-0">
+        <div className="min-w-0 space-y-8 xl:sticky xl:top-[calc(var(--bar-height)+16px)] xl:max-h-[calc(100dvh-var(--bar-height)-32px)] xl:overflow-y-auto xl:[scrollbar-width:thin] xl:pe-1">
           <Panel
             title="Investigation Report"
             description="Written by the investigator from the evidence below. Each cited number links to its evidence."
             bodyClassName="pt-2 pb-6"
           >
-            {v ? <VerificationSummary investigation={inv} /> : null}
+            {v && v.numbers_checked > 0 ? <VerificationSummary investigation={inv} /> : null}
             {inv.report ? (
               <Report
                 report={inv.report}
@@ -210,7 +210,7 @@ export function InvestigationView({ id }: { id: string }) {
         </div>
 
         {/* Right Column: Interactive Telemetry & Agent Inspector */}
-        <div className="sticky top-[calc(var(--bar-height)+16px)] space-y-4">
+        <div className="min-w-0 space-y-4 xl:sticky xl:top-[calc(var(--bar-height)+16px)] xl:max-h-[calc(100dvh-var(--bar-height)-32px)] xl:overflow-y-auto xl:[scrollbar-width:thin] xl:pe-1">
           <Panel
             title="Telemetry &amp; Run Inspector"
             description="Examine sensor telemetry cards, agent steps, and model latency traces."
