@@ -112,7 +112,8 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const nextId = useRef(0);
   const scroller = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { canAct, csrf } = useSession();
+  const { canAct, csrf, session } = useSession();
+  const engineer = session.role !== "visitor" && Boolean(csrf["X-CSRF-Token"]);
   const guest = useStartGuestSession();
   const { chat: chatServed } = useFeatures();
   const streaming = turns.some((t) => t.streaming);
@@ -169,10 +170,10 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   };
 
   useEffect(() => {
-    if (open && !csrf["X-CSRF-Token"] && !guest.isPending && !guest.isSuccess) {
+    if (open && !engineer && !guest.isPending && !guest.isSuccess) {
       guest.mutate();
     }
-  }, [open, csrf, guest]);
+  }, [open, engineer, guest]);
 
   const ask = async (question: string) => {
     const q = question.trim();
@@ -223,7 +224,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     abort.current = controller;
 
     let headers = csrf;
-    if (!headers["X-CSRF-Token"]) {
+    if (!engineer) {
       try {
         const session = await guest.mutateAsync();
         headers = csrfHeaders(session.csrf_token);

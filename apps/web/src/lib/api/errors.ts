@@ -66,8 +66,8 @@ export function describeError(error: unknown): ErrorCopy {
         };
       case "unauthorized":
         return {
-          title: "Sign in to do this",
-          detail: detail ?? "Choose “Try as engineer” in the top bar, then try again.",
+          title: "Your session expired",
+          detail: "Reload the page, then try again.",
         };
       case "forbidden":
         return {

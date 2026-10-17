@@ -5,11 +5,12 @@ import type {
   DecisionCreate,
   Investigation,
   InvestigationTrigger,
+  SessionInfo,
 } from "@yield-guardian/contracts";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 
-import { unwrap } from "./client";
+import { csrfHeaders, unwrap } from "./client";
 import { useApi } from "./context";
 import { describeError } from "./errors";
 import { NOT_CONFIGURED } from "./features";
@@ -31,7 +32,15 @@ export function useStartInvestigation() {
       // instead, and leave no failed run behind. When /meta is unreadable, let the API decide.
       const meta = await client.fetchQuery(q.meta(api)).catch(() => null);
       if (meta && !meta.features.live_investigations) throw new NotConfigured();
-      return unwrap(api.POST("/api/v1/investigations", { body: { trigger }, headers: csrf }));
+      let headers = csrf;
+      const session = client.getQueryData<SessionInfo>(["session"]);
+      if (!session || session.role === "visitor") {
+        // Investigating needs an engineer session: start one for this device first.
+        const started = await unwrap(api.POST("/api/v1/session/guest", { body: {} }));
+        client.setQueryData<SessionInfo>(["session"], started);
+        headers = csrfHeaders(started.csrf_token);
+      }
+      return unwrap(api.POST("/api/v1/investigations", { body: { trigger }, headers }));
     },
     onSuccess: (investigation) => {
       void client.invalidateQueries({ queryKey: ["investigations"] });

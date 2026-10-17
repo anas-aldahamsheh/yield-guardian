@@ -512,7 +512,7 @@ export function Investigate({
   onLinked: OnLinked;
 }) {
   const client = useQueryClient();
-  const { canAct, csrf } = useSession();
+  const { canAct, csrf, session } = useSession();
   const { liveInvestigations } = useFeatures();
   const guest = useStartGuestSession();
   const start = useMutation({
@@ -526,7 +526,8 @@ export function Investigate({
   });
 
   const handleInvestigate = () => {
-    if (csrf["X-CSRF-Token"]) {
+    // A visitor session has a CSRF token too, but investigating needs an engineer session.
+    if (csrf["X-CSRF-Token"] && session.role !== "visitor") {
       start.mutate(csrf);
     } else {
       guest.mutate(undefined, {
