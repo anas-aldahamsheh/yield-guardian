@@ -19,10 +19,10 @@ export const floating =
 
 /** One row of a menu or a select. Pointer: a raised plane. Keyboard: the signal ring inside. */
 export const menuItem =
-  "relative flex min-h-9 cursor-default items-center gap-2.5 rounded-[9px] px-2.5 py-1.5 text-[14px] leading-5 text-ink outline-none select-none " +
+  "relative flex min-h-9 cursor-pointer items-center gap-2.5 rounded-[9px] px-2.5 py-1.5 text-[14px] leading-5 text-ink outline-none select-none " +
   "transition-colors duration-(--dur-1) data-[highlighted]:bg-surface-2 " +
   "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-signal " +
-  "data-[disabled]:pointer-events-none data-[disabled]:opacity-45 " +
+  "data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[disabled]:cursor-not-allowed " +
   "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-ink-3";
 
 /** A dialog's plane: centred, springs up from a little below and a little smaller. */
@@ -33,4 +33,4 @@ export const dialogPlane =
 
 /** The round close control in a dialog's or a sheet's corner. */
 export const closeControl =
-  "press absolute top-4 right-4 inline-flex size-9 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2 hover:text-ink disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-[18px] [&_svg]:shrink-0";
+  "press cursor-pointer absolute top-4 right-4 inline-flex size-9 items-center justify-center rounded-full text-ink-2 hover:bg-surface-2 hover:text-ink disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-[18px] [&_svg]:shrink-0";

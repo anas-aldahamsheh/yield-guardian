@@ -9,7 +9,7 @@ import { Panel } from "@/components/page";
 import { EmptyState } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { useStartInvestigation } from "@/lib/api/investigations";
-import { useSession, useStartGuestSession } from "@/lib/api/session";
+import { useSession } from "@/lib/api/session";
 import { formatInt, formatPlantTime, formatProbability, formatReading } from "@/lib/format";
 import { ALARM_KIND } from "@/lib/labels";
 import { investigationHref, unitHref } from "@/lib/routes";
@@ -26,7 +26,6 @@ function reading(alarm: Alarm, value: number | null) {
 export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?: string }) {
   const [all, setAll] = useState(false);
   const { canAct } = useSession();
-  const guest = useStartGuestSession();
   const start = useStartInvestigation();
   const shown = all ? alarms : alarms.slice(0, SHOWN);
   const fresh = useNewIds(alarms.map((a) => a.alarm_id));
@@ -44,21 +43,6 @@ export function OpenAlarms({ alarms, className }: { alarms: Alarm[]; className?:
         </EmptyState>
       ) : (
         <>
-          {!canAct ? (
-            <div className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-sm bg-surface-2 px-3 py-2 sm:mx-5">
-              <p className="text-[13px] leading-5 text-ink-2">
-                Investigating an alarm needs an engineer session.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => guest.mutate()}
-                disabled={guest.isPending}
-              >
-                {guest.isPending ? "Signing in…" : "Try as engineer"}
-              </Button>
-            </div>
-          ) : null}
           <ol className="border-t border-hairline">
             {shown.map((alarm) => (
               <li

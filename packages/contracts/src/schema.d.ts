@@ -5728,6 +5728,7 @@ export interface components {
        * @example upl_01jaf3k9x2m4q7r8s0t1v2w3x4
        */
       upload_id: string;
+      wafer_upload_id?: string | null;
     };
     /**
      * UploadSummary

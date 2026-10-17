@@ -20,6 +20,7 @@ import { readHypotheses } from "@/lib/investigation/hypotheses";
 import { useInvestigationStream } from "@/lib/investigation/use-investigation-stream";
 import { formatInt, formatNumber, formatPlantTime, plural } from "@/lib/format";
 import { ISSUE_CODE, ROLE_NAMES, TRIGGER_KIND } from "@/lib/labels";
+import { DRAFT_KEYS, readDraft } from "@/lib/live/drafts";
 import { WORK_ORDER_ANCHOR, triggerHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -254,19 +255,28 @@ function StepAnnouncer({ investigation }: { investigation: Investigation }) {
 }
 
 function BackLink() {
+  const lastRunId = typeof window !== "undefined" ? readDraft(DRAFT_KEYS.activeRun) : null;
   return (
-    <Link
-      href="/investigations"
-      transitionTypes={NAV_BACK}
-      className="group/back press mb-6 inline-flex h-8 items-center gap-1 rounded-full pr-3.5 pl-2 text-[13px] leading-5 font-[560] text-ink-2 no-underline shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
-    >
-      <ChevronLeftIcon
-        aria-hidden="true"
-        className="size-4 transition-transform duration-(--dur-3) ease-out group-hover/back:-translate-x-0.5"
-        strokeWidth={2}
-      />
-      All investigations
-    </Link>
+    <div className="mb-6 flex flex-wrap items-center gap-2.5">
+      <Link
+        href={lastRunId ? `/?run=${encodeURIComponent(lastRunId)}` : "/"}
+        transitionTypes={NAV_BACK}
+        className="group/back press inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-2 px-3.5 text-[13px] leading-5 font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-3 hover:text-ink transition-colors"
+      >
+        <ChevronLeftIcon
+          aria-hidden="true"
+          className="size-4 transition-transform duration-(--dur-3) ease-out group-hover/back:-translate-x-0.5"
+          strokeWidth={2}
+        />
+        Back to Production Line
+      </Link>
+      <Link
+        href="/investigations"
+        className="inline-flex h-8 items-center rounded-full px-3 text-[12.5px] font-[540] text-ink-3 hover:bg-surface-2 hover:text-ink transition-colors"
+      >
+        All investigations
+      </Link>
+    </div>
   );
 }
 

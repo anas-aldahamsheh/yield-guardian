@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { History, Menu } from "lucide-react";
 import { AnimatePresence, LayoutGroup } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
-import { SessionControl } from "./session-control";
 import { ThemeToggle } from "./theme-toggle";
 import { Wordmark } from "./wordmark";
 
@@ -37,6 +36,11 @@ const MobileNavSheet = dynamic(loadNav, {
   ssr: false,
   loading: () => <MenuButton aria-haspopup="dialog" disabled />,
 });
+
+const HistorySheet = dynamic(
+  () => import("@/components/workspace/history-sheet").then((m) => m.HistorySheet),
+  { ssr: false },
+);
 
 /**
  * The menu on narrow screens. Its sheet (Radix Dialog, focus trap and scroll lock) is fetched
@@ -88,6 +92,7 @@ function useScrolledAttribute() {
 export function TopBar() {
   const pathname = usePathname();
   const ref = useScrolledAttribute();
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Fixed, with a spacer of the bar's height in the page's flow.
   return (
@@ -100,25 +105,38 @@ export function TopBar() {
           "data-[scrolled]:shadow-[0_1px_0_var(--hairline),0_12px_32px_-24px_rgb(0_0_0/0.35)]",
         )}
       >
-        <div className="mx-auto flex h-bar max-w-[1600px] items-center gap-4 px-gutter md:gap-8">
-          <Wordmark />
-          <DesktopNav pathname={pathname} />
+        <div className="mx-auto flex h-bar max-w-[1600px] items-center justify-between px-gutter">
+          <div className="flex items-center shrink-0">
+            <Wordmark />
+          </div>
 
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="hidden md:flex flex-1 justify-center px-4">
+            <DesktopNav pathname={pathname} />
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="press group inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border border-hairline bg-surface-2 px-3 text-[12px] font-[580] text-ink shadow-2xs hover:border-hairline-strong hover:bg-surface-3 transition-colors"
+              aria-label="Open Run History"
+            >
+              <History className="size-3.5 text-ink-2 group-hover:text-ink transition-colors" />
+              <span>History</span>
+            </button>
             <ThemeToggle />
-            <SessionControl className="hidden md:flex" />
             <MobileNav pathname={pathname} />
           </div>
         </div>
       </header>
+      <HistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
     </>
   );
 }
 
 /**
- * The main navigation on wide screens. The current page sits on a raised pill with the film's
- * light along its foot; on navigation the pill slides to the next page (shared layout). A paler
- * pill follows the pointer over the other pages. Nothing moves on the first paint.
+ * The main navigation on wide screens. The current page sits on a raised pill;
+ * on navigation the pill slides to the next page.
  */
 function DesktopNav({ pathname }: { pathname: string }) {
   const activeHref = NAV_ITEMS.find((item) => isActive(pathname, item.href))?.href ?? null;
@@ -127,7 +145,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
   return (
     <nav aria-label="Main" className="hidden md:flex">
       <LayoutGroup id="main-nav">
-        <ul className="flex items-center gap-0.5" onPointerLeave={() => setHovered(null)}>
+        <ul className="flex items-center gap-1 rounded-full border border-hairline/80 bg-surface/80 p-1 shadow-2xs backdrop-blur-xs" onPointerLeave={() => setHovered(null)}>
           {NAV_ITEMS.map((item) => {
             const active = item.href === activeHref;
             return (
@@ -146,18 +164,16 @@ function DesktopNav({ pathname }: { pathname: string }) {
                 {active ? (
                   <Indicator
                     layoutId="nav-current"
-                    className="absolute inset-0 rounded-full bg-surface shadow-[inset_0_0_0_1px_var(--hairline),0_1px_2px_rgb(0_0_0/0.06)] dark:bg-surface-2"
-                  >
-                    <span className="film-light absolute inset-x-3.5 bottom-[3px] h-[2px] rounded-full" />
-                  </Indicator>
+                    className="absolute inset-0 rounded-full bg-surface-2 shadow-[inset_0_0_0_1px_var(--hairline-strong),0_1px_2px_rgb(0_0_0/0.05)] dark:bg-surface-3"
+                  />
                 ) : null}
                 <Link
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   onPointerEnter={() => setHovered(item.href)}
                   className={cn(
-                    "relative flex h-9 items-center rounded-full px-4 text-[14px] leading-5 font-[540] no-underline transition-colors duration-(--dur-1)",
-                    active ? "text-ink" : "text-ink-2 hover:text-ink",
+                    "relative flex h-8 items-center rounded-full px-3.5 text-[13.5px] leading-none whitespace-nowrap transition-colors duration-(--dur-1) cursor-pointer",
+                    active ? "font-[600] text-ink" : "font-[500] text-ink-2 hover:text-ink",
                   )}
                 >
                   {item.label}

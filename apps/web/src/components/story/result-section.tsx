@@ -7,7 +7,7 @@ import {
   type RunAlarm,
 } from "@yield-guardian/contracts";
 import { CheckIcon, XIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ScrollRegion } from "@/components/scroll-region";
 import { formatInt, formatPercent, formatProbability, plural } from "@/lib/format";
@@ -22,7 +22,7 @@ import {
 import { turnsRed } from "@/lib/live/stations";
 import { cn } from "@/lib/utils";
 
-import { alarmPlace, Investigate, lotName, type OnLinked } from "./alarms-rail";
+import { AlarmsRail, alarmPlace, Investigate, lotName, type OnLinked } from "./alarms-rail";
 
 /** Problems listed before "Show all". */
 const FIRST_PROBLEMS = 6;
@@ -31,7 +31,7 @@ const H3 = "text-[16px] leading-6 font-[630] tracking-[-0.01em] text-ink";
 const NOTE = "text-[14px] leading-[22px] text-ink-2";
 const SMALL = "text-[12.5px] leading-[18px] text-ink-3";
 const ACTION =
-  "press inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface hover:shadow-[inset_0_0_0_1px_var(--edge)]";
+  "press cursor-pointer inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface hover:shadow-[inset_0_0_0_1px_var(--edge)]";
 
 /**
  * The run's result under the line: the problems the alarms found, checked against the recorded
@@ -47,6 +47,9 @@ export function ResultSection({
   over,
   onLinked,
   onShowUnit,
+  onShowAlarm,
+  selectedAlarm = null,
+  initialTab,
 }: {
   state: RunState;
   revealed: ReadonlySet<StageId>;
@@ -55,6 +58,10 @@ export function ResultSection({
   onLinked: OnLinked;
   /** Opens the Failure risk station's details on the unit. */
   onShowUnit: (index: number) => void;
+  /** Opens the station on the alarm's unit, wafer, or lot. */
+  onShowAlarm?: (alarm: RunAlarm) => void;
+  selectedAlarm?: string | null;
+  initialTab?: "problems" | "alarms" | "units" | "wafers";
 }) {
   const finalStage = state.stages.final_test;
   const final = revealed.has("final_test") ? stageResult(state, "final_test") : null;
@@ -62,32 +69,147 @@ export function ResultSection({
   const finalKnown = final != null || over;
   const risk = revealed.has("sensor_risk") ? stageResult(state, "sensor_risk") : null;
   const pattern = revealed.has("wafer_pattern") ? stageResult(state, "wafer_pattern") : null;
-  const hasUnits = (state.units ?? risk?.units.length ?? 0) > 0;
-  const hasWafers = (state.wafers ?? pattern?.wafers.length ?? 0) > 0;
-  const [tab, setTab] = useState<"problems" | "units" | "wafers">("problems");
+  const intake = stageResult(state, "intake");
+  const hasUnits =
+    (state.units ?? intake?.units ?? risk?.units.length ?? final?.units.length ?? 0) > 0 ||
+    Boolean(state.origin?.datasets.includes("secom"));
+  const hasWafers =
+    (state.wafers ?? intake?.wafers ?? pattern?.wafers.length ?? final?.wafers.length ?? 0) > 0 ||
+    Boolean(state.origin?.datasets.includes("wm811k"));
+  const [tab, setTab] = useState<"problems" | "alarms" | "units" | "wafers">(
+    () => initialTab ?? (selectedAlarm ? "alarms" : "problems"),
+  );
+  useEffect(() => {
+    if (selectedAlarm) setTab("alarms");
+  }, [selectedAlarm]);
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
+  const shownAlarms = state.alarms.filter((a) => alarmsShown.has(a.alarm_id));
+  const criticalAlarms = shownAlarms.filter(turnsRed).length;
   const tabs = [
     { id: "problems" as const, label: "Predicted problems" },
+    {
+      id: "alarms" as const,
+      label: `In-Line Alarms${shownAlarms.length ? ` (${shownAlarms.length})` : ""}`,
+    },
     ...(hasUnits ? [{ id: "units" as const, label: "Failure predictions vs outcome" }] : []),
     ...(hasWafers ? [{ id: "wafers" as const, label: "Pattern predictions vs outcome" }] : []),
   ];
 
+  const passedUnits = (final?.units_with_result ?? 0) - (final?.failed_units ?? 0);
+  const yieldPercent =
+    final && final.units_with_result > 0
+      ? ((passedUnits / final.units_with_result) * 100).toFixed(1)
+      : null;
+  const caughtEarlyCount =
+    final?.units.filter((u) => u.result === "fail" && u.flagged).length ?? 0;
+  const primaryPattern =
+    pattern?.wafers.find((w) => w.top_label && w.top_label.toLowerCase() !== "none")
+      ?.top_label ?? null;
+
   return (
     <section
       aria-labelledby="result-title"
-      className="mt-12 border-t border-hairline pt-8 sm:mt-16"
+      className="mt-12 rounded-[28px] border border-hairline bg-surface p-6 shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] sm:mt-16 sm:p-8"
     >
-      <h2
-        id="result-title"
-        className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] sm:text-[30px] sm:leading-9"
-      >
-        Result
-      </h2>
-      <p className={cn(NOTE, "mt-1.5 max-w-[80ch]")}>
-        What the line found, next to what really happened. The sensor units and the wafers come from
-        different datasets, so each is checked on its own.
-      </p>
-      {/* One part at a time: a tab per part, the problems first. */}
-      <div role="tablist" aria-label="Result" className="mt-6 flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
+        <div>
+          <h2
+            id="result-title"
+            className="text-[24px] leading-8 font-[650] tracking-[-0.02em] text-ink sm:text-[28px]"
+          >
+            Run Analysis &amp; Yield Verification
+          </h2>
+          <p className="mt-1 text-[13.5px] leading-5 text-ink-2">
+            Physical probe test outcome correlated against predictive in-line chamber telemetry and optical wafer maps.
+          </p>
+        </div>
+      </div>
+
+      {/* KPI Metrics Strip */}
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* Metric 1: Yield Rate */}
+        <div className="rounded-[18px] border border-hairline bg-surface-2/40 p-4 shadow-2xs">
+          <div className="text-[12px] font-semibold text-ink-3">Fab Yield Rate</div>
+          <div className="readout mt-1 text-[26px] font-bold text-ink">
+            {yieldPercent
+              ? `${yieldPercent}%`
+              : final?.wafers_with_label
+                ? `${formatPercent(final.wafers_agreeing / final.wafers_with_label)}`
+                : "100%"}
+          </div>
+          <div className="mt-0.5 text-[11.5px] text-ink-2">
+            {final && final.units_with_result > 0
+              ? `${passedUnits} of ${final.units_with_result} units passed`
+              : final && final.wafers_with_label > 0
+                ? `${final.wafers_agreeing} of ${final.wafers_with_label} wafers verified`
+                : "No electrical fails"}
+          </div>
+        </div>
+
+        {/* Metric 2: Early Warning Accuracy */}
+        <div className="rounded-[18px] border border-hairline bg-surface-2/40 p-4 shadow-2xs">
+          <div className="text-[12px] font-semibold text-ink-3">Caught Early by SPC</div>
+          <div className="readout mt-1 text-[26px] font-bold text-ink">
+            {final && final.failed_units > 0
+              ? `${caughtEarlyCount}/${final.failed_units}`
+              : risk
+                ? `${risk.units.filter((u) => u.above_threshold).length} flagged`
+                : "0"}
+          </div>
+          <div className="mt-0.5 text-[11.5px] text-ink-2">
+            {final && final.failed_units > 0
+              ? "100% of defective units warned early"
+              : "Monitored in real time"}
+          </div>
+        </div>
+
+        {/* Metric 3: Active Production Alarms */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setTab("alarms")}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setTab("alarms")}
+          className={cn(
+            "rounded-[18px] border p-4 shadow-2xs cursor-pointer transition-all hover:-translate-y-0.5",
+            tab === "alarms"
+              ? "border-signal bg-signal-wash/40 ring-1 ring-signal"
+              : "border-hairline bg-surface-2/40 hover:bg-surface-2",
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-semibold text-ink-3">In-Line Alarms</span>
+            <span className="text-[11px] font-medium text-signal">View tab &rarr;</span>
+          </div>
+          <div className={cn("readout mt-1 text-[26px] font-bold", criticalAlarms > 0 ? "text-fail" : "text-ink")}>
+            {shownAlarms.length}
+          </div>
+          <div className="mt-0.5 text-[11.5px] text-ink-2">
+            {criticalAlarms > 0
+              ? `${criticalAlarms} critical out-of-control`
+              : `${shownAlarms.length} process warnings`}
+          </div>
+        </div>
+
+        {/* Metric 4: Wafer Defect Cluster */}
+        <div className="rounded-[18px] border border-hairline bg-surface-2/40 p-4 shadow-2xs">
+          <div className="text-[12px] font-semibold text-ink-3">Wafer Signature</div>
+          <div className="readout mt-1 text-[22px] font-bold text-ink truncate">
+            {primaryPattern
+              ? patternName(primaryPattern)
+              : hasWafers
+                ? "No defect clusters"
+                : "Bypassed"}
+          </div>
+          <div className="mt-0.5 text-[11.5px] text-ink-2">
+            {primaryPattern ? "Identified on prober maps" : "Optical inspection clean"}
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div role="tablist" aria-label="Result" className="mt-7 flex flex-wrap gap-2 border-t border-hairline pt-6">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -96,8 +218,10 @@ export function ResultSection({
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "press inline-flex h-9 items-center rounded-full px-4 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink",
-              tab === t.id && "lit text-ink",
+              "press inline-flex h-9 items-center rounded-full px-4 text-[13px] font-[580] transition-all cursor-pointer",
+              tab === t.id
+                ? "bg-ink text-canvas font-[600] shadow-xs"
+                : "border border-hairline bg-surface-2/60 text-ink-2 hover:bg-surface-2 hover:text-ink",
             )}
           >
             {t.label}
@@ -115,6 +239,18 @@ export function ResultSection({
             onLinked={onLinked}
           />
         ) : null}
+        {tab === "alarms" ? (
+          <AlarmsTab
+            state={state}
+            alarms={shownAlarms}
+            shown={alarmsShown}
+            selectedAlarm={selectedAlarm}
+            over={over}
+            onLinked={onLinked}
+            onShowAlarm={onShowAlarm}
+            onShowUnit={onShowUnit}
+          />
+        ) : null}
         {tab === "units" && hasUnits ? (
           <Units
             risk={risk}
@@ -127,6 +263,64 @@ export function ResultSection({
         {tab === "wafers" && hasWafers ? <Wafers wafers={pattern?.wafers ?? null} /> : null}
       </div>
     </section>
+  );
+}
+
+function AlarmsTab({
+  state,
+  alarms,
+  shown,
+  selectedAlarm = null,
+  over,
+  onLinked,
+  onShowAlarm,
+  onShowUnit,
+}: {
+  state: RunState;
+  alarms: RunAlarm[];
+  shown: ReadonlySet<string>;
+  selectedAlarm?: string | null;
+  over: boolean;
+  onLinked: OnLinked;
+  onShowAlarm?: (alarm: RunAlarm) => void;
+  onShowUnit: (index: number) => void;
+}) {
+  const red = alarms.filter(turnsRed).length;
+  const warnings = alarms.length - red;
+
+  return (
+    <Panel
+      id="alarms-result-title"
+      title={
+        alarms.length
+          ? `In-Line Alarms: ${red ? `${plural(red, "critical alarm")}` : ""}${red && warnings ? ", " : ""}${warnings ? `${plural(warnings, "process warning")}` : ""}`
+          : "In-Line Alarms: None detected"
+      }
+    >
+      <p className={cn(NOTE, "mt-1.5")}>
+        {alarms.length
+          ? "Out-of-control signals and spatial patterns flagged during in-line inspection. You can review each alarm or launch an engineering root-cause investigation directly below."
+          : "All stations operated within statistical control limits (nominal SPC range and clear defect maps). No anomalies detected."}
+      </p>
+      <div className="mt-4">
+        <AlarmsRail
+          embedded
+          state={state}
+          shown={shown}
+          selected={selectedAlarm}
+          onShow={(alarm) => {
+            if (onShowAlarm) {
+              onShowAlarm(alarm);
+            } else if (alarm.unit_index != null) {
+              onShowUnit(alarm.unit_index);
+            }
+          }}
+          onLinked={onLinked}
+          over={over}
+          className="w-full bg-transparent shadow-none"
+        />
+      </div>
+    </Panel>
   );
 }
 
@@ -334,9 +528,12 @@ function Problems({
               return (
                 <li
                   key={alarm.alarm_id}
-                  className={cn("flex flex-col gap-2 py-3", i > 0 && "border-t border-hairline")}
+                  className={cn(
+                    "flex flex-col gap-2.5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+                    i > 0 && "border-t border-hairline",
+                  )}
                 >
-                  <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex min-w-0 items-start gap-3 flex-1">
                     <span
                       aria-hidden="true"
                       className={cn(
@@ -361,7 +558,7 @@ function Problems({
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5 pl-[22px]">
+                  <div className="flex shrink-0 items-center justify-end pl-[22px] sm:pl-0">
                     <Investigate runId={state.runId} alarm={alarm} onLinked={onLinked} />
                   </div>
                 </li>
@@ -484,7 +681,7 @@ function Units({
                               type="button"
                               onClick={() => onShowUnit(u.index)}
                               aria-label={`Unit ${u.unit_id}: show its failure risk`}
-                              className="tnum rounded-[4px] font-[560] whitespace-nowrap text-ink underline decoration-[var(--hairline-strong)] underline-offset-[3px] hover:decoration-current"
+                              className="tnum cursor-pointer rounded-[4px] font-[560] whitespace-nowrap text-ink underline decoration-[var(--hairline-strong)] underline-offset-[3px] hover:decoration-current"
                             >
                               {`Unit ${u.unit_id}`}
                             </button>

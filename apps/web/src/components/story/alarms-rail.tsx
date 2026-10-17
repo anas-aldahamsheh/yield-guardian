@@ -46,7 +46,7 @@ function NoAlarm({ finished }: { finished: boolean }) {
 export type OnLinked = (alarmId: string, investigation: Investigation) => void;
 /** The rail's small actions: a pill with a hairline edge. */
 const ACTION =
-  "press inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-50";
+  "press cursor-pointer inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-50 disabled:cursor-not-allowed";
 
 /** Warnings of one kind are folded into one row from this many on. */
 const FOLD = 4;
@@ -147,6 +147,7 @@ export function AlarmsRail({
   selected = null,
   over = false,
   className,
+  embedded = false,
 }: {
   state: RunState | null;
   /** The run's stored state is being read: its alarms come with it. */
@@ -159,6 +160,7 @@ export function AlarmsRail({
   /** The alarm chosen with its Show button (the URL's `alarm`). */
   selected?: string | null;
   className?: string;
+  embedded?: boolean;
 }) {
   const scroll = useScrollFocus<HTMLDivElement>("Alarms of this run");
   const root = useRef<HTMLElement>(null);
@@ -170,6 +172,71 @@ export function AlarmsRail({
   // result: until then more alarms may still be on their way to the screen.
   const finished = Boolean(state) && over;
   const notListed = finished ? state!.alarmsNotListed : 0;
+
+  if (embedded) {
+    return (
+      <div className={cn("w-full", className)}>
+        {!state ? (
+          <div className="unexposed flex gap-3 rounded-[18px] px-3.5 py-4">
+            <span
+              aria-hidden="true"
+              className="mt-[5px] size-2.5 shrink-0 rounded-full shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]"
+            />
+            <p className="text-[14px] leading-[21px] text-ink-2">
+              {reading
+                ? "Reading this run's alarms."
+                : "When a station finds something, its alarm arrives here with what it means, and you can start an investigation of it."}
+            </p>
+          </div>
+        ) : !alarms.length ? (
+          <NoAlarm key={finished ? "finished" : "so-far"} finished={finished} />
+        ) : (
+          <ul className="flex flex-col gap-1 pb-4">
+            {rows(alarms).map((row) =>
+              row.kind === "one" ? (
+                <li
+                  key={row.alarm.alarm_id}
+                  className={
+                    arrivedLive(state, { alarmId: row.alarm.alarm_id })
+                      ? styles.slideIn
+                      : undefined
+                  }
+                >
+                  <AlarmItem
+                    state={state}
+                    alarm={row.alarm}
+                    onShow={onShow}
+                    onLinked={onLinked}
+                    selected={row.alarm.alarm_id === selected}
+                  />
+                </li>
+              ) : (
+                <li
+                  key={`fold-${row.key}`}
+                  className={
+                    row.alarms.some((a) => arrivedLive(state, { alarmId: a.alarm_id }))
+                      ? styles.slideIn
+                      : undefined
+                  }
+                >
+                  <Fold
+                    state={state}
+                    alarms={row.alarms}
+                    onShow={onShow}
+                    onLinked={onLinked}
+                    selected={selected}
+                  />
+                </li>
+              ),
+            )}
+          </ul>
+        )}
+        {notListed > 0 ? (
+          <p className="tnum px-3.5 py-3 text-[13px] leading-5 text-ink-2">{`and ${formatInt(notListed)} more, see the station`}</p>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <section
@@ -321,20 +388,32 @@ function AlarmItem({
       )}
     >
       <Mark alarm={alarm} />
-      <div className="min-w-0 flex-1">
-        <h3 className="text-[14.5px] leading-5 font-[600] tracking-[-0.005em] text-ink">
-          <span className="sr-only">{turnsRed(alarm) ? "Alarm: " : "Warning: "}</span>
-          {compact ? alarmPlace(state, alarm) : alarm.title}
-        </h3>
-        {!compact ? (
-          <p className="mt-0.5 text-[13px] leading-[19px] text-ink-2">{alarm.meaning}</p>
-        ) : null}
-        <p className="tnum mt-1.5 text-[12px] leading-4 text-ink-3">
-          {[compact ? null : alarmPlace(state, alarm), reading, alarm.alarm_id]
-            .filter(Boolean)
-            .join(". ")}
-        </p>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+      <div
+        className={cn(
+          "min-w-0 flex-1",
+          !compact && "flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[14.5px] leading-5 font-[600] tracking-[-0.005em] text-ink">
+            <span className="sr-only">{turnsRed(alarm) ? "Alarm: " : "Warning: "}</span>
+            {compact ? alarmPlace(state, alarm) : alarm.title}
+          </h3>
+          {!compact ? (
+            <p className="mt-0.5 text-[13px] leading-[19px] text-ink-2">{alarm.meaning}</p>
+          ) : null}
+          <p className="tnum mt-1.5 text-[12px] leading-4 text-ink-3">
+            {[compact ? null : alarmPlace(state, alarm), reading, alarm.alarm_id]
+              .filter(Boolean)
+              .join(". ")}
+          </p>
+        </div>
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-1.5 shrink-0",
+            compact ? "mt-2.5" : "sm:justify-end",
+          )}
+        >
           <button type="button" onClick={() => onShow(alarm)} className={ACTION}>
             {`Show ${alarmPlace(state, alarm)
               .replace(/^The run$/, "it")
@@ -422,7 +501,7 @@ function Fold({
   );
 }
 
-/** Investigate one alarm: sign in when there is no engineer session, then start and follow it. */
+/** Investigate one alarm: automatically start in an active or guest session and follow it. */
 export function Investigate({
   runId,
   alarm,
@@ -436,7 +515,6 @@ export function Investigate({
   const { canAct, csrf } = useSession();
   const { liveInvestigations } = useFeatures();
   const guest = useStartGuestSession();
-  const [asking, setAsking] = useState(false);
   const start = useMutation({
     mutationFn: (headers: Record<string, string>) =>
       investigateRunAlarm(runId, alarm.alarm_id, headers),
@@ -447,8 +525,21 @@ export function Investigate({
     },
   });
 
+  const handleInvestigate = () => {
+    if (csrf["X-CSRF-Token"]) {
+      start.mutate(csrf);
+    } else {
+      guest.mutate(undefined, {
+        onSuccess: (session) => {
+          start.mutate(csrfHeaders(session.csrf_token));
+        },
+      });
+    }
+  };
+
   if (alarm.investigation_id)
     return <Progress id={alarm.investigation_id} stored={alarm.investigation_status ?? null} />;
+
   if (liveInvestigations === false) {
     return (
       <span className="text-[12px] leading-4 text-ink-3">
@@ -456,80 +547,59 @@ export function Investigate({
       </span>
     );
   }
-  if (asking && !canAct) {
-    return (
-      <span className="flex flex-wrap items-center gap-2 text-[13px] leading-5 text-ink-2">
-        An investigation runs in an engineer session.
-        <button
-          type="button"
-          disabled={guest.isPending}
-          onClick={() =>
-            guest.mutate(undefined, {
-              onSuccess: (session) => {
-                setAsking(false);
-                start.mutate(csrfHeaders(session.csrf_token));
-              },
-            })
-          }
-          className="press inline-flex h-7 items-center rounded-full bg-ink px-3 text-[12.5px] leading-none font-[600] text-canvas hover:bg-ink/90 disabled:opacity-60"
-        >
-          {guest.isPending ? "Signing in" : "Sign in as engineer and investigate"}
-        </button>
-      </span>
-    );
-  }
+
+  const isPending = start.isPending || guest.isPending;
+
   return (
-    <>
+    <div className="flex flex-col items-start gap-1 sm:items-end">
       <button
         type="button"
-        disabled={start.isPending}
-        onClick={() => (canAct ? start.mutate(csrf) : setAsking(true))}
+        disabled={isPending}
+        onClick={handleInvestigate}
         className={ACTION}
       >
-        {start.isPending ? "Starting" : "Investigate"}
+        {isPending ? "Starting..." : "Investigate"}
       </button>
       {start.isError ? (
-        <span role="alert" className="basis-full text-[12px] leading-4 text-fail">
-          {`${describeError(start.error).title}. ${describeError(start.error).detail}`}
+        <span role="alert" className="text-[11.5px] leading-4 text-fail sm:text-right">
+          {describeError(start.error).title}
         </span>
       ) : null}
-    </>
+    </div>
   );
 }
 
 /**
- * An investigation's progress: its status, steps so far and the latest one. Station 4 under the
- * line follows its stream, which keeps this row current. Until the investigation itself is read,
- * the status the run's stored state carries (`stored`) stands for it, so a reload shows it at once.
+ * An investigation's progress: rendered cleanly in two rows:
+ * Row 1: The status badge (e.g. Failed, In progress, Done)
+ * Row 2: Link to open the investigation
  */
 function Progress({ id, stored }: { id: string; stored: Investigation["status"] | null }) {
   const api = useApi();
   const query = useQuery(q.investigation(api, id));
   const inv = query.data;
   const status = inv?.status ?? stored;
-  const last = inv?.steps.at(-1);
+
   return (
-    <span
-      className="flex min-w-0 basis-full flex-col gap-0.5 text-[13px] leading-5"
+    <div
+      className="flex min-w-0 flex-col items-start gap-1 text-[13px] leading-5 sm:items-end"
       aria-live="polite"
     >
-      <span className="flex flex-wrap items-center gap-x-3">
-        {status ? (
-          <StatusLabel status={status} />
-        ) : (
-          <span className="text-ink-3">Starting the investigation</span>
-        )}
-        {inv ? <span className="tnum text-ink-3">{plural(inv.steps.length, "step")}</span> : null}
-        <Link
-          href={investigationHref(id)}
-          className="font-[560] text-ink underline decoration-hairline-strong underline-offset-4 transition-colors hover:decoration-signal"
-        >
-          Open the investigation
-        </Link>
-      </span>
-      {last ? (
-        <span className="truncate text-[12px] leading-4 text-ink-3">{last.title}</span>
-      ) : null}
-    </span>
+      {/* Row 1: The status pill */}
+      {status ? (
+        <StatusLabel status={status} />
+      ) : (
+        <span className="text-ink-3 text-[12px]">Starting...</span>
+      )}
+      {/* Row 2: Open investigation link button */}
+      <Link
+        href={investigationHref(id)}
+        prefetch={true}
+        className="inline-flex items-center gap-1 text-[12px] font-[580] text-ink transition-colors hover:text-signal"
+      >
+        <span>Open investigation</span>
+        <span aria-hidden="true">&rarr;</span>
+      </Link>
+    </div>
   );
 }

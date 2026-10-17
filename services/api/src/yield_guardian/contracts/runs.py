@@ -195,6 +195,9 @@ class DrawnRunCreate(Contract):
 class UploadRunCreate(Contract):
     source: Literal["upload"]
     upload_id: UploadId
+    wafer_upload_id: UploadId | None = Field(
+        None, description="Optional secondary upload (e.g. wafer maps to run alongside sensors)."
+    )
 
 
 RunCreatePayload = (

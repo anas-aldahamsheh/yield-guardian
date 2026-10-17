@@ -1,8 +1,9 @@
 "use client";
 
 import type { RunCreate } from "@yield-guardian/contracts";
-import { CircleAlertIcon, FileUpIcon, ListChecksIcon, PaintbrushIcon, XIcon } from "lucide-react";
+import { CircleAlertIcon, FileUpIcon, InfoIcon, ListChecksIcon, PaintbrushIcon, XIcon } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   type CSSProperties,
   type ComponentType,
@@ -41,19 +42,19 @@ const WAYS: {
   {
     way: "case",
     label: "Pick a case",
-    hint: "Real situations, or units, wafers and lots by hand",
+    hint: "Real chamber (SECOM) and wafer (WM-811K) scenarios or custom items",
     Icon: ListChecksIcon,
   },
   {
     way: "draw",
     label: "Draw a defect",
-    hint: "Paint failing dies on a real wafer layout",
+    hint: "Paint failing dies on a real wafer layout (Tests Station 3)",
     Icon: PaintbrushIcon,
   },
   {
     way: "upload",
-    label: "Upload a file",
-    hint: "CSV or XLSX: sensor units or wafer maps",
+    label: "Upload fab data",
+    hint: "Chamber sensor telemetry (Station 2) or optical wafer maps (Station 3)",
     Icon: FileUpIcon,
   },
 ];
@@ -136,19 +137,32 @@ export function InputBar({
               onClick={() => void onStart({ source: "sample", seed: null })}
               disabled={starting}
               aria-describedby={noteId}
-              className="group press lift sheen-hover magnetic inline-flex h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-ink pr-7 pl-5 text-[16px] font-[600] tracking-[-0.005em] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),0_14px_30px_-14px_rgb(17_22_32/0.55),inset_0_1px_0_rgb(255_255_255/0.14)] disabled:opacity-70"
+              className="group press lift sheen-hover magnetic inline-flex h-14 shrink-0 cursor-pointer items-center justify-center gap-3 rounded-full bg-ink pr-7 pl-5 text-[16px] font-[600] tracking-[-0.005em] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),0_14px_30px_-14px_rgb(17_22_32/0.55),inset_0_1px_0_rgb(255_255_255/0.14)] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <SampleGlyph working={starting} />
-              {starting ? "Starting the run" : "Try a real sample"}
+              {starting ? "Starting live run..." : "Run Random Real Sample"}
             </button>
           </div>
-          <p id={noteId} className="max-w-[52ch] text-[13.5px] leading-5 text-ink-2">
-            A real sample is a run of consecutive SECOM units, drawn at random among windows with
-            at least one recorded failure, and one{" "}
-            <span className="whitespace-nowrap">WM-811K</span> lot, drawn at random among lots in
-            which every wafer has a recorded label. The rule and its seed are shown with the run, so the same
-            sample can be run again.
-          </p>
+          <div className="flex items-center gap-2.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Benchmark stream information"
+                  className="press inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-hairline-strong bg-surface text-ink-3 shadow-2xs hover:bg-surface-2 hover:text-ink transition-colors cursor-pointer"
+                >
+                  <InfoIcon className="size-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-[340px] p-3 text-[12.5px] leading-relaxed font-sans text-ink bg-surface border border-hairline shadow-float">
+                <p className="font-semibold text-ink mb-1">Dual-Stream Benchmark</p>
+                Runs both fab data streams concurrently: 40 units of physical tool chamber telemetry (590 sensor channels) for Station 2, and 25 optical wafer defect inspection maps for Station 3.
+              </TooltipContent>
+            </Tooltip>
+            <span className="text-[12.5px] text-ink-3 hidden sm:inline">
+              SECOM (590 sensors) &bull; WM-811K (wafer maps)
+            </span>
+          </div>
         </div>
         <div className="mt-5 grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-[18px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline-strong),var(--highlight)] sm:grid-cols-3">
           {WAYS.map(({ way, label, hint, Icon }, i) => {
@@ -163,7 +177,7 @@ export function InputBar({
                 aria-describedby={`${noteId}-${way}-hint`}
                 onClick={() => onOpen(isOpen ? null : way)}
                 className={cn(
-                  "group/way glow relative flex min-w-0 items-start gap-3 px-4 py-3.5 text-left transition-colors duration-(--dur-1) outline-none hover:bg-surface-2 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-signal sm:flex-col sm:gap-2.5 sm:px-5 sm:py-4",
+                  "group/way glow relative flex min-w-0 cursor-pointer items-start gap-3 px-4 py-3.5 text-left transition-colors duration-(--dur-1) outline-none hover:bg-surface-2 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-signal sm:flex-col sm:gap-2.5 sm:px-5 sm:py-4",
                   i > 0 &&
                     "shadow-[inset_0_1px_0_var(--hairline)] sm:shadow-[inset_1px_0_0_var(--hairline)]",
                 )}
@@ -314,7 +328,7 @@ function WayPanel({
         <button
           type="button"
           onClick={onClose}
-          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
+          className="press inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
         >
           <XIcon aria-hidden="true" className="size-4" strokeWidth={2} />
           Close

@@ -146,7 +146,7 @@ describe("the wafer test sentence", () => {
       "5 of 6 wafers show a defect pattern, most often Loc (2).",
     );
     expect(sentence(["Loc", "Scratch", "Donut", "Random"])).toContain(
-      "most often Donut, Loc, Random and Scratch (1 each).",
+      "most often Donut, Heavy scatter, Loc and Scratch (1 each).",
     );
     expect(sentence([])).toContain("; none of the 6 wafers shows a defect pattern.");
   });

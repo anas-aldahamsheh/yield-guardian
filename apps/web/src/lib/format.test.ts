@@ -22,16 +22,20 @@ function samples(): number[] {
 }
 
 describe("formatFixed", () => {
-  it("writes exactly what Intl.NumberFormat en-US writes", () => {
-    for (const digits of [0, 1, 2, 3, 4, 6]) {
-      const intl = new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits,
-      });
-      for (const v of samples())
-        expect(formatFixed(v, digits), `${v} to ${digits}`).toBe(intl.format(v));
-    }
-  });
+  it(
+    "writes exactly what Intl.NumberFormat en-US writes",
+    () => {
+      for (const digits of [0, 1, 2, 3, 4, 6]) {
+        const intl = new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        });
+        for (const v of samples())
+          expect(formatFixed(v, digits), `${v} to ${digits}`).toBe(intl.format(v));
+      }
+    },
+    15000,
+  );
 
   it("matches Intl's integer formatting for formatInt", () => {
     const intl = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });

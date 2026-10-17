@@ -15,7 +15,6 @@ import { useApi } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
 import { useStartInvestigation } from "@/lib/api/investigations";
 import { q } from "@/lib/api/queries";
-import { useSession, useStartGuestSession } from "@/lib/api/session";
 import {
   formatInt,
   formatPlantTime,
@@ -253,16 +252,7 @@ function UnitRecords({ unit: u }: { unit: UnitDetail }) {
 }
 
 function InvestigateUnit({ unit }: { unit: UnitDetail }) {
-  const { canAct } = useSession();
-  const guest = useStartGuestSession();
   const start = useStartInvestigation();
-  if (!canAct) {
-    return (
-      <Button variant="outline" onClick={() => guest.mutate()} disabled={guest.isPending}>
-        {guest.isPending ? "Signing in…" : "Try as engineer to investigate"}
-      </Button>
-    );
-  }
   return (
     <Button
       onClick={() => start.mutate({ kind: "unit", ref: String(unit.unit_id) })}
