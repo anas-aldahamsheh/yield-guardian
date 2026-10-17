@@ -372,10 +372,9 @@ export function LinePage({
     go({ ...url, station: 2, focus: { kind: "unit", index }, alarm: null }, "replace");
   };
   // The server keeps the link too (the investigation's trigger names the alarm), so a reload or
-  // another device shows it; the URL keeps the alarm it was started from.
+  // another device shows it. The page stays where it is: starting one does not change the tab.
   const linked = (alarmId: string, investigation: Investigation) => {
     run.linkInvestigation(alarmId, investigation.investigation_id, investigation.status);
-    if (url.runId) go({ ...url, alarm: alarmId }, "replace");
   };
   const newRun = () => {
     go({ runId: null, station: null, focus: null, alarm: null }, "push");
