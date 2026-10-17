@@ -12,11 +12,10 @@ import { PageFrame } from "@/components/page";
 import type { HowAnchor } from "@/lib/routes";
 
 import { Disclosure } from "./disclosure";
-import { ExpertsNav } from "./experts-nav";
 import { SecomMethods, WaferMethods } from "./method-tracks";
 import { HowIntro } from "./intro";
 import { SavingsCalculator } from "./savings-calculator";
-import { type RailItem, SectionRail } from "./section-rail";
+import { type RailItem, SectionMenu, SectionRail } from "./section-rail";
 
 const EXPERT_SECTIONS: { id: HowAnchor; label: string }[] = [
   { id: "results", label: "Measured results" },
@@ -52,6 +51,7 @@ export function HowView() {
     <PageFrame className="pt-10">
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_240px] lg:gap-12 xl:gap-16">
         <div className="min-w-0">
+          <SectionMenu items={RAIL} />
           <HowIntro />
 
           <section
@@ -74,7 +74,6 @@ export function HowView() {
                 was measured on. Findings are associations in historical data, not causes.
               </p>
             </header>
-            <ExpertsNav sections={EXPERT_SECTIONS} />
 
             <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-20 sm:gap-24">
               <Section
