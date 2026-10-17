@@ -37,7 +37,8 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="max-w-[38ch] text-[13px] leading-relaxed text-ink-2">
-              Autonomous root-cause analysis and excursion triage engine for semiconductor wafer fabrication.
+              Autonomous root-cause analysis and excursion triage engine for semiconductor wafer
+              fabrication.
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-2.5 py-1 text-[11.5px] font-medium text-ink-2">
@@ -81,10 +82,10 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link
-                  href={howHref("limits")}
+                  href={howHref("methods")}
                   className="text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
                 >
-                  Scientific Limits
+                  Methods
                 </Link>
               </li>
             </ul>
@@ -131,15 +132,15 @@ export function SiteFooter() {
             </h4>
             <div className="rounded-[14px] border border-hairline/80 bg-surface/60 p-3.5 text-[12px] leading-relaxed text-ink-2">
               <p>
-                Findings represent statistical associations in historical fab telemetry, not physical causes.
-                All corrective actions require engineer sign-off.
+                Findings represent statistical associations in historical fab telemetry, not
+                physical causes. All corrective actions require engineer sign-off.
               </p>
               <div className="mt-2.5">
                 <Link
-                  href={howHref("limits")}
+                  href={howHref("methods")}
                   className="inline-flex items-center gap-1 text-[11.5px] font-medium text-ink underline decoration-hairline-strong underline-offset-2 hover:decoration-ink"
                 >
-                  Read methodology &amp; limits
+                  Read the methodology
                   <ExternalLinkIcon className="size-3" />
                 </Link>
               </div>

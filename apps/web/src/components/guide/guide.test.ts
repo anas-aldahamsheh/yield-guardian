@@ -4,7 +4,6 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { type Block, CATEGORIES, ENTRIES, SHOT_SLOTS } from "./guide-content";
-import { matchEntries, normalizeArabic } from "./guide-view";
 
 describe("guide content", () => {
   it("gives every entry a unique id and a known category", () => {
@@ -12,6 +11,11 @@ describe("guide content", () => {
     expect(new Set(ids).size).toBe(ids.length);
     const categories = new Set(CATEGORIES.map((c) => c.id));
     for (const e of ENTRIES) expect(categories.has(e.category), e.id).toBe(true);
+  });
+
+  it("is English only", () => {
+    const text = JSON.stringify({ CATEGORIES, ENTRIES });
+    expect(text).not.toMatch(/[\u0600-\u06FF]/);
   });
 
   it("has at least one entry in every category", () => {
@@ -47,13 +51,13 @@ describe("guide content", () => {
         }
   });
 
-  it("gives every screenshot a unique id, a caption and Arabic alt text", () => {
+  it("gives every screenshot a unique id, a caption and alt text", () => {
     const ids = SHOT_SLOTS.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(SHOT_SLOTS.length).toBeGreaterThan(0);
     for (const s of SHOT_SLOTS) {
       expect(s.caption.length, s.id).toBeGreaterThan(0);
-      expect(s.alt, s.id).toMatch(/[\u0600-\u06FF]/);
+      expect(s.alt.length, s.id).toBeGreaterThan(0);
       expect(s.alt, s.id).not.toBe(s.caption);
     }
   });
@@ -88,19 +92,3 @@ function webpSize(b: Buffer): { width: number; height: number } {
   if (chunk === "VP8X") return { width: 1 + b.readUIntLE(24, 3), height: 1 + b.readUIntLE(27, 3) };
   return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
 }
-
-describe("guide search", () => {
-  it("treats alef forms, ta marbuta and diacritics as the same letter", () => {
-    expect(normalizeArabic("الإنذارُ")).toBe(normalizeArabic("الانذار"));
-    expect(normalizeArabic("الدفعة")).toBe(normalizeArabic("الدفعه"));
-  });
-
-  it("finds entries by any form of a word and needs every word", () => {
-    expect(matchEntries(ENTRIES, "انذار").length).toBeGreaterThan(0);
-    expect(matchEntries(ENTRIES, "Investigate").some((e) => e.id === "guide-investigate")).toBe(
-      true,
-    );
-    expect(matchEntries(ENTRIES, "Investigate zzzz")).toHaveLength(0);
-    expect(matchEntries(ENTRIES, "   ")).toHaveLength(ENTRIES.length);
-  });
-});

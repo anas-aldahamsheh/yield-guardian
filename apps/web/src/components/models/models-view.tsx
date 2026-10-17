@@ -51,7 +51,7 @@ export function AdminView() {
     <PageFrame>
       <PageHeader
         title="Model roles"
-        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. The models run on AMD Token Factory. Only an admin can change a role."
+        description="Which model does each job in investigations and chat, how the candidates were evaluated, and what today's calls used. Every role runs on Claude Haiku 5.5 (Anthropic). Only an admin can change a role."
       />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
         <Panel
@@ -119,7 +119,7 @@ export function AdminView() {
 }
 
 /**
- * The language-model roles on AMD, for How it works: the model behind each job and how it
+ * The language-model roles, for How it works: the model behind each job and how it
  * scored on its evaluation, with the measured latency. Read only; roles change on the admin page.
  */
 export function AiRoles() {
@@ -131,7 +131,7 @@ export function AiRoles() {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-street">
       <Panel
         title="Language-model roles"
-        description="One model per job, with the fallbacks tried when it is unavailable. All of them run on AMD Token Factory."
+        description="The model behind each job. Every role runs on Claude Haiku 5.5 (Anthropic)."
         bodyClassName="px-0 sm:px-0"
       >
         <QueryView

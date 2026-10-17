@@ -595,6 +595,9 @@
    * right to left. Without scroll-driven animations, or under reduced motion, the line is lit.
    */
   .how-fill-x {
+    transform-origin: 0 50%;
+  }
+  [dir="rtl"] .how-fill-x {
     transform-origin: 100% 50%;
   }
   .how-fill-y {

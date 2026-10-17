@@ -83,11 +83,11 @@ export function workOrderHref(workOrderId: string, investigationId?: string | nu
 
 export const workOrdersHref = () => "/investigations?tab=work-orders";
 
-/** The sections of How it works: the plain Arabic part, then the expert part, then the guide. */
+/** The sections of How it works: the plain introduction, then the expert part, then the guide. */
 export const HOW_ANCHORS = [
+  "intro",
   "what",
   "sources",
-  "limits",
   "experts",
   "results",
   "models",

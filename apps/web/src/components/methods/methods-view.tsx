@@ -18,7 +18,6 @@ import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatCompact, formatInt } from "@/lib/format";
 
-import { Limitations } from "./limitations";
 import { ScrollRegion } from "@/components/scroll-region";
 
 /** The model cards are Markdown; its renderer loads when the model cards first open. */
@@ -48,7 +47,7 @@ export function MeasuredResults() {
   );
 }
 
-/** The datasets with their sources, licences and checksums, the bundles the API loaded, and the product's limitations. */
+/** The datasets with their sources, licences and checksums, and the bundles the API loaded. */
 export function DataProvenance() {
   const api = useApi();
   const overview = useQuery(q.methods(api));
@@ -241,7 +240,6 @@ function Provenance({ data }: { data: MethodsOverview }) {
           </table>
         </ScrollRegion>
       </Panel>
-      <Limitations items={data.limitations} title="Limitations of the product" />
     </div>
   );
 }
