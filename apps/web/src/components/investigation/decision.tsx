@@ -4,7 +4,7 @@ import { LocalDateTime } from "@/components/local-date-time";
 import type { Investigation, Report } from "@yield-guardian/contracts";
 import { ArrowRightIcon, CheckCircle2Icon, HistoryIcon, WrenchIcon } from "lucide-react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { useEntrance } from "@/components/motion/entrance";
 
@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { describeError } from "@/lib/api/errors";
 import { useDecideInvestigation } from "@/lib/api/investigations";
 import { useSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
@@ -54,6 +55,15 @@ export function DecisionActions({
   const decision = investigation.decision;
   // A decision made here comes in; one the page arrived with is simply there.
   const entrance = useEntrance();
+  // A decision made here is brought into view, so the engineer sees what it did and the next step.
+  const doneRef = useRef<HTMLDivElement>(null);
+  const hadDecision = useRef(decision != null);
+  useEffect(() => {
+    if (decision && !hadDecision.current) {
+      hadDecision.current = true;
+      doneRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [decision]);
 
   const toggle = (i: number) =>
     setChosen((prev) => {
@@ -110,6 +120,8 @@ export function DecisionActions({
 
       {decision ? (
         <div
+          ref={doneRef}
+          role="status"
           className={cn(
             entrance && "swap-in",
             "mt-8 overflow-hidden rounded-[18px] border p-5 shadow-xs transition-colors",
@@ -133,8 +145,10 @@ export function DecisionActions({
                 <div className="flex items-center gap-2">
                   <h4 className="text-[16px] font-[650] text-ink">
                     {decision.verdict === "approve"
-                      ? `Engineering Approval Signed (${plural(decision.actions.length, "action")})`
-                      : "Investigation Report Rejected"}
+                      ? investigation.work_order_id
+                        ? `Approved · Work order ${investigation.work_order_id} opened`
+                        : `Approved (${plural(decision.actions.length, "action")})`
+                      : "Rejected · no work order"}
                   </h4>
                   {decision.verdict === "approve" ? (
                     <span className="rounded-full bg-pass/10 px-2 py-0.5 text-[10.5px] font-semibold text-pass uppercase">
@@ -154,17 +168,22 @@ export function DecisionActions({
               </div>
             </div>
 
-            {investigation.work_order_id ? (
-              <Button asChild size="default" className="gap-2 shadow-xs font-[580] shrink-0">
-                <Link
-                  href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
-                >
-                  <WrenchIcon className="size-4" />
-                  Work Order {investigation.work_order_id}
-                  <ArrowRightIcon className="size-3.5" />
-                </Link>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {investigation.work_order_id ? (
+                <Button asChild size="default" className="gap-2 shadow-xs font-[580]">
+                  <Link
+                    href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
+                  >
+                    <WrenchIcon className="size-4" />
+                    Open work order
+                    <ArrowRightIcon className="size-3.5" />
+                  </Link>
+                </Button>
+              ) : null}
+              <Button asChild variant="outline">
+                <Link href={lineHref()}>Back to the line</Link>
               </Button>
-            ) : null}
+            </div>
           </div>
         </div>
       ) : investigation.status === "awaiting_decision" && example ? (
@@ -248,6 +267,12 @@ export function DecisionActions({
               Approving opens one work order with the chosen actions.
             </p>
           </div>
+          {decide.isError ? (
+            <p role="alert" className="text-[13.5px] leading-5 text-fail">
+              {describeError(decide.error).title}
+              {describeError(decide.error).detail ? `: ${describeError(decide.error).detail}` : ""}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
