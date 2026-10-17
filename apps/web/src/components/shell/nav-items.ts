@@ -13,6 +13,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: "Investigations",
     hint: "Reports with evidence, decisions and work orders",
   },
+  { href: "/work-orders", label: "Work orders", hint: "Approved actions, their status and the audit log" },
   { href: "/history", label: "Workspace", hint: "Saved runs, comparisons and workspace" },
   { href: "/how", label: "How it works", hint: "Plain words, the measured results and the guide" },
 ];

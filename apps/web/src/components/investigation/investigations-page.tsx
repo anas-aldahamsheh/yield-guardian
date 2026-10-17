@@ -17,7 +17,7 @@ export type InvestigationsTab = "investigations" | "work-orders";
 
 const TABS: { id: InvestigationsTab; label: string; href: string }[] = [
   { id: "investigations", label: "Investigations", href: "/investigations" },
-  { id: "work-orders", label: "Work orders", href: "/investigations?tab=work-orders" },
+  { id: "work-orders", label: "Work orders", href: "/work-orders" },
 ];
 
 /**

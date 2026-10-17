@@ -366,7 +366,7 @@ function UpdatePanel({
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
           <Label htmlFor="wo-note">Note</Label>
-          <Textarea
+          <Textarea dir="auto"
             id="wo-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -377,7 +377,7 @@ function UpdatePanel({
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
           <Label htmlFor="wo-outcome">Outcome</Label>
-          <Textarea
+          <Textarea dir="auto"
             id="wo-outcome"
             value={outcome}
             onChange={(e) => setOutcome(e.target.value)}
@@ -488,7 +488,7 @@ function CauseEditor({
       </p>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
         <Label htmlFor="wo-cause">What caused it</Label>
-        <Textarea
+        <Textarea dir="auto"
           id="wo-cause"
           value={text}
           onChange={(e) => onText(e.target.value)}

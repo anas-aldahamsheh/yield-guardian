@@ -75,13 +75,10 @@ export const WORK_ORDER_ANCHOR = "work-order";
  */
 export function workOrderHref(workOrderId: string, investigationId?: string | null): string {
   if (investigationId) return `${investigationHref(investigationId)}#${WORK_ORDER_ANCHOR}`;
-  return withQuery(
-    "/investigations",
-    new URLSearchParams({ tab: "work-orders", order: workOrderId }),
-  );
+  return withQuery("/work-orders", new URLSearchParams({ order: workOrderId }));
 }
 
-export const workOrdersHref = () => "/investigations?tab=work-orders";
+export const workOrdersHref = () => "/work-orders";
 
 /** The sections of How it works: the plain introduction, then the expert part, then the guide. */
 export const HOW_ANCHORS = [
@@ -135,7 +132,6 @@ export function legacyRedirect(pathname: string, search: URLSearchParams): strin
   }
   if (path === "/lots") return at("/", { station: "3" });
   if (path === "/sensors") return at("/", { station: "2" });
-  if (path === "/work-orders") return at("/investigations", { tab: "work-orders" });
   if (path === "/models") return withQuery("/how", params) + "#models";
   if (path === "/methods") return withQuery("/how", params) + "#methods";
   if (path === "/guide") return withQuery("/how", params) + "#guide";
@@ -147,7 +143,7 @@ export function legacyRedirect(pathname: string, search: URLSearchParams): strin
   const unit = segment("/units");
   if (unit != null) return at("/", { pick: `unit:${unit}` });
   const order = segment("/work-orders");
-  if (order != null) return at("/investigations", { tab: "work-orders", order });
+  if (order != null) return at("/work-orders", { order });
   return null;
 }
 

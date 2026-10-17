@@ -58,7 +58,6 @@ export const config = {
     { source: "/lots/:path*" },
     { source: "/units/:path*" },
     { source: "/sensors" },
-    { source: "/work-orders" },
     { source: "/models" },
     { source: "/methods" },
     { source: "/guide" },

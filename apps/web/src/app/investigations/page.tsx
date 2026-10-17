@@ -1,5 +1,6 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import {
   InvestigationsPage,
@@ -8,7 +9,7 @@ import {
 import { DirectionalPage } from "@/components/page-transition";
 import { q } from "@/lib/api/queries";
 import { serverApi, serverQueryClient } from "@/lib/api/server";
-import { isWorkOrderId } from "@/lib/routes";
+import { workOrderHref } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Investigations",
@@ -22,23 +23,17 @@ export default async function InvestigationsRoute({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const tab: InvestigationsTab = params.tab === "work-orders" ? "work-orders" : "investigations";
-  const order =
-    typeof params.order === "string" && isWorkOrderId(params.order) ? params.order : null;
+  // Work orders have their own page now.
+  if (params.tab === "work-orders")
+    redirect(typeof params.order === "string" ? workOrderHref(params.order) : "/work-orders");
+  const tab: InvestigationsTab = "investigations";
   const api = await serverApi();
   const client = serverQueryClient();
-  if (tab === "work-orders") {
-    await Promise.all([
-      client.prefetchInfiniteQuery(q.workOrderPages(api)),
-      order ? client.prefetchQuery(q.workOrder(api, order)) : null,
-    ]);
-  } else {
-    await client.prefetchInfiniteQuery(q.investigationPages(api));
-  }
+  await client.prefetchInfiniteQuery(q.investigationPages(api));
   return (
     <DirectionalPage>
       <HydrationBoundary state={dehydrate(client)}>
-        <InvestigationsPage tab={tab} order={tab === "work-orders" ? order : null} />
+        <InvestigationsPage tab={tab} order={null} />
       </HydrationBoundary>
     </DirectionalPage>
   );

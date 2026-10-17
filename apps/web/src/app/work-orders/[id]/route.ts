@@ -10,7 +10,7 @@ import { isWorkOrderId, legacyRedirect, workOrderHref } from "@/lib/routes";
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const url = new URL(request.url);
-  let target = legacyRedirect(url.pathname, url.searchParams) ?? "/investigations?tab=work-orders";
+  let target = legacyRedirect(url.pathname, url.searchParams) ?? "/work-orders";
   if (isWorkOrderId(id)) {
     try {
       const api = await serverApi();
