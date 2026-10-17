@@ -39,7 +39,7 @@ const RAIL: readonly RailItem[] = [
     level: 1 as const,
   })),
   { id: "guide", label: "User guide", level: 0 },
-  ...CATEGORIES.map((c) => ({ id: guideCategoryId(c.id), label: c.label, level: 1 as const })),
+  ...CATEGORIES.filter((c) => c.id !== "calculator").map((c) => ({ id: guideCategoryId(c.id), label: c.label, level: 1 as const })),
 ];
 
 /**
@@ -50,7 +50,7 @@ const RAIL: readonly RailItem[] = [
 export function HowView() {
   return (
     <PageFrame className="pt-10">
-      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_200px] lg:gap-12 xl:gap-16">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_240px] lg:gap-12 xl:gap-16">
         <div className="min-w-0">
           <HowIntro />
 

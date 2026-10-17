@@ -50,45 +50,85 @@ export function SectionRail({ items }: { items: readonly RailItem[] }) {
     setCurrent(id);
   };
 
+  // Groups: a top-level section and the sections under it. Only the group being read is open.
+  const groups: { head: RailItem; children: RailItem[] }[] = [];
+  for (const s of items) {
+    if (s.level === 0 || groups.length === 0) groups.push({ head: s, children: [] });
+    else groups[groups.length - 1]!.children.push(s);
+  }
+  const openGroup =
+    groups.find((g) => g.head.id === current || g.children.some((c) => c.id === current)) ??
+    groups[0];
+  const tint = "bg-[color-mix(in_oklab,var(--signal)_12%,transparent)]";
+
   return (
     <nav
       aria-label="On this page"
-      className="sticky top-[calc(var(--bar-height)+32px)] max-h-[calc(100dvh-var(--bar-height)-64px)] [scrollbar-width:none] overflow-y-auto"
+      className="sticky top-[calc(var(--bar-height)+32px)] max-h-[calc(100dvh-var(--bar-height)-64px)] [scrollbar-width:none] overflow-y-auto rounded-[22px] bg-surface p-3 shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)]"
     >
-      <span aria-hidden="true" className="absolute top-3 bottom-3 left-[5px] w-px bg-hairline" />
-      <ol className="relative grid gap-0.5">
-        {items.map((s) => {
-          const active = s.id === current;
+      <p className="px-2.5 pt-1 pb-2.5 text-[12px] leading-4 font-[560] text-ink-3">On this page</p>
+      <ol className="grid gap-1">
+        {groups.map((g, gi) => {
+          const open = g === openGroup;
+          const headActive = g.head.id === current;
           return (
-            <li key={s.id} className="relative">
+            <li key={g.head.id}>
               <a
-                href={`#${s.id}`}
-                onClick={(e) => go(e, s.id)}
-                aria-current={active ? "location" : undefined}
+                href={`#${g.head.id}`}
+                onClick={(e) => go(e, g.head.id)}
+                aria-current={headActive ? "location" : undefined}
+                aria-expanded={g.children.length ? open : undefined}
                 className={cn(
-                  "group flex items-center gap-3 py-1 no-underline transition-colors duration-(--dur-1)",
-                  s.level === 0
-                    ? "text-[13px] leading-5 font-[600]"
-                    : "text-[12.5px] leading-5 font-[480]",
-                  active ? "text-ink" : "text-ink-3 hover:text-ink",
+                  "flex items-center gap-2.5 rounded-[12px] px-2.5 py-2 text-[13.5px] leading-5 font-[620] no-underline transition-colors duration-(--dur-2)",
+                  open ? "text-ink" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
+                  headActive && tint,
                 )}
               >
                 <span
                   aria-hidden="true"
-                  className="relative z-[1] grid size-[11px] shrink-0 place-items-center rounded-full bg-canvas"
+                  className={cn(
+                    "tnum grid size-5 shrink-0 place-items-center rounded-full text-[11px] leading-none font-[640] transition-colors duration-(--dur-2)",
+                    open
+                      ? "bg-[var(--signal)] text-white"
+                      : "text-ink-3 shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]",
+                  )}
                 >
-                  <span
-                    className={cn(
-                      "rounded-full transition-[background-color,box-shadow,width,height] duration-(--dur-2)",
-                      s.level === 0 ? "size-[9px]" : "size-[7px]",
-                      active
-                        ? "bg-[var(--signal)] shadow-[0_0_0_3px_var(--signal-wash)]"
-                        : "bg-canvas shadow-[inset_0_0_0_1.5px_var(--hairline-strong)] group-hover:shadow-[inset_0_0_0_1.5px_var(--ink-3)]",
-                    )}
-                  />
+                  {gi + 1}
                 </span>
-                <span className={cn("min-w-0 truncate", s.level === 1 && "ps-1")}>{s.label}</span>
+                {g.head.label}
               </a>
+              {g.children.length ? (
+                <div
+                  className={cn(
+                    "grid transition-[grid-template-rows,opacity] duration-(--dur-3) ease-out motion-reduce:transition-none",
+                    open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                  )}
+                >
+                  <ol className="ms-[19px] min-h-0 overflow-hidden border-s border-hairline">
+                    {g.children.map((c) => {
+                      const active = c.id === current;
+                      return (
+                        <li key={c.id} className="py-px">
+                          <a
+                            href={`#${c.id}`}
+                            onClick={(e) => go(e, c.id)}
+                            tabIndex={open ? undefined : -1}
+                            aria-current={active ? "location" : undefined}
+                            className={cn(
+                              "-ms-px block rounded-e-[10px] border-s-2 py-1.5 ps-3.5 pe-2 text-[13px] leading-5 no-underline transition-[color,background-color,border-color] duration-(--dur-2)",
+                              active
+                                ? cn("border-[var(--signal)] font-[580] text-[var(--signal)]", tint)
+                                : "border-transparent font-[460] text-ink-2 hover:text-ink",
+                            )}
+                          >
+                            {c.label}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              ) : null}
             </li>
           );
         })}
