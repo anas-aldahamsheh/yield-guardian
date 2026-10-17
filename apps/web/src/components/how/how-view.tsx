@@ -30,6 +30,7 @@ const EXPERT_SECTIONS: { id: HowAnchor; label: string }[] = [
 const RAIL: readonly RailItem[] = [
   { id: "intro", label: "Introduction", level: 0 },
   { id: "what", label: "What it does", level: 1 },
+  { id: "inputs", label: "Two kinds of input", level: 1 },
   { id: "sources", label: "Where the data comes from", level: 1 },
   { id: "experts", label: "For experts", level: 0 },
   ...EXPERT_SECTIONS.filter((s) => s.id !== "guide").map((s) => ({

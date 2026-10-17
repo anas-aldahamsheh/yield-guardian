@@ -162,6 +162,56 @@ export function HowIntro() {
         </ol>
       </section>
 
+      <section id="inputs" aria-labelledby="inputs-title" className={SECTION}>
+        <h2 id="inputs-title" className={H2}>
+          Two kinds of input
+        </h2>
+        <p className="mt-4 max-w-[66ch] text-[17px] leading-7 text-ink-2">
+          Everything the line reads is one of two kinds. Each kind has its own data, its own models
+          and its own file layout, and both run down the same five stations.
+        </p>
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
+          <div className="glow panel p-6">
+            <SourceGlyph kind="sensors" />
+            <h3 className="mt-5 text-[20px] leading-7 font-[630] text-ink">Sensor units</h3>
+            <p className="mt-1 text-[16px] leading-7 text-ink-2">
+              A unit is one product as it passes through the process, with up to 590 sensor
+              readings taken along the way and the time it was made.
+            </p>
+            <ul className="mt-4 grid gap-3 text-[16px] leading-7 text-ink">
+              <Point title="What it tells you">
+                The risk that the unit fails its final test, which sensors drifted or went out of
+                their control limits, and which sensors look unhealthy.
+              </Point>
+              <Point title="Trained on">SECOM, real units from a semiconductor fab.</Point>
+              <Point title="Your file">
+                One row per unit: unit_id, timestamp, S001 to S590, and the result (pass or fail) if
+                you have it.
+              </Point>
+            </ul>
+          </div>
+          <div className="glow panel p-6">
+            <SourceGlyph kind="wafers" />
+            <h3 className="mt-5 text-[20px] leading-7 font-[630] text-ink">Wafer maps</h3>
+            <p className="mt-1 text-[16px] leading-7 text-ink-2">
+              A wafer map is the test result of every die on one wafer, good or failed, laid out in
+              its place on the wafer. The shape the failed dies make points to the cause.
+            </p>
+            <ul className="mt-4 grid gap-3 text-[16px] leading-7 text-ink">
+              <Point title="What it tells you">
+                The defect pattern, such as an edge ring, a scratch or a centre cluster, whether the
+                pattern is one the model has not seen, and the most similar real wafers.
+              </Point>
+              <Point title="Trained on">WM-811K, real wafer maps from real fabs.</Point>
+              <Point title="Your file">
+                One row per die: lot, wafer, x, y and the result (pass or fail). You can also draw a
+                defect on a wafer yourself.
+              </Point>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="sources" aria-labelledby="sources-title" className={SECTION}>
         <h2 id="sources-title" className={H2}>
           Where the data comes from
