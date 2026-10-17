@@ -168,21 +168,22 @@ export function DecisionActions({
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-wrap gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
               {investigation.work_order_id ? (
                 <Button asChild size="default" className="gap-2 shadow-xs font-[580]">
-                  <Link
-                    href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
-                  >
+                  <Link href={workOrderHref(investigation.work_order_id)}>
                     <WrenchIcon className="size-4" />
-                    Open work order
+                    Open work order {investigation.work_order_id}
                     <ArrowRightIcon className="size-3.5" />
                   </Link>
                 </Button>
-              ) : null}
-              <Button asChild variant="outline">
-                <Link href={lineHref()}>Back to the line</Link>
-              </Button>
+              ) : decision.verdict === "approve" && investigation.status === "awaiting_decision" ? (
+                <span className="text-[13.5px] text-ink-2">Opening the work order…</span>
+              ) : (
+                <Button asChild variant="outline">
+                  <Link href={lineHref()}>Back to the line</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

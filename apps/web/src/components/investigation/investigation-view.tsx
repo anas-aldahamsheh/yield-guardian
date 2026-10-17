@@ -50,7 +50,12 @@ export function InvestigationView({ id }: { id: string }) {
     ...q.investigation(api, id),
     // The event stream can stall behind a proxy; re-read the stored run while it is live.
     refetchInterval: (state) =>
-      state.state.data && LIVE_STATUSES.has(state.state.data.status) ? 3000 : false,
+      state.state.data &&
+      (LIVE_STATUSES.has(state.state.data.status) ||
+        // Decided, while the work order is still being opened.
+        (state.state.data.decision != null && state.state.data.status === "awaiting_decision"))
+        ? 1500
+        : false,
   });
   const { replay, state, startReplay } = useInvestigationStream(query.data);
   const [selection, setSelection] = useState<EvidenceSelection | null>(null);
