@@ -10,6 +10,17 @@ import { useEntrance } from "@/components/motion/entrance";
 import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { Tag } from "@/components/tag";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +32,7 @@ import {
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt } from "@/lib/format";
-import { useUpdateWorkOrder } from "@/lib/api/work-orders";
+import { useDeleteWorkOrder, useUpdateWorkOrder } from "@/lib/api/work-orders";
 import { WORK_ORDER_STATUS } from "@/lib/labels";
 import { workOrderHref, workOrdersHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -153,8 +164,11 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                     <th scope="col" className="px-3 py-3 font-[520]">
                       Outcome
                     </th>
-                    <th scope="col" className="py-3 pr-5 pl-3 text-right font-[520] sm:pr-6">
+                    <th scope="col" className="px-3 py-3 text-right font-[520]">
                       Updated
+                    </th>
+                    <th scope="col" className="py-3 pr-5 pl-1 sm:pr-6">
+                      <span className="sr-only">Delete</span>
                     </th>
                   </tr>
                 </thead>
@@ -201,8 +215,11 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                           </span>
                         )}
                       </td>
-                      <td className="tnum py-3.5 pr-5 pl-3 text-right align-top text-[13px] leading-5 text-ink-3 sm:pr-6">
+                      <td className="tnum px-3 py-3.5 text-right align-top text-[13px] leading-5 text-ink-3">
                         <LocalDateTime iso={o.updated_at} />
+                      </td>
+                      <td className="py-2.5 pr-5 pl-1 text-right align-top sm:pr-6">
+                        {o.example ? null : <DeleteOrder id={o.work_order_id} />}
                       </td>
                     </tr>
                   ))}
@@ -265,5 +282,36 @@ function StatusSelect({ order }: { order: WorkOrder }) {
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** Deletes one work order after a confirmation. */
+function DeleteOrder({ id }: { id: string }) {
+  const remove = useDeleteWorkOrder(id);
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button
+          type="button"
+          disabled={remove.isPending}
+          aria-label={`Delete ${id}`}
+          className="inline-grid size-8 cursor-pointer place-items-center rounded-full text-ink-3 transition-colors duration-(--dur-2) hover:bg-fail-wash hover:text-fail focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:outline-none disabled:opacity-50"
+        >
+          <XIcon className="size-4" />
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete {id}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            The work order is removed. Its investigation and report stay.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Keep it</AlertDialogCancel>
+          <AlertDialogAction onClick={() => remove.mutate()}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -35,3 +35,30 @@ export function useUpdateWorkOrder(workOrderId: string) {
     },
   });
 }
+
+/** Deletes a work order; its investigation stays, decided, with no work order. */
+export function useDeleteWorkOrder(workOrderId: string) {
+  const api = useApi();
+  const client = useQueryClient();
+  const { csrf } = useSession();
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await api.DELETE("/api/v1/work-orders/{work_order_id}", {
+        params: { path: { work_order_id: workOrderId } },
+        headers: csrf,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      client.removeQueries({ queryKey: ["work-orders", workOrderId] });
+      void client.invalidateQueries({ queryKey: ["work-orders", "list"] });
+      void client.invalidateQueries({ queryKey: ["investigations"] });
+      void client.invalidateQueries({ queryKey: ["audit"] });
+      toast.success("Deleted", { description: `Work order ${workOrderId} is deleted.` });
+    },
+    onError: (error) => {
+      const copy = describeError(error);
+      toast.error(copy.title, { description: copy.detail });
+    },
+  });
+}

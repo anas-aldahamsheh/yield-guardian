@@ -161,6 +161,8 @@ class WorkOrderStore(Protocol):
         self, work_order_id: str, update: WorkOrderUpdate, *, session: ActiveSession
     ) -> WorkOrder: ...
 
+    async def delete(self, work_order_id: str, *, session: ActiveSession) -> None: ...
+
 
 class AuditLog(Protocol):
     async def list(

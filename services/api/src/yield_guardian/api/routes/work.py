@@ -53,6 +53,19 @@ async def update_work_order(
     return await store.update(work_order_id, body, session=session)
 
 
+@router.delete(
+    "/work-orders/{work_order_id}",
+    operation_id="delete_work_order",
+    status_code=204,
+    responses=problem_responses(401, 403, 404, 503),
+)
+async def delete_work_order(
+    session: EngineerSession, store: WorkOrders, work_order_id: WorkOrderPath
+) -> None:
+    """Deletes the work order; its investigation stays. The example's is read-only (403)."""
+    await store.delete(work_order_id, session=session)
+
+
 @router.get("/audit", operation_id="list_audit_entries", responses=problem_responses(503))
 async def list_audit_entries(
     log: Audit,

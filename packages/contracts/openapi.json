@@ -2988,6 +2988,97 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "work orders"
+        ],
+        "summary": "Delete Work Order",
+        "description": "Deletes the work order; its investigation stays. The example's is read-only (403).",
+        "operationId": "delete_work_order",
+        "parameters": [
+          {
+            "name": "work_order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^WO-\\d{6}$",
+              "title": "Work Order Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Sign-in required"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not allowed"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not ready"
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/audit": {
@@ -3021,6 +3112,7 @@
                     "investigation.stopped",
                     "work_order.created",
                     "work_order.updated",
+                    "work_order.deleted",
                     "role.updated"
                   ],
                   "type": "string"
@@ -5910,6 +6002,7 @@
               "investigation.stopped",
               "work_order.created",
               "work_order.updated",
+              "work_order.deleted",
               "role.updated"
             ],
             "title": "Action"
@@ -6643,8 +6736,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 12000,
-                "description": "Structured text of what is currently visible on the screen."
+                "maxLength": 12000
               },
               {
                 "type": "null"
@@ -15701,6 +15793,22 @@
             "examples": [
               "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
             ]
+          },
+          "wafer_upload_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^upl_[0-9a-z]{8,40}$",
+                "examples": [
+                  "upl_01jaf3k9x2m4q7r8s0t1v2w3x4"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wafer Upload Id",
+            "description": "Optional secondary upload (e.g. wafer maps to run alongside sensors)."
           }
         },
         "additionalProperties": false,

@@ -1270,7 +1270,11 @@ export interface paths {
     get: operations["get_work_order"];
     put?: never;
     post?: never;
-    delete?: never;
+    /**
+     * Delete Work Order
+     * @description Deletes the work order; its investigation stays. The example's is read-only (403).
+     */
+    delete: operations["delete_work_order"];
     options?: never;
     head?: never;
     /**
@@ -1630,6 +1634,7 @@ export interface components {
         | "investigation.stopped"
         | "work_order.created"
         | "work_order.updated"
+        | "work_order.deleted"
         | "role.updated";
       /** Actor Name */
       actor_name: string | null;
@@ -1883,6 +1888,11 @@ export interface components {
       /** Lot */
       lot?: string | null;
       /**
+       * Page Content
+       * @description Structured text of what is currently visible on the screen.
+       */
+      page_content?: string | null;
+      /**
        * Run Alarm
        * @description An alarm of the run.
        */
@@ -1923,11 +1933,6 @@ export interface components {
       unit_id?: number | null;
       /** Wafer Id */
       wafer_id?: string | null;
-      /**
-       * Page Content
-       * @description Structured text or summary of what is currently visible on the screen.
-       */
-      page_content?: string | null;
     };
     /** ChatDoneEvent */
     ChatDoneEvent: {
@@ -5733,6 +5738,10 @@ export interface components {
        * @example upl_01jaf3k9x2m4q7r8s0t1v2w3x4
        */
       upload_id: string;
+      /**
+       * Wafer Upload Id
+       * @description Optional secondary upload (e.g. wafer maps to run alongside sensors).
+       */
       wafer_upload_id?: string | null;
     };
     /**
@@ -7078,6 +7087,7 @@ export interface operations {
               | "investigation.stopped"
               | "work_order.created"
               | "work_order.updated"
+              | "work_order.deleted"
               | "role.updated"
             )
           | null;
@@ -9923,6 +9933,73 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkOrder"];
+        };
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Invalid request */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+    };
+  };
+  delete_work_order: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-CSRF-Token"?: string | null;
+      };
+      path: {
+        work_order_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Sign-in required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
+        };
+      };
+      /** @description Not allowed */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components["schemas"]["Problem"];
         };
       };
       /** @description Not found */

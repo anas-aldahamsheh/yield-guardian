@@ -247,3 +247,33 @@ class DbWorkOrderStore:
                     {"changes": changes},
                 )
         return to_work_order(row)
+
+    async def delete(self, work_order_id: str, *, session: ActiveSession) -> None:
+        """Delete a work order of this workspace. Its investigation stays, decided, with no work
+        order. ReadOnlyError for the example's work order."""
+        async with self._sessionmaker() as db, db.begin():
+            row = await db.scalar(
+                select(WorkOrderRow)
+                .where(WorkOrderRow.work_order_id == work_order_id)
+                .with_for_update()
+            )
+            owner, example = await _owner(db, row) if row is not None else (None, False)
+            if row is None or not session.viewer.sees(owner):
+                raise NotFoundError(f"Work order {work_order_id} does not exist.")
+            if example:
+                raise ReadOnlyError(
+                    f"Work order {work_order_id} belongs to the recorded example every visitor "
+                    "sees, so nobody deletes it."
+                )
+            investigation = await db.get(InvestigationRow, row.investigation_id)
+            if investigation is not None and investigation.work_order_id == work_order_id:
+                investigation.work_order_id = None
+            await db.delete(row)
+            audit.record(
+                db,
+                audit.Actor.of(session),
+                "work_order.deleted",
+                "work_order",
+                work_order_id,
+                {"investigation_id": row.investigation_id},
+            )
