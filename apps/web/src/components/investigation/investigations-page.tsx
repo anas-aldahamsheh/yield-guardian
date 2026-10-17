@@ -1,6 +1,5 @@
 import {
   ArrowRightIcon,
-  BookOpenIcon,
   CheckCircle2Icon,
   CpuIcon,
   ShieldCheckIcon,
@@ -8,17 +7,12 @@ import {
 import Link from "next/link";
 
 import { PageFrame } from "@/components/page";
-import { ViewTabs } from "@/components/view-tabs";
 import { WorkOrdersTab } from "@/components/work-orders/work-orders-view";
 
 import { InvestigationsIndex } from "./investigations-list";
 
 export type InvestigationsTab = "investigations" | "work-orders";
 
-const TABS: { id: InvestigationsTab; label: string; href: string }[] = [
-  { id: "investigations", label: "Investigations", href: "/investigations" },
-  { id: "work-orders", label: "Work orders", href: "/work-orders" },
-];
 
 /**
  * Investigations, with its two views as address-backed tabs: the investigations grouped by
@@ -45,7 +39,7 @@ export function InvestigationsPage({
           <div className="max-w-[760px] space-y-3.5">
             {/* Main Title */}
             <h1 className="text-[28px] font-[680] tracking-tight text-ink sm:text-[34px] sm:leading-[40px]">
-              Investigations &amp; Maintenance Queue
+              {tab === "work-orders" ? "Work orders" : "Investigations"}
             </h1>
 
             {/* Subtitle */}
@@ -82,12 +76,7 @@ export function InvestigationsPage({
           </div>
         </div>
       </div>
-      <ViewTabs
-        label="Investigations views"
-        items={TABS}
-        current={tab}
-        className="mb-10 sm:mb-12"
-      />
+      <div className="mb-10 sm:mb-12" />
       {tab === "work-orders" ? <WorkOrdersTab order={order} /> : <InvestigationsIndex />}
     </PageFrame>
   );

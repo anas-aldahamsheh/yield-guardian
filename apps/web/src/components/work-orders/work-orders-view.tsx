@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt } from "@/lib/format";
+import { useUpdateWorkOrder } from "@/lib/api/work-orders";
 import { WORK_ORDER_STATUS } from "@/lib/labels";
 import { workOrderHref, workOrdersHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -176,7 +177,7 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                         </span>
                       </th>
                       <td className="px-3 py-3.5 align-top text-ink-2">
-                        <StatusMark status={o.status} />
+                        {o.example ? <StatusMark status={o.status} /> : <StatusSelect order={o} />}
                       </td>
                       <td className="px-3 py-3.5 align-top text-[13.5px] leading-5 text-ink-2">
                         {o.outcome ? (
@@ -218,5 +219,32 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
         <AuditLog />
       </div>
     </div>
+  );
+}
+
+/** The status of one work order, changed in place: the chip opens the list of statuses. */
+function StatusSelect({ order }: { order: WorkOrder }) {
+  const update = useUpdateWorkOrder(order.work_order_id);
+  const shown = update.isPending && update.variables?.status ? update.variables.status : order.status;
+  return (
+    <label className="relative inline-flex cursor-pointer items-center gap-1 rounded-full focus-within:ring-2 focus-within:ring-[var(--signal)]">
+      <span className="sr-only">Status of {order.work_order_id}</span>
+      <StatusMark status={shown} />
+      <span aria-hidden="true" className="text-[11px] text-ink-3">
+        {update.isPending ? "…" : "▾"}
+      </span>
+      <select
+        value={shown}
+        disabled={update.isPending}
+        onChange={(e) => update.mutate({ status: e.target.value as WorkOrder["status"] })}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {Object.entries(WORK_ORDER_STATUS).map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
