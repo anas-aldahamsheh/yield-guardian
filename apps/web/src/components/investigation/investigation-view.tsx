@@ -38,6 +38,7 @@ import { DecisionActions } from "./decision";
 import { Elapsed } from "./elapsed";
 import { EvidencePanel } from "./evidence-panel";
 import { type EvidenceSelection, Report } from "./report";
+import { LiveProgress } from "./live-progress";
 import { StatusLabel } from "./status-label";
 import { Steps } from "./steps";
 import { Trace } from "./trace";
@@ -53,7 +54,7 @@ export function InvestigationView({ id }: { id: string }) {
   });
   const { replay, state, startReplay } = useInvestigationStream(query.data);
   const [selection, setSelection] = useState<EvidenceSelection | null>(null);
-  const [inspectorTab, setInspectorTab] = useState<"evidence" | "run" | "trace">("evidence");
+  const [inspectorTab, setInspectorTab] = useState<"evidence" | "run" | "trace">("run");
   const evidenceRef = useRef<HTMLDivElement>(null);
 
   const select = useCallback((next: EvidenceSelection) => {
@@ -179,11 +180,11 @@ export function InvestigationView({ id }: { id: string }) {
                 }
               />
             ) : (
-              <p className="py-8 text-[15px] leading-6 text-ink-3">
-                {running
-                  ? "The writer drafts the report once the evidence is in. Steps appear on the right as they run."
-                  : "This run ended without a report."}
-              </p>
+              running ? (
+                <LiveProgress steps={inv.steps} startedAt={inv.created_at} />
+              ) : (
+                <p className="py-8 text-[15px] leading-6 text-ink-3">This run ended without a report.</p>
+              )
             )}
           </Panel>
 
