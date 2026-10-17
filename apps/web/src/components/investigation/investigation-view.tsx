@@ -5,15 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { Investigation } from "@yield-guardian/contracts";
 import {
   ActivityIcon,
-  AlertTriangleIcon,
-  CheckCircle2Icon,
   ChevronLeftIcon,
   CircleAlertIcon,
-  CircleCheckIcon,
   ClockIcon,
   CpuIcon,
   InfoIcon,
-  LayersIcon,
   ShieldCheckIcon,
   SparklesIcon,
 } from "lucide-react";
@@ -98,7 +94,6 @@ export function InvestigationView({ id }: { id: string }) {
   const issues = issuesByTarget(inv.verification?.issues ?? []);
   const shared = { numbers: inv.report?.numbers ?? [], issues, selection, onSelect: select };
   const v = inv.verification;
-  const unitId = triggerUnit(inv.trigger);
 
   return (
     <PageFrame>
@@ -160,84 +155,13 @@ export function InvestigationView({ id }: { id: string }) {
         <ErrorState className="mb-4" error={new ApiError(inv.error.status, inv.error)} />
       ) : null}
 
-      {/* Top Executive Key Metrics Overview Strip */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {/* Tile 1: Line Excursion Unit */}
-        <div className="rounded-[16px] border border-hairline bg-surface p-3.5 sm:p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-ink-3">
-            <span className="text-[12px] font-[550]">Target Fab Unit</span>
-            <CpuIcon className="size-4 text-signal" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-mono text-[20px] font-bold text-ink">
-              {unitId != null ? `Unit ${unitId}` : inv.trigger.ref}
-            </span>
-          </div>
-          <p className="mt-1 truncate text-[11px] text-ink-3">
-            Alarm: <span className="font-mono">{inv.trigger.ref}</span>
-          </p>
-        </div>
-
-        {/* Tile 2: Wafer Failure Risk */}
-        <div className="rounded-[16px] border border-fail/25 bg-fail-wash/25 p-3.5 sm:p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-fail">
-            <span className="text-[12px] font-[600]">Failure Risk</span>
-            <AlertTriangleIcon className="size-4" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-mono text-[20px] font-bold text-fail">10.2%</span>
-            <span className="rounded bg-fail/15 px-1 py-0.2 font-mono text-[10px] font-semibold text-fail">
-              &gt; 7.9% limit
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-ink-3">Excursion delta: +2.3%</p>
-        </div>
-
-        {/* Tile 3: Grounded Telemetry Verification */}
-        <div className="rounded-[16px] border border-pass/30 bg-pass-wash/25 p-3.5 sm:p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-pass">
-            <span className="text-[12px] font-[600]">Grounded Check</span>
-            <ShieldCheckIcon className="size-4" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-mono text-[20px] font-bold text-ink">
-              {v ? `${v.numbers_matched}/${v.numbers_checked}` : "Verified"}
-            </span>
-            <span className="rounded bg-pass/15 px-1.5 py-0.2 text-[10.5px] font-semibold text-pass">
-              100% MATCH
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-ink-3">Sensor telemetry verified</p>
-        </div>
-
-        {/* Tile 4: Engineering Decision */}
-        <div className="rounded-[16px] border border-hairline bg-surface p-3.5 sm:p-4 shadow-2xs">
-          <div className="flex items-center justify-between text-ink-3">
-            <span className="text-[12px] font-[550]">Operational State</span>
-            <CheckCircle2Icon className="size-4 text-pass" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-mono text-[20px] font-bold capitalize text-ink">
-              {inv.status}
-            </span>
-          </div>
-          <p className="mt-1 truncate text-[11px] text-ink-3">
-            {inv.work_order_id ? (
-              <span className="text-signal font-medium">Order {inv.work_order_id}</span>
-            ) : (
-              "Awaiting action"
-            )}
-          </p>
-        </div>
-      </div>
-
       {/* Main Two-Column Investigation Workspace */}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 xl:grid-cols-[minmax(0,1fr)_460px]">
         {/* Left Column: Report & Operational Outcomes */}
         <div className="space-y-8 min-w-0">
           <Panel
             title="Investigation Report"
-            description="Synthesized from telemetry evidence by LLM agents. All cited metrics link directly to raw sensor evidence."
+            description="Written by the investigator from the evidence below. Each cited number links to its evidence."
             bodyClassName="pt-2 pb-6"
           >
             {v ? <VerificationSummary investigation={inv} /> : null}
