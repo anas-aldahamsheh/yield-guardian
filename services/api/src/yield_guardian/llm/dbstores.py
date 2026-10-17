@@ -135,17 +135,23 @@ class DbRoleAssignmentStore:
     async def load(self) -> Sequence[RoleAssignment]:
         async with self._sessions() as db:
             rows = (await db.scalars(select(LlmRoleAssignmentRow))).all()
-        return [
-            RoleAssignment.model_validate(
-                {
-                    "role": row.role,
-                    "chain": row.chain,
-                    "updated_at": row.updated_at,
-                    "updated_by": row.updated_by,
-                }
-            )
-            for row in rows
-        ]
+        loaded: list[RoleAssignment] = []
+        for row in rows:
+            try:
+                loaded.append(
+                    RoleAssignment.model_validate(
+                        {
+                            "role": row.role,
+                            "chain": row.chain,
+                            "updated_at": row.updated_at,
+                            "updated_by": row.updated_by,
+                        }
+                    )
+                )
+            except ValueError as exc:
+                # A chain naming a provider or role this build no longer has: the default stays.
+                log.warning("llm.role_assignment.skipped", role=row.role, error=str(exc))
+        return loaded
 
     async def save(self, assignment: RoleAssignment) -> None:
         values = {
