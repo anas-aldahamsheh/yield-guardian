@@ -194,16 +194,6 @@ export function SectionRail({ items }: { items: readonly RailItem[] }) {
           );
         })}
       </ol>
-      <button
-        type="button"
-        onClick={() => {
-          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-        }}
-        className="mt-2 w-full rounded-[12px] border-t border-hairline px-2.5 pt-2.5 pb-1.5 text-start text-[12.5px] leading-5 font-[520] text-ink-3 transition-colors hover:text-ink"
-      >
-        Back to top
-      </button>
     </nav>
   );
 }
