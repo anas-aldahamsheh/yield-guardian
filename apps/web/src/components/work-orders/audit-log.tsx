@@ -165,6 +165,15 @@ function DetailPill({ label, value }: { label: string; value: unknown }) {
         </Link>
       );
     }
+  } else if (value && typeof value === "object" && !Array.isArray(value)) {
+    // A change set: one "field: value" per changed field, with "before → after" where given.
+    display = (
+      <span>
+        {Object.entries(value as Record<string, unknown>)
+          .map(([k, v]) => `${k.replaceAll("_", " ")}: ${plainValue(v)}`)
+          .join(" · ")}
+      </span>
+    );
   } else if (Array.isArray(value)) {
     display = (
       <span>
@@ -385,4 +394,23 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
       )}
     </Panel>
   );
+}
+
+/** One value of a change set in plain words. */
+function plainValue(v: unknown): string {
+  if (v == null || v === "") return "cleared";
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  if (typeof v === "string") return (v.length > 40 ? `${v.slice(0, 40)}…` : v).replaceAll("_", " ");
+  if (typeof v === "object" && !Array.isArray(v)) {
+    const o = v as Record<string, unknown>;
+    if ("from" in o || "to" in o) return `${plainValue(o.from)} → ${plainValue(o.to)}`;
+    if ("before" in o || "after" in o) return `${plainValue(o.before)} → ${plainValue(o.after)}`;
+    if ("old" in o || "new" in o) return `${plainValue(o.old)} → ${plainValue(o.new)}`;
+    if (typeof o.text === "string") return plainValue(o.text);
+    return Object.entries(o)
+      .map(([k, x]) => `${k.replaceAll("_", " ")} ${plainValue(x)}`)
+      .join(", ");
+  }
+  if (Array.isArray(v)) return v.map(plainValue).join(", ");
+  return String(v);
 }
