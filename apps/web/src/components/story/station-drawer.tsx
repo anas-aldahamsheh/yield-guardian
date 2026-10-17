@@ -140,7 +140,7 @@ export function StationDrawer({
   );
 }
 
-function IntakeDrawer({ state, shown }: { state: RunState; shown: boolean }) {
+export function IntakeDrawer({ state, shown }: { state: RunState; shown: boolean }) {
   const intake = shown ? stageResult(state, "intake") : null;
   if (!intake) return <NotYet stage={state.stages.intake} what="The intake" />;
   return (

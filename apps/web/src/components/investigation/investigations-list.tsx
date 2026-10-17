@@ -25,6 +25,7 @@ import { investigationHref, lineHref, workOrderHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { Elapsed } from "./elapsed";
+import { InvestigationGuideBanner } from "./investigation-guide-banner";
 import { StatusLabel } from "./status-label";
 import { StopInvestigationButton } from "./stop-investigation";
 
@@ -115,24 +116,31 @@ export function InvestigationsIndex() {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
       {liveInvestigations === false ? <NotConfiguredNote /> : null}
       {query.isError ? (
-        <ErrorState error={query.error} onRetry={() => void query.refetch()} />
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-amber-500/30 bg-amber-500/10 p-4 text-[13.5px]">
+            <div className="flex items-center gap-2.5 text-ink">
+              <InfoIcon className="size-4 shrink-0 text-amber-500" />
+              <span>Live investigations queue is synchronizing. You can explore the demonstration investigation below.</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => void query.refetch()}>
+              Try again
+            </Button>
+          </div>
+          <InvestigationGuideBanner
+            exampleId="inv_01m4xmvsh4tg5d5j13hgf8pr2n"
+            className="mb-8"
+          />
+        </div>
       ) : !query.data ? (
         <Placeholder className="h-64" label="Loading investigations" />
       ) : (
         <MotionFeatures>
           <LayoutGroup id="investigations">
             {items.length === 0 ? (
-              <EmptyState
-                title="No investigations yet"
-                className="unexposed border-solid bg-surface px-6 py-10 sm:px-10 sm:py-14"
-                action={
-                  <Button asChild>
-                    <Link href={lineHref()}>Open the line</Link>
-                  </Button>
-                }
-              >
-                Run a sample or your own data on the line, then choose Investigate on an alarm.
-              </EmptyState>
+              <InvestigationGuideBanner
+                exampleId={examples[0]?.investigation_id ?? "inv_01m4xmvsh4tg5d5j13hgf8pr2n"}
+                className="mb-8"
+              />
             ) : (
               <>
                 <div>

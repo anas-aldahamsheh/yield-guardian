@@ -3,7 +3,7 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import type { Evidence, NumberRef, VerificationIssue } from "@yield-guardian/contracts";
 import { LayoutGroup } from "framer-motion";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useChangeKey } from "@/components/motion";
 import { Indicator } from "@/components/motion/indicator";
@@ -13,6 +13,7 @@ import { TOOL_NAME } from "@/lib/labels";
 import { useScrollFocus } from "@/lib/use-scroll-focus";
 import { cn } from "@/lib/utils";
 
+import { EvidenceTelemetryCard } from "./evidence-telemetry-card";
 import type { EvidenceSelection } from "./report";
 
 /**
@@ -44,6 +45,15 @@ export function EvidencePanel({
       </p>
     );
   }
+  const [viewMode, setViewMode] = useState<"visual" | "json">("visual");
+
+  // When reader clicks a number in report that references a JSON path, ensure JSON mode is active
+  useEffect(() => {
+    if (selection?.path && selection.evidenceId === current?.evidence_id) {
+      setViewMode("json");
+    }
+  }, [selection?.path, selection?.evidenceId, current?.evidence_id]);
+
   const number =
     selection?.number != null && selection.evidenceId === current.evidence_id
       ? numbers[selection.number]
@@ -139,9 +149,51 @@ export function EvidencePanel({
           </div>
         ) : null}
 
-        <JsonScroll label={`Data of ${current.evidence_id}`}>
-          <JsonNode value={current.data} path="" highlight={path} />
-        </JsonScroll>
+        {/* Visual vs JSON Mode Toggle */}
+        <div className="mt-5 flex items-center justify-between border-t border-hairline/60 pt-3">
+          <span className="text-[12.5px] font-[600] text-ink-2">
+            Evidence Telemetry Data
+          </span>
+          <div className="inline-flex rounded-lg border border-hairline bg-surface-2 p-0.5 text-[12px] font-medium">
+            <button
+              type="button"
+              onClick={() => setViewMode("visual")}
+              className={cn(
+                "cursor-pointer rounded-md px-2.5 py-1 transition-colors",
+                viewMode === "visual"
+                  ? "bg-surface font-[580] text-ink shadow-2xs"
+                  : "text-ink-3 hover:text-ink",
+              )}
+            >
+              Visual Cards
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("json")}
+              className={cn(
+                "cursor-pointer rounded-md px-2.5 py-1 transition-colors font-mono",
+                viewMode === "json"
+                  ? "bg-surface font-[580] text-ink shadow-2xs"
+                  : "text-ink-3 hover:text-ink",
+              )}
+            >
+              Raw JSON
+            </button>
+          </div>
+        </div>
+
+        {viewMode === "visual" ? (
+          <div className="mt-3">
+            <EvidenceTelemetryCard
+              data={current.data as Record<string, unknown>}
+              tool={current.tool}
+            />
+          </div>
+        ) : (
+          <JsonScroll label={`Data of ${current.evidence_id}`}>
+            <JsonNode value={current.data} path="" highlight={path} />
+          </JsonScroll>
+        )}
       </div>
     </div>
   );

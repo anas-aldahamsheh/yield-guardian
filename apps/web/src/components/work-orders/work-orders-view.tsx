@@ -3,7 +3,7 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { WorkOrder } from "@yield-guardian/contracts";
-import { XIcon } from "lucide-react";
+import { ClockIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 
 import { useEntrance } from "@/components/motion/entrance";
@@ -187,7 +187,10 @@ export function WorkOrdersTab({ order }: { order?: string | null }) {
                             </span>
                           </>
                         ) : (
-                          <span className="text-ink-3">Not recorded</span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-2/80 px-2.5 py-0.5 text-[12px] font-medium text-ink-3">
+                            <ClockIcon className="size-3 text-ink-3" />
+                            Pending confirmation
+                          </span>
                         )}
                       </td>
                       <td className="tnum py-3.5 pr-5 pl-3 text-right align-top text-[13px] leading-5 text-ink-3 sm:pr-6">

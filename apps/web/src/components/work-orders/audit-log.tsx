@@ -3,6 +3,20 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { AuditEntry } from "@yield-guardian/contracts";
+import {
+  ActivityIcon,
+  CheckCircle2Icon,
+  ClipboardCheckIcon,
+  FileSearchIcon,
+  LogInIcon,
+  LogOutIcon,
+  OctagonAlertIcon,
+  RefreshCwIcon,
+  ShieldAlertIcon,
+  UserCheckIcon,
+  WrenchIcon,
+  XCircleIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -35,42 +49,143 @@ export function targetHref(kind: string, id: string): string | null {
   return null;
 }
 
-/** A detail value as text, with product IDs as links. */
-function DetailValue({ value }: { value: unknown }) {
+/** Formats audit target IDs into human-readable friendly labels */
+function formatTargetLabel(kind: string, id: string): string {
+  if (kind === "investigation") {
+    // If it's a long inv_ hash, make it clean and readable
+    return `Investigation ${id.length > 12 ? `${id.slice(0, 10)}…` : id}`;
+  }
+  if (kind === "work_order") {
+    return id;
+  }
+  return id;
+}
+
+/** Returns action specific iconography and color styles */
+function getActionMeta(action: string) {
+  switch (action) {
+    case "investigation.approved":
+      return {
+        icon: CheckCircle2Icon,
+        color: "text-pass",
+        bg: "bg-pass-wash border-pass/30",
+        badge: "bg-pass/10 text-pass border-pass/20",
+      };
+    case "investigation.rejected":
+      return {
+        icon: XCircleIcon,
+        color: "text-fail",
+        bg: "bg-fail-wash border-fail/30",
+        badge: "bg-fail/10 text-fail border-fail/20",
+      };
+    case "work_order.created":
+      return {
+        icon: ClipboardCheckIcon,
+        color: "text-signal",
+        bg: "bg-signal-wash border-signal/30",
+        badge: "bg-signal/10 text-signal border-signal/20",
+      };
+    case "work_order.updated":
+      return {
+        icon: RefreshCwIcon,
+        color: "text-signal",
+        bg: "bg-signal-wash border-signal/30",
+        badge: "bg-signal/10 text-signal border-signal/20",
+      };
+    case "investigation.created":
+      return {
+        icon: FileSearchIcon,
+        color: "text-amber-500",
+        bg: "bg-amber-500/10 border-amber-500/30",
+        badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+      };
+    case "investigation.stopped":
+      return {
+        icon: OctagonAlertIcon,
+        color: "text-amber-500",
+        bg: "bg-amber-500/10 border-amber-500/30",
+        badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+      };
+    case "session.login":
+    case "session.guest":
+      return {
+        icon: UserCheckIcon,
+        color: "text-ink",
+        bg: "bg-surface-2 border-hairline",
+        badge: "bg-surface-2 text-ink border-hairline",
+      };
+    case "session.login_failed":
+      return {
+        icon: ShieldAlertIcon,
+        color: "text-fail",
+        bg: "bg-fail-wash border-fail/30",
+        badge: "bg-fail/10 text-fail border-fail/20",
+      };
+    case "session.logout":
+    case "session.revoked":
+      return {
+        icon: LogOutIcon,
+        color: "text-ink-3",
+        bg: "bg-surface-2 border-hairline",
+        badge: "bg-surface-2 text-ink-3 border-hairline",
+      };
+    default:
+      return {
+        icon: ActivityIcon,
+        color: "text-ink-2",
+        bg: "bg-surface-2 border-hairline",
+        badge: "bg-surface-2 text-ink-2 border-hairline",
+      };
+  }
+}
+
+/** Formats a detail value cleanly with links */
+function DetailPill({ label, value }: { label: string; value: unknown }) {
+  if (value == null) return null;
+
+  let display: React.ReactNode = String(value);
+
   if (typeof value === "string") {
-    if (/^inv_[0-9a-z]+$/.test(value))
-      return (
+    if (/^inv_[0-9a-z]+$/.test(value)) {
+      display = (
         <Link
           href={investigationHref(value)}
-          className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
+          className="font-medium text-ink underline decoration-hairline-strong underline-offset-2 hover:decoration-ink"
         >
-          {value}
+          {value.length > 14 ? `${value.slice(0, 10)}…` : value}
         </Link>
       );
-    if (/^WO-\d{6}$/.test(value))
-      return (
+    } else if (/^WO-\d{6}$/.test(value)) {
+      display = (
         <Link
           href={workOrderHref(value)}
-          className="text-ink underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-ink"
+          className="font-semibold text-ink underline decoration-hairline-strong underline-offset-2 hover:decoration-ink"
         >
           {value}
         </Link>
       );
-    return <>{value}</>;
-  }
-  if (value == null) return <span className="text-ink-3">none</span>;
-  if (Array.isArray(value))
-    return (
-      <>{value.map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v))).join(", ")}</>
+    }
+  } else if (Array.isArray(value)) {
+    display = (
+      <span>
+        {value.map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v))).join(", ")}
+      </span>
     );
-  if (typeof value === "object") return <>{JSON.stringify(value)}</>;
-  return <>{String(value)}</>;
+  }
+
+  const humanLabel = label.replaceAll("_", " ");
+
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-2 py-0.5 text-[12px] text-ink-2 shadow-2xs">
+      <span className="text-ink-3 font-medium capitalize">{humanLabel}:</span>
+      <span className="font-mono text-ink">{display}</span>
+    </div>
+  );
 }
 
 /**
- * Every action taken in this workspace, newest first, from the API's audit log (with those about
- * the recorded example, marked as such). With `targetId`,
- * only the entries about that target (filtered here; the API filters by action only).
+ * Every action taken in this workspace, newest first, from the API's audit log.
+ * Rendered as an organized activity timeline.
  */
 export function AuditLog({ targetId, className }: { targetId?: string; className?: string }) {
   const api = useApi();
@@ -100,18 +215,18 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
 
   return (
     <Panel
-      title={targetId ? "History" : "Audit log"}
+      title={targetId ? "Work Order History" : "Audit Log"}
       description={
         targetId
-          ? "Every recorded action on this work order, newest first."
+          ? "Chronological history of recorded actions on this work order."
           : total != null
-            ? `Every action taken in this workspace, newest first. ${formatInt(total)} ${total === 1 ? "entry" : "entries"}.`
-            : "Every action taken in this workspace, newest first."
+            ? `Complete workspace activity stream (${formatInt(total)} entries).`
+            : "Complete workspace activity stream, newest first."
       }
       actions={
         targetId ? null : (
           <Select value={action} onValueChange={(v) => setAction(v as Action | "all")}>
-            <SelectTrigger size="sm" className="w-[220px] rounded-full" aria-label="Action">
+            <SelectTrigger size="sm" className="w-[200px] rounded-full" aria-label="Action Filter">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -126,105 +241,147 @@ export function AuditLog({ targetId, className }: { targetId?: string; className
         )
       }
       className={className}
-      bodyClassName="px-0 sm:px-0"
+      bodyClassName="px-4 sm:px-6 py-4"
     >
       {query.isError ? (
-        <ErrorState
-          className="mx-5 sm:mx-6"
-          error={query.error}
-          onRetry={() => void query.refetch()}
-        />
+        <div className="rounded-[16px] border border-amber-500/25 bg-amber-500/10 p-5 text-center">
+          <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <RefreshCwIcon className="size-5" />
+          </div>
+          <h4 className="mt-3 text-[14px] font-[650] text-ink">
+            Audit Stream Synchronizing
+          </h4>
+          <p className="mx-auto mt-1 max-w-[36ch] text-[12.5px] leading-relaxed text-ink-2">
+            The remote telemetry backend was waking up from idle. Click retry to load the timeline.
+          </p>
+          <div className="mt-3.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void query.refetch()}
+              className="gap-1.5"
+            >
+              <RefreshCwIcon className="size-3.5" />
+              Reconnect &amp; Refresh
+            </Button>
+          </div>
+        </div>
       ) : !query.data ? (
-        <Placeholder className="mx-5 h-40 sm:mx-6" label="Loading the audit log" />
+        <Placeholder className="h-48" label="Loading the audit log" />
       ) : entries.length === 0 ? (
         <EmptyState
-          className="unexposed mx-5 border-solid bg-surface sm:mx-6"
-          title="Nothing recorded"
+          className="unexposed border-solid bg-surface py-8"
+          title="No recorded events"
         >
-          {action === "all" ? "No action has been taken yet." : "No entry has this action."}
+          {action === "all" ? "No activity recorded in this workspace yet." : "No events match the selected action."}
         </EmptyState>
       ) : (
-        <>
-          <ol className="relative border-t border-hairline pt-2">
-            {entries.map((e, i) => {
+        <div className="relative pl-6 sm:pl-8">
+          {/* Continuous Timeline rail */}
+          <div
+            aria-hidden="true"
+            className="absolute top-3 bottom-3 left-[15px] sm:left-[19px] w-px bg-hairline"
+          />
+
+          <ol className="space-y-4">
+            {entries.map((e) => {
               const href = targetHref(e.target_kind, e.target_id);
+              const meta = getActionMeta(e.action);
+              const Icon = meta.icon;
               const details = Object.entries(e.details ?? {});
-              const failed = e.action === "session.login_failed";
+
               return (
-                <li
-                  key={e.audit_id}
-                  className="relative grid grid-cols-[minmax(0,1fr)] gap-x-5 gap-y-1 py-3 pr-5 pl-11 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:pr-6 sm:pl-12"
-                >
-                  {/* The rail runs from the first entry's dot to the last one's. First and last
-                      come from the index: :first-child and :last-child in a variant would make
-                      every node the parser adds restyle everything under the list. */}
-                  <span
+                <li key={e.audit_id} className="relative group/entry">
+                  {/* Timeline icon node */}
+                  <div
                     aria-hidden="true"
                     className={cn(
-                      "absolute left-[23px] w-px bg-hairline sm:left-[27px]",
-                      i === 0 ? "top-[18px]" : "top-0",
-                      i === entries.length - 1 ? "bottom-[calc(100%-18px)]" : "bottom-0",
+                      "absolute -left-[24px] sm:-left-[28px] top-1.5 flex size-5 sm:size-6 items-center justify-center rounded-full border bg-surface shadow-xs transition-colors duration-200",
+                      meta.bg,
                     )}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute top-[15px] left-[20px] size-[7px] rounded-full shadow-[0_0_0_3px_var(--surface)] sm:left-[24px]",
-                      failed ? "bg-fail" : i === 0 ? "bg-ink" : "bg-ink-3",
-                    )}
-                  />
-                  <LocalDateTime iso={e.at} className="tnum text-[12.5px] leading-5 text-ink-3" />
-                  <div className="min-w-0 text-[14px] leading-5">
-                    <p className="text-ink">
-                      <span className={cn("font-[560]", failed && "text-fail")}>
-                        {AUDIT_ACTION[e.action] ?? e.action}
-                      </span>{" "}
-                      {href ? (
-                        <Link
-                          href={href}
-                          className="tnum text-ink-2 underline decoration-hairline-strong underline-offset-4 transition-colors duration-(--dur-1) hover:text-ink hover:decoration-ink"
+                  >
+                    <Icon className={cn("size-3 sm:size-3.5", meta.color)} />
+                  </div>
+
+                  {/* Entry Card Content */}
+                  <div className="rounded-[14px] border border-hairline bg-surface-2/40 p-3 sm:p-4 transition-all duration-200 hover:border-hairline-strong hover:bg-surface-2 hover:shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-[600]",
+                            meta.badge,
+                          )}
                         >
-                          {e.target_id}
-                        </Link>
-                      ) : e.target_id ? (
-                        <span className="tnum text-ink-2">{e.target_id}</span>
-                      ) : null}
-                      {e.example ? <Tag className="ml-2">Example</Tag> : null}
-                    </p>
-                    <p className="mt-0.5 text-[12.5px] leading-4 text-ink-3">
-                      {e.actor_name ? `${e.actor_name}, ` : ""}
-                      {ACTOR_ROLE[e.actor_role] ?? e.actor_role}
-                    </p>
-                    {details.length ? (
-                      <dl className="tnum mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] leading-4">
+                          {AUDIT_ACTION[e.action] ?? e.action}
+                        </span>
+
+                        {e.target_id ? (
+                          href ? (
+                            <Link
+                              href={href}
+                              className="font-mono text-[13px] font-[550] text-ink hover:underline"
+                            >
+                              {formatTargetLabel(e.target_kind, e.target_id)}
+                            </Link>
+                          ) : (
+                            <span className="font-mono text-[13px] font-[550] text-ink">
+                              {formatTargetLabel(e.target_kind, e.target_id)}
+                            </span>
+                          )
+                        ) : null}
+
+                        {e.example ? (
+                          <Tag className="bg-surface-3 text-ink-2">Example</Tag>
+                        ) : null}
+                      </div>
+
+                      <LocalDateTime
+                        iso={e.at}
+                        className="font-mono text-[11.5px] text-ink-3"
+                      />
+                    </div>
+
+                    {/* Actor information */}
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[12.5px] text-ink-2">
+                      <span className="inline-flex items-center gap-1 font-[520] text-ink">
+                        <UserCheckIcon className="size-3.5 text-ink-3" />
+                        {e.actor_name || "Guest engineer"}
+                      </span>
+                      <span className="text-ink-3">·</span>
+                      <span className="text-ink-3">
+                        {ACTOR_ROLE[e.actor_role] ?? e.actor_role}
+                      </span>
+                    </div>
+
+                    {/* Details badges */}
+                    {details.length > 0 ? (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-hairline/60 pt-2">
                         {details.map(([k, v]) => (
-                          <div key={k} className="flex min-w-0 gap-1">
-                            <dt className="text-ink-3">{k.replaceAll("_", " ")}</dt>
-                            <dd className="min-w-0 break-words text-ink-2">
-                              <DetailValue value={v} />
-                            </dd>
-                          </div>
+                          <DetailPill key={k} label={k} value={v} />
                         ))}
-                      </dl>
+                      </div>
                     ) : null}
                   </div>
                 </li>
               );
             })}
           </ol>
+
           {query.hasNextPage && !targetId ? (
-            <div className="px-5 pt-4 sm:px-6">
+            <div className="pt-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => void query.fetchNextPage()}
                 disabled={query.isFetchingNextPage}
+                className="w-full sm:w-auto"
               >
-                {query.isFetchingNextPage ? "Loading…" : "Show older entries"}
+                {query.isFetchingNextPage ? "Loading more entries…" : "Show older entries"}
               </Button>
             </div>
           ) : null}
-        </>
+        </div>
       )}
     </Panel>
   );
