@@ -23,6 +23,8 @@ import { toast } from "@/lib/toast";
 import { type Api, csrfHeaders, unwrap } from "./client";
 import { useApi } from "./context";
 import { describeError } from "./errors";
+import { announceRunsGone } from "@/lib/live/drafts";
+
 import { openWorkspace } from "./opening";
 import { useSession } from "./session";
 
@@ -193,7 +195,10 @@ export function useDeleteWorkRun() {
           headers: await csrfOf(session),
         }),
       ),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ["workspace"] }),
+    onSuccess: (_data, runId) => {
+      announceRunsGone(runId);
+      void client.invalidateQueries({ queryKey: ["workspace"] });
+    },
   });
 }
 
@@ -227,6 +232,8 @@ export function useCreateHandoff() {
 
 /** After this device changed workspace: what it sees is all different, so read it all again. */
 async function switched(client: QueryClient, session: SessionInfo) {
+  // The runs on screen belong to the workspace just left: clear them now, not on the next reload.
+  announceRunsGone(null);
   await setSession(client, session);
   await client.invalidateQueries({ predicate: (query) => query.queryKey[0] !== "session" });
 }

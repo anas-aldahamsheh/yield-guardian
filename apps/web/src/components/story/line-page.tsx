@@ -32,7 +32,7 @@ import { withRetry } from "@/lib/api/retry";
 import { useSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
 import { createRun } from "@/lib/live/api";
-import { DRAFT_KEYS, readDraft, writeDraft } from "@/lib/live/drafts";
+import { DRAFT_KEYS, RUNS_GONE, readDraft, writeDraft } from "@/lib/live/drafts";
 import { originRule } from "@/lib/live/origin";
 import { isFinished, stageResult, type RunState, type StageId } from "@/lib/live/run-state";
 import {
@@ -373,6 +373,17 @@ export function LinePage({
   };
   // The server keeps the link too (the investigation's trigger names the alarm), so a reload or
   // another device shows it. The page stays where it is: starting one does not change the tab.
+  // A run deleted, or the workspace left, while it is on screen: back to the empty line at once.
+  useEffect(() => {
+    const onGone = (e: Event) => {
+      const runId = (e as CustomEvent<string | null>).detail;
+      if (url.runId && (runId == null || runId === url.runId))
+        go({ runId: null, station: null, focus: null, alarm: null }, "replace");
+    };
+    window.addEventListener(RUNS_GONE, onGone);
+    return () => window.removeEventListener(RUNS_GONE, onGone);
+  }, [url.runId, go]);
+
   const linked = (alarmId: string, investigation: Investigation) => {
     run.linkInvestigation(alarmId, investigation.investigation_id, investigation.status);
   };

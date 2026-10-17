@@ -98,3 +98,14 @@ export function isDrawingDraft(value: unknown): value is DrawingDraft {
       Number.isInteger(edit.current),
   );
 }
+
+/** Fired on window when runs this page may show are gone: detail is the run id, or null for all. */
+export const RUNS_GONE = "yg:runs-gone";
+
+/** Forgets what this tab kept for the line and tells open pages that `runId` (or every run) is gone. */
+export function announceRunsGone(runId: string | null): void {
+  if (runId == null) for (const key of Object.values(DRAFT_KEYS)) writeDraft(key, null);
+  else if (readDraft(DRAFT_KEYS.activeRun) === runId) writeDraft(DRAFT_KEYS.activeRun, null);
+  if (typeof window !== "undefined")
+    window.dispatchEvent(new CustomEvent<string | null>(RUNS_GONE, { detail: runId }));
+}
