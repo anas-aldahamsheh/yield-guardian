@@ -8,7 +8,7 @@ import { Slot } from "radix-ui";
  * of them lift a pixel on hover and go down with a firm spring under a press (`.press`, `.lift`).
  */
 const buttonVariants = cva(
-  "press lift inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-[14px] leading-5 font-[560] whitespace-nowrap select-none disabled:pointer-events-none disabled:opacity-45 aria-invalid:shadow-[inset_0_0_0_1px_var(--fail)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "press lift cursor-pointer inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-[14px] leading-5 font-[560] whitespace-nowrap select-none disabled:pointer-events-none disabled:opacity-45 aria-invalid:shadow-[inset_0_0_0_1px_var(--fail)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

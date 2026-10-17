@@ -103,18 +103,22 @@ export function DrawTool({ onStart, starting }: { onStart: StartRun; starting: b
     setChanged((e) => ({ ...e, [id]: fn(e[id] ?? restored[id] ?? base) }));
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
-      <LayoutChooser layouts={items} chosen={id} onChoose={setLayoutId} edited={edits} />
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-        <Canvas drawing={drawing} onChange={update} />
-        <Controls
-          drawing={drawing}
-          onChange={update}
-          layout={layout}
-          starting={starting}
-          onRun={() => void onStart({ source: "drawn", wafers: drawnWafers(drawing) })}
-        />
-      </div>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
+      <Controls
+        drawing={drawing}
+        onChange={update}
+        layout={layout}
+        layouts={items}
+        chosenLayoutId={id}
+        onChooseLayout={setLayoutId}
+        edited={edits}
+      />
+      <Canvas
+        drawing={drawing}
+        onChange={update}
+        starting={starting}
+        onRun={() => void onStart({ source: "drawn", wafers: drawnWafers(drawing) })}
+      />
     </div>
   );
 }
@@ -236,9 +240,13 @@ function lineCells(width: number, from: number, to: number): [number, number][] 
 function Canvas({
   drawing,
   onChange,
+  starting,
+  onRun,
 }: {
   drawing: Drawing;
   onChange: (fn: (d: Drawing) => Drawing) => void;
+  starting: boolean;
+  onRun: () => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const help = useId();
@@ -359,8 +367,42 @@ function Canvas({
     }
   };
 
+  const dies = dieCount(drawing);
+  const failing = failCount(drawing.wafers[drawing.current]!);
+  const n = drawing.wafers.length;
+
   return (
-    <div className="min-w-0">
+    <div className="flex min-w-0 flex-col">
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-hairline/70 pb-2">
+        <fieldset className="flex items-center gap-2">
+          <legend className="text-[12.5px] font-[600] text-ink">Brush:</legend>
+          <div className="flex gap-1.5">
+            {([1, 3] as const).map((b) => (
+              <label
+                key={b}
+                className={cn(
+                  "press inline-flex h-7.5 cursor-pointer items-center justify-center rounded-full px-3 text-[12px] font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 transition-all",
+                  brush === b && "lit bg-surface shadow-[inset_0_0_0_1.5px_var(--signal)] font-[650]",
+                )}
+              >
+                <input
+                  type="radio"
+                  name="draw-brush"
+                  className="sr-only"
+                  checked={brush === b}
+                  onChange={() => setBrush(b)}
+                />
+                {b === 1 ? "1 Die (Single)" : "3×3 Dies (Cluster)"}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <span className="tnum text-[12.5px] font-medium text-ink-2">
+          {`Wafer ${drawing.current + 1}: `}
+          <strong className="text-ink">{formatInt(failing)}</strong>
+          {` of ${formatInt(dies)} dies failing`}
+        </span>
+      </div>
       <div
         role="application"
         tabIndex={0}
@@ -375,7 +417,7 @@ function Canvas({
           setFocused(false);
           stroke.current = null;
         }}
-        className="relative aspect-square w-full max-w-[420px] rounded-full bg-surface-2 outline-offset-4"
+        className="relative mx-auto aspect-square w-full max-w-[420px] rounded-full bg-surface-2 outline-offset-4"
       >
         <canvas
           ref={ref}
@@ -407,36 +449,22 @@ function Canvas({
           }}
         />
       </div>
-      <p id={help} className="mt-2 max-w-[420px] text-[12px] leading-4 text-ink-3">
-        Drag to paint failing dies; a stroke that starts on a failing die paints them back to pass.
-        With the keyboard: arrows move, Space paints, Shift with an arrow paints while moving.
+      <p id={help} className="mt-2 text-center text-[12px] leading-4 text-ink-3">
+        Drag to paint failing dies (red); a stroke starting on a failing die paints them back to passing.
       </p>
       <p className="sr-only" aria-live="polite">
         {said}
       </p>
-      <fieldset className="mt-3">
-        <legend className="text-[13px] leading-5 text-ink-2">Brush</legend>
-        <div className="mt-1 flex gap-2">
-          {([1, 3] as const).map((b) => (
-            <label
-              key={b}
-              className={cn(
-                "press inline-flex h-8 cursor-pointer items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-signal",
-                brush === b && "lit",
-              )}
-            >
-              <input
-                type="radio"
-                name="draw-brush"
-                className="sr-only"
-                checked={brush === b}
-                onChange={() => setBrush(b)}
-              />
-              {b === 1 ? "One die" : "3 by 3 dies"}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <div className="mt-4 flex items-center justify-end">
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={starting}
+          className="press lift sheen-hover cursor-pointer inline-flex h-10 w-full sm:w-auto items-center justify-center rounded-full bg-ink px-6 text-[14px] font-[600] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink/92 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {n === 1 ? "Run your drawing" : `Run your ${n} wafers`}
+        </button>
+      </div>
     </div>
   );
 }
@@ -444,28 +472,37 @@ function Canvas({
 function Controls({
   drawing,
   onChange,
-  layout,
-  starting,
-  onRun,
+  layout: _layout,
+  layouts,
+  chosenLayoutId,
+  onChooseLayout,
+  edited,
 }: {
   drawing: Drawing;
   onChange: (fn: (d: Drawing) => Drawing) => void;
   layout: DrawLayout;
-  starting: boolean;
-  onRun: () => void;
+  layouts: DrawLayout[];
+  chosenLayoutId: string;
+  onChooseLayout: (id: string) => void;
+  edited: Record<string, Drawing>;
 }) {
-  const dies = dieCount(drawing);
   const failing = failCount(drawing.wafers[drawing.current]!);
   const n = drawing.wafers.length;
   const full = n >= MAX_DRAWN_WAFERS;
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <p className="tnum text-[14px] leading-5 text-ink">
-        {`Wafer ${drawing.current + 1}: ${formatInt(failing)} of ${formatInt(dies)} dies failing.`}
-      </p>
-      <div>
-        <p className="text-[13px] leading-5 text-ink-2">{`Wafers in your drawing (${n} of up to ${MAX_DRAWN_WAFERS})`}</p>
-        <ul className="mt-1.5 flex flex-wrap gap-1.5" aria-label="Wafers in your drawing">
+    <div className="flex min-w-0 flex-col gap-5">
+      <LayoutChooser
+        layouts={layouts}
+        chosen={chosenLayoutId}
+        onChoose={onChooseLayout}
+        edited={edited}
+      />
+      <div className="border-t border-hairline/70 pt-4">
+        <p className="text-[14px] leading-5 font-[600] text-ink">{`Wafers in lot (${n} of up to ${MAX_DRAWN_WAFERS})`}</p>
+        <p className="text-[12.5px] leading-4 text-ink-3">
+          Select a wafer to edit on the right, or add/copy more to test a multi-wafer batch.
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-2" aria-label="Wafers in your drawing">
           {drawing.wafers.map((map, k) => (
             <li key={k}>
               <button
@@ -474,8 +511,8 @@ function Controls({
                 aria-pressed={k === drawing.current}
                 aria-label={`Wafer ${k + 1}, ${plural(failCount(map), "die")} failing`}
                 className={cn(
-                  "press block size-11 rounded-full p-0.5 hover:bg-surface-2",
-                  k === drawing.current && "lit",
+                  "press block size-12 cursor-pointer rounded-full p-0.5 transition-all hover:bg-surface-2",
+                  k === drawing.current ? "lit ring-2 ring-signal ring-offset-2 ring-offset-surface" : "opacity-80 hover:opacity-100",
                 )}
               >
                 <DieMap
@@ -492,7 +529,7 @@ function Controls({
             </li>
           ))}
         </ul>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-3.5 flex flex-wrap gap-2">
           <SmallButton disabled={full} onClick={() => onChange((d) => addWafer(d, true))}>
             Add a copy of this wafer
           </SmallButton>
@@ -506,20 +543,6 @@ function Controls({
             Remove this wafer
           </SmallButton>
         </div>
-      </div>
-      <div className="mt-auto">
-        <button
-          type="button"
-          onClick={onRun}
-          disabled={starting}
-          className="press lift sheen-hover inline-flex h-10 items-center justify-center rounded-full bg-ink px-5 text-[14px] font-[600] text-canvas shadow-[0_1px_2px_rgb(0_0_0/0.12),inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink/92 disabled:opacity-50"
-        >
-          {n === 1 ? "Run your drawing" : `Run your ${n} wafers`}
-        </button>
-        <p className="mt-2 max-w-[60ch] text-[12px] leading-4 text-ink-3">
-          {`The run labels these maps as your drawing (lot "${DRAWING_LOT}"). A shape unlike the maps the model learned from still gets its nearest pattern, marked to check by eye. `}
-          {layout.rule}
-        </p>
       </div>
     </div>
   );
@@ -539,7 +562,7 @@ function SmallButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="press inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-40"
+      className="press cursor-pointer inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)] disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {children}
     </button>

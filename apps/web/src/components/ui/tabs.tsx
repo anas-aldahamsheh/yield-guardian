@@ -87,7 +87,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       value={value}
       className={cn(
-        "relative inline-flex h-full flex-1 items-center justify-center gap-1.5 text-[14px] leading-5 font-[560] whitespace-nowrap text-ink-2 outline-offset-2 transition-colors duration-(--dur-1) group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-ink disabled:pointer-events-none disabled:opacity-45 data-[state=active]:text-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative inline-flex h-full flex-1 cursor-pointer items-center justify-center gap-1.5 text-[14px] leading-5 font-[560] whitespace-nowrap text-ink-2 outline-offset-2 transition-colors duration-(--dur-1) group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-ink disabled:pointer-events-none disabled:opacity-45 data-[state=active]:text-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         variant === "default" ? "rounded-full px-3.5" : "px-0",
         !sliding &&
           (variant === "default"

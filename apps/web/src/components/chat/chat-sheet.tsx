@@ -12,7 +12,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { type FormEvent, type KeyboardEvent, useRef, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { UnverifiedMark } from "@/components/investigation/report";
 import { Markdown } from "@/components/markdown";
@@ -31,6 +31,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { describeError } from "@/lib/api/errors";
 import { NOT_CONFIGURED, useFeatures } from "@/lib/api/features";
 import { useStartInvestigation } from "@/lib/api/investigations";
+import { csrfHeaders } from "@/lib/api/client";
 import { useSession, useStartGuestSession } from "@/lib/api/session";
 import {
   applyChatEvent,
@@ -165,6 +166,12 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     URL.revokeObjectURL(url);
   };
 
+  useEffect(() => {
+    if (open && !csrf["X-CSRF-Token"] && !guest.isPending && !guest.isSuccess) {
+      guest.mutate();
+    }
+  }, [open, csrf, guest]);
+
   const ask = async (question: string) => {
     const q = question.trim();
     if ((!q && !attached) || streaming) return;
@@ -212,11 +219,22 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     follow();
     const controller = new AbortController();
     abort.current = controller;
+
+    let headers = csrf;
+    if (!headers["X-CSRF-Token"]) {
+      try {
+        const session = await guest.mutateAsync();
+        headers = csrfHeaders(session.csrf_token);
+      } catch {
+        // Continue with current headers
+      }
+    }
+
     try {
       await streamChat({
         messages: [...history, { role: "user", content: fullQuestion.slice(0, 8000) }],
         context: effectiveContext,
-        headers: csrf,
+        headers,
         signal: controller.signal,
         onEvent: (event) => {
           update(id, (t) => ({ ...t, answer: applyChatEvent(t.answer, event) }));
@@ -327,15 +345,14 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
                   >
                     <button
                       type="button"
-                      disabled={!canAct}
                       onClick={() => void ask(s)}
-                      className="group/try press flex w-full cursor-pointer items-center justify-between gap-3 rounded-[14px] bg-surface-2 py-3 pr-3.5 pl-4 text-left text-[14px] leading-5 text-ink transition-colors duration-(--dur-2) hover:bg-surface-3 disabled:cursor-default disabled:text-ink-3"
+                      className="group/try press flex w-full cursor-pointer items-center justify-between gap-3 rounded-[14px] bg-surface-2 py-3 pr-3.5 pl-4 text-left text-[14px] leading-5 text-ink transition-colors duration-(--dur-2) hover:bg-surface-3"
                     >
                       <span className="min-w-0">{s}</span>
                       <ArrowRightIcon
                         aria-hidden="true"
                         strokeWidth={1.9}
-                        className="size-4 shrink-0 text-ink-3 transition-[translate,color,opacity] duration-(--dur-3) ease-spring group-hover/try:translate-x-0.5 group-hover/try:text-ink group-disabled/try:opacity-0"
+                        className="size-4 shrink-0 text-ink-3 transition-[translate,color,opacity] duration-(--dur-3) ease-spring group-hover/try:translate-x-0.5 group-hover/try:text-ink"
                       />
                     </button>
                   </li>
@@ -372,18 +389,6 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
             <p className="text-[13px] leading-5 text-ink-2">
               Asking is off until the API has a language model key.
             </p>
-          ) : !canAct ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[13px] leading-5 text-ink-2">Asking needs an engineer session.</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => guest.mutate()}
-                disabled={guest.isPending}
-              >
-                {guest.isPending ? "Signing in…" : "Try as engineer"}
-              </Button>
-            </div>
           ) : (
             <form onSubmit={onSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
               <input

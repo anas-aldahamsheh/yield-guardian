@@ -140,26 +140,34 @@ function LinkedInvestigation({ id, alarm }: { id: string; alarm: RunAlarm }) {
   const inv = query.data;
   // Until the investigation itself is read, the status stored with the run stands for it.
   const status = inv?.status ?? alarm.investigation_status ?? null;
-  const last = inv?.steps.at(-1);
   return (
-    <div className={cn(entrance && "grow-in", "rounded-[16px] bg-surface-2 px-4 py-3.5")}>
-      <p className="text-[14.5px] leading-5 font-[600] text-ink">
-        {alarm.title} <span className="tnum font-[440] text-ink-3">{alarm.alarm_id}</span>
-      </p>
-      <p
-        className="mt-1 flex flex-wrap items-center gap-x-3 text-[13px] leading-5"
-        aria-live="polite"
-      >
-        {status ? <StatusLabel status={status} /> : <span className="text-ink-3">Starting</span>}
-        {inv ? <span className="tnum text-ink-3">{plural(inv.steps.length, "step")}</span> : null}
-        {last ? <span className="min-w-0 truncate text-ink-3">{last.title}</span> : null}
-      </p>
-      <Link
-        href={investigationHref(id)}
-        className="press mt-2.5 inline-flex h-8 items-center rounded-full bg-ink px-3.5 text-[13px] font-[600] text-canvas no-underline hover:bg-ink/90"
-      >
-        {status === "awaiting_decision" ? "Read the report and decide" : "Open the investigation"}
-      </Link>
+    <div
+      className={cn(
+        entrance && "grow-in",
+        "flex flex-col gap-3 rounded-[16px] bg-surface-2 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center justify-between gap-3 sm:block">
+        <p className="text-[14.5px] leading-5 font-[600] text-ink">
+          {alarm.title} <span className="tnum font-[440] text-ink-3">{alarm.alarm_id}</span>
+        </p>
+        <div className="shrink-0 sm:hidden">
+          {status ? <StatusLabel status={status} /> : <span className="text-[12.5px] text-ink-3">Starting...</span>}
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center justify-end gap-3">
+        <div className="hidden sm:block">
+          {status ? <StatusLabel status={status} /> : <span className="text-[12.5px] text-ink-3">Starting...</span>}
+        </div>
+        <Link
+          href={investigationHref(id)}
+          prefetch={true}
+          className="press inline-flex h-8 items-center rounded-full bg-ink px-4 text-[13px] font-[600] text-canvas no-underline transition-colors hover:bg-ink/90"
+        >
+          {status === "awaiting_decision" ? "Read report & decide" : "Open investigation"}
+          <span className="ml-1" aria-hidden="true">&rarr;</span>
+        </Link>
+      </div>
     </div>
   );
 }

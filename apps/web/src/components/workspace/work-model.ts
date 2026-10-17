@@ -48,12 +48,13 @@ export function statusDot(run: WorkRun): string {
   return run.alarms_open ? "bg-fail" : "bg-pass";
 }
 
-/** The Line page's view a run reopens on: where it was left, or the run itself. */
+/** The Line page's view a run reopens on: where it was left, or on the line alone. */
 export function viewOf(run: WorkRun): LineUrlState {
-  const saved = run.view ? parseLineUrl(new URLSearchParams(run.view)) : null;
-  return saved?.runId === run.run_id
-    ? saved
-    : { runId: run.run_id, station: null, focus: null, alarm: null };
+  if (run.view) {
+    const parsed = parseLineUrl(new URLSearchParams(run.view));
+    if (parsed.runId === run.run_id) return parsed;
+  }
+  return { runId: run.run_id, station: null, focus: null, alarm: null };
 }
 
 export type Primary =

@@ -155,34 +155,36 @@ export function Bay({
             </span>
           </div>
 
-          {/* Quick Station Switcher Tabs */}
-          <div className="flex flex-wrap items-center gap-1 rounded-full bg-surface-2 p-1 shadow-[inset_0_0_0_1px_var(--hairline)]">
-            {STATION_TABS.map((tab) => {
-              const active = openStation === tab.n;
-              return (
-                <button
-                  key={tab.n}
-                  type="button"
-                  onClick={() => onOpen(tab.n)}
-                  className={cn(
-                    "inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-[580] transition-all",
-                    active
-                      ? "bg-surface text-ink shadow-sm ring-1 ring-hairline"
-                      : "text-ink-3 hover:text-ink hover:bg-surface/50",
-                  )}
-                >
-                  <span
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Quick Station Switcher Tabs */}
+            <div className="flex flex-wrap items-center gap-1 rounded-full bg-surface-2 p-1 shadow-[inset_0_0_0_1px_var(--hairline)]">
+              {STATION_TABS.map((tab) => {
+                const active = openStation === tab.n;
+                return (
+                  <button
+                    key={tab.n}
+                    type="button"
+                    onClick={() => onOpen(tab.n)}
                     className={cn(
-                      "flex size-4 items-center justify-center rounded-full text-[10px] font-bold",
-                      active ? "bg-signal text-white" : "bg-surface-3 text-ink-2",
+                      "inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-[580] transition-all",
+                      active
+                        ? "bg-surface text-ink shadow-sm ring-1 ring-hairline"
+                        : "text-ink-3 hover:text-ink hover:bg-surface/50",
                     )}
                   >
-                    {tab.n}
-                  </span>
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+                    <span
+                      className={cn(
+                        "flex size-4 items-center justify-center rounded-full text-[10px] font-bold",
+                        active ? "bg-signal text-white" : "bg-surface-3 text-ink-2",
+                      )}
+                    >
+                      {tab.n}
+                    </span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </header>
 
@@ -263,14 +265,16 @@ export function Bay({
       aria-labelledby="bay-title"
       className="relative min-w-0 rounded-[28px] bg-surface p-1.5 shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)] sm:p-2"
     >
-      <div className="flex items-center justify-between px-3 pt-1.5 pb-2">
-        <h2 id="bay-title" className="text-[13px] font-[600] tracking-[-0.01em] text-ink-2">
-          Production line
-        </h2>
-        <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-3">
-          <span className="size-1.5 rounded-full bg-signal" />
-          Click any station to inspect details
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 pt-1.5 pb-2">
+        <div className="flex items-center gap-3">
+          <h2 id="bay-title" className="text-[13px] font-[600] tracking-[-0.01em] text-ink-2">
+            Production line
+          </h2>
+          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-3">
+            <span className="size-1.5 rounded-full bg-signal" />
+            Click any station to inspect details
+          </span>
+        </div>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-2 xl:grid-cols-[calc((100%_-_256px)*0.189_+_64px)_calc((100%_-_256px)*0.31735_+_64px)_calc((100%_-_256px)*0.31735_+_64px)_calc((100%_-_256px)*0.1763_+_64px)]">
         <StationTile
@@ -313,6 +317,7 @@ export function Bay({
           tool={<ProberTool state={state} store={store} />}
         />
         <Tile
+          n={4}
           index={3}
           tone={finalTest.tone}
           reached={reached("final_test", finalTest.tone)}
@@ -328,9 +333,6 @@ export function Bay({
                 id="final-test"
                 className="inline-flex items-center text-[16px] leading-6 font-[630] tracking-[-0.01em]"
               >
-                <span className="mr-2 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-[11px] font-bold text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline)]">
-                  4
-                </span>
                 Actual outcome
               </h3>
               <ToneChip tone={finalTest.tone} clock={clocks.final_test} live={live} />
@@ -713,16 +715,17 @@ const SEGMENT: [string, string][] = [
 ];
 
 /**
- * A station's stretch of the track and its node. When data reaches the station its stretch
- * fills with the film (growing from the station before it while results arrive, at once when
- * the line is at rest). Along the top from two columns up, down the left edge in one column.
+ * A station's stretch of the pipeline track and its numbered circle node.
+ * Connects station to station continuously across the parent container.
  */
 function Track({
+  n,
   index,
   reached,
   working,
   live,
 }: {
+  n: number;
   index: number;
   reached: boolean;
   working: boolean;
@@ -730,41 +733,64 @@ function Track({
 }) {
   const [from, to] = SEGMENT[index]!;
   const style = { "--seg-a": from, "--seg-b": to } as CSSProperties;
+
+  // Seamless track connection across columns:
+  // Station 1 starts at Circle 1 (28px) and reaches right boundary
+  // Stations 2 & 3 run from -2px to right boundary + 2px (zero gap)
+  // Station 4 enters from left boundary (-2px) and terminates cleanly at Circle 4 (28px)
+  const horizClass =
+    index === 0
+      ? "left-[28px] right-[-2px]"
+      : index === 3
+        ? "left-[-2px] w-[30px]"
+        : "left-[-2px] right-[-2px]";
+
+  const vertClass =
+    index === 0
+      ? "top-[31px] bottom-0"
+      : index === 3
+        ? "top-0 h-[31px]"
+        : "top-0 bottom-0";
+
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute -inset-[3px]" style={style}>
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={style}>
       {/* The bare track */}
-      <span className="absolute top-0 bottom-0 left-[27px] w-[2px] rounded-full bg-hairline-strong md:hidden" />
-      <span className="absolute inset-x-0 top-[25px] hidden h-[2px] bg-hairline-strong md:block" />
-      {/* The film where data has reached: the stretch lights up, slowly while results arrive and
-          at once when the line is at rest. It fades rather than grows (a stretch scaled from
-          nothing would take the stations drawn after it onto layers of their own while it ran),
-          and it stops a hair short of the next station so that, lighting up, it never overlaps it. */}
+      <span className={cn("absolute left-[27px] w-[2px] bg-hairline-strong md:hidden", vertClass)} />
+      <span className={cn("absolute top-[25px] hidden h-[2px] bg-hairline-strong md:block", horizClass)} />
+      {/* The film where data has reached */}
       <span
         className={cn(
-          "absolute top-0.5 bottom-0.5 left-[27px] w-[2px] rounded-full bg-[linear-gradient(180deg,var(--seg-a),var(--seg-b))] md:hidden",
+          "absolute left-[27px] w-[2px] bg-[linear-gradient(180deg,var(--seg-a),var(--seg-b))] md:hidden",
+          vertClass,
           live && "transition-opacity duration-[900ms] ease-in-out",
           reached ? "opacity-100" : "opacity-0",
         )}
       />
       <span
         className={cn(
-          "absolute inset-x-0.5 top-[25px] hidden h-[2px] bg-[linear-gradient(90deg,var(--seg-a),var(--seg-b))] md:block",
+          "absolute top-[25px] hidden h-[2px] bg-[linear-gradient(90deg,var(--seg-a),var(--seg-b))] md:block",
+          horizClass,
           live && "transition-opacity duration-[900ms] ease-in-out",
           reached ? "opacity-100" : "opacity-0",
         )}
       />
-      {/* The node, on a layer of its own: it sits on the film, so while the film lights up it is
-          drawn above it, and on its own layer it goes there alone instead of taking the rest of
-          the station with it. */}
+      {/* The step circle node on the pipeline line WITH the step number */}
       <span
         className={cn(
-          "absolute top-[23px] left-[21px] size-[14px] rounded-full transition-[background-color,box-shadow] duration-(--dur-4) will-change-transform md:top-[19px]",
+          "absolute flex items-center justify-center rounded-full font-bold transition-all duration-(--dur-4) will-change-transform group-hover/tile:scale-105",
+          // Mobile: on the vertical line
+          "top-[20px] left-[17px] size-[22px] text-[11px]",
+          // Desktop: centered on the horizontal line at top-[25px]
+          "md:top-[14px] md:left-[17px] md:size-[22px] md:text-[11px]",
           reached
-            ? "bg-(--seg-a) shadow-[0_0_0_4px_color-mix(in_oklab,var(--seg-a)_22%,transparent)]"
-            : "bg-surface shadow-[inset_0_0_0_2px_var(--hairline-strong)]",
+            ? "bg-(--seg-a) text-white shadow-[0_0_0_3px_color-mix(in_oklab,var(--seg-a)_22%,transparent)]"
+            : "bg-surface text-ink-2 shadow-[inset_0_0_0_1.5px_var(--hairline-strong)]",
         )}
       >
-        {working ? <span className="absolute inset-[3px] rounded-full bg-signal" /> : null}
+        {n}
+        {working ? (
+          <span className="absolute -inset-1 rounded-full ring-2 ring-signal animate-pulse" />
+        ) : null}
       </span>
     </div>
   );
@@ -775,6 +801,7 @@ function Track({
  * computed. A station whose alarm turns it red is tinted and rings once.
  */
 function Tile({
+  n,
   index,
   tone,
   reached,
@@ -789,6 +816,7 @@ function Tile({
   canOpen = true,
   children,
 }: {
+  n: number;
   index: number;
   tone: StationTone;
   reached: boolean;
@@ -819,16 +847,16 @@ function Tile({
       aria-labelledby={labelledBy}
       data-open={open || undefined}
       className={cn(
-        "group/tile glow relative row-span-3 grid min-w-0 grid-rows-subgrid rounded-[22px] border-[2.5px] border-transparent bg-clip-padding pt-4 pr-4 pb-4 pl-14 transition-all duration-200 sm:pr-5 md:pt-12 md:pl-5",
+        "group/tile glow relative row-span-3 grid min-w-0 grid-rows-subgrid rounded-[22px] border-[2.5px] border-transparent bg-clip-padding pt-4 pr-4 pb-4 pl-14 transition-colors duration-200 sm:pr-5 md:pt-12 md:pl-5",
         canOpen &&
-          "cursor-pointer hover:-translate-y-1 hover:border-hairline-strong/80 hover:bg-surface-2/30 hover:shadow-[0_12px_28px_-10px_rgb(0_0_0/0.1)] dark:hover:shadow-[0_16px_32px_-12px_rgb(0_0_0/0.6)] focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2",
+          "cursor-pointer hover:border-hairline-strong/80 hover:bg-surface-2/40 hover:shadow-[0_12px_28px_-10px_rgb(0_0_0/0.08)] dark:hover:shadow-[0_16px_32px_-12px_rgb(0_0_0/0.5)] focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2",
         // Column rules between stations, inset so they never touch the rounded corners.
         "before:pointer-events-none before:absolute before:top-12 before:bottom-6 before:left-0 before:hidden before:w-px before:bg-hairline md:[&:nth-child(2n)]:before:block xl:[&:nth-child(n+2)]:before:block",
         tone === "alarm" && "bg-[color-mix(in_oklab,var(--fail)_7%,transparent)] before:opacity-0",
         open && "before:opacity-0 ring-2 ring-signal/50",
       )}
     >
-      <Track index={index} reached={reached} working={tone === "working"} live={live} />
+      <Track n={n} index={index} reached={reached} working={tone === "working"} live={live} />
       <div className="flex min-h-7 flex-wrap items-center gap-x-2.5 gap-y-1 self-start">
         {heading}
       </div>
@@ -840,14 +868,16 @@ function Tile({
         {tone === "working" ? <WorkingSweep /> : null}
         {live && sweep != null && tone !== "working" ? <Sweep key={sweep} /> : null}
       </div>
-      <div className="mt-3.5 flex min-w-0 flex-col gap-1.5">{children}</div>
-      {canOpen ? (
-        <div className="mt-3 flex items-center justify-end border-t border-hairline/60 pt-2 text-[11.5px] font-medium text-ink-3 transition-colors">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-2 transition-all group-hover/tile:text-signal group-hover/tile:translate-x-0.5">
-            Details &rarr;
-          </span>
-        </div>
-      ) : null}
+      <div className="mt-3.5 flex min-w-0 flex-1 flex-col justify-between gap-3">
+        <div className="flex flex-col gap-1.5">{children}</div>
+        {canOpen ? (
+          <div className="mt-auto flex items-center justify-end border-t border-hairline/60 pt-2.5 text-[11.5px] font-medium text-ink-3 transition-colors">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-2 transition-all group-hover/tile:text-signal group-hover/tile:translate-x-0.5">
+              Details &rarr;
+            </span>
+          </div>
+        ) : null}
+      </div>
       {/* Drawn last: while it rings, nothing of the station is drawn over it, so nothing has to
           leave the page's layer to stay above it. */}
       {overlay}
@@ -889,7 +919,7 @@ function Pulse() {
 
 const TONE_TEXT: Record<StationTone, string> = {
   idle: "",
-  needs: "Needs data",
+  needs: "Bypassed",
   working: "Computing",
   ok: "Done",
   alarm: "Alarm",
@@ -1021,6 +1051,7 @@ function StationTile({
 
   return (
     <Tile
+      n={n}
       index={index}
       tone={summary.tone}
       reached={reached}
@@ -1037,9 +1068,6 @@ function StationTile({
             id={id}
             className="inline-flex items-center text-[16px] leading-6 font-[630] tracking-[-0.01em]"
           >
-            <span className="mr-2 inline-flex size-5 items-center justify-center rounded-full bg-surface-2 text-[11px] font-bold text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline)]">
-              {n}
-            </span>
             {summary.name}
           </h3>
           <ToneChip tone={summary.tone} clock={clock} live={live} />

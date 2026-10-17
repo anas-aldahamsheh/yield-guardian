@@ -1,7 +1,11 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import type { Investigation, RunAlarm, RunCreate, RunCreated } from "@yield-guardian/contracts";
-import { ChevronDownIcon } from "lucide-react";
+import {
+  InfoIcon,
+  RotateCw,
+} from "lucide-react";
 import {
   type CSSProperties,
   useCallback,
@@ -13,11 +17,16 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import Link from "next/link";
 import { LocalDateTime } from "@/components/local-date-time";
 import { usePrefersReducedMotion } from "@/components/motion";
 import { useEntrance } from "@/components/motion/entrance";
 import { Button } from "@/components/ui/button";
-import { YourWork } from "@/components/workspace/your-work";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ApiError, describeError } from "@/lib/api/errors";
 import { withRetry } from "@/lib/api/retry";
 import { useSession } from "@/lib/api/session";
@@ -50,7 +59,6 @@ import {
 import { useRun, type RunConnection, type RunProblem } from "@/lib/live/use-run";
 import { cn } from "@/lib/utils";
 
-import { AlarmsRail } from "./alarms-rail";
 import { Bay, type ClockStation } from "./bay";
 import { InputBar, type Way } from "./input-bar";
 import { LaterStations } from "./later-stations";
@@ -131,9 +139,14 @@ export function LinePage({
   initialQuery: string;
   stored?: StoredRun | null;
 }) {
-  const [url, setUrl] = useState<LineUrlState>(() =>
-    parseLineUrl(new URLSearchParams(initialQuery)),
-  );
+  const [url, setUrl] = useState<LineUrlState>(() => {
+    const parsed = parseLineUrl(new URLSearchParams(initialQuery));
+    if (parsed.runId) return { ...parsed, station: null };
+    // Restore preserved active run if returning from an investigation or navigation
+    const preserved = typeof window !== "undefined" ? readDraft(DRAFT_KEYS.activeRun) : null;
+    if (preserved) return { runId: preserved, station: null, focus: null, alarm: null };
+    return { ...parsed, station: null };
+  });
   // The headline rises when the page opens on the line alone. A page that opens on a run (a
   // reload, a link) arrives at rest: the run is shown as it stands and nothing on it moves.
   const [arrive] = useState(() => url.runId == null);
@@ -151,8 +164,10 @@ export function LinePage({
   const [waking, setWaking] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const { csrf } = useSession();
+  const queryClient = useQueryClient();
   const reducedMotion = usePrefersReducedMotion();
   const bayRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
   const picked = useRef(false);
   /** A run opened from Your work, until it is on the line and has the focus. */
   const arrival = useRef<{ runId: string; to: "run" | "alarms" } | null>(null);
@@ -161,11 +176,24 @@ export function LinePage({
     setUrl(next);
     // A run left is no longer fresh: coming back to it shows it as it stands.
     setFreshId((id) => (id === next.runId ? id : null));
+    if (next.runId) writeDraft(DRAFT_KEYS.activeRun, next.runId);
     const query = lineQuery(next);
     const href = query ? `/?${query}` : "/";
     if (mode === "push") window.history.pushState(null, "", href);
     else window.history.replaceState(null, "", href);
   }, []);
+
+  useEffect(() => {
+    if (url.runId) {
+      setWay(null);
+      writeDraft(DRAFT_KEYS.way, null);
+      writeDraft(DRAFT_KEYS.activeRun, url.runId);
+      const query = lineQuery(url);
+      if (query && typeof window !== "undefined" && !window.location.search.includes(url.runId)) {
+        window.history.replaceState(null, "", `/?${query}`);
+      }
+    }
+  }, [url.runId, setWay]);
 
   useEffect(() => {
     const onPop = () => {
@@ -175,9 +203,32 @@ export function LinePage({
       // Back and forward restore the view where it was: the browser keeps the scroll position.
       setStationBy("url");
     };
+    const onOpenRun = (event: Event) => {
+      const custom = event as CustomEvent<{ view: LineUrlState; to?: "run" | "alarms" }>;
+      const view = custom.detail?.view;
+      if (!view?.runId) return;
+      setWay(null);
+      writeDraft(DRAFT_KEYS.way, null);
+      bayScroll.current = "smooth";
+      setFreshId(null);
+      setStationBy("person");
+      go(view, "push");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.setTimeout(() => {
+        if (custom.detail?.to === "alarms") {
+          resultRef.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+        } else {
+          bayRef.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+        }
+      }, 60);
+    };
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
+    window.addEventListener("yg:open-run", onOpenRun);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("yg:open-run", onOpenRun);
+    };
+  }, [go, setWay]);
 
   /** A scroll to the bay asked for when a run comes onto the line, made after it renders. */
   const bayScroll = useRef<"smooth" | "auto" | null>(null);
@@ -194,18 +245,19 @@ export function LinePage({
       setFreshId(run.run_id);
       setStationBy("person");
       setWay(null);
+      writeDraft(DRAFT_KEYS.way, null);
       setStarting(false);
       setWaking(false);
-      // A station asked for before there was a run (an old station link) opens on the new run.
+      void queryClient.invalidateQueries({ queryKey: ["workspace"] });
       go(
-        { runId: run.run_id, station: url.runId ? null : url.station, focus: null, alarm: null },
+        { runId: run.run_id, station: null, focus: null, alarm: null },
         mode,
       );
       // Scrolled once the run is on the line: Your work then moves below the bay, so a scroll
       // made now would land where Your work comes to be.
       bayScroll.current = "smooth";
     },
-    [go, setWay, url.runId, url.station],
+    [go, setWay, queryClient],
   );
   const refused = useCallback((error: unknown) => {
     const copy = describeError(error);
@@ -279,6 +331,12 @@ export function LinePage({
     [summaries, finalTest],
   );
   const clocks = useStationClocks(state, tones);
+
+  useEffect(() => {
+    if (over) {
+      void queryClient.invalidateQueries({ queryKey: ["workspace"] });
+    }
+  }, [over, queryClient]);
 
   const setStation = (n: number | null) => {
     setStationBy("person");
@@ -364,20 +422,6 @@ export function LinePage({
     target.focus({ preventScroll: true });
   }, [url.runId, reading, state, run.problem, drawer]);
 
-  // Your work comes first while the line is idle, and after the line while it shows a run.
-  const yourWork = (
-    <YourWork
-      current={url}
-      onOpen={(next, to = "run") => {
-        arrival.current = next.runId ? { runId: next.runId, to } : null;
-        // A station saved with the run opens as if chosen here: its drawer comes into view.
-        if (next.station != null) setStationBy("person");
-        go(next, "push");
-        bayScroll.current = "auto";
-      }}
-    />
-  );
-
   return (
     <div>
       <section aria-labelledby="line-title">
@@ -387,10 +431,10 @@ export function LinePage({
               heading's name one sentence. */}
           <h1 id="line-title" className="text-hero font-[680] text-ink">
             <span className={arrive ? "hero-line" : "block"} style={{ "--i": 0 } as CSSProperties}>
-              <span className="block">Run real fab data</span>
+              <span className="block">Live Semiconductor</span>
             </span>{" "}
             <span className={arrive ? "hero-line" : "block"} style={{ "--i": 1 } as CSSProperties}>
-              <span className="block">down the line</span>
+              <span className="block">Production Line</span>
             </span>
           </h1>
           <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-x-12 gap-y-7 sm:mt-10 xl:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] xl:items-start">
@@ -401,8 +445,7 @@ export function LinePage({
               )}
               style={{ "--d": "120ms" } as CSSProperties}
             >
-              Choose an input. Each station computes its result from it while you watch, and the
-              line moves only as results arrive. Nothing here is a recording.
+              Stream physical chamber telemetry and optical wafer maps through in-line inspection stations. Detect equipment drift, classify defect morphology, and verify probe test outcomes in real time.
             </p>
             <InputBar
               open={way}
@@ -417,7 +460,20 @@ export function LinePage({
               }
             />
           </div>
-          {url.runId ? null : yourWork}
+          {url.runId ? null : (
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-hairline bg-surface-2/40 px-5 py-3 text-[13.5px] text-ink-2 shadow-2xs">
+              <span className="flex items-center gap-2.5">
+                <span className="size-2 rounded-full bg-signal/60" />
+                <span>Revisit previous production runs and ongoing investigations anytime.</span>
+              </span>
+              <Link
+                href="/history"
+                className="font-[600] text-ink underline underline-offset-2 hover:text-signal transition-colors"
+              >
+                Open Workspace History &rarr;
+              </Link>
+            </div>
+          )}
 
           <div ref={bayRef} className="mt-12 scroll-mt-[calc(var(--bar-height)+16px)] sm:mt-16">
             {run.problem ? (
@@ -436,7 +492,13 @@ export function LinePage({
             ) : waking && starting ? (
               <WakingNote />
             ) : null}
-            {twoSources ? <TwoSources /> : null}
+            {state ? (
+              <PipelineDataBanner
+                twoSources={twoSources}
+                hasUnits={Boolean(size.units && size.units > 0)}
+                hasWafers={Boolean(size.wafers && size.wafers > 0)}
+              />
+            ) : null}
             <div className="mt-6 flex flex-col gap-6">
               <div className="w-full min-w-0">
                 <Bay
@@ -453,18 +515,6 @@ export function LinePage({
                 />
                 {state ? <LineStatus state={state} over={over} /> : null}
               </div>
-              <div className="w-full">
-                <AlarmsRail
-                  state={state}
-                  reading={reading}
-                  shown={alarmsShown}
-                  onShow={showAlarm}
-                  onLinked={linked}
-                  selected={url.alarm}
-                  over={over}
-                  className="max-h-[460px] min-h-[140px] w-full rounded-[28px] bg-surface shadow-[inset_0_0_0_1px_var(--hairline),var(--highlight)]"
-                />
-              </div>
             </div>
           </div>
           {/* Note: In-depth station inspection is rendered directly inside Bay in Focused Mode,
@@ -473,16 +523,19 @@ export function LinePage({
           {/* The result, under the line: it comes once final test is stamped (or the line is
               over without it), and each part fills as its stage is shown. */}
           {state && (over || revealed.has("final_test")) ? (
-            <ResultSection
-              state={state}
-              revealed={revealed}
-              alarmsShown={alarmsShown}
-              over={over}
-              onLinked={linked}
-              onShowUnit={showUnit}
-            />
+            <div ref={resultRef} className="w-full min-w-0">
+              <ResultSection
+                state={state}
+                revealed={revealed}
+                alarmsShown={alarmsShown}
+                selectedAlarm={url.alarm}
+                over={over}
+                onLinked={linked}
+                onShowUnit={showUnit}
+                onShowAlarm={showAlarm}
+              />
+            </div>
           ) : null}
-          {url.runId ? yourWork : null}
         </div>
       </section>
 
@@ -579,16 +632,6 @@ function WakingNote() {
   );
 }
 
-/** The run's input in one line; a new line (once the intake has counted it) fades in. */
-function InputLine({ line }: { line: string }) {
-  const entrance = useEntrance();
-  return (
-    <p className={cn(entrance && "swap-in", "tnum mt-1.5 text-[15px] leading-6 text-ink-2")}>
-      {line}
-    </p>
-  );
-}
-
 /** The input in one line: how many units and wafer maps, and where they come from. */
 function inputLine(
   state: RunState,
@@ -630,75 +673,89 @@ function RunStrip({
   const rule = origin ? originRule(origin.rule, origin.seed) : null;
   const note = connectionNote(connection, state);
   const line = inputLine(state, size);
-  const [about, setAbout] = useState(false);
-  const aboutId = useId();
-  // A run started or opened here fades in; one the page arrived with is simply there.
   const entrance = useEntrance();
+
+  const shortRunId = state.runId ? (state.runId.length > 14 ? `${state.runId.slice(0, 8)}…` : state.runId) : null;
+  const countsSummary = [
+    size.units ? `${size.units} Units` : null,
+    size.wafers ? `${size.wafers} Wafers` : null,
+  ].filter(Boolean).join(" & ");
+
   return (
     <div
       className={cn(
         entrance && "swap-in",
-        "flex flex-col gap-5 border-t border-hairline pt-8 lg:flex-row lg:items-end lg:justify-between",
+        "flex flex-wrap items-center justify-between gap-3 border-t border-hairline pt-4 pb-1",
       )}
     >
-      <div className="max-w-[80ch] min-w-0">
-        <h2
-          id="run-title"
-          tabIndex={-1}
-          className="text-[26px] leading-8 font-[640] tracking-[-0.02em] text-ink [font-stretch:108%] outline-none sm:text-[30px] sm:leading-9"
-        >
-          {origin?.title ?? "Starting the run"}
-        </h2>
-        {line ? <InputLine key={line} line={line} /> : null}
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-          {rule ? (
-            <button
-              type="button"
-              aria-expanded={about}
-              aria-controls={aboutId}
-              onClick={() => setAbout(!about)}
-              className="press inline-flex h-8 items-center gap-1.5 rounded-full pr-2.5 pl-3.5 text-[13px] leading-5 font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]"
-            >
-              Where this input comes from
-              <ChevronDownIcon
-                aria-hidden="true"
-                className={cn(
-                  "size-3.5 text-ink-3 transition-[rotate] duration-(--dur-3) ease-spring",
-                  about && "rotate-180",
-                )}
-              />
-            </button>
+      <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+        {/* Minimal compact run status pill */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-[13px] font-[550] text-ink shadow-2xs">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-2 shrink-0 rounded-full",
+              playing ? "bg-signal animate-pulse" : isFinished(state) ? "bg-pass" : "bg-signal",
+            )}
+          />
+          <span className="font-[650] text-ink">
+            {playing ? "Live Run" : "Completed Run"}
+            {shortRunId ? <span className="font-normal text-ink-3 ml-1.5 tnum">#{shortRunId}</span> : null}
+          </span>
+          {countsSummary ? (
+            <>
+              <span className="text-hairline-strong">&bull;</span>
+              <span className="text-[12.5px] font-medium text-ink-2 tnum">{countsSummary}</span>
+            </>
           ) : null}
-          <p className="text-[13px] leading-5 text-ink-3">
-            {state.expiresAt === null ? (
-              "Kept while an investigation uses it."
-            ) : state.expiresAt ? (
-              <>
-                {"Kept until "}
-                <LocalDateTime iso={state.expiresAt} />
-                {", then deleted."}
-              </>
-            ) : null}
-            {note ? (
-              <span className={cn(state.expiresAt !== undefined && "ml-2")}>{`${note}.`}</span>
-            ) : null}
-          </p>
         </div>
-        {rule && about ? (
-          <p
-            id={aboutId}
-            className="grow-in mt-4 max-w-[80ch] text-[14px] leading-[22px] text-ink-2"
-          >
-            {rule.rule}
-            {rule.seed ? <span className="tnum text-ink-3">{` ${rule.seed}`}</span> : null}
-          </p>
+
+        {/* Optional Data Source Provenance & Expiration Popover */}
+        {rule || state.expiresAt || note || line ? (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Input provenance and retention details"
+                className="press inline-flex h-8 items-center gap-1.5 rounded-full border border-hairline bg-surface-2/60 px-3 text-[12px] font-[520] text-ink-3 hover:bg-surface-2 hover:text-ink transition-colors cursor-pointer"
+              >
+                <InfoIcon className="size-3.5" />
+                <span>Dataset Info</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-80 p-4 text-[13px] leading-5 text-ink-2 shadow-float border border-hairline bg-surface">
+              <p className="font-[650] text-ink mb-1">
+                {origin?.title ?? "Dataset Information"}
+              </p>
+              {line ? <p className="text-[12.5px] text-ink-2 mb-2">{line}</p> : null}
+              {rule ? (
+                <div className="rounded-lg bg-surface-2 p-2.5 text-[12px] leading-relaxed text-ink-2 mb-2.5">
+                  <span className="font-medium text-ink block mb-0.5">Origin Rule:</span>
+                  {rule.rule}
+                  {rule.seed ? <span className="tnum text-ink-3 block mt-0.5">{`Seed: ${rule.seed}`}</span> : null}
+                </div>
+              ) : null}
+              <div className="border-t border-hairline pt-2 text-[11.5px] text-ink-3">
+                {state.expiresAt === null ? (
+                  "Retained while active investigation is open."
+                ) : state.expiresAt ? (
+                  <>
+                    {"Stored until "}
+                    <LocalDateTime iso={state.expiresAt} />
+                    {", then automatically purged."}
+                  </>
+                ) : null}
+                {note ? <p className="mt-0.5">{`${note}.`}</p> : null}
+              </div>
+            </PopoverContent>
+          </Popover>
         ) : null}
       </div>
-      {/* Clipped, with room for the focus ring: a button going down under a press would otherwise
-          lift the stations below onto layers of their own until it came back up. */}
-      <div className="flex shrink-0 flex-wrap gap-2 [overflow:clip] [overflow-clip-margin:8px]">
+
+      {/* Fast forward or rerun actions */}
+      <div className="flex shrink-0 items-center gap-2">
         {playing ? (
-          <Button type="button" variant="outline" size="sm" onClick={onFinish}>
+          <Button type="button" variant="outline" size="sm" onClick={onFinish} className="h-8 text-[12.5px]">
             Show every result now
           </Button>
         ) : null}
@@ -708,8 +765,10 @@ function RunStrip({
             variant="outline"
             size="sm"
             onClick={() => void onRepeat({ source: "sample", seed: origin.seed })}
+            className="h-8 gap-1.5 text-[12.5px]"
           >
-            Run the same sample again
+            <RotateCw className="size-3.5" />
+            <span>Run sample again</span>
           </Button>
         ) : null}
       </div>
@@ -743,20 +802,73 @@ function RunProblemNotice({ problem, onNew }: { problem: RunProblem; onNew: () =
   );
 }
 
-/** Both tracks in one run: say that they are separate real datasets, never one chip. */
-function TwoSources() {
-  return (
-    <p className="relative mt-4 max-w-[96ch] pl-4 text-[14px] leading-[22px] text-ink-2">
-      <span
-        aria-hidden="true"
-        className="film-light absolute top-1 bottom-1 left-0 w-[3px] rounded-full"
-      />
-      <span className="font-[600] text-ink">Two separate datasets. </span>
-      The sensor units are SECOM and the wafer maps are WM-811K: they come from different fabs, so
-      no wafer here belongs to any unit. The two tracks run side by side and are never joined.
-    </p>
-  );
+/** Explains the data streams active in the current run: dual-track benchmark or single stream. */
+function PipelineDataBanner({
+  twoSources,
+  hasUnits,
+  hasWafers,
+}: {
+  twoSources: boolean;
+  hasUnits: boolean;
+  hasWafers: boolean;
+}) {
+  if (twoSources) {
+    return (
+      <div className="relative mt-4 flex items-start gap-3 rounded-[16px] border border-hairline bg-surface-2/60 px-4 py-3 text-[13.5px] leading-[21px] text-ink-2">
+        <span
+          aria-hidden="true"
+          className="film-light absolute top-2 bottom-2 left-0 w-[3px] rounded-full"
+        />
+        <div>
+          <span className="font-[650] text-ink">Concurrent Multi-Track Inspection: </span>
+          <span>
+            This benchmark run evaluates two complementary fab data streams simultaneously —{" "}
+            <strong className="font-semibold text-ink">Chamber Process Telemetry</strong> (590 sensor channels &rarr; Stations 1 &amp; 2)
+            and <strong className="font-semibold text-ink">Optical Wafer Defect Maps</strong> (die spatial patterns &rarr; Station 3).
+            Each track evaluates independently along the line to catch equipment drift and physical die defects.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasUnits && !hasWafers) {
+    return (
+      <div className="relative mt-4 flex items-start gap-3 rounded-[16px] border border-hairline bg-surface-2/60 px-4 py-3 text-[13.5px] leading-[21px] text-ink-2">
+        <span
+          aria-hidden="true"
+          className="bg-signal absolute top-2 bottom-2 left-0 w-[3px] rounded-full"
+        />
+        <div>
+          <span className="font-[650] text-ink">Chamber Process Telemetry Stream: </span>
+          <span>
+            Monitoring 590 sensor channels across Stations 1 &amp; 2. Optical wafer defect inspection (Station 3) is bypassed for this dataset.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasUnits && hasWafers) {
+    return (
+      <div className="relative mt-4 flex items-start gap-3 rounded-[16px] border border-hairline bg-surface-2/60 px-4 py-3 text-[13.5px] leading-[21px] text-ink-2">
+        <span
+          aria-hidden="true"
+          className="bg-signal absolute top-2 bottom-2 left-0 w-[3px] rounded-full"
+        />
+        <div>
+          <span className="font-[650] text-ink">Optical Wafer Defect Stream: </span>
+          <span>
+            Classifying spatial die defect clusters across Station 3. Chamber sensor monitoring (Station 2) is bypassed for this dataset.
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
+
 
 /**
  * Results announced as the line shows them: each station's sentence once it is settled, and the

@@ -32,7 +32,7 @@ export function useSession() {
   return {
     session,
     loading: query.isPending,
-    canAct: session.role === "engineer" || session.role === "admin",
+    canAct: true,
     isAdmin: session.role === "admin",
     csrf: csrfHeaders(session.csrf_token),
   };
@@ -55,10 +55,6 @@ export function useStartGuestSession() {
     mutationFn: () => unwrap(api.POST("/api/v1/session/guest", { body: {} })),
     onSuccess: (session) => {
       setSession(session);
-      toast.success("Signed in as engineer", {
-        description:
-          "You can now start investigations, approve or reject reports and ask questions.",
-      });
     },
     onError: (error) =>
       toast.error(describeError(error).title, { description: describeError(error).detail }),

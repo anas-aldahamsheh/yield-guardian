@@ -372,6 +372,27 @@ class Materialiser:
         if self.uploads is None:
             raise NotReadyError("Uploads are not available on this server.")
         filename, data = await self.uploads.runnable_upload(payload.upload_id, viewer=viewer)
+        if payload.wafer_upload_id is not None:
+            w_filename, w_data = await self.uploads.runnable_upload(
+                payload.wafer_upload_id, viewer=viewer
+            )
+            units = data.units if data.units else w_data.units
+            wafers = w_data.wafers if w_data.wafers else data.wafers
+            if units:
+                self._sensors()
+            if wafers:
+                self._wafers()
+            rows_u = f"{len(units):,} sensor units" if units else "no units"
+            rows_w = f"{len(wafers):,} wafers" if wafers else "no wafers"
+            origin = RunOrigin(
+                source="upload",
+                datasets=["user"],
+                title="Your fab data (dual-stream)",
+                rule=f"Dual-stream run: {rows_u} from {filename} and {rows_w} from {w_filename}, in file order.",
+                filename=f"{filename} & {w_filename}",
+            )
+            return origin, RunInput(units=units, wafers=wafers)
+
         if data.units:
             self._sensors()
         if data.wafers:

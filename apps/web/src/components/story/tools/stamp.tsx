@@ -89,6 +89,11 @@ export function StampTool({ state, store }: { state: RunState | null; store: Sce
         const visible = i < Math.round(t * marks.length);
         return (
           <g key={u.index} opacity={visible ? 1 : 0}>
+            <title>
+              {`Unit ${u.index + 1}: ${u.result === "fail" ? "Failed final test" : "Passed final test"}${
+                u.flagged ? " (Flagged early by Station 2 risk model)" : ""
+              }`}
+            </title>
             <rect
               x={x}
               y={y}
@@ -107,12 +112,24 @@ export function StampTool({ state, store }: { state: RunState | null; store: Sce
                 rx={2.5}
                 fill="none"
                 stroke="var(--ink)"
-                strokeWidth={1}
+                strokeWidth={1.25}
               />
             ) : null}
           </g>
         );
       })}
+      {marks.some((u) => u.flagged) ? (
+        <text
+          x={100}
+          y={242}
+          textAnchor="middle"
+          fontSize={8.5}
+          fill="var(--ink-3)"
+          letterSpacing="0.01em"
+        >
+          White outline: Flagged by early risk model
+        </text>
+      ) : null}
     </svg>
   );
 }

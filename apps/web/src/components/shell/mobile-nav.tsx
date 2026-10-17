@@ -14,7 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, isActive } from "./nav-items";
-import { SessionControl } from "./session-control";
 import { MenuButton } from "./top-bar";
 
 /**
@@ -78,12 +77,6 @@ export default function MobileNavSheet({ pathname }: { pathname: string }) {
             })}
           </ul>
         </nav>
-        <div
-          className="rise-in mt-auto grid grid-cols-[minmax(0,1fr)] gap-3 border-t border-hairline px-6 py-5"
-          style={{ "--i": NAV_ITEMS.length, "--d": "120ms" } as React.CSSProperties}
-        >
-          <SessionControl stacked className="md:hidden" />
-        </div>
       </SheetContent>
     </Sheet>
   );

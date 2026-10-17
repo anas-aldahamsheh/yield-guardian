@@ -16,7 +16,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useApi } from "@/lib/api/context";
 import { ApiError } from "@/lib/api/errors";
 import { q } from "@/lib/api/queries";
-import { useSession, useStartGuestSession } from "@/lib/api/session";
 import { useUpdateWorkOrder } from "@/lib/api/work-orders";
 import {
   type ConfirmedCause,
@@ -289,8 +288,6 @@ function UpdatePanel({
   /** The report's hypotheses; null while they load. */
   hypotheses: readonly Hypothesis[] | null;
 }) {
-  const { canAct } = useSession();
-  const guest = useStartGuestSession();
   const update = useUpdateWorkOrder(order.work_order_id);
   const [status, setStatus] = useState(order.status);
   const [note, setNote] = useState(order.note ?? "");
@@ -337,26 +334,6 @@ function UpdatePanel({
     );
   }
 
-  if (!canAct) {
-    return (
-      <Panel title="Outcome">
-        <Readonly order={order} />
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-surface-2 py-2.5 pr-2.5 pl-4">
-          <p className="text-[13.5px] leading-5 text-ink-2">
-            Updating a work order needs an engineer session.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => guest.mutate()}
-            disabled={guest.isPending}
-          >
-            {guest.isPending ? "Signing in…" : "Try as engineer"}
-          </Button>
-        </div>
-      </Panel>
-    );
-  }
 
   return (
     <Panel title="Update" description="Changes are recorded in the audit log with your name.">

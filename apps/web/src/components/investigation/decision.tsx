@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useDecideInvestigation } from "@/lib/api/investigations";
-import { useSession, useStartGuestSession } from "@/lib/api/session";
+import { useSession } from "@/lib/api/session";
 import { plural } from "@/lib/format";
 import { lineHref, workOrderHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,6 @@ export function DecisionActions({
   shared: Shared;
 }) {
   const { canAct } = useSession();
-  const guest = useStartGuestSession();
   const decide = useDecideInvestigation(investigation.investigation_id);
   const [chosen, setChosen] = useState<Set<number>>(() => new Set(report.actions.map((_, i) => i)));
   const [note, setNote] = useState("");
@@ -187,20 +186,6 @@ export function DecisionActions({
           </p>
           <Button asChild size="sm" variant="outline">
             <Link href={lineHref()}>Open the line</Link>
-          </Button>
-        </div>
-      ) : investigation.status === "awaiting_decision" && !canAct ? (
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-[16px] bg-surface-2 py-3 pr-3 pl-4 sm:pl-5">
-          <p className="text-[14px] leading-5 text-ink-2">
-            Approving or rejecting a report needs an engineer session.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => guest.mutate()}
-            disabled={guest.isPending}
-          >
-            {guest.isPending ? "Signing in…" : "Try as engineer"}
           </Button>
         </div>
       ) : open ? (

@@ -586,7 +586,7 @@ function ChartPanel({ charts, unit }: { charts: ControlChartsView; unit: UnitCha
               aria-pressed={stat === s}
               onClick={() => setStat(s)}
               className={cn(
-                "press inline-flex h-7 items-center rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink-2 hover:text-ink",
+                "press cursor-pointer inline-flex h-7 items-center rounded-full px-3 text-[12.5px] leading-none font-[560] text-ink-2 hover:text-ink",
                 stat === s &&
                   "bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.08),inset_0_0_0_1px_var(--hairline)] dark:bg-surface-3",
               )}
@@ -768,7 +768,7 @@ function HealthPanel({ drift }: { drift: DriftHealthView }) {
             aria-pressed={status === s}
             onClick={() => setStatus(s)}
             className={cn(
-              "tnum press inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]",
+              "tnum press cursor-pointer inline-flex h-8 items-center justify-center rounded-full px-3.5 text-[13px] leading-none font-[560] text-ink shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_var(--edge)]",
               status === s && "lit",
             )}
           >

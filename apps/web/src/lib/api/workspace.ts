@@ -100,6 +100,7 @@ export const wq = {
           }),
         ),
       getNextPageParam: (last) => last.next_cursor ?? undefined,
+      staleTime: 0,
     }),
 
   compare: (api: Api, runId: string, otherId: string) =>

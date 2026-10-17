@@ -162,7 +162,7 @@ function WaferChooser({
               aria-pressed={selected === i}
               onClick={() => onSelect(i)}
               className={cn(
-                "press flex w-full flex-col items-center gap-1.5 rounded-[14px] p-2 hover:bg-surface-2",
+                "press flex w-full cursor-pointer flex-col items-center gap-1.5 rounded-[14px] p-2 hover:bg-surface-2",
                 selected === i && "lit",
               )}
             >

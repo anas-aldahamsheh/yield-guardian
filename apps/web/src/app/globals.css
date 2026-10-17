@@ -1230,3 +1230,20 @@
 .bg-signal-wash .text-fail {
   color: color-mix(in oklab, var(--fail) 88%, var(--ink));
 }
+
+/* All buttons, interactive tabs, and role=button controls default to pointer cursor */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]):not(:disabled),
+[role="tab"]:not([aria-disabled="true"]):not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[role="button"]:disabled {
+  cursor: not-allowed;
+}

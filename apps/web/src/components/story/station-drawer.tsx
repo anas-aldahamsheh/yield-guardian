@@ -108,7 +108,7 @@ export function StationDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
+          className="press inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full pr-3.5 pl-3 text-[13.5px] font-[560] text-ink-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)] hover:bg-surface-2 hover:text-ink"
         >
           <XIcon aria-hidden="true" className="size-4" strokeWidth={2} />
           Close

@@ -15,6 +15,12 @@ export const DRAFT_KEYS = {
   drawing: "drawing",
   /** The checked upload on the upload panel (its UploadSummary). */
   upload: "upload",
+  /** Uploaded sensor file draft. */
+  uploadSensors: "upload_sensors",
+  /** Uploaded wafer maps file draft. */
+  uploadWafers: "upload_wafers",
+  /** The active run currently running or viewed on the Line page. */
+  activeRun: "active_run",
 } as const;
 
 export type DraftKey = (typeof DRAFT_KEYS)[keyof typeof DRAFT_KEYS];
