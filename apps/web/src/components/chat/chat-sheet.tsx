@@ -101,7 +101,8 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const params = useSearchParams();
   const pageContext = contextFromLocation(pathname, new URLSearchParams(params.toString()));
   const [open, setOpen] = useState(defaultOpen);
-  const [useContext, setUseContext] = useState(true);
+  // The chat always reads the visible page; there is no toggle.
+  const useContext = true;
   const [draft, setDraft] = useState("");
   const [attached, setAttached] = useState<AttachedFile | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -370,12 +371,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
                         <span className="truncate">{t.attachedFile}</span>
                       </div>
                     ) : null}
-                    <p>{t.question}</p>
-                    {t.context ? (
-                      <span className="mt-0.5 block text-[12px] text-canvas/70">
-                        About {describeContext(t.context)}
-                      </span>
-                    ) : null}
+                    <p dir="auto" className="text-start whitespace-pre-wrap">{t.question}</p>
                   </div>
                   <AnswerView turn={t} onStarted={() => setOpen(false)} />
                 </li>
@@ -402,17 +398,6 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
                   e.target.value = "";
                 }}
               />
-              <div className="flex items-center justify-between gap-2">
-                <label className="flex w-fit cursor-pointer items-center gap-2 text-[12.5px] leading-4 text-ink-2">
-                  <input
-                    type="checkbox"
-                    checked={useContext}
-                    onChange={(e) => setUseContext(e.target.checked)}
-                    className="size-4 accent-[var(--signal)]"
-                  />
-                  About {describeContext(pageContext ?? {})}
-                </label>
-              </div>
 
               {attached ? (
                 <div className="flex items-center justify-between gap-2 rounded-[14px] bg-surface-2 px-3 py-1.5 text-[12.5px] text-ink shadow-[inset_0_0_0_1px_var(--hairline)]">
@@ -446,6 +431,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
                   <span className="sr-only">Attach .md file</span>
                 </Button>
                 <Textarea
+                  dir="auto"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={onKeyDown}
@@ -524,6 +510,15 @@ function AnswerView({ turn, onStarted }: { turn: Turn; onStarted: () => void }) 
         >
           <Markdown
             components={{
+              // Each block takes its direction from its own text: Arabic right to left, English left to right.
+              p: ({ node: _n, ...props }) => <p dir="auto" {...props} />,
+              li: ({ node: _n, ...props }) => <li dir="auto" {...props} />,
+              ul: ({ node: _n, ...props }) => <ul dir="auto" {...props} />,
+              ol: ({ node: _n, ...props }) => <ol dir="auto" {...props} />,
+              h1: ({ node: _n, ...props }) => <h1 dir="auto" {...props} />,
+              h2: ({ node: _n, ...props }) => <h2 dir="auto" {...props} />,
+              h3: ({ node: _n, ...props }) => <h3 dir="auto" {...props} />,
+              blockquote: ({ node: _n, ...props }) => <blockquote dir="auto" {...props} />,
               a: ({ href, children, ...props }) => {
                 if (href?.startsWith("#cite:")) {
                   const cite = href.slice("#cite:".length);
