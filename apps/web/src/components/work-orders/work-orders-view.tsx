@@ -3,7 +3,7 @@
 import { LocalDateTime } from "@/components/local-date-time";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { WorkOrder } from "@yield-guardian/contracts";
-import { ClockIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, ClockIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 
 import { useEntrance } from "@/components/motion/entrance";
@@ -11,6 +11,13 @@ import { Panel } from "@/components/page";
 import { EmptyState, ErrorState, Placeholder } from "@/components/states";
 import { Tag } from "@/components/tag";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useApi } from "@/lib/api/context";
 import { q } from "@/lib/api/queries";
 import { formatInt } from "@/lib/format";
@@ -227,24 +234,36 @@ function StatusSelect({ order }: { order: WorkOrder }) {
   const update = useUpdateWorkOrder(order.work_order_id);
   const shown = update.isPending && update.variables?.status ? update.variables.status : order.status;
   return (
-    <label className="relative inline-flex cursor-pointer items-center gap-1 rounded-full focus-within:ring-2 focus-within:ring-[var(--signal)]">
-      <span className="sr-only">Status of {order.work_order_id}</span>
-      <StatusMark status={shown} />
-      <span aria-hidden="true" className="text-[11px] text-ink-3">
-        {update.isPending ? "…" : "▾"}
-      </span>
-      <select
-        value={shown}
+    <DropdownMenu>
+      <DropdownMenuTrigger
         disabled={update.isPending}
-        onChange={(e) => update.mutate({ status: e.target.value as WorkOrder["status"] })}
-        className="absolute inset-0 cursor-pointer opacity-0"
+        aria-label={`Status of ${order.work_order_id}: ${WORK_ORDER_STATUS[shown] ?? shown}. Change`}
+        className="group/status inline-flex cursor-pointer items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] disabled:cursor-default disabled:opacity-70"
       >
-        {Object.entries(WORK_ORDER_STATUS).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <StatusMark status={shown} />
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="size-3.5 text-ink-3 transition-transform duration-(--dur-2) group-data-[state=open]/status:rotate-180"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-[10rem] rounded-[14px] p-1.5">
+        <DropdownMenuRadioGroup
+          value={shown}
+          onValueChange={(value) => {
+            if (value !== order.status) update.mutate({ status: value as WorkOrder["status"] });
+          }}
+        >
+          {Object.keys(WORK_ORDER_STATUS).map((value) => (
+            <DropdownMenuRadioItem
+              key={value}
+              value={value}
+              className="cursor-pointer rounded-[10px] py-1.5"
+            >
+              <StatusMark status={value as WorkOrder["status"]} />
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
