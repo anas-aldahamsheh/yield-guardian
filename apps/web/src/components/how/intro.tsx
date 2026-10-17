@@ -167,8 +167,9 @@ export function HowIntro() {
           Two kinds of input
         </h2>
         <p className="mt-4 max-w-[66ch] text-[17px] leading-7 text-ink-2">
-          Everything the line reads is one of two kinds. Each kind has its own data, its own models
-          and its own file layout, and both run down the same five stations.
+          Everything the line reads is one of two kinds, each with its own data, models and file
+          layout. The two run side by side on the line and are never joined, because they come
+          from different fabs. You can bring either one or both.
         </p>
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
           <div className="glow panel p-6">
@@ -200,7 +201,8 @@ export function HowIntro() {
             <ul className="mt-4 grid gap-3 text-[16px] leading-7 text-ink">
               <Point title="What it tells you">
                 The defect pattern, such as an edge ring, a scratch or a centre cluster, whether the
-                pattern is one the model has not seen, and the most similar real wafers.
+                pattern is one the model has not seen, the most similar real wafers, and patterns that
+                repeat across a lot.
               </Point>
               <Point title="Trained on">WM-811K, real wafer maps from real fabs.</Point>
               <Point title="Your file">
