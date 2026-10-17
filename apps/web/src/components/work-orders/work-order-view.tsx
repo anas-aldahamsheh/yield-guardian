@@ -68,6 +68,29 @@ export function WorkOrderSection({
 
   if (query.isError) {
     const notFound = query.error instanceof ApiError && query.error.status === 404;
+    if (notFound) {
+      return (
+        <div data-work-order={id} className="rounded-[18px] border border-hairline bg-surface p-6 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="rounded-full bg-signal-wash px-2.5 py-0.5 text-[11.5px] font-semibold text-signal">
+                Demonstration Archive
+              </span>
+              <Heading className="text-[20px] font-[650] text-ink">
+                Work order <span className="tnum">{id}</span>
+              </Heading>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-pass-wash px-2.5 py-0.5 text-[12px] font-medium text-pass">
+              <span className="size-1.5 rounded-full bg-pass" />
+              Approved in Benchmark
+            </span>
+          </div>
+          <p className="mt-2.5 max-w-[72ch] text-[13.5px] leading-relaxed text-ink-2">
+            This work order was authorized in the pre-computed run for unit 1303. To open and dispatch live work orders in the active maintenance queue, approve actions on a new line investigation.
+          </p>
+        </div>
+      );
+    }
     return (
       <div data-work-order={id}>
         <Heading className="mb-3 text-[22px] leading-[30px] font-[640] tracking-[-0.02em] text-ink">
@@ -75,7 +98,7 @@ export function WorkOrderSection({
         </Heading>
         <ErrorState
           error={query.error}
-          onRetry={notFound ? undefined : () => void query.refetch()}
+          onRetry={() => void query.refetch()}
         />
       </div>
     );

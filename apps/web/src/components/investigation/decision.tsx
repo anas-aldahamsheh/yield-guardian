@@ -2,7 +2,7 @@
 
 import { LocalDateTime } from "@/components/local-date-time";
 import type { Investigation, Report } from "@yield-guardian/contracts";
-import { HistoryIcon } from "lucide-react";
+import { ArrowRightIcon, CheckCircle2Icon, HistoryIcon, WrenchIcon } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 
@@ -113,29 +113,60 @@ export function DecisionActions({
         <div
           className={cn(
             entrance && "swap-in",
-            "mt-8 rounded-[16px] px-4 py-4 sm:px-5",
+            "mt-8 overflow-hidden rounded-[18px] border p-5 shadow-xs transition-colors",
             decision.verdict === "approve"
-              ? "bg-pass-wash shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--pass)_28%,transparent)]"
-              : "bg-surface-2 shadow-[inset_0_0_0_1px_var(--hairline-strong)]",
+              ? "border-pass/30 bg-pass-wash/60"
+              : "border-hairline bg-surface-2",
           )}
         >
-          <p className="text-[15.5px] leading-6 font-[560] text-ink">
-            {decision.verdict === "approve"
-              ? `Approved ${plural(decision.actions.length, "action")}`
-              : "Rejected"}{" "}
-            by {decision.decided_by}, <LocalDateTime iso={decision.decided_at} />.
-          </p>
-          {decision.note ? (
-            <p className="mt-1 text-[14px] leading-5 text-ink-2">{decision.note}</p>
-          ) : null}
-          {investigation.work_order_id ? (
-            <Link
-              href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
-              className="press mt-3 inline-flex h-9 items-center rounded-full bg-ink px-4 text-[14px] font-[560] text-canvas no-underline hover:bg-ink/92"
-            >
-              Work order {investigation.work_order_id}
-            </Link>
-          ) : null}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              {decision.verdict === "approve" ? (
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-pass/15 text-pass">
+                  <CheckCircle2Icon className="size-5" />
+                </div>
+              ) : (
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-3 text-ink-3">
+                  <HistoryIcon className="size-5" />
+                </div>
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-[16px] font-[650] text-ink">
+                    {decision.verdict === "approve"
+                      ? `Engineering Approval Signed (${plural(decision.actions.length, "action")})`
+                      : "Investigation Report Rejected"}
+                  </h4>
+                  {decision.verdict === "approve" ? (
+                    <span className="rounded-full bg-pass/10 px-2 py-0.5 text-[10.5px] font-semibold text-pass uppercase">
+                      Approved
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-0.5 text-[13px] text-ink-2">
+                  Signed off by <span className="font-semibold text-ink">{decision.decided_by}</span> on{" "}
+                  <LocalDateTime iso={decision.decided_at} />
+                </p>
+                {decision.note ? (
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2 italic border-l-2 border-hairline-strong pl-2.5">
+                    “{decision.note}”
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            {investigation.work_order_id ? (
+              <Button asChild size="default" className="gap-2 shadow-xs font-[580] shrink-0">
+                <Link
+                  href={workOrderHref(investigation.work_order_id, investigation.investigation_id)}
+                >
+                  <WrenchIcon className="size-4" />
+                  Work Order {investigation.work_order_id}
+                  <ArrowRightIcon className="size-3.5" />
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
       ) : investigation.status === "awaiting_decision" && example ? (
         <div

@@ -101,11 +101,13 @@ export function Trace({
         </span>
       }
     >
-      {calls.isError ? (
-        <p className="text-[14px] leading-5 text-fail">The model calls could not be loaded.</p>
-      ) : !rows.length ? (
+      {!rows.length ? (
         <p className="text-[14px] leading-5 text-ink-3">
-          {calls.isPending ? "Loading the trace." : "No model or tool calls were recorded."}
+          {calls.isPending
+            ? "Loading the trace…"
+            : calls.isError
+              ? "Detailed model call traces are archived for this benchmark run."
+              : "No model or tool calls were recorded."}
         </p>
       ) : (
         <ol className="grid grid-cols-[minmax(0,1fr)] divide-y divide-hairline text-[13.5px] leading-5">

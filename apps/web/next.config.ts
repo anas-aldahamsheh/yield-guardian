@@ -28,6 +28,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: [...STATIC_SECURITY_HEADERS] }];
   },
+  async rewrites() {
+    const apiOrigin = process.env.API_INTERNAL_URL || "https://yield-guardian.anaslabs.com";
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiOrigin}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

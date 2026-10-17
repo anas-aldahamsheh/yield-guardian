@@ -30,6 +30,45 @@ export interface Shared {
   onSelect: (selection: EvidenceSelection) => void;
 }
 
+/** Categorizes an academic limitation into an intuitive engineering badge */
+function categorizeLimitation(text: string): { label: string; badge: string } {
+  const lower = text.toLowerCase();
+  if (lower.includes("missing")) {
+    return {
+      label: "Data Completeness",
+      badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    };
+  }
+  if (lower.includes("cause") || lower.includes("association")) {
+    return {
+      label: "Statistical Scope",
+      badge: "bg-signal-wash text-signal border-signal/20",
+    };
+  }
+  if (lower.includes("shap") || lower.includes("t²") || lower.includes("spe")) {
+    return {
+      label: "Model Attributions",
+      badge: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    };
+  }
+  if (lower.includes("pca") || lower.includes("reference period")) {
+    return {
+      label: "Baseline Window",
+      badge: "bg-surface-3 text-ink-2 border-hairline",
+    };
+  }
+  if (lower.includes("sensor group")) {
+    return {
+      label: "Feature Grouping",
+      badge: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    };
+  }
+  return {
+    label: "Process Context",
+    badge: "bg-surface-3 text-ink-2 border-hairline",
+  };
+}
+
 /** A report a language model wrote: serif, every number and claim linked to its evidence. */
 export function Report({
   report,
@@ -130,16 +169,43 @@ export function Report({
       )}
 
       {report.limitations.length ? (
-        <>
-          <h3 className="mt-10 border-t border-hairline pt-7 text-[18px] leading-6 font-[640] tracking-[-0.012em] text-ink">
-            Limitations
-          </h3>
-          <ul className="mt-4 grid max-w-[68ch] list-disc grid-cols-[minmax(0,1fr)] gap-2 pl-5 text-[15px] leading-6 text-ink-2 marker:text-ink-3">
-            {report.limitations.map((l, i) => (
-              <li key={i}>{l}</li>
-            ))}
-          </ul>
-        </>
+        <section aria-label="Process Limitations" className="mt-10 border-t border-hairline pt-7">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[18px] leading-6 font-[640] tracking-[-0.012em] text-ink">
+              Data & Process Limitations
+            </h3>
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11.5px] font-medium text-ink-3">
+              {report.limitations.length} notes
+            </span>
+          </div>
+          <p className="mt-1 text-[13.5px] text-ink-3">
+            Statistical boundaries and observational constraints established for this run:
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 gap-3">
+            {report.limitations.map((l, i) => {
+              const meta = categorizeLimitation(l);
+              return (
+                <div
+                  key={i}
+                  className="rounded-[14px] border border-hairline bg-surface-2/40 p-3.5 transition-all duration-200 hover:bg-surface-2 hover:border-hairline-strong"
+                >
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "rounded-full border px-2 py-0.5 font-mono text-[10.5px] font-semibold",
+                        meta.badge,
+                      )}
+                    >
+                      {meta.label}
+                    </span>
+                  </div>
+                  <p className="text-[14px] leading-relaxed text-ink-2">{l}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       ) : null}
     </article>
   );
