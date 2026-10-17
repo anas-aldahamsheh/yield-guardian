@@ -162,7 +162,7 @@ export function ChatSheet({ defaultOpen = false }: { defaultOpen?: boolean }) {
     a.href = url;
     a.download = `yield-guardian-chat-${new Date().toISOString().slice(0, 10)}.md`;
     a.click();
-    URL.revokeObjectURL(a);
+    URL.revokeObjectURL(url);
   };
 
   const ask = async (question: string) => {
