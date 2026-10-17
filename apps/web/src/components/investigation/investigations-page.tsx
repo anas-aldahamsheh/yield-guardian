@@ -4,7 +4,6 @@ import {
   CheckCircle2Icon,
   CpuIcon,
   ShieldCheckIcon,
-  SparklesIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -44,18 +43,6 @@ export function InvestigationsPage({
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-[760px] space-y-3.5">
-            {/* Live Indicator Pill */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-signal/25 bg-signal-wash px-2.5 py-0.5 text-[11.5px] font-[600] text-signal shadow-2xs">
-                <SparklesIcon className="size-3" />
-                Autonomous Semiconductor RCA
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-3">
-                <span className="live-dot size-1.5" />
-                Fab Line Telemetry Pipeline
-              </span>
-            </div>
-
             {/* Main Title */}
             <h1 className="text-[28px] font-[680] tracking-tight text-ink sm:text-[34px] sm:leading-[40px]">
               Investigations &amp; Maintenance Queue

@@ -81,12 +81,7 @@ export function InvestigationGuideBanner({
       <div className="relative z-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-[760px]">
-            <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface-2 px-3 py-1 text-[12.5px] font-[550] text-ink-2">
-              <span className="size-2 rounded-full bg-signal animate-pulse" />
-              Autonomous Semiconductor RCA Engine
-            </div>
-
-            <h2 className="mt-3 text-[26px] font-[650] tracking-[-0.02em] text-ink sm:text-[32px] sm:leading-[38px]">
+            <h2 className="text-[26px] font-[650] tracking-[-0.02em] text-ink sm:text-[32px] sm:leading-[38px]">
               How Investigations Work
             </h2>
             <p className="mt-2 text-[15.5px] leading-relaxed text-ink-2">

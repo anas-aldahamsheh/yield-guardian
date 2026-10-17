@@ -106,7 +106,7 @@ export function SiteFooter() {
 
         {/* Bottom Bar: Copyright & Operational State */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-hairline/70 pt-6 text-[12px] text-ink-3">
-          <p>© 2026 Yield Guardian. Autonomous Semiconductor RCA Engine.</p>
+          <p>© 2026 Yield Guardian.</p>
         </div>
       </div>
     </footer>
